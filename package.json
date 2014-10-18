@@ -1,0 +1,15 @@
+{
+  "name": "LSON",
+  "version": "0.0.0",
+  "description": "LSON is LSON",
+  "main": "LSON.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "relfor <me@relfor.co>",
+  "license": "",
+  "devDependencies": {
+    "gulp": "latest",
+    "gulp-concat": "^2.4.1"
+  }
+}
