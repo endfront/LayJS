@@ -99,11 +99,14 @@ appearance: none;
 (function () {
   "use strict";
 
+
   window.LSON = {
-    _cur_clog_key: 1,
+
+    $path2level: {},
+    $curClogKey: 1,
     // initiate with the start clog key: 1
-    _clog_key2levelS: { },
-    _dirtyPartS: []
+    $clogKey2_levelS_: { },
+    $dirtyPartS: []
   };
 
 })();

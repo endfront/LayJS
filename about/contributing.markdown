@@ -31,7 +31,7 @@ would be lesser preferable to:
 
   function foo() {
 
-    for( var i = 0; i < 10; i++ ) {
+    for ( var i = 0; i < 10; i++ ) {
 
         console.log( "number is: " + i );
 
@@ -43,43 +43,39 @@ would be lesser preferable to:
 
 ### Variable Names:
 
-**Strings & Numbers**
-
-snake_case
-
-  var first_name = "Tyrion";
-  var age = 50;
+camelCase
 
 
 **Boolean**
 
-is_<snake_case>
+is<name>
 
-  var is_number = typeof x === 'number';
+  var isNumber = typeof x === 'number';
 
 
 **Arrays**
 
-< case of array component >S
+< variable name of array component >S
 
-  var odd_integerS = [ 1, 3, 5, 7 ];
+  var oddIntegerS = [ 1, 3, 5, 7 ];
   var randomFunctionS = [ morePizza, moreCoke, morePepperoni ];
 
 The 'S' stacks up on multiple nesting of arrays:
-
 
   var randomFunctionSS = [ [ morePizza, moreCoke, morePepperoni ], [ moreCooking, moreMoney, morePets ] ];
 
 
 
 In case the number items of array is predetermined and small,
-then the variable name can be listed referring to all the componenets of the array separated by 'and', in this case:
+then the variable name can be listed referring to all the components of the array separated by '00', in this case:
 
-  var movie_and_year = [ 'Her', 2014 ];
+  var movie00year = [ 'Her', 2014 ];
 
 If this array were to be nested along with other movies, then the 'S' would stack as usual:
 
-  var movie_and_yearS = [ [ 'The Shawshank Redemption', 1994 ], [ 'Toy Story 3', 2010 ], [ 'Her', 2014 ] ];
+  var movie00yearS = [ [ 'The Shawshank Redemption', 1994 ], [ 'Toy Story 3', 2010 ], [ 'Her', 2014 ] ];
+
+
 
 
 **Objects**
@@ -104,5 +100,48 @@ camelCase
 camelCase  
 
 Try your best to keep the first word in the function name to be a verb.
+If the first word cannot be a verb, then prefix with 'fn'.
 
-Functions can also be snake_case, as long as its prefixed with fn_: fn_snake_case
+*Ambiguity Arising from Variable Names*
+
+Using the above variable naming conventions looks well on the surface, albiet when used to be complex
+data structures can begin to break down.
+
+For example:
+
+province2majorCityS
+
+could mean a data structure such as:
+
+{
+   california: ["LA", "San Fran"]
+}
+
+OR
+
+[ { california: "LA" }, { illinois: "Chicago" } ]
+
+
+If the first data structure is the one we desire then there are 2 ways to resolve the ambiguity:
+
+(1) Create a class or multiple classes:
+
+province2majorCitiesList
+
+(2) Using "_" to demarcate variables of the data structure, such as:
+
+province2_majorCityS_
+
+
+
+**Unsure variables**
+
+If the data structure type of a variable is not sure, use "3" as conjunction:
+eg: element3elementS (either an element or array of elements)
+
+
+**Hidden variables**
+
+Normally hidden variables are denoted by prefixing the variable name with an "_".
+However given that we use "_" for demarcation in variable names within data structures,
+we shall instead use "$" as the prefix.

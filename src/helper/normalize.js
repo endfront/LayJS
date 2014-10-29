@@ -4,9 +4,9 @@
   var normalizedExternalLsonS = [  ];
 
 
-  LSON._normalize = function( lson, is_external ) {
+  LSON.$normalize = function( lson, isExternal ) {
 
-    if ( is_external ) {
+    if ( isExternal ) {
 
       // If we haven't previously normalized it, only then proceed
       if ( normalizedExternalLsonS.indexOf( lson ) === -1 ) {
@@ -23,12 +23,12 @@
     }
   };
 
-  function _normalize( lson, is_recursive ) {
+  function _normalize( lson, isRecursive ) {
 
     attr2fnNormalize.props( lson );
     attr2fnNormalize.states( lson );
 
-    if ( is_recursive ) {
+    if ( isRecursive ) {
 
       attr2fnNormalize.children( lson );
 
@@ -37,7 +37,7 @@
 
 
 
-  var expander_prop2expanded_propS = {
+  var expanderProp2expandedPropS = {
 
     borderWidth: [ 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth' ],
     borderColor: [ 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor' ],
@@ -121,25 +121,25 @@
       prop2val.bottom = takeTopToBottom;
 
 
-      var expander_val, expanded_propS;
-      for ( var expander_prop in expander_prop2expanded_propS ) {
+      var expanderVal, expandedPropS;
+      for ( var expanderProp in expanderProp2expandedPropS ) {
 
-        if ( expander_prop2expanded_propS.hasOwnProperty( expander_prop ) ) {
+        if ( expanderProp2expandedPropS.hasOwnProperty( expanderProp ) ) {
 
-          expander_val = prop2val[ expander_prop ];
-          if ( expander_val !== undefined ) {
+          expanderVal = prop2val[ expanderProp ];
+          if ( expanderVal !== undefined ) {
 
-            expanded_propS = expander_prop2expanded_propS[ expander_prop ];
-            for ( var i = 0, len = expanded_propS.length, expanded_prop; i < len; i++ ) {
+            expandedPropS = expanderProp2expandedPropS[ expanderProp ];
+            for ( var i = 0, len = expandedPropS.length, expandedProp; i < len; i++ ) {
 
-              prop2val[ expanded_propS[ i ] ] = expander_val;
+              prop2val[ expandedPropS[ i ] ] = expanderVal;
 
             }
             // When the user invokes a constraint call with a ( string ) reference
             // to the expander property, the value passed will be that of the first
             // expanded property the expander property refers to.
             // eg: borderWidth will refer to borderWidthTop
-            prop2val[ expander_prop ] = LSON.take( 'this', expanded_propS[ 0 ] );
+            prop2val[ expanderProp ] = LSON.take( 'this', expandedPropS[ 0 ] );
 
           }
         }
@@ -150,15 +150,15 @@
 
     states: function( lson ) {
 
-      var state_name2state = lson.states;
-      if ( state_name2state !== undefined ) {
+      var stateName2state = lson.states;
+      if ( stateName2state !== undefined ) {
 
         var state;
-        for ( var state_name in state_name2state ) {
+        for ( var stateName in stateName2state ) {
 
-          if ( state_name2state.hasOwnProperty( state_name ) ) {
+          if ( stateName2state.hasOwnProperty( stateName ) ) {
 
-            state = state_name2state[ state_name ];
+            state = stateName2state[ stateName ];
             attr2fnNormalize.props( state );
 
           }
@@ -168,14 +168,14 @@
 
     children: function( lson ) {
 
-      var child_name2childLson = lson.children;
-      if ( child_name2childLson !== undefined ) {
+      var childName2childLson = lson.children;
+      if ( childName2childLson !== undefined ) {
 
-        for ( var child_name in child_name2childLson ) {
+        for ( var childName in childName2childLson ) {
 
-          if ( child_name2childLson.hasOwnProperty( child_name ) ) {
+          if ( childName2childLson.hasOwnProperty( childName ) ) {
 
-            normalize( child_name2childLson[ child_name ], true );
+            normalize( childName2childLson[ childName ], true );
 
           }
         }

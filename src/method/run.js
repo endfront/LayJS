@@ -31,7 +31,7 @@
 
     window.onresize = updateSize;
 
-    LSON._clog_key2levelS[ 1 ] = [ new LSON.Level( "/", rootLson, 1, undefined ) ];
+    LSON.$clogKey2_levelS_[ 1 ] = [ new LSON.Level( "/", rootLson, 1, undefined ) ];
 
     LSON.unclog( 1 );
 
@@ -42,10 +42,9 @@
 
   function updateSize () {
 
-    var rootPart = path2Level[ '/' ];
+    //var rootPart = levelPath2Level[ '/' ];
     rootPart.constraint2val.width =  window.innerWidth;
     rootPart.constraint2val.height =  window.innerHeight;
-    //LSON._dirtyPartS.push(  );
 
   }
 
@@ -53,7 +52,6 @@
 
   function render() {
 
-    //console.log( LSON._dirtyPartS.length );
 
     window.requestAnimationFrame( render );
 

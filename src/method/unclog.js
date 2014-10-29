@@ -2,10 +2,10 @@
   "use strict";
 
 
-  LSON.unclog = function ( clog_key ) {
+  LSON.unclog = function ( clogKey ) {
 
 
-    var levelS = LSON._clog_key2levelS[ clog_key ];
+    var levelS = LSON.$clogKey2_levelS_[ clogKey ];
 
     if ( levelS !== undefined ) {
 
@@ -15,7 +15,7 @@
 
       }
 
-      delete LSON._clog_key2levelS[ clog_key ];
+      delete LSON.$clogKey2_levelS_[ clogKey ];
 
     }
 
@@ -23,3 +23,18 @@
   };
 
 })();
+
+
+/*
+
+Loop levels | clogged
+  Loop value in values
+    If value is constraint
+      Take value's constraints
+  If level is type many
+    Expand levels
+
+
+
+
+*/

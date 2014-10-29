@@ -47,7 +47,8 @@ LSON -> Layout Syntax Object Notation
                   <name>: {
                       onlyif: LSON.Take,
                       install: function,
-                      uninstall: function
+                      uninstall: function,
+                      transition: transitionObj
                   }
               },
           },
@@ -57,7 +58,8 @@ LSON -> Layout Syntax Object Notation
                   when: object,
                   onlyif: LSON.Take,
                   install: function,
-                  uninstall: function
+                  uninstall: function,
+                  transition: transitionObj
               }
           },
           children: object
@@ -71,17 +73,19 @@ LSON -> Layout Syntax Object Notation
   **String**
   **constant**
   Type of Part:
-    'text'
-    'view'
-    'interface'
-    'link'
-    'image'
-    'video'
-    'canvas'
-    'svg'
-    'input:single-line'
-    'input:multi-line'
-    'input:file'
+    default (textnode / view)
+    interface
+    link
+    image
+    video
+    canvas
+    svg
+
+    input | consists of a sub type specified by the "input" key:
+      textarea
+      select
+      ... any other valid input[type] html property i.e file, color, date, etc
+
 
 
 ### inherits
@@ -127,38 +131,25 @@ LSON -> Layout Syntax Object Notation
 
 
 
-### LSON.Part & LSON.State
+### LSON.Level
 
-To get the LSON.Level returns LSON.Part:
+To get the LSON.Level:
 
   LSON.level(level)
   LSON.level(<LSON.Part reference>, level)
 
-To get LSON.State object:
+LSON.Level methods:
 
-  LSON.level(level).state(name)
-
-
-LSON.Part methods:
-
-  value(property)
-  data(name)
-  data(name,value)
-
-  stateChange(array, cb)
-  stateAdd(array)
-  stateRemove(array)
-  stateContains(array)
+  attr( attr )
+  data( key )
+  data( key, value, [, stateTransitionObj ] )
 
 
 
-
-
-
-### Constraints Available (Known as "values")
+### Constraints Available (Known as "attributes")
 
 The below values can be directly accessed through
-the LSON Part or LSON Many through `.value(<access key>)`
+the LSON Level through `.attribute(<access key>)`
 The same access keys are used as the 2nd argument in LSON.Take
 
   - props
@@ -168,7 +159,7 @@ The same access keys are used as the 2nd argument in LSON.Take
     access: data.<data key>
 
   - state
-    access: state
+    access: state.<state name> (returns true is state is active)
 
   - stateTravelling
     access: stateTravelling
@@ -878,27 +869,72 @@ for grid (note that the width and height cannot be used effectively for a grid)
 
 
 
+### State Transition Object
+
+{
+
+  all: 500,
+  left: 200,
+  top: { delay: 500 },
+  opacity: { duration:2000, done: function(){ console.log("opaque") }  }
+
+}
+
+Each key in the state transition object except for "all" refer to an attribute.
+The key can either map to a number or object.
+  (1) Case 1 number: The number is the duration
+  (2) Case 2 object: 3 possible keys:
+    (i) duration (of the transition)
+    (ii) delay (till the start of the transition)
+    (iii) done (function handler executed at the end of the transition)
+
+An attribute can be of 2 types:
+
+  (1) Transitionable
+  Any numeric attribute can be transitioned.
+  (2) Non-transitionable
+  Non numeric attributes such as textFamily (font fmaily) are non transitionable.
+Upon transition, the duration value for its transition will be ignored, and the
+new value will come into effect immediately. If a delay is required, the delay
+key can be specified with a duration, implying that the value will come into
+effect only after the specified delay.
+
+
+##### Multiple state changes
+
+Multiple state changes can potentially result in multiple state transition objects coming into action.
+There could be a conflict in the attribute's transition between two or more state transition objects.
+If such a conflict takes places, the state which is modifying the attribute has its transitionable (transition object) followed.
+However if the state modifying the given property does not contain a state transition object then the attribute is not transitioned.
+
+#### Specifying a transition through the `data()`` method
+
+The overloaded `data()` method of the `Level` object has one of its functions as (taken from the same spec itself):
+
+  data( key, value, [, stateTransitionObj ] )
+
+Whilst changing data, a state transition object can be specified.
+If one is provided, then this given state transition object obtain highest precedence, peaking all of the state transition
+objects provided in the corresponding modified states.
+
 
 
 
 todo:
-  - add support for 'will-change'
-  - taker needs reference
+
+
   - 'many' n-filters
-  - 'many' constraints (LSON.takeMany) selecting the FIRST or LAST
-    eg: number of notifications: LSON.takeMany('../Notification', 'state').contains('unread').length()
-    ( constraint flow problem: LSON.takeMany('../Notification', 'data.read').eq(false).length()
+  - constraint flow problem: LSON.takeMany('../Notification', {'data.unread': {$eq: true}}).length()
       solution: order the list of takers to have ones for state notifications last
-     )
-  - number of visible children
-  - statePropChange will be released even later, use data changes instead.
-  - figure out data changes syncing with cookie or directly with the server
-  - figure out filtering items sending query to the server
-  - 'when' for formation comming soon, it should include function handler for insertion of new item into
+  - add support for 'will-change'
+  - 'when' for formation, it should include function handler for insertion of new item into
     the formation alongwith deletion.
-  - Allow lson on any node (and allow multiple nodes), instead of only window.
-  - cry about safari bug: http://jsbin.com/vufivedefise/1
-  - cry about: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
+  - (perhaps) add server sync and/or cookie sync
+
+cry about:
+
+  - safari bug: http://jsbin.com/vufivedefise/1
+  - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
 
 
 research:

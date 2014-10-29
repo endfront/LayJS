@@ -99,75 +99,82 @@ appearance: none;
 (function () {
   "use strict";
 
+
   window.LSON = {
-    _cur_clog_key: 1,
+
+    $path2level: {},
+    $curClogKey: 1,
     // initiate with the start clog key: 1
-    _clog_key2levelS: { },
-    _dirtyPartS: []
+    $clogKey2_levelS_: { },
+    $dirtyPartS: []
   };
 
 })();
 
-(function() {
+( function () {
   "use strict";
 
 
 
-
-
-
-  var Level = function( path, lson, clog_key, parent ) {
+  var Level = function ( path, lson, clogKey, parent ) {
 
     this.path = path;
     this.lson = lson;
-    LSON._normalize( lson, false );
+    LSON.$normalize( lson, false );
     this.parent = parent;
     this.inherited = false;
     this.prepared = false;
-    this.is_part = true;
+    this.isPart = true;
 
     if ( lson.children ) {
 
-      this.addChildren( lson.children, clog_key );
+      this.addChildren( lson.children, clogKey );
 
     }
+
+    this.$selfAttr2_takerLevelS_ = new HashArray();
+    this.$takenLevelPath2_takenAttr2selfAttr_ = {};
+
 
   };
 
 
-  Level.prototype.addChildren = function( name2lson, clog_key ) {
 
-    if ( clog_key === undefined ) {
+  // unclog
+  Level.prototype.unclog = function () {
 
-      clog_key = ++LSON._cur_clog_key;
-      clog_key2levelS[ clog_key ] = [];
+    this.$inherit();
+    this.$prepare();
+    this.$deliver();
+
+
+  };
+
+  Level.prototype.addChildren = function ( name2lson, clogKey ) {
+
+    if ( clogKey === undefined ) {
+
+      clogKey = ++LSON.$curClogKey;
+      LSON.$clogKey2_levelS_[ clogKey ] = [];
 
     }
 
-    var child_path, childLevel;
+    var childPath, childLevel;
     for ( var name in name2lson ) {
 
       if ( name2lson.hasOwnProperty( name ) ) {
 
-        child_path = this.path + '/' + name;
-        childLevel = new LSON.Level( child_path, name2lson[ name ], clog_key, this );
-        path2level[ child_path ] = childLevel;
-        clog_key2levelS[ clog_key ].push( childLevel );
+        childPath = this.path + '/' + name;
+        childLevel = new LSON.Level( childPath, name2lson[ name ], clogKey, this );
+        path2level[ childPath ] = childLevel;
+        LSON.$clogKey2_levelS_[ clogKey ].push( childLevel );
 
       }
     }
 
   };
 
-  // unclog
-  Level.prototype.unclog = function() {
-
-    this._inherit();
-    this._prepare();
-
-  };
-
-  Level.prototype._inherit = function() {
+  Level.prototype.$inherit = function() {
 
     if ( !this.lson.inherit ) {
 
@@ -184,7 +191,7 @@ appearance: none;
           level = ( new LSON.Path( ref ) ).resolve( this );
           if ( !level.inherited ) {
 
-            level._inherit(  );
+            level.$inherit();
 
           }
 
@@ -196,129 +203,296 @@ appearance: none;
 
         }
 
-        LSON._inherit( inheritFromNormalizedLson, this.lson );
+        LSON.$inherit( inheritFromNormalizedLson, this.lson );
 
       }
     }
   };
 
-  Level.prototype._initializeConstraints = function () {
 
-    var constraint2val = {};
-    var data = this.data;
-    var props = this.initProps;
-    var key;
+
+
+
+
+  Level.prototype.$takeLevels = function ( value, selfAttr ) {
+
+    var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
+    _relPath00attr_S = value._relPath00attr_S;
+
+    for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+
+      relPath = _relPath00attr_S[ i ][ 0 ];
+      attr = _relPath00attr_S[ i ][ 1 ];
+
+      level = relPath.resolve( this );
+      if ( level === undefined ) {
+
+        console.error("LSON ERROR: Undefined level relative path: " + relPath.childPath );
+
+      } else {
+
+        level.$takeMe( this, selfAttr );
+        levelPath = level.path;
+
+        takenAttr2selfAttr = this.$takenLevelPath2_takenAttr2selfAttr_[ levelPath ];
+        if ( takenAttr2selfAttr === undefined ) {
+
+          this.$takenLevelPath2_takenAttr2selfAttr_[ levelPath ] = new HashArray();
+          takenAttr2selfAttr = this.$takenLevelPath2_takenAttr2selfAttr_;
+
+        }
+
+        takenAttr2selfAttr.add( attr, selfAttr );
+
+      }
+    }
+  };
+
+  Level.prototype.$takeLevelsNot = function ( ) {
+
+    var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
+    _relPath00attr_S = value._relPath00attr_S;
+
+    for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+
+      relPath = _relPath00attr_S[ i ][ 0 ];
+      attr = _relPath00attr_S[ i ][ 1 ];
+
+      level = relPath.resolve( this );
+      if ( level === undefined ) {
+
+        console.error("LSON ERROR: Undefined level relative path: " + relPath.childPath );
+
+      } else {
+
+        level.$takeMeNot( this, selfAttr );
+        levelPath = level.path;
+
+        takenAttr2selfAttr = this.$takenLevelPath2_takenAttr2selfAttr_[ levelPath ];
+        if ( takenAttr2selfAttr !== undefined ) {
+
+          takenAttr2selfAttr.remove( attr, selfAttr );
+          // even if the level path reference in the $takenLevelPath2_takenAttr2selfAttr_ hashmap points to an empty HashArray
+          // a deference will not be performed for:
+          // (1) The initial reference was created by the level's state or data change. It is very possible in the case
+          // of the latter (state change) that the change will revert, therefore reinitialization will have to be performed.
+          // (2) Unlike arrays, checking for an empty hashmap is lesser efficient in terms of performance.
+        }
+      }
+    }
+
+  };
+  Level.prototype.$takeMe = function ( level, attr ) {
+
+    this.selfAttr2_takerLevelS_.add( attr, level );
+
+  };
+
+  Level.prototype.$takeMeNot = function () {
+
+    this.selfAttr2_takerLevelS_.remove( attr, level );
+
+  };
+
+
+  Level.prototype.$initAttributes = function () {
+
+
+
+    var attr2_value00calc00isDirty00isConstraint_, dirtyAttrS, key, data, props, value;
+
+    dirtyAttrS = [];
+    attr2_value00calc00isDirty00isConstraint_ = {};
+
+    data = this.lson.data;
+    props = this.lson.props;
+    states = this.lson.states;
+
 
     for ( key in data ) {
 
       if ( data.hasOwnProperty( key ) ) {
 
-        constraint2val[ "data." + key ] = data[ key ];
+        value = data[ key ];
+        key = "data." + key;
 
+        if ( value instanceof LSON.Take ) {
+
+          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
+
+          dirtyAttrS.push( key );
+
+
+        } else {
+
+          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, value, false, false ];
+
+        }
       }
     }
+
 
     for ( key in props ) {
 
       if ( props.hasOwnProperty( key ) ) {
 
-        constraint2val[ key ] = props[ key ];
+        value = props[ key ];
+
+        if ( value instanceof LSON.Take ) {
+
+          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
+          dirtyAttrS.push( key );
+          this.$takeLevel( value );
+
+
+        } else {
+
+          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, value, false, false ];
+
+        }
+      }
+    }
+
+    for ( key in states ) {
+
+      if ( states.hasOwnProperty( key ) ) {
+
+        value = states[ key ].onlyif;
+        key = "state." + key;
+
+        if ( value !== undefined ) {
+
+          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
+          dirtyAttrS.push( key );
+
+        }
 
       }
     }
 
-    this.constraint2val = constraint2val;
-
-
+    this.attr2_value00calc00isDirty00isConstraint_ = attr2_value00calc00isDirty00isConstraint_;
+    this.dirtyAttrS = dirtyAttrS;
 
   };
 
 
-  Level.prototype._prepare = function () {
 
-    var is_many = this.lson.many !== undefined;
 
-    var lson = is_many ? this.lson.many : this.lson;
 
-    this.data = lson.data;
-    this.initLsonProps = lson.props;
-    this.initLsonWhen = lson.when;
-    this.states = lson.states;
 
-    this._initializeConstraints();
+  Level.prototype.$prepare = function () {
+
+
+    this.$initAttributes();
+    //this.$initWhen();
+    //this.$initStates();
+
+    var isMany = this.lson.many !== undefined;
+    var lson = isMany ? this.lson.many : this.lson;
+
+    //this.initLsonWhen = lson.when;
+    //this.states = lson.states;
+
 
     var constraint,val;
-    for ( constraint in this.constraint2val ) {
 
-      if ( this.constraint2val.hasOwnProperty( constraint ) ) {
+    if ( isMany ) {
 
-
-
-      }
-
-    }
-
-    if ( is_many ) {
-
-      // this.many = new LSON.Many( this.path, this.lson );
 
       // for item in dependencies
       //     if not prepared then prepare
       // prepare
-      //this.part._dependencies();
 
 
     } else {
 
-      this.is_part = true;
-      this.part = new LSON.Part();
+      this.isPart = true;
+      //this.part = new LSON.Part();
 
     }
 
   };
 
 
-  Level.prototype._takeMe = function ( takerLevel, prop ) {
+  Level.prototype.$deliver = function () {
 
-    var takerLevelS = this._constraint2takerLevelS[ prop ];
-    if ( takerLevelS === undefined ) {
-
-      this._constraint2takerLevelS[ prop ] = [ takerLevel ];
-
-    } else if ( takerLevelS.indexOf( prop ) !== -1 ) {
-
-      takerLevelS.push( prop );
-
-    }
+    //TODO: (i.e render first shot (without initial state changes))
 
   };
 
 
-  Level.prototype._takeMeNot = function ( takerLevel, prop ) {
+  LSON.Level = Level;
 
-    var takerLevelS = this._constraint2takerLevelS[ prop ];
-    if ( takerLevelS !== undefined ) {
 
-      var ind = takerLevelS.indexOf( prop );
-      if ( ind !== -1 ) {
+  /*
+  * Data structure of a HashMap mapping to array of strings.
+  * If mapping exists to a single element array, mapping is directed to
+  * string, to reduce overhead of storing an array data structure.
+  */
+  function HashArray() {
 
-        if ( takerLevelS.length === 1 ) {
+    this.hashmap = {};
 
-          delete this._constraint2takerLevelS[ prop ];
+  }
 
-        } else {
 
-          takerLevelS.splice( ind, 1 );
+  HashArray.prototype.add = function ( key, element ) {
 
+    var element3elementS = this.hashmap[ key ];
+
+    if ( element3elementS === undefined ) {
+
+      this.hashmap[ key ] = element;
+
+    } else if ( ! element3elementS instanceof Array ) {
+
+      if ( element3elementS !== element ) {
+
+        this.hashmap[ key ] = [ element3elementS, element ];
+
+      }
+
+    } else if ( element3elementS.indexOf( element ) !== -1  ) {
+
+      element3elementS.push( element );
+
+    }
+  };
+
+
+  HashArray.prototype.remove = function ( key, element ) {
+
+    var element3elementS = this.hashmap[ key ];
+    if ( element3elementS !== undefined ) {
+
+      if ( ! element3elementS instanceof Array ) {
+
+        if ( element3elementS === element ) {
+
+          delete this.hashmap[ key ];
+
+        }
+
+      } else {
+        var ind = element3elementS.indexOf( attr );
+        if ( ind !== -1 ) {
+
+          element3elementS.splice( ind, 1 );
+          if ( element3elementS.length === 1 ) {
+
+            this.hashmap[ key ] = element3elementS[ 0 ];
+
+          }
         }
       }
     }
 
   };
 
-  Level.prototype._takeLevel = function (l)
 
-  LSON.Level = Level;
+
+
+
 
 })();
 
@@ -338,48 +512,37 @@ appearance: none;
 ( function () {
   "use strict";
 
-  var type2tag = {
-
-    text: 'div',
-    image: 'img',
-    video: 'video',
-    canvas: 'canvas',
-    input: 'input',
-    textarea: 'textarea'
-
-  };
 
 
 
-  var prop2default = {
 
+  var type2htmlTag = {
 
+    "default": "div",
+    canvas: "canvas",
+    image: "img",
+    video: "video",
+    svg: "svg"
 
   };
 
-  var dirty_css_propertyS = [
+  var inputWhichIsAnHtmlTagS = [
 
-  "width",
-  "height",
-  "left",
-  "top",
-  "backgroundColor"
+  "textarea",
+  "select"
 
   ];
 
 
 
-
-
   var Part = function ( path, lson ) {
 
-    this.type = prop2val.type || 'text';
+    this.type = lson.type || '';
 
     this.node = type === 'interface' ? undefined : path === '/' ? document.body : document.createElement( type2tag[ this.type ] );
 
-    //this.dirty_css_propertyS = LSON._clone.singleLevelArray( dirty_css_propertyS );
 
-    this.init_prop2val = lson.props;
+    this.initProp2val = lson.props;
 
     LSON.dirtyPartS.push( this );
 
@@ -388,78 +551,10 @@ appearance: none;
 
 
 
-  Part.prototype.takeMe = function ( takerPart, prop ) {
-
-    var takerPartS = this.prop2takerPartS[ prop ];
-    if ( takerPartS === undefined ) {
-
-      this.prop2takerPartS[ prop ] = [ takerPart ];
-
-    } else if ( takerPartS.indexOf( prop ) !== -1 ) {
-
-      takerPartS.push( prop );
-
-    }
-
-  };
-
-
-  Part.prototype.takeMeNot = function ( takerPart, prop ) {
-
-    var takerPartS = this.prop2takerPartS[ prop ];
-    if ( takerPartS !== undefined ) {
-
-      var ind = takerPartS.indexOf( prop );
-      if ( ind !== -1 ) {
-
-        if ( takerPartS.length === 1 ) {
-
-          delete this.prop2takerPartS[ prop ];
-
-        } else {
-
-          takerPartS.splice( ind, 1 );
-
-        }
-      }
-    }
-
-  };
 
 
 
 
-
-  Part.prototype.initProperties = function ( prop2val ) {
-
-
-    this.prop2val = {};
-    this.initiated = false;
-
-    for ( var prop in prop2default ) {
-
-      if ( prop2default.hasOwnProperty( prop ) ) {
-
-        this.prop2val[ prop ] = prop2val[ prop ] !== undefined ? prop2val[ prop ] : prop2default[ prop ];
-
-      }
-
-    }
-
-    var prop2data = prop2val.data ? prop2val.data : {};
-
-    for ( prop in prop2data ) {
-
-      if ( prop2data.hasOwnProperty( prop ) ) {
-
-        this.prop2data[ "data." + prop ] = prop2data[ prop ];
-
-      }
-
-    }
-
-
-  };
 
 
 
@@ -475,8 +570,7 @@ appearance: none;
 
 
   /*
-  * Normally functions are to be named camelcase,
-  * however for cleaning properties, we shall use the following convention:
+    Change variable names
   */
 
 
@@ -508,56 +602,55 @@ appearance: none;
 (function () {
   "use strict";
 
-  var Path = function ( relative_path ) {
+  var RelPath = function ( relativePath ) {
 
 
+    if ( relativePath === "this" ) {
 
-    if ( relative_path === "this" ) {
-
-      this.child_path = "";
+      this.me = true;
 
     } else {
 
-
-    this.number_of_parent_traversals =  relative_path.match(/^(..\/)*/)[0].length / 3;
+      this.me = false;
+    this.numberOfParentTraversals = relativePath.match(/^(..\/)*/)[0].length / 3;
     // strip off the "../"s
-    this.child_path = this.number_of_parent_traversals === 0 ? relative_path : relative_path.substring( this.number_of_parent_traversals * 3 );
-
-
+    this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
   }
 
+};
 
+RelPath.prototype.resolve = function ( referenceLevel ) {
 
-  };
+  if ( this.me ) {
 
-  Path.prototype.resolve = function ( referenceLevel ) {
+    return referenceLevel;
 
-    for ( var i = 0; i < this.number_of_parent_traversals; ++i && (referenceLevel = referenceLevel.parent ) ) {
+  } else {
+
+    for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parent ) ) {
 
     }
 
-    return LSON._path2level[ referenceLevel.path + this.child_path ];
+    return LSON.$path2level[ referenceLevel.path + this.childPath ];
+
+  }
+
+};
 
 
-  };
-
-
-  LSON.Path = Path;
+LSON.RelPath = RelPath;
 
 })();
 
-(function() {
+( function () {
   "use strict";
 
 
+  var Take = function ( relativePath, attr ) {
 
 
-  var Take = function ( relative_path, prop ) {
-
-    //  this.level_and_prop =? arg;
-
-    var path = new LSON.Path( relative_path );
-    this.level_and_constraintS = [ [ relative_path, prop ] ];
+    var path = new LSON.RelPath( relativePath );
+    this._relPath00attr_S = [ [ path, attr ] ];
 
     this.executable = function () {
 
@@ -577,12 +670,12 @@ appearance: none;
 
 
 
-  Take.prototype._mergeLevel_and_constraintS = function ( take ) {
+  Take.prototype.$mergePathAndProps = function ( take ) {
 
-    var level_and_constraintS = take.level_and_constraintS;
-    for ( var i = 0, len = level_and_constraintS.length; i < len; i++ ) {
+    var _relPath00attr_S = take._relPath00attr_S;
+    for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
-      this.level_and_constraintS.push( level_and_constraintS[ i ] );
+      this._relPath00attr_S.push( _relPath00attr_S[ i ] );
 
     }
 
@@ -608,7 +701,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) + val.execute( this );
@@ -627,7 +720,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) - val.execute( this );
@@ -645,7 +738,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) / val.execute( this );
@@ -663,7 +756,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) * val.execute( this );
@@ -681,7 +774,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) % val.execute( this );
@@ -722,7 +815,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).indexOf( val.execute( this ) ) !== -1;
@@ -740,7 +833,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) === val.execute( this );
@@ -758,7 +851,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) > val.execute( this );
@@ -776,7 +869,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) >= val.execute( this );
@@ -794,7 +887,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) < val.execute( this );
@@ -812,7 +905,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) <= val.execute( this );
@@ -830,7 +923,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) || val.execute( this );
@@ -848,7 +941,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) && val.execute( this );
@@ -900,7 +993,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this )[ val.execute( this ) ];
@@ -922,7 +1015,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.min( oldExecutable.call( this ), val.execute( this ) );
@@ -940,7 +1033,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.max( oldExecutable.call( this ), val.execute( this ) );
@@ -1008,7 +1101,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.pow( oldExecutable.call( this ), val.execute( this ) );
@@ -1026,7 +1119,7 @@ appearance: none;
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.log( oldExecutable.call( this ), val.execute( this ) );
@@ -1091,7 +1184,7 @@ appearance: none;
 
       if ( argS instanceof Take ) {
 
-        this._mergeLevel_and_constraintS( argS );
+        this.$mergePathAndProps( argS );
 
       }
 
@@ -1112,7 +1205,7 @@ appearance: none;
 
           if ( cur instanceof Take ) {
 
-            this._mergeLevel_and_constraintS( cur );
+            this.$mergePathAndProps( cur );
 
           }
 
@@ -1142,6 +1235,87 @@ appearance: none;
 
 }());
 
+(function () {
+  "use strict";
+
+  // Non console API compliant browsers will not throw an error
+  
+  if ( window.console === undefined ) {
+
+    window.console = { error: function () {}, log: function () {}, info: function () {} };
+
+  }
+
+})();
+
+
+// Production steps of ECMA-262, Edition 5, 15.4.4.14
+// Reference: http://es5.github.io/#x15.4.4.14
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(searchElement, fromIndex) {
+
+    var k;
+
+    // 1. Let O be the result of calling ToObject passing
+    //    the this value as the argument.
+    if (this === null) {
+      throw new TypeError('"this" is null or not defined');
+    }
+
+    var O = Object(this);
+
+    // 2. Let lenValue be the result of calling the Get
+    //    internal method of O with the argument "length".
+    // 3. Let len be ToUint32(lenValue).
+    var len = O.length >>> 0;
+
+    // 4. If len is 0, return -1.
+    if (len === 0) {
+      return -1;
+    }
+
+    // 5. If argument fromIndex was passed let n be
+    //    ToInteger(fromIndex); else let n be 0.
+    var n = +fromIndex || 0;
+
+    if (Math.abs(n) === Infinity) {
+      n = 0;
+    }
+
+    // 6. If n >= len, return -1.
+    if (n >= len) {
+      return -1;
+    }
+
+    // 7. If n >= 0, then Let k be n.
+    // 8. Else, n<0, Let k be len - abs(n).
+    //    If k is less than 0, then let k be 0.
+    k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+    // 9. Repeat, while k < len
+    while (k < len) {
+      var kValue;
+      // a. Let Pk be ToString(k).
+      //   This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the
+      //    HasProperty internal method of O with argument Pk.
+      //   This step can be combined with c
+      // c. If kPresent is true, then
+      //    i.  Let elementK be the result of calling the Get
+      //        internal method of O with the argument ToString(k).
+      //   ii.  Let same be the result of applying the
+      //        Strict Equality Comparison Algorithm to
+      //        searchElement and elementK.
+      //  iii.  If same is true, return k.
+      if (k in O && O[k] === searchElement) {
+        return k;
+      }
+      k++;
+    }
+    return -1;
+  };
+}
+
 
 (function () {
   "use strict";
@@ -1161,25 +1335,25 @@ appearance: none;
 
   function inheritSingleLevelObject( fromObject, intoObject, key ) {
 
-    var from_key2value, into_key2value;
-    from_key2value = fromObject.key;
-    into_key2value = intoObject.key;
+    var fromKey2value, intoKey2value;
+    fromKey2value = fromObject.key;
+    intoKey2value = intoObject.key;
 
-    if ( from_key2value !== undefined ) {
+    if ( fromKey2value !== undefined ) {
 
-      if ( into_key2value === undefined ) {
+      if ( intoKey2value === undefined ) {
 
-        intoObject.key = into_key2value;
+        intoObject.key = intoKey2value;
 
       } else {
 
-        for ( var from_key in from_key2value ) {
+        for ( var fromKey in fromKey2value ) {
 
-          if ( from_key2value.hasOwnProperty( from_key ) ) {
+          if ( fromKey2value.hasOwnProperty( fromKey ) ) {
 
-            into_key2value[ from_key ] =
-            into_key2value[ from_key ] ||
-            from_key2value[ from_key ];
+            intoKey2value[ fromKey ] =
+            intoKey2value[ fromKey ] ||
+            fromKey2value[ fromKey ];
 
           }
         }
@@ -1211,19 +1385,19 @@ appearance: none;
 
     many: function( fromLson, intoLson ) {
 
-      var from_many_attr2val, into_many_attr2val;
-      from_many_attr2val = fromLson.many;
-      into_many_attr2val = intoLson.many;
+      var fromManyAttr2val, intoManyAttr2val;
+      fromManyAttr2val = fromLson.many;
+      intoManyAttr2val = intoLson.many;
 
-      if ( from_many_attr2val !== undefined ) {
+      if ( fromManyAttr2val !== undefined ) {
 
-        if ( into_many_attr2val === undefined ) {
+        if ( intoManyAttr2val === undefined ) {
 
-          intoLson.many = from_many_attr2val;
+          intoLson.many = fromManyAttr2val;
 
         } else {
 
-          LSON._inherit( from_many_attr2val, into_many_attr2val );
+          LSON._inherit( fromManyAttr2val, intoManyAttr2val );
 
         }
       }
@@ -1235,48 +1409,26 @@ appearance: none;
 
     },
 
-    /*formation: function( from_many_attr2val, into_many_attr2val ) {
 
-    var from_formation_attr2val, into_formation_attr2val;
-    from_formation_attr2val = from_many_attr2val.formation;
-    into_formation_attr2val = into_many_attr2va.formation;
-
-    if ( from_formation_attr2val !== undefined ) {
-
-    if ( into_formation_attr2val === undefined ) {
-
-    into_many_attr2val.formation = from_formation_attr2val;
-
-  } else {
-
-  into_formation_attr2val.type = into_formation_attr2val.type || from_formation_attr2val.type;
-  into_formation_attr2val.sort = into_formation_attr2val.sort || from_formation_attr2val.sort;
-  into_formation_attr2val.order = into_formation_attr2val.order || from_formation_attr2val.order;
-
-  inheritSingleLevelObject( from_formation_attr2val, into_formation_attr2val, "args" );
-
-}
-}
-},*/
 
 
 
 children: function( fromLson, intoLson ) {
-  var from_child_name2lson, into_child_name2lson;
-  from_child_name2lson = fromLson.children;
-  into_child_name2lson = intoLson.children;
+  var fromChildName2lson, intoChildName2lson;
+  fromChildName2lson = fromLson.children;
+  intoChildName2lson = intoLson.children;
 
-  for ( var name in from_child_name2lson ) {
+  for ( var name in fromChildName2lson ) {
 
-    if ( from_child_name2lson.hasOwnProperty( name ) ) {
+    if ( fromChildName2lson.hasOwnProperty( name ) ) {
 
-      if ( !into_child_name2lson[ name ] ) { // inexistent child
+      if ( !intoChildName2lson[ name ] ) { // inexistent child
 
-        into_child_name2lson[ name ] = from_child_name2lson[ name ];
+        intoChildName2lson[ name ] = fromChildName2lson[ name ];
 
       } else {
 
-        inherit( from_child_name2lson[ name ], into_child_name2lson[ name ] );
+        inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
 
       }
     }
@@ -1286,23 +1438,23 @@ children: function( fromLson, intoLson ) {
 
 states: function( fromLson, intoLson ) {
 
-  var from_state_name2state, into_state_name2state;
-  from_state_name2state = fromLson.states;
-  into_state_name2state = intoLson.states;
+  var fromStateName2state, intoStateName2state;
+  fromStateName2state = fromLson.states;
+  intoStateName2state = intoLson.states;
 
   var inheritFromState, inheritIntoState;
-  for ( var name in from_state_name2state ) {
+  for ( var name in fromStateName2state ) {
 
-    if ( from_state_name2state.hasOwnProperty( name ) ) {
+    if ( fromStateName2state.hasOwnProperty( name ) ) {
 
-      if ( !into_state_name2state[ name ] ) { //inexistent state
+      if ( !intoStateName2state[ name ] ) { //inexistent state
 
-        into_state_name2state[ name ] = from_state_name2state[ name ];
+        intoStateName2state[ name ] = fromStateName2state[ name ];
 
       } else {
 
-        inheritFromState = from_state_name2state[ name ];
-        inheritIntoState = into_state_name2state[ name ];
+        inheritFromState = fromStateName2state[ name ];
+        inheritIntoState = intoStateName2state[ name ];
 
         inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
         inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
@@ -1320,27 +1472,27 @@ states: function( fromLson, intoLson ) {
 
 when: function( fromLson, intoLson ) {
 
-  var from_event_name2fnEventHandlerS, into_event_name2fnEventHandlerS;
-  from_event_name2fnEventHandlerS = fromLson.when;
-  into_event_name2fnEventHandlerS = intoLson.when;
+  var fromEventName2fnEventHandlerS, intoEventName2fnEventHandlerS;
+  fromEventName2fnEventHandlerS = fromLson.when;
+  intoEventName2fnEventHandlerS = intoLson.when;
 
-  if ( from_event_name2fnEventHandlerS !== undefined ) {
+  if ( fromEventName2fnEventHandlerS !== undefined ) {
 
-    if ( into_event_name2fnEventHandlerS === undefined ) {
+    if ( intoEventName2fnEventHandlerS === undefined ) {
 
-      intoLson.when = from_event_name2fnEventHandlerS;
+      intoLson.when = fromEventName2fnEventHandlerS;
 
     } else {
       var fnFromEventHandlerS, fnIntoEventHandlerS;
 
-      for ( var from_event_name in from_event_name2fnEventHandlerS ) {
+      for ( var fromEventName in fromEventName2fnEventHandlerS ) {
 
-        fnFromEventHandlerS = from_event_name2fnEventHandlerS[ from_event_name ];
-        fnIntoEventHandlerS = into_event_name2fnEventHandlerS[ from_event_name ];
+        fnFromEventHandlerS = fromEventName2fnEventHandlerS[ fromEventName ];
+        fnIntoEventHandlerS = intoEventName2fnEventHandlerS[ fromEventName ];
 
         if ( fnIntoEventHandlerS === undefined ) {
 
-          into_event_name2fnEventHandlerS[ from_event_name ] = fnIntoEventHandlerS;
+          intoEventName2fnEventHandlerS[ fromEventName ] = fnIntoEventHandlerS;
 
         } else {
 
@@ -1362,9 +1514,9 @@ when: function( fromLson, intoLson ) {
   var normalizedExternalLsonS = [  ];
 
 
-  LSON._normalize = function( lson, is_external ) {
+  LSON.$normalize = function( lson, isExternal ) {
 
-    if ( is_external ) {
+    if ( isExternal ) {
 
       // If we haven't previously normalized it, only then proceed
       if ( normalizedExternalLsonS.indexOf( lson ) === -1 ) {
@@ -1381,12 +1533,12 @@ when: function( fromLson, intoLson ) {
     }
   };
 
-  function _normalize( lson, is_recursive ) {
+  function _normalize( lson, isRecursive ) {
 
     attr2fnNormalize.props( lson );
     attr2fnNormalize.states( lson );
 
-    if ( is_recursive ) {
+    if ( isRecursive ) {
 
       attr2fnNormalize.children( lson );
 
@@ -1395,7 +1547,7 @@ when: function( fromLson, intoLson ) {
 
 
 
-  var expander_prop2expanded_propS = {
+  var expanderProp2expandedPropS = {
 
     borderWidth: [ 'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth' ],
     borderColor: [ 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor' ],
@@ -1479,25 +1631,25 @@ when: function( fromLson, intoLson ) {
       prop2val.bottom = takeTopToBottom;
 
 
-      var expander_val, expanded_propS;
-      for ( var expander_prop in expander_prop2expanded_propS ) {
+      var expanderVal, expandedPropS;
+      for ( var expanderProp in expanderProp2expandedPropS ) {
 
-        if ( expander_prop2expanded_propS.hasOwnProperty( expander_prop ) ) {
+        if ( expanderProp2expandedPropS.hasOwnProperty( expanderProp ) ) {
 
-          expander_val = prop2val[ expander_prop ];
-          if ( expander_val !== undefined ) {
+          expanderVal = prop2val[ expanderProp ];
+          if ( expanderVal !== undefined ) {
 
-            expanded_propS = expander_prop2expanded_propS[ expander_prop ];
-            for ( var i = 0, len = expanded_propS.length, expanded_prop; i < len; i++ ) {
+            expandedPropS = expanderProp2expandedPropS[ expanderProp ];
+            for ( var i = 0, len = expandedPropS.length, expandedProp; i < len; i++ ) {
 
-              prop2val[ expanded_propS[ i ] ] = expander_val;
+              prop2val[ expandedPropS[ i ] ] = expanderVal;
 
             }
             // When the user invokes a constraint call with a ( string ) reference
             // to the expander property, the value passed will be that of the first
             // expanded property the expander property refers to.
             // eg: borderWidth will refer to borderWidthTop
-            prop2val[ expander_prop ] = LSON.take( 'this', expanded_propS[ 0 ] );
+            prop2val[ expanderProp ] = LSON.take( 'this', expandedPropS[ 0 ] );
 
           }
         }
@@ -1508,15 +1660,15 @@ when: function( fromLson, intoLson ) {
 
     states: function( lson ) {
 
-      var state_name2state = lson.states;
-      if ( state_name2state !== undefined ) {
+      var stateName2state = lson.states;
+      if ( stateName2state !== undefined ) {
 
         var state;
-        for ( var state_name in state_name2state ) {
+        for ( var stateName in stateName2state ) {
 
-          if ( state_name2state.hasOwnProperty( state_name ) ) {
+          if ( stateName2state.hasOwnProperty( stateName ) ) {
 
-            state = state_name2state[ state_name ];
+            state = stateName2state[ stateName ];
             attr2fnNormalize.props( state );
 
           }
@@ -1526,14 +1678,14 @@ when: function( fromLson, intoLson ) {
 
     children: function( lson ) {
 
-      var child_name2childLson = lson.children;
-      if ( child_name2childLson !== undefined ) {
+      var childName2childLson = lson.children;
+      if ( childName2childLson !== undefined ) {
 
-        for ( var child_name in child_name2childLson ) {
+        for ( var childName in childName2childLson ) {
 
-          if ( child_name2childLson.hasOwnProperty( child_name ) ) {
+          if ( childName2childLson.hasOwnProperty( childName ) ) {
 
-            normalize( child_name2childLson[ child_name ], true );
+            normalize( childName2childLson[ childName ], true );
 
           }
         }
@@ -1614,7 +1766,7 @@ when: function( fromLson, intoLson ) {
 
     window.onresize = updateSize;
 
-    LSON._clog_key2levelS[ 1 ] = [ new LSON.Level( "/", rootLson, 1, undefined ) ];
+    LSON.$clogKey2_levelS_[ 1 ] = [ new LSON.Level( "/", rootLson, 1, undefined ) ];
 
     LSON.unclog( 1 );
 
@@ -1625,10 +1777,9 @@ when: function( fromLson, intoLson ) {
 
   function updateSize () {
 
-    var rootPart = path2Level[ '/' ];
+    //var rootPart = levelPath2Level[ '/' ];
     rootPart.constraint2val.width =  window.innerWidth;
     rootPart.constraint2val.height =  window.innerHeight;
-    //LSON._dirtyPartS.push(  );
 
   }
 
@@ -1636,7 +1787,6 @@ when: function( fromLson, intoLson ) {
 
   function render() {
 
-    //console.log( LSON._dirtyPartS.length );
 
     window.requestAnimationFrame( render );
 
@@ -1648,9 +1798,9 @@ when: function( fromLson, intoLson ) {
   "use strict";
 
 
-  LSON.take = function ( relative_path, prop ) {
+  LSON.take = function ( relativePath, prop ) {
 
-    return new LSON.Take( relative_path, prop );
+    return new LSON.Take( relativePath, prop );
 
   };
 
@@ -1660,10 +1810,10 @@ when: function( fromLson, intoLson ) {
   "use strict";
 
 
-  LSON.unclog = function ( clog_key ) {
+  LSON.unclog = function ( clogKey ) {
 
 
-    var levelS = LSON._clog_key2levelS[ clog_key ];
+    var levelS = LSON.$clogKey2_levelS_[ clogKey ];
 
     if ( levelS !== undefined ) {
 
@@ -1673,7 +1823,7 @@ when: function( fromLson, intoLson ) {
 
       }
 
-      delete LSON._clog_key2levelS[ clog_key ];
+      delete LSON.$clogKey2_levelS_[ clogKey ];
 
     }
 
@@ -1681,3 +1831,18 @@ when: function( fromLson, intoLson ) {
   };
 
 })();
+
+
+/*
+
+Loop levels | clogged
+  Loop value in values
+    If value is constraint
+      Take value's constraints
+  If level is type many
+    Expand levels
+
+
+
+
+*/

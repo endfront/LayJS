@@ -1,15 +1,12 @@
-(function() {
+( function () {
   "use strict";
 
 
+  var Take = function ( relativePath, attr ) {
 
 
-  var Take = function ( relative_path, prop ) {
-
-    //  this.level_and_prop =? arg;
-
-    var path = new LSON.Path( relative_path );
-    this.level_and_constraintS = [ [ relative_path, prop ] ];
+    var path = new LSON.RelPath( relativePath );
+    this._relPath00attr_S = [ [ path, attr ] ];
 
     this.executable = function () {
 
@@ -29,12 +26,12 @@
 
 
 
-  Take.prototype._mergeLevel_and_constraintS = function ( take ) {
+  Take.prototype.$mergePathAndProps = function ( take ) {
 
-    var level_and_constraintS = take.level_and_constraintS;
-    for ( var i = 0, len = level_and_constraintS.length; i < len; i++ ) {
+    var _relPath00attr_S = take._relPath00attr_S;
+    for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
-      this.level_and_constraintS.push( level_and_constraintS[ i ] );
+      this._relPath00attr_S.push( _relPath00attr_S[ i ] );
 
     }
 
@@ -60,7 +57,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) + val.execute( this );
@@ -79,7 +76,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) - val.execute( this );
@@ -97,7 +94,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) / val.execute( this );
@@ -115,7 +112,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) * val.execute( this );
@@ -133,7 +130,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) % val.execute( this );
@@ -174,7 +171,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).indexOf( val.execute( this ) ) !== -1;
@@ -192,7 +189,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) === val.execute( this );
@@ -210,7 +207,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) > val.execute( this );
@@ -228,7 +225,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) >= val.execute( this );
@@ -246,7 +243,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) < val.execute( this );
@@ -264,7 +261,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) <= val.execute( this );
@@ -282,7 +279,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) || val.execute( this );
@@ -300,7 +297,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) && val.execute( this );
@@ -352,7 +349,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return oldExecutable.call( this )[ val.execute( this ) ];
@@ -374,7 +371,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.min( oldExecutable.call( this ), val.execute( this ) );
@@ -392,7 +389,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.max( oldExecutable.call( this ), val.execute( this ) );
@@ -460,7 +457,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.pow( oldExecutable.call( this ), val.execute( this ) );
@@ -478,7 +475,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof Take ) {
-      this._mergeLevel_and_constraintS( val );
+      this.$mergePathAndProps( val );
 
       this.executable = function () {
         return Math.log( oldExecutable.call( this ), val.execute( this ) );
@@ -543,7 +540,7 @@
 
       if ( argS instanceof Take ) {
 
-        this._mergeLevel_and_constraintS( argS );
+        this.$mergePathAndProps( argS );
 
       }
 
@@ -564,7 +561,7 @@
 
           if ( cur instanceof Take ) {
 
-            this._mergeLevel_and_constraintS( cur );
+            this.$mergePathAndProps( cur );
 
           }
 

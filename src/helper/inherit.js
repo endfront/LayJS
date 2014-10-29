@@ -17,25 +17,25 @@
 
   function inheritSingleLevelObject( fromObject, intoObject, key ) {
 
-    var from_key2value, into_key2value;
-    from_key2value = fromObject.key;
-    into_key2value = intoObject.key;
+    var fromKey2value, intoKey2value;
+    fromKey2value = fromObject.key;
+    intoKey2value = intoObject.key;
 
-    if ( from_key2value !== undefined ) {
+    if ( fromKey2value !== undefined ) {
 
-      if ( into_key2value === undefined ) {
+      if ( intoKey2value === undefined ) {
 
-        intoObject.key = into_key2value;
+        intoObject.key = intoKey2value;
 
       } else {
 
-        for ( var from_key in from_key2value ) {
+        for ( var fromKey in fromKey2value ) {
 
-          if ( from_key2value.hasOwnProperty( from_key ) ) {
+          if ( fromKey2value.hasOwnProperty( fromKey ) ) {
 
-            into_key2value[ from_key ] =
-            into_key2value[ from_key ] ||
-            from_key2value[ from_key ];
+            intoKey2value[ fromKey ] =
+            intoKey2value[ fromKey ] ||
+            fromKey2value[ fromKey ];
 
           }
         }
@@ -67,19 +67,19 @@
 
     many: function( fromLson, intoLson ) {
 
-      var from_many_attr2val, into_many_attr2val;
-      from_many_attr2val = fromLson.many;
-      into_many_attr2val = intoLson.many;
+      var fromManyAttr2val, intoManyAttr2val;
+      fromManyAttr2val = fromLson.many;
+      intoManyAttr2val = intoLson.many;
 
-      if ( from_many_attr2val !== undefined ) {
+      if ( fromManyAttr2val !== undefined ) {
 
-        if ( into_many_attr2val === undefined ) {
+        if ( intoManyAttr2val === undefined ) {
 
-          intoLson.many = from_many_attr2val;
+          intoLson.many = fromManyAttr2val;
 
         } else {
 
-          LSON._inherit( from_many_attr2val, into_many_attr2val );
+          LSON._inherit( fromManyAttr2val, intoManyAttr2val );
 
         }
       }
@@ -91,48 +91,26 @@
 
     },
 
-    /*formation: function( from_many_attr2val, into_many_attr2val ) {
 
-    var from_formation_attr2val, into_formation_attr2val;
-    from_formation_attr2val = from_many_attr2val.formation;
-    into_formation_attr2val = into_many_attr2va.formation;
-
-    if ( from_formation_attr2val !== undefined ) {
-
-    if ( into_formation_attr2val === undefined ) {
-
-    into_many_attr2val.formation = from_formation_attr2val;
-
-  } else {
-
-  into_formation_attr2val.type = into_formation_attr2val.type || from_formation_attr2val.type;
-  into_formation_attr2val.sort = into_formation_attr2val.sort || from_formation_attr2val.sort;
-  into_formation_attr2val.order = into_formation_attr2val.order || from_formation_attr2val.order;
-
-  inheritSingleLevelObject( from_formation_attr2val, into_formation_attr2val, "args" );
-
-}
-}
-},*/
 
 
 
 children: function( fromLson, intoLson ) {
-  var from_child_name2lson, into_child_name2lson;
-  from_child_name2lson = fromLson.children;
-  into_child_name2lson = intoLson.children;
+  var fromChildName2lson, intoChildName2lson;
+  fromChildName2lson = fromLson.children;
+  intoChildName2lson = intoLson.children;
 
-  for ( var name in from_child_name2lson ) {
+  for ( var name in fromChildName2lson ) {
 
-    if ( from_child_name2lson.hasOwnProperty( name ) ) {
+    if ( fromChildName2lson.hasOwnProperty( name ) ) {
 
-      if ( !into_child_name2lson[ name ] ) { // inexistent child
+      if ( !intoChildName2lson[ name ] ) { // inexistent child
 
-        into_child_name2lson[ name ] = from_child_name2lson[ name ];
+        intoChildName2lson[ name ] = fromChildName2lson[ name ];
 
       } else {
 
-        inherit( from_child_name2lson[ name ], into_child_name2lson[ name ] );
+        inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
 
       }
     }
@@ -142,23 +120,23 @@ children: function( fromLson, intoLson ) {
 
 states: function( fromLson, intoLson ) {
 
-  var from_state_name2state, into_state_name2state;
-  from_state_name2state = fromLson.states;
-  into_state_name2state = intoLson.states;
+  var fromStateName2state, intoStateName2state;
+  fromStateName2state = fromLson.states;
+  intoStateName2state = intoLson.states;
 
   var inheritFromState, inheritIntoState;
-  for ( var name in from_state_name2state ) {
+  for ( var name in fromStateName2state ) {
 
-    if ( from_state_name2state.hasOwnProperty( name ) ) {
+    if ( fromStateName2state.hasOwnProperty( name ) ) {
 
-      if ( !into_state_name2state[ name ] ) { //inexistent state
+      if ( !intoStateName2state[ name ] ) { //inexistent state
 
-        into_state_name2state[ name ] = from_state_name2state[ name ];
+        intoStateName2state[ name ] = fromStateName2state[ name ];
 
       } else {
 
-        inheritFromState = from_state_name2state[ name ];
-        inheritIntoState = into_state_name2state[ name ];
+        inheritFromState = fromStateName2state[ name ];
+        inheritIntoState = intoStateName2state[ name ];
 
         inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
         inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
@@ -176,27 +154,27 @@ states: function( fromLson, intoLson ) {
 
 when: function( fromLson, intoLson ) {
 
-  var from_event_name2fnEventHandlerS, into_event_name2fnEventHandlerS;
-  from_event_name2fnEventHandlerS = fromLson.when;
-  into_event_name2fnEventHandlerS = intoLson.when;
+  var fromEventName2fnEventHandlerS, intoEventName2fnEventHandlerS;
+  fromEventName2fnEventHandlerS = fromLson.when;
+  intoEventName2fnEventHandlerS = intoLson.when;
 
-  if ( from_event_name2fnEventHandlerS !== undefined ) {
+  if ( fromEventName2fnEventHandlerS !== undefined ) {
 
-    if ( into_event_name2fnEventHandlerS === undefined ) {
+    if ( intoEventName2fnEventHandlerS === undefined ) {
 
-      intoLson.when = from_event_name2fnEventHandlerS;
+      intoLson.when = fromEventName2fnEventHandlerS;
 
     } else {
       var fnFromEventHandlerS, fnIntoEventHandlerS;
 
-      for ( var from_event_name in from_event_name2fnEventHandlerS ) {
+      for ( var fromEventName in fromEventName2fnEventHandlerS ) {
 
-        fnFromEventHandlerS = from_event_name2fnEventHandlerS[ from_event_name ];
-        fnIntoEventHandlerS = into_event_name2fnEventHandlerS[ from_event_name ];
+        fnFromEventHandlerS = fromEventName2fnEventHandlerS[ fromEventName ];
+        fnIntoEventHandlerS = intoEventName2fnEventHandlerS[ fromEventName ];
 
         if ( fnIntoEventHandlerS === undefined ) {
 
-          into_event_name2fnEventHandlerS[ from_event_name ] = fnIntoEventHandlerS;
+          intoEventName2fnEventHandlerS[ fromEventName ] = fnIntoEventHandlerS;
 
         } else {
 
