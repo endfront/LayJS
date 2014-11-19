@@ -116,7 +116,7 @@ appearance: none;
 
 
 
-  var Level = function ( path, lson, clogKey, parent ) {
+  LSON.Level = function ( path, lson, clogKey, parent ) {
 
     this.path = path;
     this.lson = lson;
@@ -132,7 +132,6 @@ appearance: none;
 
     }
 
-    this.$selfAttr2_takerLevelS_ = new HashArray();
     this.$takenLevelPath2_takenAttr2selfAttr_ = {};
 
 
@@ -141,16 +140,10 @@ appearance: none;
 
 
   // unclog
-  Level.prototype.unclog = function () {
-
-    this.$inherit();
-    this.$prepare();
-    this.$deliver();
 
 
-  };
 
-  Level.prototype.addChildren = function ( name2lson, clogKey ) {
+  LSON.Level.prototype.addChildren = function ( name2lson, clogKey ) {
 
     if ( clogKey === undefined ) {
 
@@ -174,7 +167,7 @@ appearance: none;
 
   };
 
-  Level.prototype.$inherit = function() {
+  LSON.Level.prototype.$inherit = function() {
 
     if ( !this.lson.inherit ) {
 
@@ -211,10 +204,83 @@ appearance: none;
 
 
 
+  LSON.Level.prototype.$initAttributes = function () {
 
 
 
-  Level.prototype.$takeLevels = function ( value, selfAttr ) {
+    var attr2_value00calc00isConstraint00takerLevelS_, dirtyAttrS, key, data, props, value, isConstraint;
+
+    dirtyAttrS = [];
+    attr2_value00calc00isConstraint00takerLevelS_ = {};
+
+    data = this.lson.data;
+    props = this.lson.props;
+    states = this.lson.states;
+
+    // Check for defaults
+
+    if ( !props.opacity ) {
+
+    }
+
+
+    for ( key in data ) {
+
+      if ( data.hasOwnProperty( key ) ) {
+
+
+        value = data[ key ];
+        key = "data." + key;
+        isConstraint = value instanceof LSON.Take;
+
+
+        attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+        dirtyAttrS.push( key );
+
+      }
+    }
+
+
+    for ( key in props ) {
+
+      if ( props.hasOwnProperty( key ) ) {
+
+        value = props[ key ];
+        isConstraint = value instanceof LSON.Take;
+
+        attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+        dirtyAttrS.push( key );
+
+      }
+    }
+
+    for ( key in states ) {
+
+      if ( states.hasOwnProperty( key ) ) {
+
+        value = states[ key ].onlyif;
+        key = "state." + key;
+
+        if ( value !== undefined ) {
+
+          isConstraint = value instanceof LSON.Take;
+          attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+          dirtyAttrS.push( key );
+
+        }
+      }
+    }
+
+
+    this.$attr2_value00calc00isConstraint00takerLevelS_ = attr2_value00calc00isConstraint00takerLevelS_;
+    this.dirtyAttrS = dirtyAttrS;
+
+  };
+
+
+
+
+  LSON.Level.prototype.$takeLevels = function ( value, selfAttr ) {
 
     var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
     _relPath00attr_S = value._relPath00attr_S;
@@ -248,7 +314,7 @@ appearance: none;
     }
   };
 
-  Level.prototype.$takeLevelsNot = function ( ) {
+  LSON.Level.prototype.$takeLevelsNot = function ( ) {
 
     var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
     _relPath00attr_S = value._relPath00attr_S;
@@ -282,105 +348,44 @@ appearance: none;
     }
 
   };
-  Level.prototype.$takeMe = function ( level, attr ) {
+  LSON.Level.prototype.$takeMe = function ( level, attr ) {
 
     this.selfAttr2_takerLevelS_.add( attr, level );
 
   };
 
-  Level.prototype.$takeMeNot = function () {
+  LSON.Level.prototype.$takeMeNot = function () {
 
     this.selfAttr2_takerLevelS_.remove( attr, level );
 
   };
 
 
-  Level.prototype.$initAttributes = function () {
 
 
 
-    var attr2_value00calc00isDirty00isConstraint_, dirtyAttrS, key, data, props, value;
+  function checkIsAttrState ( attr ) {
 
-    dirtyAttrS = [];
-    attr2_value00calc00isDirty00isConstraint_ = {};
+    return attr[ 0 ] === "s" &
+    attr[ 1 ] === "t" &
+    attr[ 2 ] === "a" &
+    attr[ 3 ] === "t" &
+    attr[ 4 ] === "e" &
+    attr[ 5 ] === ".";
 
-    data = this.lson.data;
-    props = this.lson.props;
-    states = this.lson.states;
+  }
 
+  function checkIsAttrData ( attr ) {
 
-    for ( key in data ) {
+    return attr[ 0 ] === "d" &
+    attr[ 1 ] === "a" &
+    attr[ 2 ] === "t" &
+    attr[ 3 ] === "a" &
+    attr[ 4 ] === ".";
 
-      if ( data.hasOwnProperty( key ) ) {
+  }
 
-        value = data[ key ];
-        key = "data." + key;
-
-        if ( value instanceof LSON.Take ) {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
-
-          dirtyAttrS.push( key );
-
-
-        } else {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, value, false, false ];
-
-        }
-      }
-    }
-
-
-    for ( key in props ) {
-
-      if ( props.hasOwnProperty( key ) ) {
-
-        value = props[ key ];
-
-        if ( value instanceof LSON.Take ) {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
-          dirtyAttrS.push( key );
-          this.$takeLevel( value );
-
-
-        } else {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, value, false, false ];
-
-        }
-      }
-    }
-
-    for ( key in states ) {
-
-      if ( states.hasOwnProperty( key ) ) {
-
-        value = states[ key ].onlyif;
-        key = "state." + key;
-
-        if ( value !== undefined ) {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
-          dirtyAttrS.push( key );
-
-        }
-
-      }
-    }
-
-    this.attr2_value00calc00isDirty00isConstraint_ = attr2_value00calc00isDirty00isConstraint_;
-    this.dirtyAttrS = dirtyAttrS;
-
-  };
-
-
-
-
-
-
-  Level.prototype.$prepare = function () {
+  LSON.Level.prototype.$prepare = function () {
 
 
     this.$initAttributes();
@@ -407,21 +412,93 @@ appearance: none;
     } else {
 
       this.isPart = true;
-      //this.part = new LSON.Part();
+      this.part = new LSON.Part( this );
+      var dirtyAttrS = this.dirtyAttrS;
+      //var attr2_value00calc00isConstraint00takerLevelS_ =  this.$attr2_value00calc00isConstraint00takerLevelS_;
+
+      for ( var i = 0, len = dirtyAttrS.length, dirtyAttr; i < len; i++ ) {
+
+        dirtyAttr = dirtyAttrS[ i ];
+        if ( !checkIsAttrState( dirtyAttr ) ) {
+
+          this.$cleanifyAttr( dirtyAttr );
+
+        }
+
+
+      }
 
     }
+
+
+
+  };
+
+  LSON.Level.prototype.$cleanifyAttr = function ( attr ) {
+
+
+
+
+  };
+
+  /*
+  * Change the value of an attribute.
+  * Propagate the change across the LOM (LSON object model)
+  * if the change in value produces a change.
+  * For constraint (take) based attributes, recalculate the
+  * value, for non constraint based use the `value` parameter
+  * as the change.
+  */
+  LSON.Level.prototype.$calculateAttr = function ( attr, value ) {
+
+    var value00calc00isConstraint00takerLevelS = attr2_value00calc00isConstraint00takerLevelS_[ attr ];
+    var isDirty = false;
+
+    if ( value00calc00isConstraint00takerLevelS[ 3 ]) { //is LSON.Take
+
+      var reCalc = value00calc00isConstraint00takerLevelS[ 0 ].execute( this );
+      if ( reCalc !== value00calc00isConstraint00takerLevelS[ 1 ] {
+
+        isDirty = true;
+        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 1 ] = ;
+
+      }
+
+    } else {
+
+      if ( value !== value00calc00isConstraint00takerLevelS[ 0 ] ) {
+
+        isDirty = true;
+        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 0 ] = value;
+        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 1 ] = value;
+
+      }
+    }
+
+    if ( isDirty ) {
+
+      var takerLevelS = this.$selfAttr2_takerLevelS_[ attr ];
+      if ( takerLevelS !== undefined ) {
+
+        for ( var i = 0, len = takerLevelS.length; i < len; i++ ) {
+
+          takerLevelS[ i ].$actOnDirtyOtherAttr( this, attr );
+
+        }
+      }
+    }
+
 
   };
 
 
-  Level.prototype.$deliver = function () {
+
+  LSON.Level.prototype.$deliver = function () {
 
     //TODO: (i.e render first shot (without initial state changes))
 
   };
 
-
-  LSON.Level = Level;
 
 
   /*
@@ -469,7 +546,7 @@ appearance: none;
 
         if ( element3elementS === element ) {
 
-          delete this.hashmap[ key ];
+          this.hashmap[ key ] = null;
 
         }
 
@@ -535,14 +612,9 @@ appearance: none;
 
 
 
-  var Part = function ( path, lson ) {
+  LSON.Part = function ( level ) {
 
-    this.type = lson.type || '';
-
-    this.node = type === 'interface' ? undefined : path === '/' ? document.body : document.createElement( type2tag[ this.type ] );
-
-
-    this.initProp2val = lson.props;
+    this.level = level;
 
     LSON.dirtyPartS.push( this );
 
@@ -575,34 +647,33 @@ appearance: none;
 
 
 
-  Part.prototype._fnClean_left =  function() {
+  LSON.Part.prototype._fnClean_left =  function() {
 
     this.node.style.left = this._prop2val.left + "px";
 
   };
 
 
-  Part.prototype._fnClean_top =  function() {
+  LSON.Part.prototype._fnClean_top =  function() {
 
     this.node.style.top = this._prop2val.top + "px";
 
   };
 
 
-  Part.prototype._fnClean_backgroundColor =  function() {
+  LSON.Part.prototype._fnClean_backgroundColor =  function() {
 
     this.node.style.backgroundColor = this._prop2val.backgroundColor;
 
   };
 
-  LSON.Part = Part;
 
 })();
 
 (function () {
   "use strict";
 
-  var RelPath = function ( relativePath ) {
+  LSON.RelPath = function ( relativePath ) {
 
 
     if ( relativePath === "this" ) {
@@ -612,14 +683,20 @@ appearance: none;
     } else {
 
       this.me = false;
-    this.numberOfParentTraversals = relativePath.match(/^(..\/)*/)[0].length / 3;
-    // strip off the "../"s
-    this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
+      if ( relativePath[ 0 ] === "/" ) {
+        this.absolute = true;
+        this.absolutePath = relativePath;
+      } else {
+        this.absolute = false;
+      this.numberOfParentTraversals = relativePath.match(/^(..\/)*/)[0].length / 3;
+      // strip off the "../"s
+      this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
+    }
   }
 
 };
 
-RelPath.prototype.resolve = function ( referenceLevel ) {
+LSON.RelPath.prototype.resolve = function ( referenceLevel ) {
 
   if ( this.me ) {
 
@@ -627,18 +704,24 @@ RelPath.prototype.resolve = function ( referenceLevel ) {
 
   } else {
 
-    for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parent ) ) {
+    if ( this.absolute ) {
 
+        return LSON.$path2level[ this.absolutePath ];
+
+    } else {
+
+      for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parent ) ) {
+
+      }
+
+      return LSON.$path2level[ referenceLevel.path + this.childPath ];
     }
-
-    return LSON.$path2level[ referenceLevel.path + this.childPath ];
 
   }
 
 };
 
 
-LSON.RelPath = RelPath;
 
 })();
 
@@ -646,7 +729,7 @@ LSON.RelPath = RelPath;
   "use strict";
 
 
-  var Take = function ( relativePath, attr ) {
+  LSON.Take = function ( relativePath, attr ) {
 
 
     var path = new LSON.RelPath( relativePath );
@@ -661,7 +744,7 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.execute = function ( contextPart ) {
+  LSON.Take.prototype.execute = function ( contextPart ) {
 
     // pass in context part for relative path lookups
     return this.executable.call( contextPart );
@@ -670,7 +753,7 @@ LSON.RelPath = RelPath;
 
 
 
-  Take.prototype.$mergePathAndProps = function ( take ) {
+  LSON.Take.prototype.$mergePathAndProps = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
@@ -682,25 +765,11 @@ LSON.RelPath = RelPath;
   };
 
 
-  function cloneAndPrependArray( array, element ) {
 
-    var new_array = new Array( array.length + 1 );
-
-    new_array[ 0 ] = element;
-
-    for ( var i = 0, len = array.length ; i < len; i++ ) {
-
-      new_array[ i + 1 ] = array[ i ];
-
-    }
-    return new_array;
-
-  }
-
-  Take.prototype.add = function ( val ) {
+  LSON.Take.prototype.add = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -716,10 +785,10 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.subtract = function ( val ) {
+  LSON.Take.prototype.subtract = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -734,10 +803,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.divide = function ( val ) {
+  LSON.Take.prototype.divide = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -752,10 +821,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.multiply = function ( val ) {
+  LSON.Take.prototype.multiply = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -770,10 +839,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.remainder = function ( val ) {
+  LSON.Take.prototype.remainder = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -788,7 +857,7 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.half = function ( ) {
+  LSON.Take.prototype.half = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -799,7 +868,7 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.double = function ( ) {
+  LSON.Take.prototype.double = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -811,10 +880,10 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.contains = function ( val ) {
+  LSON.Take.prototype.contains = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -829,10 +898,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.eq = function ( val ) {
+  LSON.Take.prototype.eq = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -847,10 +916,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.gt = function ( val ) {
+  LSON.Take.prototype.gt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -865,10 +934,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.gte = function ( val ) {
+  LSON.Take.prototype.gte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -883,10 +952,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.lt = function ( val ) {
+  LSON.Take.prototype.lt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -901,10 +970,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.lte = function ( val ) {
+  LSON.Take.prototype.lte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -919,10 +988,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.or = function ( val ) {
+  LSON.Take.prototype.or = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -937,10 +1006,10 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.and = function ( val ) {
+  LSON.Take.prototype.and = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -955,7 +1024,7 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.not = function () {
+  LSON.Take.prototype.not = function () {
 
     var oldExecutable = this.executable;
 
@@ -966,7 +1035,7 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.positive = function () {
+  LSON.Take.prototype.positive = function () {
 
     var oldExecutable = this.executable;
 
@@ -977,7 +1046,7 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.negative = function () {
+  LSON.Take.prototype.negative = function () {
 
     var oldExecutable = this.executable;
 
@@ -989,10 +1058,10 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.key = function ( val ) {
+  LSON.Take.prototype.key = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -1007,14 +1076,14 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.index = Take.prototype.key;
+  LSON.Take.prototype.index = LSON.Take.prototype.key;
 
 
 
-  Take.prototype.min = function ( val ) {
+  LSON.Take.prototype.min = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -1023,16 +1092,16 @@ LSON.RelPath = RelPath;
     } else {
 
       this.executable = function () {
-        return Math.min( oldExecutable.call( this ) );
+        return Math.min( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  Take.prototype.max = function ( val ) {
+  LSON.Take.prototype.max = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -1041,14 +1110,14 @@ LSON.RelPath = RelPath;
     } else {
 
       this.executable = function () {
-        return Math.max( oldExecutable.call( this ) );
+        return Math.max( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
 
-  Take.prototype.ceil = function () {
+  LSON.Take.prototype.ceil = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -1057,7 +1126,7 @@ LSON.RelPath = RelPath;
     return this;
   };
 
-  Take.prototype.floor = function () {
+  LSON.Take.prototype.floor = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -1067,7 +1136,7 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.sin = function () {
+  LSON.Take.prototype.sin = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -1077,7 +1146,7 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.cos = function () {
+  LSON.Take.prototype.cos = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -1087,7 +1156,7 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.tan = function () {
+  LSON.Take.prototype.tan = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -1097,10 +1166,10 @@ LSON.RelPath = RelPath;
   };
 
 
-  Take.prototype.pow = function ( val ) {
+  LSON.Take.prototype.pow = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -1109,16 +1178,16 @@ LSON.RelPath = RelPath;
     } else {
 
       this.executable = function () {
-        return Math.pow( oldExecutable.call( this ) );
+        return Math.pow( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  Take.prototype.log = function ( val ) {
+  LSON.Take.prototype.log = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -1127,111 +1196,221 @@ LSON.RelPath = RelPath;
     } else {
 
       this.executable = function () {
-        return Math.log( oldExecutable.call( this ) );
+        return Math.log( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  Take.prototype.format = function () {
+  LSON.Take.prototype.format = function () {
 
-    var argS = new Array( arguments.length + 1 );
+    var argS = Array.prototype.slice.call( arguments );
 
-    for ( var i = 0, len = arguments.length; i < len; i++ ) {
+    // Add the `format` function
+    argS.push(LSON.$format);
+    return this.fn.apply( this, argS );
 
-      argS[ i ] = arguments[ i ];
+  };
 
+
+
+
+  LSON.Take.prototype.i18nFormat = function () {
+
+    this._relPath00attr_S.push( [ '/', 'data.lang' ] );
+
+    var argS = Array.prototype.slice.call(arguments);
+
+    // Add the `i18nFormat` function
+    argS.push(LSON.i18nFormat);
+    return this.fn.apply( this, argS );
+
+  };
+
+  function i18nFormat () {
+
+    var argS = Array.prototype.slice.call( arguments );
+
+    argS[ argS.length - 1 ] = ( argS[ argS.length - 1 ] )[ LSON.level( '/' ).attr( 'data.lang' ) ];
+
+    return LSON.$format.apply( undefined, argS );
+
+  }
+
+  LSON.Take.prototype.concat = LSON.Take.prototype.add;
+
+
+  LSON.Take.prototype.match = function () {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).match( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).match( val );
+      };
     }
-
-    argS[ i + 1 ] = format;
-
-    return this.fn( argS );
+    return this;
 
   };
 
-  Take.prototype.concat = Take.prototype.add;
 
 
-  Take.prototype.matches = function () {
-
-    //TODO
-
-  };
-
-  function i18nFormat ( lang, lang2format ) {
-
-    // TODO
-
-  }
-
-  function format () {
-
-    // TODO
-
-  }
 
 
-  Take.prototype.fn = function ( ) {
+  LSON.Take.prototype.fn = function ( ) {
 
     var oldExecutable = this.executable;
 
-    var argS = arguments[ 0 ];
-    var fn = arguments[ 1 ];
 
+    var fn;
 
-    if ( arguments.length === 2 ) {
+    // optimize for arguments of length 1, and 2, by avoiding a loop
+    // TODO: add non-loop optimizations for arguments of lengths 3 and 4, as well.
+    if ( arguments.length === 1 ) {
 
+      fn = arguments[ 0 ];
 
-      if ( argS instanceof Take ) {
+      if ( fn instanceof LSON.Take ) {
 
-        this.$mergePathAndProps( argS );
+        this.$mergePathAndProps( fn );
+        this.executable = function () {
 
+          return (fn.execute( this )).call( this, oldExecutable.call( this ) );
+
+        };
+
+      } else {
+
+        this.executable = function () {
+
+          return fn.call( this, oldExecutable.call( this ) );
+
+        };
       }
+    }
 
-      this.executable = function () {
+    else if (arguments.length === 2 ) {
 
-        return fn( oldExecutable.call( this ) );
+      var arg = arguments[ 0 ];
+      fn = arguments[ 1 ];
 
-      };
+      if ( fn instanceof LSON.Take ) {
 
+        this.$mergePathAndProps( fn );
 
-    } else {
+        if ( arg instanceof LSON.Take ) {
 
-      for ( var i = 0, len = arguments.length, cur; i < len; i++ ) {
+          this.$mergePathAndProps( arg );
 
-        cur = arguments[ i ];
+          this.executable = function () {
 
-        if ( i !== len - 1 ) {
+            return (fn.execute( this )).call( this, oldExecutable.call( this ), arg.execute( this ) );
 
-          if ( cur instanceof Take ) {
-
-            this.$mergePathAndProps( cur );
-
-          }
-
-          argS.push( cur );
+          };
 
         } else {
 
-          fn = cur;
+          this.executable = function () {
+
+            return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
+
+          };
+
+        }
+
+      } else {
+
+        if ( arg instanceof LSON.Take ) {
+
+          this.$mergePathAndProps( arg );
+
+          this.executable = function () {
+
+            return fn.call( this, oldExecutable.call( this ), arg.execute( this ) );
+
+          };
+
+        } else {
+
+          this.executable = function () {
+
+            return fn.call( this, oldExecutable.call( this ), arg );
+
+          };
+        }
+      }
+
+    } else {
+
+      var argSlength = arguments.length - 1;
+      var argS = Array.prototype.slice.call( arguments );
+
+      for ( var i = 0, curArg; i < argSlength; i++ ) {
+
+        curArg = arguments[ i ];
+
+        if ( curArg instanceof LSON.Take ) {
+
+          this.$mergePathAndProps( curArg );
 
         }
       }
 
-      this.executable = function () {
+      fn = argS[ argSlength - 1 ];
 
-        return fn.apply( window, cloneAndPrependArray( argS, oldExecutable.call( this ) ) );
+      if ( fn instanceof LSON.Take ) {
 
-      };
+        this.executable = function () {
 
+
+          // The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+          var callableArgS = new Array( argSlength + 1 );
+          callableArgS[ 0 ] = oldExecutable.call( this );
+
+          for ( var i = 0, arg; i < argSlength; i++ ) {
+
+            arg = argS[ i ];
+
+            callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+
+          }
+
+          return ( fn.execute( this ) ).apply( this, callableArgS );
+
+        };
+
+      } else {
+
+        this.executable = function () {
+
+          // The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+          var callableArgS = new Array( argSlength + 1 );
+          callableArgS[ 0 ] = oldExecutable.call( this );
+
+          for ( var i = 0, arg; i < argSlength; i++ ) {
+
+            arg = argS[ i ];
+
+            callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+
+          }
+
+          return fn.apply( window, callableArgS );
+
+
+        };
+      }
     }
 
     return this;
 
   };
-
-
-  LSON.Take = Take;
 
 }());
 
@@ -1247,6 +1426,247 @@ LSON.RelPath = RelPath;
   }
 
 })();
+
+// LSON has taken the below source from 'tmaeda1981jp'
+// source: https://github.com/tmaeda1981jp/string-format-js/blob/master/format.js
+
+(function() {
+
+  "use strict";
+
+    function isNumber(n) {
+      return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+
+    var Formatter = (function() {
+      var Constr = function(identifier) {
+        var array = function(len){ return new Array(len); };
+
+        switch(true) {
+        case /^#\{(\w+)\}*$/.test(identifier):
+          this.formatter = function(line, param) {
+            return line.replace('#{' + RegExp.$1 + '}', param[RegExp.$1]);
+          };
+          break;
+        case /^([ds])$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (RegExp.$1 === 'd' && !isNumber(param)) {
+              throw new TypeError();
+            }
+            return line.replace("%" + identifier, param);
+          };
+          break;
+
+        // Octet
+        case /^(o)$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            return line.replace(
+              "%" + identifier,
+              parseInt(param).toString(8));
+          };
+          break;
+
+        // Binary
+        case /^(b)$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            return line.replace(
+              "%" + identifier,
+              parseInt(param).toString(2));
+          };
+          break;
+
+        // Hex
+        case /^([xX])$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            var hex = parseInt(param).toString(16);
+            if (identifier === 'X') { hex = hex.toUpperCase(); }
+            return line.replace("%" + identifier, hex);
+          };
+          break;
+
+        case /^(c)$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            return line.replace("%" + identifier, String.fromCharCode(param));
+          };
+          break;
+
+        case /^(u)$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            return line.replace("%" + identifier, parseInt(param, 10) >>> 0);
+          };
+          break;
+
+        case /^(-?)(\d*).?(\d?)(e)$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            var lpad = RegExp.$1 === '-',
+                width = RegExp.$2,
+                decimal = RegExp.$3 !== '' ? RegExp.$3: undefined,
+                val = param.toExponential(decimal),
+                mantissa, exponent, padLength
+            ;
+
+            if (width !== '') {
+              if (decimal !== undefined) {
+                padLength = width - val.length;
+                if (padLength >= 0){
+                  val = lpad ?
+                    val + array(padLength + 1).join(" "):
+                    array(padLength + 1).join(" ") + val;
+                }
+                else {
+                  // TODO throw ?
+                }
+              }
+              else {
+                mantissa = val.split('e')[0];
+                exponent = 'e' + val.split('e')[1];
+                padLength = width - (mantissa.length + exponent.length);
+                val = padLength >= 0 ?
+                  mantissa + (array(padLength + 1)).join("0") + exponent :
+                  mantissa.slice(0, padLength) + exponent;
+              }
+            }
+            return line.replace("%" + identifier, val);
+          };
+          break;
+
+        case /^(-?)(\d*).?(\d?)(f)$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+            var lpad = RegExp.$1 === '-',
+                width   = RegExp.$2,
+                decimal = RegExp.$3,
+                DOT_LENGTH = '.'.length,
+                integralPart = param > 0 ? Math.floor(param) : Math.ceil(param),
+                val = parseFloat(param).toFixed(decimal !== '' ? decimal : 6),
+                numberPartWidth, spaceWidth;
+
+            if (width !== '') {
+              if (decimal !== '') {
+                numberPartWidth =
+                  integralPart.toString().length + DOT_LENGTH + parseInt(decimal, 10);
+                spaceWidth = width - numberPartWidth;
+                val = lpad ?
+                  parseFloat(param).toFixed(decimal) + (array(spaceWidth + 1).join(" ")) :
+                  (array(spaceWidth + 1).join(" ")) + parseFloat(param).toFixed(decimal);
+              }
+              else {
+                val = parseFloat(param).toFixed(
+                  width - (integralPart.toString().length + DOT_LENGTH));
+              }
+            }
+            return line.replace("%" + identifier, val);
+          };
+          break;
+
+        // Decimal
+        case /^([0\-]?)(\d+)d$/.test(identifier):
+          this.formatter = function(line, param) {
+            if (!isNumber(param)) { throw new TypeError(); }
+
+            var len = RegExp.$2 - param.toString().length,
+                replaceString = '',
+                result;
+            if (len < 0) { len = 0; }
+            switch(RegExp.$1) {
+            case "": // rpad
+              replaceString = (array(len + 1).join(" ") + param).slice(-RegExp.$2);
+              break;
+            case "-": // lpad
+              replaceString = (param + array(len + 1).join(" ")).slice(-RegExp.$2);
+              break;
+            case "0": // 0pad
+              replaceString = (array(len + 1).join("0") + param).slice(-RegExp.$2);
+              break;
+            }
+            return line.replace("%" + identifier, replaceString);
+          };
+          break;
+
+        // String
+        case /^(-?)(\d)s$/.test(identifier):
+          this.formatter = function(line, param) {
+            var len = RegExp.$2 - param.toString().length,
+                replaceString = '',
+                result;
+            if (len < 0) { len = 0; }
+            switch(RegExp.$1) {
+            case "": // rpad
+              replaceString = (array(len + 1).join(" ") + param).slice(-RegExp.$2);
+              break;
+            case "-": // lpad
+              replaceString = (param + array(len + 1).join(" ")).slice(-RegExp.$2);
+              break;
+            default:
+              // TODO throw ?
+            }
+            return line.replace("%" + identifier, replaceString);
+          };
+          break;
+
+        // String with max length
+        case /^(-?\d?)\.(\d)s$/.test(identifier):
+          this.formatter = function(line, param) {
+            var replaceString = '',
+                max, spacelen;
+
+            // %.4s
+            if (RegExp.$1 === '') {
+              replaceString = param.slice(0, RegExp.$2);
+            }
+            // %5.4s %-5.4s
+            else {
+              param = param.slice(0, RegExp.$2);
+              max = Math.abs(RegExp.$1);
+              spacelen = max - param.toString().length;
+              replaceString = RegExp.$1.indexOf('-') !== -1 ?
+                (param + array(spacelen + 1).join(" ")).slice(-max): // lpad
+                (array(spacelen + 1).join(" ") + param).slice(-max); // rpad
+            }
+            return line.replace("%" + identifier, replaceString);
+          };
+          break;
+        default:
+          this.formatter = function(line, param) {
+            return line;
+          };
+        }
+      };
+
+      Constr.prototype = {
+        format: function(line, param) {
+          return this.formatter.call(this, line, param);
+        }
+      };
+      return Constr;
+    }());
+
+    LSON.$format = function() {
+
+      var i,
+          result,
+          argSLength = arguments.length,
+          argS = Array.prototype.slice.call(arguments);
+
+        // result contians the formattable string
+        result = argS[ argsLength - 1 ];
+
+        for ( i = 0; i < argSLength - 1; i++ ) {
+          if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
+            result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+          }
+        }
+
+      return result;
+    };
+
+}());
 
 
 // Production steps of ECMA-262, Edition 5, 15.4.4.14
@@ -1321,14 +1741,18 @@ if (!Array.prototype.indexOf) {
   "use strict";
 
 
+  /*
+  * Inherit the lson into `intoLson`.
+  */
   LSON._inherit = function ( fromLson, intoLson ) {
 
     for ( var key in fromLson ) {
 
       if ( fromLson.hasOwnProperty( key ) ) {
 
-        attr2fnInherit[ key ]( fromLson, intoLson );
-
+        if ( attr2fnInherit.hasOwnPropoperty( key ) ) {
+          attr2fnInherit[ key ]( fromLson, intoLson, isStateInheritance );
+        }
       }
     }
   };
@@ -1413,98 +1837,98 @@ if (!Array.prototype.indexOf) {
 
 
 
-children: function( fromLson, intoLson ) {
-  var fromChildName2lson, intoChildName2lson;
-  fromChildName2lson = fromLson.children;
-  intoChildName2lson = intoLson.children;
+    children: function( fromLson, intoLson ) {
+      var fromChildName2lson, intoChildName2lson;
+      fromChildName2lson = fromLson.children;
+      intoChildName2lson = intoLson.children;
 
-  for ( var name in fromChildName2lson ) {
+      for ( var name in fromChildName2lson ) {
 
-    if ( fromChildName2lson.hasOwnProperty( name ) ) {
+        if ( fromChildName2lson.hasOwnProperty( name ) ) {
 
-      if ( !intoChildName2lson[ name ] ) { // inexistent child
+          if ( !intoChildName2lson[ name ] ) { // inexistent child
 
-        intoChildName2lson[ name ] = fromChildName2lson[ name ];
+            intoChildName2lson[ name ] = fromChildName2lson[ name ];
 
-      } else {
+          } else {
 
-        inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
+            inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
 
+          }
+        }
       }
-    }
-  }
-},
+    },
 
 
-states: function( fromLson, intoLson ) {
+    states: function( fromLson, intoLson ) {
 
-  var fromStateName2state, intoStateName2state;
-  fromStateName2state = fromLson.states;
-  intoStateName2state = intoLson.states;
+      var fromStateName2state, intoStateName2state;
+      fromStateName2state = fromLson.states;
+      intoStateName2state = intoLson.states;
 
-  var inheritFromState, inheritIntoState;
-  for ( var name in fromStateName2state ) {
+      var inheritFromState, inheritIntoState;
+      for ( var name in fromStateName2state ) {
 
-    if ( fromStateName2state.hasOwnProperty( name ) ) {
+        if ( fromStateName2state.hasOwnProperty( name ) ) {
 
-      if ( !intoStateName2state[ name ] ) { //inexistent state
+          if ( !intoStateName2state[ name ] ) { //inexistent state
 
-        intoStateName2state[ name ] = fromStateName2state[ name ];
+            intoStateName2state[ name ] = fromStateName2state[ name ];
 
-      } else {
+          } else {
 
-        inheritFromState = fromStateName2state[ name ];
-        inheritIntoState = intoStateName2state[ name ];
+            inheritFromState = fromStateName2state[ name ];
+            inheritIntoState = intoStateName2state[ name ];
 
-        inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
-        inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
-        inheritIntoState.uninstall = inheritIntoState.uninstall || inheritFromState.uninstall;
-
-
-        attr2fnInherit.props( inheritFromState, inheritIntoState );
-        attr2fnInherit.when( inheritFromState, inheritIntoState );
+            inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
+            inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
+            inheritIntoState.uninstall = inheritIntoState.uninstall || inheritFromState.uninstall;
 
 
+            attr2fnInherit.props( inheritFromState, inheritIntoState );
+            attr2fnInherit.when( inheritFromState, inheritIntoState );
+
+
+          }
+        }
       }
-    }
-  }
-},
+    },
 
-when: function( fromLson, intoLson ) {
+    when: function( fromLson, intoLson ) {
 
-  var fromEventName2fnEventHandlerS, intoEventName2fnEventHandlerS;
-  fromEventName2fnEventHandlerS = fromLson.when;
-  intoEventName2fnEventHandlerS = intoLson.when;
+      var fromEventName2_fnEventHandlerS_, intoEventName2_fnEventHandlerS_;
+      fromEventName2_fnEventHandlerS_ = fromLson.when;
+      intoEventName2_fnEventHandlerS_ = intoLson.when;
 
-  if ( fromEventName2fnEventHandlerS !== undefined ) {
+      if ( fromEventName2_fnEventHandlerS_ !== undefined ) {
 
-    if ( intoEventName2fnEventHandlerS === undefined ) {
+        if ( intoEventName2_fnEventHandlerS_ === undefined ) {
 
-      intoLson.when = fromEventName2fnEventHandlerS;
-
-    } else {
-      var fnFromEventHandlerS, fnIntoEventHandlerS;
-
-      for ( var fromEventName in fromEventName2fnEventHandlerS ) {
-
-        fnFromEventHandlerS = fromEventName2fnEventHandlerS[ fromEventName ];
-        fnIntoEventHandlerS = intoEventName2fnEventHandlerS[ fromEventName ];
-
-        if ( fnIntoEventHandlerS === undefined ) {
-
-          intoEventName2fnEventHandlerS[ fromEventName ] = fnIntoEventHandlerS;
+          intoLson.when = fromEventName2_fnEventHandlerS_;
 
         } else {
+          var fnFromEventHandlerS, fnIntoEventHandlerS;
 
-          fnIntoEventHandlerS = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
+          for ( var fromEventName in fromEventName2_fnEventHandlerS_ ) {
 
+            fnFromEventHandlerS = fromEventName2_fnEventHandlerS_[ fromEventName ];
+            fnIntoEventHandlerS = intoEventName2_fnEventHandlerS_[ fromEventName ];
+
+            if ( fnIntoEventHandlerS === undefined ) {
+
+              intoEventName2_fnEventHandlerS_[ fromEventName ] = fnIntoEventHandlerS;
+
+            } else {
+
+              fnIntoEventHandlerS = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
+
+            }
+          }
         }
       }
     }
-  }
-}
 
-};
+  };
 
 })();
 
@@ -1535,7 +1959,7 @@ when: function( fromLson, intoLson ) {
 
   function _normalize( lson, isRecursive ) {
 
-    attr2fnNormalize.props( lson );
+    attr2fnNormalize.props( lson, true );
     attr2fnNormalize.states( lson );
 
     if ( isRecursive ) {
@@ -1553,7 +1977,6 @@ when: function( fromLson, intoLson ) {
     borderColor: [ 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor' ],
     borderStyle: [ 'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle' ],
     textPadding: [ 'textTopPadding', 'textRightPadding', 'textBottomPadding', 'textLeftPadding' ],
-    scale: [ 'scaleX', 'scaleY' ],
     cornerRadius: [ 'cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft' ],
 
   };
@@ -1587,7 +2010,13 @@ when: function( fromLson, intoLson ) {
 
   var attr2fnNormalize = {
 
-    props: function( lson ) {
+    /*
+    * normalize the `lson`
+    * `isRoot` signifies whether the props
+    * are a direct descedant of the lson and
+    * and not a state.
+    */
+    props: function( lson, isRoot ) {
 
       var prop2val = lson.props;
       if ( !prop2val ) {
@@ -1606,14 +2035,12 @@ when: function( fromLson, intoLson ) {
         prop2val.left = LSON.take( 'this', 'width' ).fn( prop2val.centerX, fnCenterToPos );
 
       }
-      prop2val.centerX = takeLeftToCenterX;
 
       if ( prop2val.right ) {
 
         prop2val.left = LSON.take( 'this', 'width' ).fn( prop2val.right, fnEdgeToPos );
 
       }
-      prop2val.right = takeLeftToRight;
 
 
       if ( prop2val.centerY ) {
@@ -1621,15 +2048,21 @@ when: function( fromLson, intoLson ) {
         prop2val.top = LSON.take( 'this', 'width' ).fn( prop2val.centerY, fnCenterToPos );
 
       }
-      prop2val.centerY = takeTopToCenterY;
 
       if ( prop2val.bottom ) {
 
         prop2val.top = LSON.take( 'this', 'width' ).fn( prop2val.bottom, fnEdgeToPos );
 
       }
+
+    if ( isRoot ) {
+
+      prop2val.centerX = takeLeftToCenterX;
+      prop2val.right = takeLeftToRight;
+      prop2val.centerY = takeTopToCenterY;
       prop2val.bottom = takeTopToBottom;
 
+    }
 
       var expanderVal, expandedPropS;
       for ( var expanderProp in expanderProp2expandedPropS ) {
@@ -1669,7 +2102,7 @@ when: function( fromLson, intoLson ) {
           if ( stateName2state.hasOwnProperty( stateName ) ) {
 
             state = stateName2state[ stateName ];
-            attr2fnNormalize.props( state );
+            attr2fnNormalize.props( state, false );
 
           }
         }
@@ -1685,7 +2118,7 @@ when: function( fromLson, intoLson ) {
 
           if ( childName2childLson.hasOwnProperty( childName ) ) {
 
-            normalize( childName2childLson[ childName ], true );
+            _normalize( childName2childLson[ childName ], true );
 
           }
         }
@@ -1817,13 +2250,38 @@ when: function( fromLson, intoLson ) {
 
     if ( levelS !== undefined ) {
 
-      for ( var i = 0, len = levelS.length; i < len; i++ ) {
+      var i;
+      len = levelS.length;
 
-        levelS[ i ].unclog();
+
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$inherit();
 
       }
 
-      delete LSON.$clogKey2_levelS_[ clogKey ];
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$initAttrs();
+
+      }
+
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$initConstraints();
+
+      }
+
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$clean();
+
+      }
+
+
+
+
+      LSON.$clogKey2_levelS_[ clogKey ] = null;
 
     }
 

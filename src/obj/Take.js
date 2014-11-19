@@ -2,7 +2,7 @@
   "use strict";
 
 
-  var Take = function ( relativePath, attr ) {
+  LSON.Take = function ( relativePath, attr ) {
 
 
     var path = new LSON.RelPath( relativePath );
@@ -17,7 +17,7 @@
   };
 
 
-  Take.prototype.execute = function ( contextPart ) {
+  LSON.Take.prototype.execute = function ( contextPart ) {
 
     // pass in context part for relative path lookups
     return this.executable.call( contextPart );
@@ -26,7 +26,7 @@
 
 
 
-  Take.prototype.$mergePathAndProps = function ( take ) {
+  LSON.Take.prototype.$mergePathAndProps = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
@@ -38,25 +38,11 @@
   };
 
 
-  function cloneAndPrependArray( array, element ) {
 
-    var new_array = new Array( array.length + 1 );
-
-    new_array[ 0 ] = element;
-
-    for ( var i = 0, len = array.length ; i < len; i++ ) {
-
-      new_array[ i + 1 ] = array[ i ];
-
-    }
-    return new_array;
-
-  }
-
-  Take.prototype.add = function ( val ) {
+  LSON.Take.prototype.add = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -72,10 +58,10 @@
   };
 
 
-  Take.prototype.subtract = function ( val ) {
+  LSON.Take.prototype.subtract = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -90,10 +76,10 @@
     return this;
   };
 
-  Take.prototype.divide = function ( val ) {
+  LSON.Take.prototype.divide = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -108,10 +94,10 @@
     return this;
   };
 
-  Take.prototype.multiply = function ( val ) {
+  LSON.Take.prototype.multiply = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -126,10 +112,10 @@
     return this;
   };
 
-  Take.prototype.remainder = function ( val ) {
+  LSON.Take.prototype.remainder = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -144,7 +130,7 @@
     return this;
   };
 
-  Take.prototype.half = function ( ) {
+  LSON.Take.prototype.half = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -155,7 +141,7 @@
     return this;
   };
 
-  Take.prototype.double = function ( ) {
+  LSON.Take.prototype.double = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -167,10 +153,10 @@
   };
 
 
-  Take.prototype.contains = function ( val ) {
+  LSON.Take.prototype.contains = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -185,10 +171,10 @@
     return this;
   };
 
-  Take.prototype.eq = function ( val ) {
+  LSON.Take.prototype.eq = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -203,10 +189,10 @@
     return this;
   };
 
-  Take.prototype.gt = function ( val ) {
+  LSON.Take.prototype.gt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -221,10 +207,10 @@
     return this;
   };
 
-  Take.prototype.gte = function ( val ) {
+  LSON.Take.prototype.gte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -239,10 +225,10 @@
     return this;
   };
 
-  Take.prototype.lt = function ( val ) {
+  LSON.Take.prototype.lt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -257,10 +243,10 @@
     return this;
   };
 
-  Take.prototype.lte = function ( val ) {
+  LSON.Take.prototype.lte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -275,10 +261,10 @@
     return this;
   };
 
-  Take.prototype.or = function ( val ) {
+  LSON.Take.prototype.or = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -293,10 +279,10 @@
     return this;
   };
 
-  Take.prototype.and = function ( val ) {
+  LSON.Take.prototype.and = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -311,7 +297,7 @@
     return this;
   };
 
-  Take.prototype.not = function () {
+  LSON.Take.prototype.not = function () {
 
     var oldExecutable = this.executable;
 
@@ -322,7 +308,7 @@
     return this;
   };
 
-  Take.prototype.positive = function () {
+  LSON.Take.prototype.positive = function () {
 
     var oldExecutable = this.executable;
 
@@ -333,7 +319,7 @@
     return this;
   };
 
-  Take.prototype.negative = function () {
+  LSON.Take.prototype.negative = function () {
 
     var oldExecutable = this.executable;
 
@@ -345,10 +331,10 @@
   };
 
 
-  Take.prototype.key = function ( val ) {
+  LSON.Take.prototype.key = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -363,14 +349,14 @@
     return this;
   };
 
-  Take.prototype.index = Take.prototype.key;
+  LSON.Take.prototype.index = LSON.Take.prototype.key;
 
 
 
-  Take.prototype.min = function ( val ) {
+  LSON.Take.prototype.min = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -379,16 +365,16 @@
     } else {
 
       this.executable = function () {
-        return Math.min( oldExecutable.call( this ) );
+        return Math.min( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  Take.prototype.max = function ( val ) {
+  LSON.Take.prototype.max = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -397,14 +383,14 @@
     } else {
 
       this.executable = function () {
-        return Math.max( oldExecutable.call( this ) );
+        return Math.max( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
 
-  Take.prototype.ceil = function () {
+  LSON.Take.prototype.ceil = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -413,7 +399,7 @@
     return this;
   };
 
-  Take.prototype.floor = function () {
+  LSON.Take.prototype.floor = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -423,7 +409,7 @@
   };
 
 
-  Take.prototype.sin = function () {
+  LSON.Take.prototype.sin = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -433,7 +419,7 @@
   };
 
 
-  Take.prototype.cos = function () {
+  LSON.Take.prototype.cos = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -443,7 +429,7 @@
   };
 
 
-  Take.prototype.tan = function () {
+  LSON.Take.prototype.tan = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -453,10 +439,10 @@
   };
 
 
-  Take.prototype.pow = function ( val ) {
+  LSON.Take.prototype.pow = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -465,16 +451,16 @@
     } else {
 
       this.executable = function () {
-        return Math.pow( oldExecutable.call( this ) );
+        return Math.pow( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  Take.prototype.log = function ( val ) {
+  LSON.Take.prototype.log = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof Take ) {
+    if ( val instanceof LSON.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -483,110 +469,220 @@
     } else {
 
       this.executable = function () {
-        return Math.log( oldExecutable.call( this ) );
+        return Math.log( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  Take.prototype.format = function () {
+  LSON.Take.prototype.format = function () {
 
-    var argS = new Array( arguments.length + 1 );
+    var argS = Array.prototype.slice.call( arguments );
 
-    for ( var i = 0, len = arguments.length; i < len; i++ ) {
+    // Add the `format` function
+    argS.push(LSON.$format);
+    return this.fn.apply( this, argS );
 
-      argS[ i ] = arguments[ i ];
+  };
 
+
+
+
+  LSON.Take.prototype.i18nFormat = function () {
+
+    this._relPath00attr_S.push( [ '/', 'data.lang' ] );
+
+    var argS = Array.prototype.slice.call(arguments);
+
+    // Add the `i18nFormat` function
+    argS.push(LSON.i18nFormat);
+    return this.fn.apply( this, argS );
+
+  };
+
+  function i18nFormat () {
+
+    var argS = Array.prototype.slice.call( arguments );
+
+    argS[ argS.length - 1 ] = ( argS[ argS.length - 1 ] )[ LSON.level( '/' ).attr( 'data.lang' ) ];
+
+    return LSON.$format.apply( undefined, argS );
+
+  }
+
+  LSON.Take.prototype.concat = LSON.Take.prototype.add;
+
+
+  LSON.Take.prototype.match = function () {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).match( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).match( val );
+      };
     }
-
-    argS[ i + 1 ] = format;
-
-    return this.fn( argS );
+    return this;
 
   };
 
-  Take.prototype.concat = Take.prototype.add;
 
 
-  Take.prototype.matches = function () {
-
-    //TODO
-
-  };
-
-  function i18nFormat ( lang, lang2format ) {
-
-    // TODO
-
-  }
-
-  function format () {
-
-    // TODO
-
-  }
 
 
-  Take.prototype.fn = function ( ) {
+  LSON.Take.prototype.fn = function ( ) {
 
     var oldExecutable = this.executable;
 
-    var argS = arguments[ 0 ];
-    var fn = arguments[ 1 ];
 
+    var fn;
 
-    if ( arguments.length === 2 ) {
+    // optimize for arguments of length 1, and 2, by avoiding a loop
+    // TODO: add non-loop optimizations for arguments of lengths 3 and 4, as well.
+    if ( arguments.length === 1 ) {
 
+      fn = arguments[ 0 ];
 
-      if ( argS instanceof Take ) {
+      if ( fn instanceof LSON.Take ) {
 
-        this.$mergePathAndProps( argS );
+        this.$mergePathAndProps( fn );
+        this.executable = function () {
 
+          return (fn.execute( this )).call( this, oldExecutable.call( this ) );
+
+        };
+
+      } else {
+
+        this.executable = function () {
+
+          return fn.call( this, oldExecutable.call( this ) );
+
+        };
       }
+    }
 
-      this.executable = function () {
+    else if (arguments.length === 2 ) {
 
-        return fn( oldExecutable.call( this ) );
+      var arg = arguments[ 0 ];
+      fn = arguments[ 1 ];
 
-      };
+      if ( fn instanceof LSON.Take ) {
 
+        this.$mergePathAndProps( fn );
 
-    } else {
+        if ( arg instanceof LSON.Take ) {
 
-      for ( var i = 0, len = arguments.length, cur; i < len; i++ ) {
+          this.$mergePathAndProps( arg );
 
-        cur = arguments[ i ];
+          this.executable = function () {
 
-        if ( i !== len - 1 ) {
+            return (fn.execute( this )).call( this, oldExecutable.call( this ), arg.execute( this ) );
 
-          if ( cur instanceof Take ) {
-
-            this.$mergePathAndProps( cur );
-
-          }
-
-          argS.push( cur );
+          };
 
         } else {
 
-          fn = cur;
+          this.executable = function () {
+
+            return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
+
+          };
+
+        }
+
+      } else {
+
+        if ( arg instanceof LSON.Take ) {
+
+          this.$mergePathAndProps( arg );
+
+          this.executable = function () {
+
+            return fn.call( this, oldExecutable.call( this ), arg.execute( this ) );
+
+          };
+
+        } else {
+
+          this.executable = function () {
+
+            return fn.call( this, oldExecutable.call( this ), arg );
+
+          };
+        }
+      }
+
+    } else {
+
+      var argSlength = arguments.length - 1;
+      var argS = Array.prototype.slice.call( arguments );
+
+      for ( var i = 0, curArg; i < argSlength; i++ ) {
+
+        curArg = arguments[ i ];
+
+        if ( curArg instanceof LSON.Take ) {
+
+          this.$mergePathAndProps( curArg );
 
         }
       }
 
-      this.executable = function () {
+      fn = argS[ argSlength - 1 ];
 
-        return fn.apply( window, cloneAndPrependArray( argS, oldExecutable.call( this ) ) );
+      if ( fn instanceof LSON.Take ) {
 
-      };
+        this.executable = function () {
 
+
+          // The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+          var callableArgS = new Array( argSlength + 1 );
+          callableArgS[ 0 ] = oldExecutable.call( this );
+
+          for ( var i = 0, arg; i < argSlength; i++ ) {
+
+            arg = argS[ i ];
+
+            callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+
+          }
+
+          return ( fn.execute( this ) ).apply( this, callableArgS );
+
+        };
+
+      } else {
+
+        this.executable = function () {
+
+          // The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+          var callableArgS = new Array( argSlength + 1 );
+          callableArgS[ 0 ] = oldExecutable.call( this );
+
+          for ( var i = 0, arg; i < argSlength; i++ ) {
+
+            arg = argS[ i ];
+
+            callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+
+          }
+
+          return fn.apply( window, callableArgS );
+
+
+        };
+      }
     }
 
     return this;
 
   };
-
-
-  LSON.Take = Take;
 
 }());

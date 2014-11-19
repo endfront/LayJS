@@ -9,13 +9,38 @@
 
     if ( levelS !== undefined ) {
 
-      for ( var i = 0, len = levelS.length; i < len; i++ ) {
+      var i;
+      len = levelS.length;
 
-        levelS[ i ].unclog();
+
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$inherit();
 
       }
 
-      delete LSON.$clogKey2_levelS_[ clogKey ];
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$initAttrs();
+
+      }
+
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$initConstraints();
+
+      }
+
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$clean();
+
+      }
+
+
+
+
+      LSON.$clogKey2_levelS_[ clogKey ] = null;
 
     }
 

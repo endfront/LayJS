@@ -25,7 +25,7 @@
 
   function _normalize( lson, isRecursive ) {
 
-    attr2fnNormalize.props( lson );
+    attr2fnNormalize.props( lson, true );
     attr2fnNormalize.states( lson );
 
     if ( isRecursive ) {
@@ -43,7 +43,6 @@
     borderColor: [ 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor' ],
     borderStyle: [ 'borderTopStyle', 'borderRightStyle', 'borderBottomStyle', 'borderLeftStyle' ],
     textPadding: [ 'textTopPadding', 'textRightPadding', 'textBottomPadding', 'textLeftPadding' ],
-    scale: [ 'scaleX', 'scaleY' ],
     cornerRadius: [ 'cornerRadiusTopLeft', 'cornerRadiusTopRight', 'cornerRadiusBottomRight', 'cornerRadiusBottomLeft' ],
 
   };
@@ -77,7 +76,13 @@
 
   var attr2fnNormalize = {
 
-    props: function( lson ) {
+    /*
+    * normalize the `lson`
+    * `isRoot` signifies whether the props
+    * are a direct descedant of the lson and
+    * and not a state.
+    */
+    props: function( lson, isRoot ) {
 
       var prop2val = lson.props;
       if ( !prop2val ) {
@@ -96,14 +101,12 @@
         prop2val.left = LSON.take( 'this', 'width' ).fn( prop2val.centerX, fnCenterToPos );
 
       }
-      prop2val.centerX = takeLeftToCenterX;
 
       if ( prop2val.right ) {
 
         prop2val.left = LSON.take( 'this', 'width' ).fn( prop2val.right, fnEdgeToPos );
 
       }
-      prop2val.right = takeLeftToRight;
 
 
       if ( prop2val.centerY ) {
@@ -111,15 +114,21 @@
         prop2val.top = LSON.take( 'this', 'width' ).fn( prop2val.centerY, fnCenterToPos );
 
       }
-      prop2val.centerY = takeTopToCenterY;
 
       if ( prop2val.bottom ) {
 
         prop2val.top = LSON.take( 'this', 'width' ).fn( prop2val.bottom, fnEdgeToPos );
 
       }
+
+    if ( isRoot ) {
+
+      prop2val.centerX = takeLeftToCenterX;
+      prop2val.right = takeLeftToRight;
+      prop2val.centerY = takeTopToCenterY;
       prop2val.bottom = takeTopToBottom;
 
+    }
 
       var expanderVal, expandedPropS;
       for ( var expanderProp in expanderProp2expandedPropS ) {
@@ -159,7 +168,7 @@
           if ( stateName2state.hasOwnProperty( stateName ) ) {
 
             state = stateName2state[ stateName ];
-            attr2fnNormalize.props( state );
+            attr2fnNormalize.props( state, false );
 
           }
         }
@@ -175,7 +184,7 @@
 
           if ( childName2childLson.hasOwnProperty( childName ) ) {
 
-            normalize( childName2childLson[ childName ], true );
+            _normalize( childName2childLson[ childName ], true );
 
           }
         }

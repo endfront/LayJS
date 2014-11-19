@@ -3,7 +3,7 @@
 
 
 
-  var Level = function ( path, lson, clogKey, parent ) {
+  LSON.Level = function ( path, lson, clogKey, parent ) {
 
     this.path = path;
     this.lson = lson;
@@ -19,7 +19,6 @@
 
     }
 
-    this.$selfAttr2_takerLevelS_ = new HashArray();
     this.$takenLevelPath2_takenAttr2selfAttr_ = {};
 
 
@@ -28,16 +27,10 @@
 
 
   // unclog
-  Level.prototype.unclog = function () {
-
-    this.$inherit();
-    this.$prepare();
-    this.$deliver();
 
 
-  };
 
-  Level.prototype.addChildren = function ( name2lson, clogKey ) {
+  LSON.Level.prototype.addChildren = function ( name2lson, clogKey ) {
 
     if ( clogKey === undefined ) {
 
@@ -61,7 +54,7 @@
 
   };
 
-  Level.prototype.$inherit = function() {
+  LSON.Level.prototype.$inherit = function() {
 
     if ( !this.lson.inherit ) {
 
@@ -98,10 +91,83 @@
 
 
 
+  LSON.Level.prototype.$initAttributes = function () {
 
 
 
-  Level.prototype.$takeLevels = function ( value, selfAttr ) {
+    var attr2_value00calc00isConstraint00takerLevelS_, dirtyAttrS, key, data, props, value, isConstraint;
+
+    dirtyAttrS = [];
+    attr2_value00calc00isConstraint00takerLevelS_ = {};
+
+    data = this.lson.data;
+    props = this.lson.props;
+    states = this.lson.states;
+
+    // Check for defaults
+
+    if ( !props.opacity ) {
+
+    }
+
+
+    for ( key in data ) {
+
+      if ( data.hasOwnProperty( key ) ) {
+
+
+        value = data[ key ];
+        key = "data." + key;
+        isConstraint = value instanceof LSON.Take;
+
+
+        attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+        dirtyAttrS.push( key );
+
+      }
+    }
+
+
+    for ( key in props ) {
+
+      if ( props.hasOwnProperty( key ) ) {
+
+        value = props[ key ];
+        isConstraint = value instanceof LSON.Take;
+
+        attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+        dirtyAttrS.push( key );
+
+      }
+    }
+
+    for ( key in states ) {
+
+      if ( states.hasOwnProperty( key ) ) {
+
+        value = states[ key ].onlyif;
+        key = "state." + key;
+
+        if ( value !== undefined ) {
+
+          isConstraint = value instanceof LSON.Take;
+          attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+          dirtyAttrS.push( key );
+
+        }
+      }
+    }
+
+
+    this.$attr2_value00calc00isConstraint00takerLevelS_ = attr2_value00calc00isConstraint00takerLevelS_;
+    this.dirtyAttrS = dirtyAttrS;
+
+  };
+
+
+
+
+  LSON.Level.prototype.$takeLevels = function ( value, selfAttr ) {
 
     var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
     _relPath00attr_S = value._relPath00attr_S;
@@ -135,7 +201,7 @@
     }
   };
 
-  Level.prototype.$takeLevelsNot = function ( ) {
+  LSON.Level.prototype.$takeLevelsNot = function ( ) {
 
     var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
     _relPath00attr_S = value._relPath00attr_S;
@@ -169,105 +235,44 @@
     }
 
   };
-  Level.prototype.$takeMe = function ( level, attr ) {
+  LSON.Level.prototype.$takeMe = function ( level, attr ) {
 
     this.selfAttr2_takerLevelS_.add( attr, level );
 
   };
 
-  Level.prototype.$takeMeNot = function () {
+  LSON.Level.prototype.$takeMeNot = function () {
 
     this.selfAttr2_takerLevelS_.remove( attr, level );
 
   };
 
 
-  Level.prototype.$initAttributes = function () {
 
 
 
-    var attr2_value00calc00isDirty00isConstraint_, dirtyAttrS, key, data, props, value;
+  function checkIsAttrState ( attr ) {
 
-    dirtyAttrS = [];
-    attr2_value00calc00isDirty00isConstraint_ = {};
+    return attr[ 0 ] === "s" &
+    attr[ 1 ] === "t" &
+    attr[ 2 ] === "a" &
+    attr[ 3 ] === "t" &
+    attr[ 4 ] === "e" &
+    attr[ 5 ] === ".";
 
-    data = this.lson.data;
-    props = this.lson.props;
-    states = this.lson.states;
+  }
 
+  function checkIsAttrData ( attr ) {
 
-    for ( key in data ) {
+    return attr[ 0 ] === "d" &
+    attr[ 1 ] === "a" &
+    attr[ 2 ] === "t" &
+    attr[ 3 ] === "a" &
+    attr[ 4 ] === ".";
 
-      if ( data.hasOwnProperty( key ) ) {
+  }
 
-        value = data[ key ];
-        key = "data." + key;
-
-        if ( value instanceof LSON.Take ) {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
-
-          dirtyAttrS.push( key );
-
-
-        } else {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, value, false, false ];
-
-        }
-      }
-    }
-
-
-    for ( key in props ) {
-
-      if ( props.hasOwnProperty( key ) ) {
-
-        value = props[ key ];
-
-        if ( value instanceof LSON.Take ) {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
-          dirtyAttrS.push( key );
-          this.$takeLevel( value );
-
-
-        } else {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, value, false, false ];
-
-        }
-      }
-    }
-
-    for ( key in states ) {
-
-      if ( states.hasOwnProperty( key ) ) {
-
-        value = states[ key ].onlyif;
-        key = "state." + key;
-
-        if ( value !== undefined ) {
-
-          attr2_value00calc00isDirty00isConstraint_[ key ] = [ value, 0, true, true ];
-          dirtyAttrS.push( key );
-
-        }
-
-      }
-    }
-
-    this.attr2_value00calc00isDirty00isConstraint_ = attr2_value00calc00isDirty00isConstraint_;
-    this.dirtyAttrS = dirtyAttrS;
-
-  };
-
-
-
-
-
-
-  Level.prototype.$prepare = function () {
+  LSON.Level.prototype.$prepare = function () {
 
 
     this.$initAttributes();
@@ -294,21 +299,93 @@
     } else {
 
       this.isPart = true;
-      //this.part = new LSON.Part();
+      this.part = new LSON.Part( this );
+      var dirtyAttrS = this.dirtyAttrS;
+      //var attr2_value00calc00isConstraint00takerLevelS_ =  this.$attr2_value00calc00isConstraint00takerLevelS_;
+
+      for ( var i = 0, len = dirtyAttrS.length, dirtyAttr; i < len; i++ ) {
+
+        dirtyAttr = dirtyAttrS[ i ];
+        if ( !checkIsAttrState( dirtyAttr ) ) {
+
+          this.$cleanifyAttr( dirtyAttr );
+
+        }
+
+
+      }
 
     }
+
+
+
+  };
+
+  LSON.Level.prototype.$cleanifyAttr = function ( attr ) {
+
+
+
+
+  };
+
+  /*
+  * Change the value of an attribute.
+  * Propagate the change across the LOM (LSON object model)
+  * if the change in value produces a change.
+  * For constraint (take) based attributes, recalculate the
+  * value, for non constraint based use the `value` parameter
+  * as the change.
+  */
+  LSON.Level.prototype.$calculateAttr = function ( attr, value ) {
+
+    var value00calc00isConstraint00takerLevelS = attr2_value00calc00isConstraint00takerLevelS_[ attr ];
+    var isDirty = false;
+
+    if ( value00calc00isConstraint00takerLevelS[ 3 ]) { //is LSON.Take
+
+      var reCalc = value00calc00isConstraint00takerLevelS[ 0 ].execute( this );
+      if ( reCalc !== value00calc00isConstraint00takerLevelS[ 1 ] {
+
+        isDirty = true;
+        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 1 ] = ;
+
+      }
+
+    } else {
+
+      if ( value !== value00calc00isConstraint00takerLevelS[ 0 ] ) {
+
+        isDirty = true;
+        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 0 ] = value;
+        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 1 ] = value;
+
+      }
+    }
+
+    if ( isDirty ) {
+
+      var takerLevelS = this.$selfAttr2_takerLevelS_[ attr ];
+      if ( takerLevelS !== undefined ) {
+
+        for ( var i = 0, len = takerLevelS.length; i < len; i++ ) {
+
+          takerLevelS[ i ].$actOnDirtyOtherAttr( this, attr );
+
+        }
+      }
+    }
+
 
   };
 
 
-  Level.prototype.$deliver = function () {
+
+  LSON.Level.prototype.$deliver = function () {
 
     //TODO: (i.e render first shot (without initial state changes))
 
   };
 
-
-  LSON.Level = Level;
 
 
   /*
@@ -356,7 +433,7 @@
 
         if ( element3elementS === element ) {
 
-          delete this.hashmap[ key ];
+          this.hashmap[ key ] = null;
 
         }
 

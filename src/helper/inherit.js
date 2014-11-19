@@ -3,14 +3,18 @@
   "use strict";
 
 
+  /*
+  * Inherit the lson into `intoLson`.
+  */
   LSON._inherit = function ( fromLson, intoLson ) {
 
     for ( var key in fromLson ) {
 
       if ( fromLson.hasOwnProperty( key ) ) {
 
-        attr2fnInherit[ key ]( fromLson, intoLson );
-
+        if ( attr2fnInherit.hasOwnPropoperty( key ) ) {
+          attr2fnInherit[ key ]( fromLson, intoLson, isStateInheritance );
+        }
       }
     }
   };
@@ -95,97 +99,97 @@
 
 
 
-children: function( fromLson, intoLson ) {
-  var fromChildName2lson, intoChildName2lson;
-  fromChildName2lson = fromLson.children;
-  intoChildName2lson = intoLson.children;
+    children: function( fromLson, intoLson ) {
+      var fromChildName2lson, intoChildName2lson;
+      fromChildName2lson = fromLson.children;
+      intoChildName2lson = intoLson.children;
 
-  for ( var name in fromChildName2lson ) {
+      for ( var name in fromChildName2lson ) {
 
-    if ( fromChildName2lson.hasOwnProperty( name ) ) {
+        if ( fromChildName2lson.hasOwnProperty( name ) ) {
 
-      if ( !intoChildName2lson[ name ] ) { // inexistent child
+          if ( !intoChildName2lson[ name ] ) { // inexistent child
 
-        intoChildName2lson[ name ] = fromChildName2lson[ name ];
+            intoChildName2lson[ name ] = fromChildName2lson[ name ];
 
-      } else {
+          } else {
 
-        inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
+            inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
 
+          }
+        }
       }
-    }
-  }
-},
+    },
 
 
-states: function( fromLson, intoLson ) {
+    states: function( fromLson, intoLson ) {
 
-  var fromStateName2state, intoStateName2state;
-  fromStateName2state = fromLson.states;
-  intoStateName2state = intoLson.states;
+      var fromStateName2state, intoStateName2state;
+      fromStateName2state = fromLson.states;
+      intoStateName2state = intoLson.states;
 
-  var inheritFromState, inheritIntoState;
-  for ( var name in fromStateName2state ) {
+      var inheritFromState, inheritIntoState;
+      for ( var name in fromStateName2state ) {
 
-    if ( fromStateName2state.hasOwnProperty( name ) ) {
+        if ( fromStateName2state.hasOwnProperty( name ) ) {
 
-      if ( !intoStateName2state[ name ] ) { //inexistent state
+          if ( !intoStateName2state[ name ] ) { //inexistent state
 
-        intoStateName2state[ name ] = fromStateName2state[ name ];
+            intoStateName2state[ name ] = fromStateName2state[ name ];
 
-      } else {
+          } else {
 
-        inheritFromState = fromStateName2state[ name ];
-        inheritIntoState = intoStateName2state[ name ];
+            inheritFromState = fromStateName2state[ name ];
+            inheritIntoState = intoStateName2state[ name ];
 
-        inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
-        inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
-        inheritIntoState.uninstall = inheritIntoState.uninstall || inheritFromState.uninstall;
-
-
-        attr2fnInherit.props( inheritFromState, inheritIntoState );
-        attr2fnInherit.when( inheritFromState, inheritIntoState );
+            inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
+            inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
+            inheritIntoState.uninstall = inheritIntoState.uninstall || inheritFromState.uninstall;
 
 
+            attr2fnInherit.props( inheritFromState, inheritIntoState );
+            attr2fnInherit.when( inheritFromState, inheritIntoState );
+
+
+          }
+        }
       }
-    }
-  }
-},
+    },
 
-when: function( fromLson, intoLson ) {
+    when: function( fromLson, intoLson ) {
 
-  var fromEventName2fnEventHandlerS, intoEventName2fnEventHandlerS;
-  fromEventName2fnEventHandlerS = fromLson.when;
-  intoEventName2fnEventHandlerS = intoLson.when;
+      var fromEventName2_fnEventHandlerS_, intoEventName2_fnEventHandlerS_;
+      fromEventName2_fnEventHandlerS_ = fromLson.when;
+      intoEventName2_fnEventHandlerS_ = intoLson.when;
 
-  if ( fromEventName2fnEventHandlerS !== undefined ) {
+      if ( fromEventName2_fnEventHandlerS_ !== undefined ) {
 
-    if ( intoEventName2fnEventHandlerS === undefined ) {
+        if ( intoEventName2_fnEventHandlerS_ === undefined ) {
 
-      intoLson.when = fromEventName2fnEventHandlerS;
-
-    } else {
-      var fnFromEventHandlerS, fnIntoEventHandlerS;
-
-      for ( var fromEventName in fromEventName2fnEventHandlerS ) {
-
-        fnFromEventHandlerS = fromEventName2fnEventHandlerS[ fromEventName ];
-        fnIntoEventHandlerS = intoEventName2fnEventHandlerS[ fromEventName ];
-
-        if ( fnIntoEventHandlerS === undefined ) {
-
-          intoEventName2fnEventHandlerS[ fromEventName ] = fnIntoEventHandlerS;
+          intoLson.when = fromEventName2_fnEventHandlerS_;
 
         } else {
+          var fnFromEventHandlerS, fnIntoEventHandlerS;
 
-          fnIntoEventHandlerS = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
+          for ( var fromEventName in fromEventName2_fnEventHandlerS_ ) {
 
+            fnFromEventHandlerS = fromEventName2_fnEventHandlerS_[ fromEventName ];
+            fnIntoEventHandlerS = intoEventName2_fnEventHandlerS_[ fromEventName ];
+
+            if ( fnIntoEventHandlerS === undefined ) {
+
+              intoEventName2_fnEventHandlerS_[ fromEventName ] = fnIntoEventHandlerS;
+
+            } else {
+
+              fnIntoEventHandlerS = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
+
+            }
+          }
         }
       }
     }
-  }
-}
 
-};
+  };
 
 })();
