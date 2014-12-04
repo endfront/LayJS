@@ -1,9 +1,9 @@
-<<  Disclaimer: This is the specification which is not to be read as a tutorial for LSON >>
+< <  Disclaimer: This is the specification which is not to be read as a tutorial for LSON > >
 
 
 ### LSON
 
-LSON -> Layout Syntax Object Notation
+LSON - > Layout Syntax Object Notation
 
 
 ### LSON methods
@@ -20,7 +20,6 @@ LSON -> Layout Syntax Object Notation
   LSON.hsl()
   LSON.hex()
   LSON.color()
-  LSON.transparent()
 
 
 ### LSON.run
@@ -34,6 +33,8 @@ LSON -> Layout Syntax Object Notation
           data: object | array | string | number,
           props: object,
           when: object,
+          transition: transitionObj,
+          load: function,
           many: {
               data: object,
               props: {
@@ -42,24 +43,23 @@ LSON -> Layout Syntax Object Notation
                   order: string,
                   ...
               },
+              transition: transitionObj,
               states: {
                   props: object
-                  <name>: {
+                  < name >: {
                       onlyif: LSON.Take,
-                      install: function,
-                      uninstall: function,
-                      transition: transitionObj
+                      load: function,
+                      unload: function,
                   }
               },
           },
           states: {
-              <name>: {
+              < name >: {
                   props: object,
                   when: object,
                   onlyif: LSON.Take,
-                  install: function,
-                  uninstall: function,
-                  transition: transitionObj
+                  load: function,
+                  unload: function,
               }
           },
           children: object
@@ -73,18 +73,22 @@ LSON -> Layout Syntax Object Notation
   `string`
   **constant**
   Type of Part:
-    default (textnode / view)
-    interface
-    link
-    image
-    video
-    canvas
-    svg
+    "none"
+    "text" (auto-detect is on)
+    "image"
+    "video"
+    "audio"
+    "canvas"
+    "svg"
+    ( inputs ...)
+    "input:singleline"
+    "input:multiline"
+    "input:button"
+    "input:select"
+    "input:option"
+    "input:optgroup"
+    "input:< any other valid input[type] html property i.e file, color, date, etc >"
 
-    input | consists of a sub type specified by the "input" key:
-      textarea
-      select
-      ... any other valid input[type] html property i.e file, color, date, etc
 
 
 
@@ -131,14 +135,14 @@ The keys within `props` are predefined
   Default: 'visible'
 
 
-- scrolledX
+- scrollX
   `number`
-  (read-only for now)
+  Default: 0
 
 
-- scrolledY
+- scrollY
   `number`
-  (read-only for now)
+  Default: 0
 
 
   opacity
@@ -173,12 +177,12 @@ The keys within `props` are predefined
 - width
   `number`
   Width of part (excluding scale)
-  Default: LSON.take('naturalWidth')
+  Default: LSON.take('$naturalWidth')
 
 - height
   `number`
   Height of part (excluding scale)
-  Default: LSON.take('naturalHeight')
+  Default: LSON.take('$naturalHeight')
 
 
 - cursor
@@ -190,22 +194,23 @@ The keys within `props` are predefined
 - background (no support for multiple backgrounds)
   {
     color: LSON.Color (default: LSON.transparent ),
-    image: string (without "url()"),
-    attachment: string (CSS background-attachment) (default: 'local')
-    repeat: string (CSS background-repeat) (default: 'no-repeat'),
+    image: string,
+    attachment: string (CSS background-attachment)
+    repeat: string (CSS background-repeat),
     size: string (CSS background-size),
     position: string (CSS background-position)
    }
 
 
 - boxShadows
+  *multiple type prop*
   [
     {
-      x: number (default: 0),
-      y: number (default: 0),
-      blur: number (default: 0),
-      spread: number (default:0),
-      color: LSON.Color (default: LSON.transparent)
+      x: number,
+      y: number,
+      blur: number,
+      spread: number,
+      color: LSON.Color
     }
     ...
   ]
@@ -260,24 +265,43 @@ The keys within `props` are predefined
 - cornerRadius
   `number`
   Shorthand for `cornerRadiusTopLeft`, `cornerRadiusTopRight`, `cornerRadiusBottomRight`, `cornerRadiusBottomLeft`
-
+  Default: 0
 
 
 - border
-  Shorthand for border<Top/Right/Bottom/Left><Style/Color/Width>
-  { top/right/bottom/left/<undefined>: {
-    style: string (CSS border-style) (default:solid),
-    color: LSON.Color (default:LSON.Transparent),
-    width: number (default: 0)
+  Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >
+  { top/right/bottom/left/< undefined >: {
+    style: string (CSS border-style),
+    color: LSON.Color,
+    width: number
 
   } }
 
   filters
+  *multiple type prop*
   [
-    {
-      name:
-    }
+    [  
+      type: "url" | "blur" | "brightness" | "contrast" | "dropShadow" | "grayscale" | "hueRotate" | "invert" |
+            "opacity" | "saturate" | "sepia",  
+      url: string |
+      blur: number (in pixels) |
+      brightness: number (in percent) |
+      contrast: number (in percent) |
+      dropShadow: {
+        x: number (in pixels) ,
+        y: number (in pixels) ,
+        blur: number (in pixels),
+        color: LSON.Color
+      } |
+      grayscale: number (in percent) |
+      hueRotate: number (in degrees) |
+      invert: number (in percent) |
+      opacity: number (in percent) |
+      saturate: number (in percent) |
+      sepia: number (in percent) |
 
+    ]
+    ...
   ]
 
 
@@ -287,6 +311,7 @@ The keys within `props` are predefined
   Default: undefined
 
 - textSize
+  in pixels
   `number`
   Default: 13
 
@@ -306,12 +331,13 @@ The keys within `props` are predefined
 
 
 - textShadows
+ *multiple type prop*
   [
     {
-      x: number (default: 0),
-      y: number (default: 0),
-      blur: number (default: 0),
-      color: LSON.Color (default: LSON.transparent)
+      x: number,
+      y: number,
+      blur: number,
+      color: LSON.Color
     }
     ...
   ]
@@ -337,16 +363,19 @@ The keys within `props` are predefined
 - textAlign
   `string`
   CSS text-align
+  Default: 'left'
 
 
 - textLetterSpacing
   `number` / `null`
   In pixels. null for native letter spacing.
+  Default: null
 
 
 - textWordSpacing
   `number` / `null`
   In pixels. null for native word spacing.
+  Default: null
 
 
 - textOverflow
@@ -374,55 +403,84 @@ The keys within `props` are predefined
 
 
 
+- inputLabel
+  `string`
+  Default: ""
+
 - inputRows
   `number`
   Rows for textarea
   Default: 2
 
-- inputDisabled
-  `boolean`
-  Default: false
 
-- inputAutocomplete
-  `boolean`
-  Default: false
-
-
-- inputAutocorrect
-  `boolean`
-  Default: false
+- inputText
+  `string`
+  Default: ""
 
 
 - inputPlaceholder
   `string`
   Default: ""
 
+- inputAutocomplete
+  `boolean`
+  Default: true
 
 
+- inputAutocorrect
+  `boolean`
+  Default: true
+
+- inputDisabled
+  `boolean`
+  Default: false
+
+
+
+- linkHref
+  `string`
+  Default: null
+
+- linkRel
+  `string`
+  HTML a[rel]
+  Default: ""
+
+- linkDownload
+  `boolean`
+  Default: false
+
+- linkTarget
+  `string`
+  HTML a[target]
+  Default: "_self"
 
 - imageUrl
-  `string` / `null`
-  Default: null
+  `string`
+  Default: ""
 
 
 - videoSources / audioSources
+  *multiple type prop*
   [
     {
-      type: string ( html5 <source> type ),
-       src: string ( html5 <source> src )
+      type: string ( html5 < source > type ),
+       src: string ( html5 < source > src )
     },
     ...
   ]
 
 - videoTracks / audioTracks
+  *multiple type prop*
   [
     {
       default: boolean (default: false),
-      kind: string ( html5 <track> kind ) (default: ""),
-      label: string ( html5 <track> label ) (default: ""),
-      src: string ( html5 <track> src ) (default: ""),
-      srclang: string ( html5 <track> srcland ) (default: "")
-    }
+      kind: string ( html5 < track > kind ) (default: ""),
+      label: string ( html5 < track > label ) (default: ""),
+      src: string ( html5 < track > src ) (default: ""),
+      srclang: string ( html5 < track > srcland ) (default: "")
+    },
+    ...
   ]
 
 
@@ -433,13 +491,13 @@ The keys within `props` are predefined
 
 - videoControls / audioControls
   `boolean`
-  Default: false
+  Default: true
 
 
 - videoCrossorigin
   `string`
-  html5 <video> crossorigin
-  Default: ""
+  html5 < video > crossorigin
+  Default: "anonymous"
 
 
 - videoLoop / audioLoop
@@ -455,7 +513,7 @@ The keys within `props` are predefined
 
 - videoPreload / audioPreload
   `string`
-  html5 <video>/<audio> preload
+  html5 < video >/< audio > preload
   Default: 'auto'
 
 
@@ -466,7 +524,7 @@ The keys within `props` are predefined
 
 - audioVolume
   `number`
-  Default: 0.7 
+  Default: 0.7
 
 
 
@@ -509,66 +567,73 @@ Type: `Object`
 
 To get the LSON.Level:
 
-  LSON.level(level)
-  LSON.level(<LSON.Part reference>, level)
+  LSON.level(level) // fetches level
+  LSON.level(< LSON.Part reference >, level) // fetches level wrt reference
 
 LSON.Level methods:
 
-  attr( attr )
-  data( changedData, [, stateTransitionObj ] )
+  attr( attr ) //gets attr value
+  data( changedData, [, stateTransitionObj ] ) //changes data value
 
 
 
 ### Constraints Available (Known as "attributes")
 
 The below values can be directly accessed through
-the LSON Level through `.attribute(<access key>)`
+the LSON Level through `.attribute(< access key >)`
 The same access keys are used as the 2nd argument in LSON.Take
 
   - props
-    access: <prop name>
+    access: < prop name >
 
   - data
-    access: data.<data key>
+    access: data.< data key >
 
   - state
-    access: state.<state name> (returns true is state is active)
+    access: state.< state name > (returns true is state is active)
 
-  - dataTravelling
-    access: dataTravelling
+  - read only properties (prefix: $)
+    - $dataTravelling (`boolean`)
 
-  - dataTravelledDelta
-    access dataTravelledDelta
+    - $dataTravelledDelta (`number`)
 
-  - naturalWidth
-    `number`
-    Width of the part occupied by text if its a text element, image if its an image element,
-    otherwise if a view then the width occupied by the children parts.
-    access: naturalWidth
+    - $naturalWidth (`number`)
+      Width of the part occupied by text if its a text element, image if its an image element,
+      otherwise if a view then the width occupied by the children parts.
 
-  - naturalHeight
-    `number`
-    (read-only) Height of the part occupied by text if its a text element, image if its an image element,
-    otherwise if a view then the height occupied by the children parts.
-    access: naturalHeight
+    - $naturalHeight (`number`)
+      Height of the part occupied by text if its a text element, image if its an image element,
+      otherwise if a view then the height occupied by the children parts.
 
-  - focused
-    **boolean**
-    access: focused
 
-  - hover
-    **boolean**
-    access: hover
+    - $numberOfChildren (`number`)
+      Number of the direct descendant parts of the given part.
 
-  - numberOfChildren
-    `number`
-    Number of the direct descendant parts of the given part.
-    access: numberOfChildren
+      < !--
+    - $numberOfDisplayedChildren (`number`)
+      Number of the direct descendant parts of the given part which have display set to true.
+      -- >
 
-  - numberOfDisplayedChildren
-    `number`
-    Number of the direct descendant parts of the given part which have display set to true.
-    access: numberOfDisplayedChildren
+    - $focused (`boolean`)
+
+    - $hovered (`boolean`)
+
+    - $scrolledX (`number`)
+
+    - $scrolledY (`number`)
+
+    - $cursorX (`number`)
+
+    - $cursorY ('number')
+
+    - $inputText (`string`)
+
+    - $inputChecked (`boolean`)
+
+    - $inputSelected (`boolean`)
+
+
+
 
 
 
@@ -982,12 +1047,14 @@ key can be specified with a duration, implying that the value will come into
 effect only after the specified delay.
 
 
+< !--
 ##### Multiple state changes
 
 Multiple state changes can potentially result in multiple state transition objects coming into action.
 There could be a conflict in the attribute's transition between two or more state transition objects.
 If such a conflict takes places, the state which is modifying the attribute has its transitionable (transition object) followed.
 However if the state modifying the given property does not contain a state transition object then the attribute is not transitioned.
+-- >
 
 #### Specifying a transition through the `data()`` method
 
@@ -1087,10 +1154,10 @@ function touchEndHandler () {
 
 todo:
 
-  - 'many' n-filters
+  - add support for html5 input types
+  - make opacity out of 100% instead of 1, to remain consistent with filter opacity.
   - constraint flow problem: LSON.takeMany('../Notification', {'data.unread': {$eq: true}}).length()
       solution: order the list of takers to have ones for state notifications last
-  - add CSS filters
   - add support for 'will-change'
   - 'when' for formation, it should include function handler for insertion of new item into
     the formation alongwith deletion.

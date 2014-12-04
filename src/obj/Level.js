@@ -7,11 +7,15 @@
 
     this.path = path;
     this.lson = lson;
-    LSON.$normalize( lson, false );
     this.parent = parent;
     this.inherited = false;
     this.prepared = false;
-    this.isPart = true;
+    this.isPart = undefined;
+    this.$stateS = [];
+
+    // keep track of currently calculating attributes
+    // to check for circular references
+    this.$curCalculatingAttr = undefined;
 
     if ( lson.children ) {
 
@@ -19,7 +23,7 @@
 
     }
 
-    this.$takenLevelPath2_takenAttr2selfAttr_ = {};
+    this.$tookLevelPath2_tookAttr2attrS_ = {};
 
 
   };
@@ -46,7 +50,7 @@
 
         childPath = this.path + '/' + name;
         childLevel = new LSON.Level( childPath, name2lson[ name ], clogKey, this );
-        path2level[ childPath ] = childLevel;
+        LSON.$path2level[ childPath ] = childLevel;
         LSON.$clogKey2_levelS_[ clogKey ].push( childLevel );
 
       }
@@ -56,73 +60,77 @@
 
   LSON.Level.prototype.$inherit = function() {
 
-    if ( !this.lson.inherit ) {
+    if ( !this.inherited ) {
+      LSON.$normalize( lson, false );
+      if ( !this.lson.inherit ) {
 
-      this.inherited = true;
+        this.inherited = true;
 
-    } else {
+      } else {
 
-      var refS = this.lson.inherit;
-      for ( var i = 0, len = refS.length, ref, level, inheritFromNormalizedLson; i < len; i++ ) {
+        var refS = this.lson.inherit;
+        for ( var i = 0, len = refS.length, ref, level, inheritFromNormalizedLson; i < len; i++ ) {
 
-        ref = refS[ i ];
-        if ( typeof ref === 'string' ) { // pathname reference
+          ref = refS[ i ];
+          if ( typeof ref === 'string' ) { // pathname reference
 
-          level = ( new LSON.Path( ref ) ).resolve( this );
-          if ( !level.inherited ) {
+            level = ( new LSON.Path( ref ) ).resolve( this );
+            if ( !level.inherited ) {
 
-            level.$inherit();
+              level.$inherit();
+
+            }
+
+            inheritFromNormalizedLson = level.lson;
+
+          } else { // object reference
+
+            inheritFromNormalizedLson = normalize( ref, true );
 
           }
 
-          inheritFromNormalizedLson = level.lson;
-
-        } else { // object reference
-
-          inheritFromNormalizedLson = normalize( ref, true );
+          LSON.$inherit( inheritFromNormalizedLson, this.lson );
 
         }
-
-        LSON.$inherit( inheritFromNormalizedLson, this.lson );
-
       }
     }
   };
 
+  function AttrValue ( value ) {
 
+    this.value = value;
+    this.isConstraint = value instanceof LSON.Take;
+    this.stagedCalcValue = undefined;
+    this.committedCalcValue = undefined;
+    this.transitioningCalcValue = undefined;
+    this.isTransitioning = false;
+    this.takerLevelS = [];
+
+  }
 
   LSON.Level.prototype.$initAttributes = function () {
 
 
-
-    var attr2_value00calc00isConstraint00takerLevelS_, dirtyAttrS, key, data, props, value, isConstraint;
+    var attr2attrValue, dirtyAttrS,  key, value, attr, data, props;
 
     dirtyAttrS = [];
-    attr2_value00calc00isConstraint00takerLevelS_ = {};
+    attr2attrValue = {};
 
     data = this.lson.data;
     props = this.lson.props;
     states = this.lson.states;
 
-    // Check for defaults
-
-    if ( !props.opacity ) {
-
-    }
 
 
     for ( key in data ) {
 
       if ( data.hasOwnProperty( key ) ) {
 
-
         value = data[ key ];
-        key = "data." + key;
-        isConstraint = value instanceof LSON.Take;
+        attr = "data." + key;
 
-
-        attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
-        dirtyAttrS.push( key );
+        attr2attrValue[ attr ] = new AttrValue( value );
+        dirtyAttrS.push( attr );
 
       }
     }
@@ -133,9 +141,9 @@
       if ( props.hasOwnProperty( key ) ) {
 
         value = props[ key ];
-        isConstraint = value instanceof LSON.Take;
+        attr = key;
 
-        attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
+        attr2attrValue[ attr ] = new AttrValue( value );
         dirtyAttrS.push( key );
 
       }
@@ -146,20 +154,17 @@
       if ( states.hasOwnProperty( key ) ) {
 
         value = states[ key ].onlyif;
-        key = "state." + key;
+        attr = "state." + key;
 
         if ( value !== undefined ) {
 
-          isConstraint = value instanceof LSON.Take;
-          attr2_value00calc00isConstraint00takerLevelS_[ key ] = [ value, 0, isConstraint, [] ];
-          dirtyAttrS.push( key );
-
+          attr2attrValue[ attr ] = new AttrValue( value );
         }
       }
     }
 
 
-    this.$attr2_value00calc00isConstraint00takerLevelS_ = attr2_value00calc00isConstraint00takerLevelS_;
+    this.$attr2attrValue = attr2attrValue;
     this.dirtyAttrS = dirtyAttrS;
 
   };
@@ -167,15 +172,16 @@
 
 
 
-  LSON.Level.prototype.$takeLevels = function ( value, selfAttr ) {
+  LSON.Level.prototype.$takeLevels = function ( value, attr ) {
 
-    var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
+    var _relPath00attr_S, relPath, level, levelPath, tookAttr2attrS, tookAttr;
+    // value is of type `LSON.Take`
     _relPath00attr_S = value._relPath00attr_S;
 
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
       relPath = _relPath00attr_S[ i ][ 0 ];
-      attr = _relPath00attr_S[ i ][ 1 ];
+      tookAttr = _relPath00attr_S[ i ][ 1 ];
 
       level = relPath.resolve( this );
       if ( level === undefined ) {
@@ -184,32 +190,32 @@
 
       } else {
 
-        level.$takeMe( this, selfAttr );
+        level.$giveAttr( this, tookAttr );
         levelPath = level.path;
 
-        takenAttr2selfAttr = this.$takenLevelPath2_takenAttr2selfAttr_[ levelPath ];
-        if ( takenAttr2selfAttr === undefined ) {
+        tookAttr2attrS = this.$tookLevelPath2_tookAttr2attrS_[ levelPath ];
+        if ( tookAttr2attrS === undefined ) {
 
-          this.$takenLevelPath2_takenAttr2selfAttr_[ levelPath ] = new HashArray();
-          takenAttr2selfAttr = this.$takenLevelPath2_takenAttr2selfAttr_;
+          this.$tookLevelPath2_tookAttr2attrS_[ levelPath ] = new HashArray();
+          tookAttr2attrS = this.$tookLevelPath2_tookAttr2attrS_;
 
         }
 
-        takenAttr2selfAttr.add( attr, selfAttr );
+        addElementToHashmapArray( tookAttr2attrS, tookAttr, attr );
 
       }
     }
   };
 
-  LSON.Level.prototype.$takeLevelsNot = function ( ) {
+  LSON.Level.prototype.$takeLevelsNot = function ( value, attr ) {
 
-    var _relPath00attr_S, relPath, attr, level, levelPath, takenAttr2selfAttr;
+    var _relPath00attr_S, relPath, level, levelPath, tookAttr2attrS, tookAttr;
     _relPath00attr_S = value._relPath00attr_S;
 
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
       relPath = _relPath00attr_S[ i ][ 0 ];
-      attr = _relPath00attr_S[ i ][ 1 ];
+      tookAttr = _relPath00attr_S[ i ][ 1 ];
 
       level = relPath.resolve( this );
       if ( level === undefined ) {
@@ -218,32 +224,48 @@
 
       } else {
 
-        level.$takeMeNot( this, selfAttr );
         levelPath = level.path;
 
-        takenAttr2selfAttr = this.$takenLevelPath2_takenAttr2selfAttr_[ levelPath ];
-        if ( takenAttr2selfAttr !== undefined ) {
+        tookAttr2attrS = this.$tookLevelPath2_tookAttr2attrS_[ levelPath ];
+        if ( tookAttr2attrS !== undefined ) {
 
-          takenAttr2selfAttr.remove( attr, selfAttr );
-          // even if the level path reference in the $takenLevelPath2_takenAttr2selfAttr_ hashmap points to an empty HashArray
+          removeElementFromHashmapArray( tookAttr2attrS, tookAttr, attr);
+
+          // Check if this was the last reference to the attribute
+          if ( tookAttr2attrS[ tookAttr ] === undefined ) {
+            level.$giveAttrNot( this, tookAttr );
+          }
+
+          // even if the level path reference in the $tookLevelPath2_tookAttr2attrS_ hashmap points to an empty HashArray
           // a deference will not be performed for:
           // (1) The initial reference was created by the level's state or data change. It is very possible in the case
           // of the latter (state change) that the change will revert, therefore reinitialization will have to be performed.
           // (2) Unlike arrays, checking for an empty hashmap is lesser efficient in terms of performance.
+
         }
+
+
       }
     }
 
   };
-  LSON.Level.prototype.$takeMe = function ( level, attr ) {
+  LSON.Level.prototype.$giveAttr = function ( level, attr ) {
 
-    this.selfAttr2_takerLevelS_.add( attr, level );
+    var attrValue = attr2attrValue[ attr ];
+    if ( attrValue !== undefined ) {
+      addElementToArray( attrValue[ 3 ], level );
+    }
 
   };
 
-  LSON.Level.prototype.$takeMeNot = function () {
 
-    this.selfAttr2_takerLevelS_.remove( attr, level );
+
+  LSON.Level.prototype.$giveAttrNot = function ( level, attr ) {
+
+    var attrValue = attr2attrValue[ attr ];
+    if ( attrValue !== undefined ) {
+      removeElementFromArray( attrValue[ 3 ], level );
+    }
 
   };
 
@@ -301,7 +323,7 @@
       this.isPart = true;
       this.part = new LSON.Part( this );
       var dirtyAttrS = this.dirtyAttrS;
-      //var attr2_value00calc00isConstraint00takerLevelS_ =  this.$attr2_value00calc00isConstraint00takerLevelS_;
+      //var attr2attrValue =  this.$attr2attrValue;
 
       for ( var i = 0, len = dirtyAttrS.length, dirtyAttr; i < len; i++ ) {
 
@@ -338,46 +360,66 @@
   */
   LSON.Level.prototype.$calculateAttr = function ( attr, value ) {
 
-    var value00calc00isConstraint00takerLevelS = attr2_value00calc00isConstraint00takerLevelS_[ attr ];
-    var isDirty = false;
+    if ( this.$curCalculatingAttr === attr ) { // Check for circular reference
 
-    if ( value00calc00isConstraint00takerLevelS[ 3 ]) { //is LSON.Take
-
-      var reCalc = value00calc00isConstraint00takerLevelS[ 0 ].execute( this );
-      if ( reCalc !== value00calc00isConstraint00takerLevelS[ 1 ] {
-
-        isDirty = true;
-        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 1 ] = ;
-
-      }
+      // circular reference
 
     } else {
 
-      if ( value !== value00calc00isConstraint00takerLevelS[ 0 ] ) {
+      this.$curCalculatingAttr = attr;
+      // Check if the calculating attr is a state attr
 
-        isDirty = true;
-        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 0 ] = value;
-        this.$attr2_value00calc00isConstraint00takerLevelS_[ attr ][ 1 ] = value;
+      var attrValue = attr2attrValue[ attr ];
+      var isDirty = false;
 
-      }
-    }
+      if ( attrValue.isConstraint ) { //is LSON.Take
 
-    if ( isDirty ) {
+        var reCalc = attrValue.value.execute( this );
+        if ( reCalc !== attrValue.committedCalcValue ) {
 
-      var takerLevelS = this.$selfAttr2_takerLevelS_[ attr ];
-      if ( takerLevelS !== undefined ) {
+          isDirty = true;
+          this.$attr2attrValue[ attr ].stagedCalcValue = reCalc;
 
-        for ( var i = 0, len = takerLevelS.length; i < len; i++ ) {
+        }
 
-          takerLevelS[ i ].$actOnDirtyOtherAttr( this, attr );
+      } else {
+
+        if ( value !== attrValue.value ) {
+
+          isDirty = true;
+          this.$attr2attrValue[ attr ].value = value;
+          this.$attr2attrValue[ attr ].stagedCalcValue = value;
 
         }
       }
+
+      if ( isDirty ) {
+
+        var takerLevelS = attrValue[ attr ];
+        if ( takerLevelS !== undefined ) {
+
+          for ( var i = 0, len = takerLevelS.length; i < len; i++ ) {
+
+            takerLevelS[ i ].$actOnDirtyTookAttr( this.path, attr );
+
+          }
+        }
+      }
     }
-
-
   };
 
+
+  LSON.Level.prototype = function $actOnDirtyTookAttr( tookLevelPath, tookAttr ) {
+
+    var tookAttr2attrS, attrS, attr;
+    var tookAttr2attrS = this.$tookLevelPath2_tookAttr2attrS_[ level.path ];
+    if ( tookAttr2attrS !== undefined ) {
+      attrS = tookAttr2attrS[ tookAttr ];
+
+
+    }
+
+  };
 
 
   LSON.Level.prototype.$deliver = function () {
@@ -389,69 +431,82 @@
 
 
   /*
+  * Add to array if element does not exist already
+  * Return true the element was added (as it did not exist previously)
+   */
+  function addElementToArray( elementS, element ) {
+    if ( elementS.indexOf( element ) !== -1  ) {
+      itemS.push( element );
+      return true;
+    }
+    return false;
+  }
+
+  /*
+  * Remove from array if element exists in it
+  * Return true the element was remove (as it did exist previously)
+  */
+  function removeElementFromArray( elementS, element ) {
+    var ind = elementS.indexOf( element );
+    if ( ind !== -1 ) {
+      elementS.splice( ind, 1 );
+      return true;
+    }
+    return false;
+  }
+
+
+  /*
   * Data structure of a HashMap mapping to array of strings.
   * If mapping exists to a single element array, mapping is directed to
   * string, to reduce overhead of storing an array data structure.
   */
-  function HashArray() {
 
-    this.hashmap = {};
+ function addElementToHashmapArray( hashmap, key, element ) {
 
-  }
-
-
-  HashArray.prototype.add = function ( key, element ) {
-
-    var element3elementS = this.hashmap[ key ];
+    var element3elementS = hashmap[ key ];
 
     if ( element3elementS === undefined ) {
 
-      this.hashmap[ key ] = element;
+      hashmap[ key ] = element;
 
     } else if ( ! element3elementS instanceof Array ) {
 
       if ( element3elementS !== element ) {
 
-        this.hashmap[ key ] = [ element3elementS, element ];
+        hashmap[ key ] = [ element3elementS, element ];
 
       }
 
-    } else if ( element3elementS.indexOf( element ) !== -1  ) {
+    } else  {
 
-      element3elementS.push( element );
-
+      addElementToArray( element3elementS, element );
     }
-  };
+  }
 
 
-  HashArray.prototype.remove = function ( key, element ) {
+  function removeElementFromHashmapArray( hashmap, key, element ) {
 
-    var element3elementS = this.hashmap[ key ];
+    var element3elementS = hashmap[ key ];
     if ( element3elementS !== undefined ) {
 
-      if ( ! element3elementS instanceof Array ) {
+      if ( !( element3elementS instanceof Array ) ) {
 
         if ( element3elementS === element ) {
 
-          this.hashmap[ key ] = null;
+          hashmap[ key ] = null;
 
         }
 
       } else {
-        var ind = element3elementS.indexOf( attr );
-        if ( ind !== -1 ) {
+        removeElementFromArray( element3elementS, element );
+        if ( element3elementS.length === 1 ) {
 
-          element3elementS.splice( ind, 1 );
-          if ( element3elementS.length === 1 ) {
-
-            this.hashmap[ key ] = element3elementS[ 0 ];
-
-          }
+          hashmap[ key ] = element3elementS[ 0 ];
         }
       }
     }
-
-  };
+  }
 
 
 

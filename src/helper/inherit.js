@@ -58,6 +58,11 @@
 
     },
 
+    inputType : function ( fromLson, intoLson ) {
+
+      intoLson.inputType = intoLson.inputType || fromLson.inputType;
+
+    },
     data: function( fromLson, intoLson ) {
 
       inheritSingleLevelObject( fromLson, intoLson, "data" );

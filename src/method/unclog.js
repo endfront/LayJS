@@ -38,6 +38,12 @@
       }
 
 
+      for ( i = 0; i < len; i++ ) {
+
+        levelS[ i ].$whenLoad();
+
+      }
+
 
 
       LSON.$clogKey2_levelS_[ clogKey ] = null;

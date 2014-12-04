@@ -120,11 +120,10 @@ appearance: none;
 
     this.path = path;
     this.lson = lson;
-    LSON.$normalize( lson, false );
     this.parent = parent;
     this.inherited = false;
     this.prepared = false;
-    this.isPart = true;
+    this.isPart = undefined;
 
     if ( lson.children ) {
 
@@ -159,7 +158,7 @@ appearance: none;
 
         childPath = this.path + '/' + name;
         childLevel = new LSON.Level( childPath, name2lson[ name ], clogKey, this );
-        path2level[ childPath ] = childLevel;
+        LSON.$path2level[ childPath ] = childLevel;
         LSON.$clogKey2_levelS_[ clogKey ].push( childLevel );
 
       }
@@ -169,35 +168,38 @@ appearance: none;
 
   LSON.Level.prototype.$inherit = function() {
 
-    if ( !this.lson.inherit ) {
+    if ( !this.inherited ) {
+      LSON.$normalize( lson, false );
+      if ( !this.lson.inherit ) {
 
-      this.inherited = true;
+        this.inherited = true;
 
-    } else {
+      } else {
 
-      var refS = this.lson.inherit;
-      for ( var i = 0, len = refS.length, ref, level, inheritFromNormalizedLson; i < len; i++ ) {
+        var refS = this.lson.inherit;
+        for ( var i = 0, len = refS.length, ref, level, inheritFromNormalizedLson; i < len; i++ ) {
 
-        ref = refS[ i ];
-        if ( typeof ref === 'string' ) { // pathname reference
+          ref = refS[ i ];
+          if ( typeof ref === 'string' ) { // pathname reference
 
-          level = ( new LSON.Path( ref ) ).resolve( this );
-          if ( !level.inherited ) {
+            level = ( new LSON.Path( ref ) ).resolve( this );
+            if ( !level.inherited ) {
 
-            level.$inherit();
+              level.$inherit();
+
+            }
+
+            inheritFromNormalizedLson = level.lson;
+
+          } else { // object reference
+
+            inheritFromNormalizedLson = normalize( ref, true );
 
           }
 
-          inheritFromNormalizedLson = level.lson;
-
-        } else { // object reference
-
-          inheritFromNormalizedLson = normalize( ref, true );
+          LSON.$inherit( inheritFromNormalizedLson, this.lson );
 
         }
-
-        LSON.$inherit( inheritFromNormalizedLson, this.lson );
-
       }
     }
   };
