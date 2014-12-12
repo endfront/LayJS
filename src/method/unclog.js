@@ -40,7 +40,7 @@
 
       for ( i = 0; i < len; i++ ) {
 
-        levelS[ i ].$whenLoad();
+        levelS[ i ].$executeRootLoad();
 
       }
 

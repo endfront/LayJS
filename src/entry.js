@@ -70,6 +70,7 @@ bottom: -0.25em;
 
 .lson {
 
+// set antialiasing of text as well!
 border: none;
 
 position: absolute;
@@ -99,14 +100,15 @@ appearance: none;
 (function () {
   "use strict";
 
-
   window.LSON = {
 
     $path2level: {},
     $curClogKey: 1,
     // initiate with the start clog key: 1
     $clogKey2_levelS_: { },
-    $dirtyPartS: []
+    $dirtyLevelS: [],
+    $prevFrameTime: 0,
+    //$colorMode: "rgb"
   };
 
 })();

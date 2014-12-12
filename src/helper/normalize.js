@@ -27,7 +27,9 @@
 
     attr2fnNormalize.type( lson );
     attr2fnNormalize.props( lson, true );
+    //attr2fnNormalize.data( lson );
     attr2fnNormalize.states( lson );
+
 
     if ( isRecursive ) {
 
@@ -158,8 +160,13 @@ var allTypeProp2defaultValue = {
   height: new LSON.Take( 'this', '$naturalHeight' ),
   top: 0,
   left: 0,
-  originX:0,
-  originY:0,
+  z: 0,
+  originX:50,
+  originY:50,
+  originZ: 0,
+  perspective:0,
+  perspectiveOriginX:50,
+  perspectiveOriginY:50,
   overflowX: "visible",
   overflowY: "visible",
   scrollX: 0,
@@ -173,6 +180,9 @@ var allTypeProp2defaultValue = {
   rotateZ:0,
   scaleX:0,
   scaleY:0,
+  scaleZ:0,
+  skewX:0,
+  skewY:0,
   cornerRadius: 0,
   backgroundColor: LSON.transparent
 };
@@ -372,7 +382,24 @@ var attr2fnNormalize = {
       }
     }
   },
+  /*
+  data: function ( lson ) {
+    // normalize color here
 
+    var key2value = lson.data;
+
+    for ( var key in key2value ) {
+
+      if ( key2value.hasOwnProperty( key ) ) {
+
+        if ()
+
+      }
+    }
+
+
+  },
+  */
 
 
   states: function( lson ) {

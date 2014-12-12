@@ -15,15 +15,12 @@
 
     // keep track of currently calculating attributes
     // to check for circular references
-    this.$curCalculatingAttr = undefined;
 
     if ( lson.children ) {
 
       this.addChildren( lson.children, clogKey );
 
     }
-
-    this.$tookLevelPath2_tookAttr2attrS_ = {};
 
 
   };
@@ -62,17 +59,17 @@
 
     if ( !this.inherited ) {
       LSON.$normalize( lson, false );
-      if ( !this.lson.inherit ) {
+      if ( !this.lson.inherit ) { // does not contain the inherit key itself
 
         this.inherited = true;
 
       } else {
 
         var refS = this.lson.inherit;
-        for ( var i = 0, len = refS.length, ref, level, inheritFromNormalizedLson; i < len; i++ ) {
+        for ( var i = 0, len = refS.length, ref, level, inheritedAndNormalizedLson; i < len; i++ ) {
 
           ref = refS[ i ];
-          if ( typeof ref === 'string' ) { // pathname reference
+          if ( typeof ref === "string" ) { // pathname reference
 
             level = ( new LSON.Path( ref ) ).resolve( this );
             if ( !level.inherited ) {
@@ -81,34 +78,197 @@
 
             }
 
-            inheritFromNormalizedLson = level.lson;
+            inheritedAndNormalizedLson = level.lson;
 
           } else { // object reference
 
-            inheritFromNormalizedLson = normalize( ref, true );
+            inheritedAndNormalizedLson = LSON.$normalize( ref, true );
 
           }
 
-          LSON.$inherit( inheritFromNormalizedLson, this.lson );
+          LSON.$inherit( inheritedAndNormalizedLson, this.lson );
 
         }
       }
     }
   };
 
-  function AttrValue ( value ) {
 
+  function AttrValue ( attr, value, level ) {
+
+    this.level = level;
+    this.attr = attr;
     this.value = value;
-    this.isConstraint = value instanceof LSON.Take;
-    this.stagedCalcValue = undefined;
-    this.committedCalcValue = undefined;
-    this.transitioningCalcValue = undefined;
+    this.isTaker = value instanceof LSON.Take;
+
+    this.isDirty = true;
+    this.isCalculating = false;
+    // undefined initializations performance:
+    // http://jsperf.com/objects-with-undefined-initialized-properties/2
+    this.curCalcValue = undefined;
+    this.finalCalcValue = undefined;
+    this.startCalcValue = undefined; // relevant for transitions
+
     this.isTransitioning = false;
-    this.takerLevelS = [];
+    this.transitioningTimeCurrent = 0;
+    this.transitioningTimeTotal = 0;
+    this.transitioningTimeDelay = 0;
+
+    this.takerAttrValueS = [];
 
   }
 
-  LSON.Level.prototype.$initAttributes = function () {
+  AttrValue.prototype.initValue = function () {
+
+    if ( this.isTaker ) {
+        this.give();
+    }
+
+  };
+
+  /*
+  * Recalculate the value of the attr value.
+  * Propagate the change across the LOM (LSON object model)
+  * if the change in value produces a change.
+  * For constraint (take) based attributes, recalculate the
+  * value, for non constraint based use the `value` parameter
+  * as the change.
+  * Return true if calculation successful, false if
+  * a circular reference rendered it unsuccessful
+  */
+  AttrValue.prototype.reCalculate = function () {
+
+    if ( this.isCalculating ) { // Check for circular reference
+
+      // circular reference
+      return false;
+
+    } else {
+
+      this.isCalculating = true;
+
+      // Check if the calculating attr is a state attr
+
+      var attrValue = attr2attrValue[ attr ];
+      var isDirty = false;
+
+      if ( attrValue.isTaker ) { //is LSON.Take
+
+        var reCalc = attrValue.value.execute( this );
+        if ( reCalc !== attrValue.finalCalcValue ) {
+
+          isDirty = true;
+          this.$attr2attrValue[ attr ].curCalcValue = reCalc;
+
+        }
+
+      } else {
+
+        if ( value !== attrValue.value ) {
+
+          isDirty = true;
+          this.$attr2attrValue[ attr ].value = value;
+          this.$attr2attrValue[ attr ].curCalcValue = value;
+
+        }
+      }
+
+      if ( isDirty ) {
+
+        var takerLevelS, pendingTakerLevelS, cleanedOne, i, len;
+        takerLevelS = attrValue[ attr ];
+
+        if ( takerLevelS !== undefined ) {
+          cleanedOne = false;
+          pendingTakerLevelS = [];
+          do {
+
+            for ( i = 0, len = takerLevelS.length; i < len; i++ ) {
+              ??
+              takerLevelS[ i ].$actOnDirtyTookAttr( this.path, attr );
+
+            }
+          } while ( cleanedOne );
+
+        }
+      }
+
+      this.isCalculating = false; // done calculating
+      return true;
+    }
+
+  };
+
+  AttrValue.prototype.give = function ( attrValue ) {
+    addElementToArray( this.takerAttrValueS, attrValue );
+  };
+  AttrValue.prototype.giveNot = function ( attrValue ) {
+    removeElementFromArray( this.takerAttrValueS, attrValue );
+  };
+
+
+  AttrValue.prototype.take = function () {
+
+    var _relPath00attr_S, relPath, level, attr;
+    // value is of type `LSON.Take`
+    _relPath00attr_S = this.value._relPath00attr_S;
+
+    for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+
+      relPath = _relPath00attr_S[ i ][ 0 ];
+      attr = _relPath00attr_S[ i ][ 1 ];
+
+      level = relPath.resolve( this.level );
+      if ( level === undefined ) {
+
+        console.error("LSON ERROR: Undefined level relative path: " + relPath.childPath );
+
+      } else {
+
+        level.$getAttrValue( attr ).give( this );
+      }
+    }
+
+  };
+
+  AttrValue.prototype.takeNot = function ( attrValue ) {
+
+    var _relPath00attr_S, relPath, level, attr;
+    // value is of type `LSON.Take`
+    _relPath00attr_S = this.value._relPath00attr_S;
+
+    for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+
+      relPath = _relPath00attr_S[ i ][ 0 ];
+      attr = _relPath00attr_S[ i ][ 1 ];
+
+      level = relPath.resolve( this.level );
+      if ( level === undefined ) {
+
+        console.error("LSON ERROR: Undefined level relative path: " + relPath.childPath );
+
+      } else {
+
+        level.$getAttrValue( attr ).giveNot( this );
+      }
+    }
+
+  };
+
+  // inspiration from https://github.com/koenbok/Framer/blob/master/framer/Animators/
+  function LinearAnimator () {
+
+  }
+  LinearAnimator.prototype.next = function ( delta ) {
+
+  };
+  LinearAnimator.prototype.done = function () {
+
+  };
+
+
+
+  LSON.Level.prototype.$initAttrs = function () {
 
 
     var attr2attrValue, dirtyAttrS,  key, value, attr, data, props;
@@ -129,7 +289,7 @@
         value = data[ key ];
         attr = "data." + key;
 
-        attr2attrValue[ attr ] = new AttrValue( value );
+        attr2attrValue[ attr ] = new AttrValue( attr, value, this );
         dirtyAttrS.push( attr );
 
       }
@@ -143,7 +303,7 @@
         value = props[ key ];
         attr = key;
 
-        attr2attrValue[ attr ] = new AttrValue( value );
+        attr2attrValue[ attr ] = new AttrValue( attr, value, this );
         dirtyAttrS.push( key );
 
       }
@@ -158,7 +318,7 @@
 
         if ( value !== undefined ) {
 
-          attr2attrValue[ attr ] = new AttrValue( value );
+          attr2attrValue[ attr ] = new AttrValue( attr, value, this );
         }
       }
     }
@@ -169,9 +329,26 @@
 
   };
 
+  // diff required when changing states
+  LSON.Level.protoype.$diffAttrs = function () {
+
+    LSON.$inherit( inheritedAndNormalizedLson, this.lson );
 
 
+    for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
 
+
+    }
+
+  };
+
+  LSON.Level.prototype.$getAttrValue = function ( attr ) {
+
+    return this.$attr2attrValue[ attr ];
+
+  };
+
+/*
   LSON.Level.prototype.$takeLevels = function ( value, attr ) {
 
     var _relPath00attr_S, relPath, level, levelPath, tookAttr2attrS, tookAttr;
@@ -252,24 +429,36 @@
   LSON.Level.prototype.$giveAttr = function ( level, attr ) {
 
     var attrValue = attr2attrValue[ attr ];
-    if ( attrValue !== undefined ) {
-      addElementToArray( attrValue[ 3 ], level );
+    if ( attrValue === undefined ) {
+      // inititialize this uninitialized attr
+      // as the taking level `level` would not
+      // be notified if this attr actually turns
+      // out to exist later.
+      // Perfect example would be LSON.Color where
+      // the taking level demands a component
+      // of a color format, for instance "h" (hue),
+      // If we haven't "calculated" the value of the
+      // given color we will not have the hue component
+      // available for the current moment
+      this.$attr2attrValue[ attr ] = new AttrValue( undefined );
+      attrValue = this.$attr2attrValue[ attr ];
     }
+    addElementToArray( attrValue.takerLevelS, level );
+
 
   };
-
 
 
   LSON.Level.prototype.$giveAttrNot = function ( level, attr ) {
 
     var attrValue = attr2attrValue[ attr ];
     if ( attrValue !== undefined ) {
-      removeElementFromArray( attrValue[ 3 ], level );
+      removeElementFromArray( attrValue.takerLevelS, level );
     }
 
   };
 
-
+*/
 
 
 
@@ -297,122 +486,38 @@
   LSON.Level.prototype.$prepare = function () {
 
 
-    this.$initAttributes();
-    //this.$initWhen();
-    //this.$initStates();
 
     var isMany = this.lson.many !== undefined;
     var lson = isMany ? this.lson.many : this.lson;
 
-    //this.initLsonWhen = lson.when;
-    //this.states = lson.states;
+    this.isPart = true;
+    this.part = new LSON.Part( this );
+    var dirtyAttrS = this.dirtyAttrS;
+    //var attr2attrValue =  this.$attr2attrValue;
 
+    for ( var i = 0, len = dirtyAttrS.length, dirtyAttr; i < len; i++ ) {
 
-    var constraint,val;
+      dirtyAttr = dirtyAttrS[ i ];
+      if ( !checkIsAttrState( dirtyAttr ) ) {
 
-    if ( isMany ) {
-
-
-      // for item in dependencies
-      //     if not prepared then prepare
-      // prepare
-
-
-    } else {
-
-      this.isPart = true;
-      this.part = new LSON.Part( this );
-      var dirtyAttrS = this.dirtyAttrS;
-      //var attr2attrValue =  this.$attr2attrValue;
-
-      for ( var i = 0, len = dirtyAttrS.length, dirtyAttr; i < len; i++ ) {
-
-        dirtyAttr = dirtyAttrS[ i ];
-        if ( !checkIsAttrState( dirtyAttr ) ) {
-
-          this.$cleanifyAttr( dirtyAttr );
-
-        }
-
+        this.$cleanifyAttr( dirtyAttr );
 
       }
-
     }
 
 
 
   };
 
-  LSON.Level.prototype.$cleanifyAttr = function ( attr ) {
+/*
 
+  LSON.Level.prototype.$actOnDirtyTookAttr = function ( tookLevelPath, tookAttr ) {
 
-
-
-  };
-
-  /*
-  * Change the value of an attribute.
-  * Propagate the change across the LOM (LSON object model)
-  * if the change in value produces a change.
-  * For constraint (take) based attributes, recalculate the
-  * value, for non constraint based use the `value` parameter
-  * as the change.
-  */
-  LSON.Level.prototype.$calculateAttr = function ( attr, value ) {
-
-    if ( this.$curCalculatingAttr === attr ) { // Check for circular reference
-
-      // circular reference
-
-    } else {
-
-      this.$curCalculatingAttr = attr;
-      // Check if the calculating attr is a state attr
-
-      var attrValue = attr2attrValue[ attr ];
-      var isDirty = false;
-
-      if ( attrValue.isConstraint ) { //is LSON.Take
-
-        var reCalc = attrValue.value.execute( this );
-        if ( reCalc !== attrValue.committedCalcValue ) {
-
-          isDirty = true;
-          this.$attr2attrValue[ attr ].stagedCalcValue = reCalc;
-
-        }
-
-      } else {
-
-        if ( value !== attrValue.value ) {
-
-          isDirty = true;
-          this.$attr2attrValue[ attr ].value = value;
-          this.$attr2attrValue[ attr ].stagedCalcValue = value;
-
-        }
-      }
-
-      if ( isDirty ) {
-
-        var takerLevelS = attrValue[ attr ];
-        if ( takerLevelS !== undefined ) {
-
-          for ( var i = 0, len = takerLevelS.length; i < len; i++ ) {
-
-            takerLevelS[ i ].$actOnDirtyTookAttr( this.path, attr );
-
-          }
-        }
-      }
-    }
-  };
-
-
-  LSON.Level.prototype = function $actOnDirtyTookAttr( tookLevelPath, tookAttr ) {
+    this.$curCalculatingAttr = undefined; ??
 
     var tookAttr2attrS, attrS, attr;
-    var tookAttr2attrS = this.$tookLevelPath2_tookAttr2attrS_[ level.path ];
+    tookAttr2attrS = this.$tookLevelPath2_tookAttr2attrS_[ level.path ];
+
     if ( tookAttr2attrS !== undefined ) {
       attrS = tookAttr2attrS[ tookAttr ];
 
@@ -420,20 +525,16 @@
     }
 
   };
+*/
 
 
-  LSON.Level.prototype.$deliver = function () {
-
-    //TODO: (i.e render first shot (without initial state changes))
-
-  };
 
 
 
   /*
   * Add to array if element does not exist already
   * Return true the element was added (as it did not exist previously)
-   */
+  */
   function addElementToArray( elementS, element ) {
     if ( elementS.indexOf( element ) !== -1  ) {
       itemS.push( element );
@@ -461,8 +562,8 @@
   * If mapping exists to a single element array, mapping is directed to
   * string, to reduce overhead of storing an array data structure.
   */
-
- function addElementToHashmapArray( hashmap, key, element ) {
+  /*
+  function addElementToHashmapArray( hashmap, key, element ) {
 
     var element3elementS = hashmap[ key ];
 
@@ -507,7 +608,7 @@
       }
     }
   }
-
+  */
 
 
 

@@ -4,15 +4,29 @@
 
   LSON.Take = function ( relativePath, attr ) {
 
+    var _relPath00attr_S;
 
-    var path = new LSON.RelPath( relativePath );
-    this._relPath00attr_S = [ [ path, attr ] ];
+    if ( attr !== undefined ) {
+      var path = new LSON.RelPath( relativePath );
+      _relPath00attr_S = [ [ path, attr ] ];
 
-    this.executable = function () {
+      this.executable = function () {
 
-      return path.resolve( this );
+        return path.resolve( this ).$getAttrValue( attr ).curCalcValue;
 
-    };
+      };
+    } else { // direct value provided
+      _relPath00attr_S = [];
+      // note that 'relativePath' is misleading name
+      // here in this second overloaded case
+      var directValue = relativePath;
+
+      this.executable = function () {
+        return directValue;
+      };
+    }
+
+    this._relPath00attr_S = _relPath00attr_S;
 
   };
 
@@ -38,6 +52,24 @@
   };
 
 
+  LSON.Take.prototype.colorLighten = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ) + val.execute( this );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ) + val;
+      };
+    }
+    return this;
+  };
+
 
   LSON.Take.prototype.add = function ( val ) {
 
@@ -56,6 +88,7 @@
     }
     return this;
   };
+
 
 
   LSON.Take.prototype.subtract = function ( val ) {
@@ -330,6 +363,23 @@
     return this;
   };
 
+  LSON.Take.prototype.method = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this )[ val.execute( this ) ]();
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this )[ val ]();
+      };
+    }
+    return this;
+  };
 
   LSON.Take.prototype.key = function ( val ) {
 
@@ -351,6 +401,54 @@
 
   LSON.Take.prototype.index = LSON.Take.prototype.key;
 
+
+  LSON.Take.prototype.setKey = function ( key, val ) {
+
+    var oldExecutable = this.executable;
+    if ( key instanceof LSON.Take ) {
+
+      this.$mergePathAndProps( key );
+
+      if ( val instanceof LSON.Take ) {
+
+        this.$mergePathAndProps( val );
+
+        this.executable = function () {
+          var oldVal = oldExecutable.call( this );
+          oldVal[ key.execute( this ) ] = val.execute( this );
+          return oldVal;
+        };
+
+      } else {
+
+        this.executable = function () {
+          var oldVal = oldExecutable.call( this );
+          oldVal[ key.execute( this ) ] = val;
+          return oldVal;
+        };
+
+      }
+    } else if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+      this.executable = function () {
+        var oldVal = oldExecutable.call( this );
+        oldVal[ key ] = val.execute( this );
+        return oldVal;
+      };
+
+    } else {
+
+      this.executable = function () {
+        var oldVal = oldExecutable.call( this );
+        oldVal[ key ] = val;
+        return oldVal;
+      };
+    }
+    return this;
+
+  };
+
+  LSON.Take.prototype.setIndex = setKey;
 
 
   LSON.Take.prototype.min = function ( val ) {
@@ -543,8 +641,7 @@
 
     var fn;
 
-    // optimize for arguments of length 1, and 2, by avoiding a loop
-    // TODO: add non-loop optimizations for arguments of lengths 3 and 4, as well.
+
     if ( arguments.length === 1 ) {
 
       fn = arguments[ 0 ];

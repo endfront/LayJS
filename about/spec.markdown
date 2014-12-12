@@ -18,8 +18,7 @@ LSON - > Layout Syntax Object Notation
   LSON.rgba()
   LSON.hsla()
   LSON.hsl()
-  LSON.hex()
-  LSON.color()
+  LSON.color() // takes a color name
 
 
 ### LSON.run
@@ -117,37 +116,33 @@ The keys within `props` are predefined
 
 - originX
   `number`
-  Default: 0.5
+  In percent
+  Default: 50
 
 - originY
   `number`
-  Default: 0.5
+  In percent
+  Default: 50
 
-
-- overflowX
-  `string`
-  CSS overflow property
-  Default: 'visible'
-
-- overflowY
-  `string`
-  CSS overflow property
-  Default: 'visible'
-
-
-- scrollX
+- originZ
   `number`
+  In percent
   Default: 0
 
-
-- scrollY
+- perspective
   `number`
+  In pixels
   Default: 0
 
-
-  opacity
+- perspectiveOriginX
   `number`
-  Default: 1
+  In percent
+  Default: 50
+
+- perspectiveOriginY
+  `number`
+  In percent
+  Default: 50
 
 - top
   `number`
@@ -173,6 +168,11 @@ The keys within `props` are predefined
   `number`
   Default: null
 
+- z
+  `number`
+  In pixels
+  Default: 0
+
 
 - width
   `number`
@@ -183,6 +183,31 @@ The keys within `props` are predefined
   `number`
   Height of part (excluding scale)
   Default: LSON.take('$naturalHeight')
+
+- opacity
+  `number`
+  Default: 1
+
+
+- overflowX
+  `string`
+  CSS overflow property
+  Default: 'visible'
+
+- overflowY
+  `string`
+  CSS overflow property
+  Default: 'visible'
+
+
+- scrollX
+  `number`
+  Default: 0
+
+
+- scrollY
+  `number`
+  Default: 0
 
 
 - cursor
@@ -206,8 +231,9 @@ The keys within `props` are predefined
   *multiple type prop*
   [
     {
-      x: number,
-      y: number,
+      inset: boolean
+      x: number (in pixels),
+      y: number (in pixels),
       blur: number,
       spread: number,
       color: LSON.Color
@@ -243,6 +269,12 @@ The keys within `props` are predefined
   Units to scale Y
   Default: 1
 
+- scaleZ
+  `number`
+  Units to scale Z
+  Default: 1
+
+
 - rotateX
   `number`
   In degrees
@@ -258,6 +290,17 @@ The keys within `props` are predefined
 - rotateZ
   `number`
   In degrees
+  Default: 0
+
+
+- skewX
+  `number`
+  In degrees
+  Default: 0
+
+- skewY
+  `number`
+  In degress
   Default: 0
 
 
@@ -659,10 +702,12 @@ LSON.Take methods
   - negative, positive (unary operators)
   - index, length (for array)
   - key (for dict)
+  - method (invokes a method and returns the return)
+  - setKey, setIndex (sets the value and return the object/array itself)
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - lighten, darken (for LSON.Color)
+  - (LSON.Color) colorLighten, colorDarken, colorSaturate, colorContrast
   - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match (for regex)
@@ -1152,20 +1197,10 @@ function touchEndHandler () {
 
 
 
-todo:
 
-  - add support for html5 input types
-  - make opacity out of 100% instead of 1, to remain consistent with filter opacity.
-  - constraint flow problem: LSON.takeMany('../Notification', {'data.unread': {$eq: true}}).length()
-      solution: order the list of takers to have ones for state notifications last
-  - add support for 'will-change'
-  - 'when' for formation, it should include function handler for insertion of new item into
-    the formation alongwith deletion.
-  - (perhaps) add server sync and/or cookie sync
 
 cry about:
 
-  - safari bug: http://jsbin.com/vufivedefise/1
   - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
 
 
