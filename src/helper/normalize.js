@@ -139,21 +139,7 @@ function flattenProp( lson, prop ) {
 }
 
 
-var fnCenterToPos = function( width, center ) {
-  return center - ( width / 2 );
-};
 
-var fnEdgeToPos = function( width, edge ) {
-  return center - ( width );
-};
-
-var fnPosToCenter = function( width, pos ) {
-  return pos + ( width / 2 );
-};
-
-var fnPosToEdge = function( width, pos ) {
-  return pos + ( width );
-};
 
 var allTypeProp2defaultValue = {
   width: new LSON.Take( 'this', '$naturalWidth' ),
@@ -239,13 +225,35 @@ var type2_typeProp2defaultValue_ = {
 };
 
 
-// Note that we don't have to take width as the take constraint out here as left
-// is a constraint by itself too, but we shall stick to keeping width as the first
-// constraint to maintain consistency with "Note 1".
-var takeLeftToCenterX = new LSON.Take( 'this', 'width' ).fn( new LSON.Take( 'this', 'left' ), fnPosToCenter );
-var takeLeftToRight = new LSON.Take( 'this', 'width' ).fn( new LSON.Take( 'this', 'left' ), fnPosToEdge );
-var takeTopToCenterY = new LSON.Take( 'this', 'width' ).fn( new LSON.Take( 'this', 'top' ), fnPosToCenter );
-var takeTopToBottom = new LSON.Take( 'this', 'width' ).fn( new LSON.Take( 'this', 'top' ), fnPosToEdge );
+var fnCenterToPos = function( center, width ) {
+  return center - ( width / 2 );
+};
+
+var fnEdgeToPos = function( edge, width ) {
+  return center - ( width );
+};
+
+var fnPosToCenter = function( pos, width ) {
+  return pos + ( width / 2 );
+};
+
+var fnPosToEdge = function( pos, width ) {
+  return pos + ( width );
+};
+
+
+var takeLeft = new LSON.Take( "this", "left" );
+var takeWidth = new LSON.Take( "this", "width" );
+var takeTop = new LSON.Take( "this", "top" );
+var takeHeight = new LSON.Take( "this", "height" );
+
+
+var takeLeftToCenterX = new LSON.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
+var takeLeftToRight = new LSON.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
+var takeTopToCenterY = new LSON.Take( fnPosToCenter ).fn( takeTop, takeHeight );
+var takeTopToBottom = new LSON.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+
+
 
 
 
@@ -295,31 +303,28 @@ var attr2fnNormalize = {
 
     if ( prop2val.centerX ) {
 
-      // ( Note 1 ) The reason we dont 'take' centerX as the taker property is because
-      // there exists a possibility that centerX is a non constraint value.
-      // On the other hand, width is always a constraint.
-      // And the reason we use 'fn' is to optimize the take logic down to one
-      // function nest.
-      prop2val.left = LSON.take( 'this', 'width' ).fn( prop2val.centerX, fnCenterToPos );
+      prop2val.left = LSON.take( fnCenterToPos ).fn( prop2val.centerX, takeWidth );
+
 
     }
 
     if ( prop2val.right ) {
 
-      prop2val.left = LSON.take( 'this', 'width' ).fn( prop2val.right, fnEdgeToPos );
+      prop2val.left = LSON.take( fnEdgeToPos ).fn( prop2val.right, takeWidth );
 
     }
 
 
     if ( prop2val.centerY ) {
 
-      prop2val.top = LSON.take( 'this', 'width' ).fn( prop2val.centerY, fnCenterToPos );
+      prop2val.top = LSON.take( fnCenterToPos ).fn( prop2val.centerY, takeHeight );
+
 
     }
 
     if ( prop2val.bottom ) {
 
-      prop2val.top = LSON.take( 'this', 'width' ).fn( prop2val.bottom, fnEdgeToPos );
+      prop2val.top = LSON.take( fnEdgeToPos ).fn( prop2val.bottom, takeHeight );
 
     }
 

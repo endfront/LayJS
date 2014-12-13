@@ -226,9 +226,9 @@
           argS = Array.prototype.slice.call(arguments);
 
         // result contians the formattable string
-        result = argS[ argsLength - 1 ];
+        result = argS[ 0 ];
 
-        for ( i = 0; i < argSLength - 1; i++ ) {
+        for ( i = 0; i < argSLength; i++ ) {
           if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
             result = new Formatter(RegExp.$1).format(result, argS[ i ] );
           }

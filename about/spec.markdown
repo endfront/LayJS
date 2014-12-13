@@ -719,15 +719,16 @@ LSON.Take methods
 
   LSON.take(level, property).add(10).divide(LSON.take(level2,property2)).subtract(10).multiply(1.2)
   LSON.take(level, property).min(LSON.take(level2,property2), 20, 30)
-  LSON.take(level, property).format(LSON.take(level2, prop2), LSON.take(level3, prop3), "foo:{0}, bar:{1}, baz:{2}" )
-  LSON.take(level, property).fn(LSON.take(level2, prop2), LSON.take(level3, prop3), function( arg1, arg2, arg3 ) {
+  LSON.take("foo:%s, bar:%s, baz:%s").format(LSON.take(level1, prop1), LSON.take(level2, prop2), LSON.take(level3, prop3) )
+  LSON.take(function).fn(LSON.take(level1, prop1), LSON.take(level2, prop2), LSON.take(level3, prop3), function( arg1, arg2, arg3 ) {
     return something
   })
-  LSON.take('/', 'data.lang').i18nFormat(LSON.take(level1, prop1), LSON.take(level2,prop2),
+  LSON.take('/', 'data.lang').i18nFormat(
   {
-    lang-code: formatable string
+    lang-code: formattable string
     .....
-  }
+  },
+  LSON.take(level1, prop1), LSON.take(level2,prop2)
   )
 
 

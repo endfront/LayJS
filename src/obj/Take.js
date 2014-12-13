@@ -577,9 +577,12 @@
 
     var argS = Array.prototype.slice.call( arguments );
 
+
+    return new LSON.Take(LSON.$format).fn.apply( this, argS);
+
     // Add the `format` function
-    argS.push(LSON.$format);
-    return this.fn.apply( this, argS );
+    //argS.push(LSON.$format);
+    //return this.fn.apply( this, argS );
 
   };
 
@@ -592,9 +595,11 @@
 
     var argS = Array.prototype.slice.call(arguments);
 
+    return new LSON.Take(i18nFormat).fn.apply( this, argS);
+
     // Add the `i18nFormat` function
-    argS.push(LSON.i18nFormat);
-    return this.fn.apply( this, argS );
+    //argS.push(i18nFormat);
+    //return this.fn.apply( this, argS );
 
   };
 
@@ -602,7 +607,7 @@
 
     var argS = Array.prototype.slice.call( arguments );
 
-    argS[ argS.length - 1 ] = ( argS[ argS.length - 1 ] )[ LSON.level( '/' ).attr( 'data.lang' ) ];
+    argS[ 0 ] = ( argS[ 0 ] )[ LSON.level( '/' ).attr( 'data.lang' ) ];
 
     return LSON.$format.apply( undefined, argS );
 
@@ -633,92 +638,86 @@
 
 
 
-
+  /*
+  * Call custom function with arguments, where arguments
+  * can be LSON.Take objects.
+  * TODO: Optimize to use without loops (for arguments) for upto 2 arguments.
+  */
   LSON.Take.prototype.fn = function ( ) {
 
-    var oldExecutable = this.executable;
 
 
-    var fn;
+    var fnExecutable = this.executable;
 
+    if ( arguments.length === 0 ) {
 
-    if ( arguments.length === 1 ) {
+      this.executable = function () {
+        return fnExecutable.execute( this ).call( this );
+      };
 
-      fn = arguments[ 0 ];
-
-      if ( fn instanceof LSON.Take ) {
-
-        this.$mergePathAndProps( fn );
-        this.executable = function () {
-
-          return (fn.execute( this )).call( this, oldExecutable.call( this ) );
-
-        };
-
-      } else {
-
-        this.executable = function () {
-
-          return fn.call( this, oldExecutable.call( this ) );
-
-        };
-      }
-    }
-
-    else if (arguments.length === 2 ) {
+    } else if ( arguments.length === 1 ) {
 
       var arg = arguments[ 0 ];
-      fn = arguments[ 1 ];
 
-      if ( fn instanceof LSON.Take ) {
+      if ( arg instanceof LSON.Take ) {
 
-        this.$mergePathAndProps( fn );
+        this.$mergePathAndProps( arg );
 
-        if ( arg instanceof LSON.Take ) {
+        this.executable = function () {
 
-          this.$mergePathAndProps( arg );
+          return fnExecutable.execute( this ).call( this, arg.execute( this ) );
+        };
+      } else {
+        this.executable = function () {
+
+          return fnExecutable.execute( this ).call( this, arg );
+        };
+      }
+
+    } else if ( arguments.length === 2 ) {
+
+      var arg1 = arguments[ 0 ];
+      var arg2 = arguments[ 1 ];
+
+      if ( arg1 instanceof LSON.Take ) {
+
+        this.$mergePathAndProps( arg1 );
+
+        if ( arg2 instanceof LSON.Take ) {
+
+          this.$mergePathAndProps( arg2 );
 
           this.executable = function () {
 
-            return (fn.execute( this )).call( this, oldExecutable.call( this ), arg.execute( this ) );
-
+            return fnExecutable.execute( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
           };
 
         } else {
-
           this.executable = function () {
 
-            return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
-
+            return fnExecutable.execute( this ).call( this, arg1.execute( this ), arg2 );
           };
-
         }
+
+      } else if ( arg2 instanceof LSON.Take ) {
+
+        this.$mergePathAndProps( arg2 );
+        this.executable = function () {
+
+          return fnExecutable.execute( this ).call( this, arg1, arg2.execute( this ) );
+        };
+
 
       } else {
 
-        if ( arg instanceof LSON.Take ) {
+        this.executable = function () {
 
-          this.$mergePathAndProps( arg );
-
-          this.executable = function () {
-
-            return fn.call( this, oldExecutable.call( this ), arg.execute( this ) );
-
-          };
-
-        } else {
-
-          this.executable = function () {
-
-            return fn.call( this, oldExecutable.call( this ), arg );
-
-          };
-        }
+          return fnExecutable.execute( this ).call( this, arg1, arg2 );
+        };
       }
-
     } else {
 
-      var argSlength = arguments.length - 1;
+      var argSlength = arguments.length;
       var argS = Array.prototype.slice.call( arguments );
 
       for ( var i = 0, curArg; i < argSlength; i++ ) {
@@ -732,54 +731,169 @@
         }
       }
 
-      fn = argS[ argSlength - 1 ];
+      this.executable = function () {
 
-      if ( fn instanceof LSON.Take ) {
+        var executedArgS = new Array( argSlength );
 
-        this.executable = function () {
+        for ( var i = 0, arg; i < argSlength; i++ ) {
 
+          arg = argS[ i ];
 
-          // The "+1" allocates space for the first argument which is of the LSON.Take in current context.
-          var callableArgS = new Array( argSlength + 1 );
-          callableArgS[ 0 ] = oldExecutable.call( this );
+          executedArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
 
-          for ( var i = 0, arg; i < argSlength; i++ ) {
+        }
 
-            arg = argS[ i ];
+        return fnExecutable.execute( this ).apply( this, executedArgS );
 
-            callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
-
-          }
-
-          return ( fn.execute( this ) ).apply( this, callableArgS );
-
-        };
-
-      } else {
-
-        this.executable = function () {
-
-          // The "+1" allocates space for the first argument which is of the LSON.Take in current context.
-          var callableArgS = new Array( argSlength + 1 );
-          callableArgS[ 0 ] = oldExecutable.call( this );
-
-          for ( var i = 0, arg; i < argSlength; i++ ) {
-
-            arg = argS[ i ];
-
-            callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
-
-          }
-
-          return fn.apply( window, callableArgS );
-
-
-        };
-      }
+      };
     }
 
     return this;
 
+    /*
+
+    var fn;
+    var oldExecutable = this.executable;
+
+    if ( arguments.length === 1 ) {
+
+    fn = arguments[ 0 ];
+
+    if ( fn instanceof LSON.Take ) {
+
+    this.$mergePathAndProps( fn );
+    this.executable = function () {
+
+    return (fn.execute( this )).call( this, oldExecutable.call( this ) );
+
   };
+
+} else {
+
+this.executable = function () {
+
+return fn.call( this, oldExecutable.call( this ) );
+
+};
+}
+}
+
+else if (arguments.length === 2 ) {
+
+var arg = arguments[ 0 ];
+fn = arguments[ 1 ];
+
+if ( fn instanceof LSON.Take ) {
+
+this.$mergePathAndProps( fn );
+
+if ( arg instanceof LSON.Take ) {
+
+this.$mergePathAndProps( arg );
+
+this.executable = function () {
+
+return (fn.execute( this )).call( this, oldExecutable.call( this ), arg.execute( this ) );
+
+};
+
+} else {
+
+this.executable = function () {
+
+return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
+
+};
+
+}
+
+} else {
+
+if ( arg instanceof LSON.Take ) {
+
+this.$mergePathAndProps( arg );
+
+this.executable = function () {
+
+return fn.call( this, oldExecutable.call( this ), arg.execute( this ) );
+
+};
+
+} else {
+
+this.executable = function () {
+
+return fn.call( this, oldExecutable.call( this ), arg );
+
+};
+}
+}
+
+} else {
+
+var argSlength = arguments.length - 1;
+var argS = Array.prototype.slice.call( arguments );
+
+for ( var i = 0, curArg; i < argSlength; i++ ) {
+
+curArg = arguments[ i ];
+
+if ( curArg instanceof LSON.Take ) {
+
+this.$mergePathAndProps( curArg );
+
+}
+}
+
+fn = argS[ argSlength - 1 ];
+
+if ( fn instanceof LSON.Take ) {
+
+this.executable = function () {
+
+
+// The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+var callableArgS = new Array( argSlength + 1 );
+callableArgS[ 0 ] = oldExecutable.call( this );
+
+for ( var i = 0, arg; i < argSlength; i++ ) {
+
+arg = argS[ i ];
+
+callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+
+}
+
+return ( fn.execute( this ) ).apply( this, callableArgS );
+
+};
+
+} else {
+
+this.executable = function () {
+
+// The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+var callableArgS = new Array( argSlength + 1 );
+callableArgS[ 0 ] = oldExecutable.call( this );
+
+for ( var i = 0, arg; i < argSlength; i++ ) {
+
+arg = argS[ i ];
+
+callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+
+}
+
+return fn.apply( window, callableArgS );
+
+
+};
+}
+}
+
+return this;
+*/
+
+};
 
 }());
