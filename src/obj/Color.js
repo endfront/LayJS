@@ -18,11 +18,64 @@
 
   };
 
-  LSON.Color.prototype.alpha = function () {
+  LSON.Color.prototype.copy = function () {
 
-    return this.alpha;
+    return this.format === "rgb" ?
+     new LSON.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
+     new LSON.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
+
   };
 
+
+  /* Sets alpha */
+  LSON.Color.prototype.alpha = function ( alpha ) {
+
+    this.a = alpha;
+  };
+
+  LSON.Color.protoype.darken = function ( fraction ) {
+
+    var hsl = this.hsl();
+    hsl.l = hsl.l - ( hsl.l * fraction );
+    if ( this.format === "rgb" ) {
+      this.l = l;
+    } else {
+      var rgb = convertHslToRgb( hsl.h, hsl.s, hsl.l );
+      this.r = r;
+      this.g = g;
+      this.b = b;
+    }
+  };
+
+  LSON.Color.protoype.lighten = function ( fraction ) {
+
+    var hsl = this.hsl();
+    hsl.l = hsl.l + ( hsl.l * fraction );
+    if ( this.format === "rgb" ) {
+      this.l = l;
+    } else {
+      var rgb = convertHslToRgb( hsl.h, hsl.s, hsl.l );
+      this.r = r;
+      this.g = g;
+      this.b = b;
+    }
+  };
+
+  LSON.Color.prototype.hsla = function () {
+
+      var hsl = this.hsl();
+      hsl.a = this.a;
+      return hsl;
+
+  };
+
+  LSON.Color.prototype.rgba = function () {
+
+    var rgb = this.rgb();
+    rgb.a = this.a;
+    return rgb;
+
+  };
 
   LSON.Color.prototype.hsl = function () {
     if ( this.format === "hsl" ) {
@@ -32,26 +85,7 @@
 
     } else {
 
-      // calculate
-      // source: http://stackoverflow.com/a/9493060
-      r = this.r / 255; g = this.g / 255; b = this.b / 255;
-      var max = Math.max(r, g, b), min = Math.min(r, g, b);
-      var h, s, l = (max + min) / 2;
-
-      if(max == min){
-        h = s = 0; // achromatic
-      }else{
-        var d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch(max){
-          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-          case g: h = (b - r) / d + 2; break;
-          case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-      }
-
-      return { h: h, s: s, l: l };
+      return convertRgbToHsl( this.r, this.g, this.b );
     }
   };
 
@@ -65,29 +99,59 @@
 
     } else {
 
-      // calculate
-      // source: http://stackoverflow.com/a/9493060
-      var r, g, b;
-
-      if(this.s === 0){
-        r = g = b = this.l; // achromatic
-      }else{
-
-
-        var q = this.l < 0.5 ? this.l * (1 + this.s) : this.l + this.s - this.l * this.s;
-        var p = 2 * this.l - q;
-        r = hue2rgb(p, q, this.h + 1/3);
-        g = hue2rgb(p, q, this.h);
-        b = hue2rgb(p, q, this.h - 1/3);
-      }
-
-      return { r: r * 255, g: g * 255, b: b * 255 };
+      return convertHslToRgb( this.r, this.g, this.b );
 
     }
   };
 
 
-  function hue2rgb(p, q, t){
+  function convertHslToRgb( h, s, l ) {
+
+    // calculate
+    // source: http://stackoverflow.com/a/9493060
+    var r, g, b;
+
+    if(s === 0){
+      r = g = b = l; // achromatic
+    }else{
+
+
+      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      var p = 2 * l - q;
+      r = convertHueToRgb(p, q, h + 1/3);
+      g = convertHueToRgb(p, q, h);
+      b = convertHueToRgb(p, q, h - 1/3);
+    }
+
+    return { r: r * 255, g: g * 255, b: b * 255 };
+
+  };
+
+  function convertRgbToHsl( r, g, b ) {
+    // calculate
+    // source: http://stackoverflow.com/a/9493060
+    r = r / 255; g = g / 255; b = b / 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if(max == min){
+      h = s = 0; // achromatic
+    }else{
+      var d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch(max){
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return { h: h, s: s, l: l };
+  };
+
+
+  function convertHueToRgb(p, q, t){
     if(t < 0) t += 1;
     if(t > 1) t -= 1;
     if(t < 1/6) return p + (q - p) * 6 * t;

@@ -111,9 +111,9 @@
     /* jshint ignore:start */
     var attr2attrValue = this.level.$attr2attrValue;
     this.node.style[ cssPrefix + "origin" ] =
-    attr2attrValue.originX.curCalcValue + "% " +
-    attr2attrValue.originY.curCalcValue + "% " +
-    attr2attrValue.originZ.curCalcValue + "%";
+    ( attr2attrValue.originX.curCalcValue * 100 ) + "% " +
+    ( attr2attrValue.originY.curCalcValue * 100 ) + "% " +
+    ( attr2attrValue.originZ.curCalcValue * 100 ) + "%";
     this.$renderFn_left(); //apply change to transform
     /* jshint ignore:end */
   }
@@ -122,8 +122,8 @@
     /* jshint ignore:start */
     var attr2attrValue = this.level.$attr2attrValue;
     this.node.style[ cssPrefix + "perspective-origin" ] =
-    attr2attrValue.perspectiveOriginX.curCalcValue + "% " +
-    attr2attrValue.perspectiveOriginY.curCalcValue + "%";
+    ( attr2attrValue.perspectiveOriginX.curCalcValue * 100 ) + "% " +
+    ( attr2attrValue.perspectiveOriginY.curCalcValue * 100 ) + "%";
     /* jshint ignore:end */
   }
 

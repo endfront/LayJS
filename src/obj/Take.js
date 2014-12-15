@@ -402,53 +402,6 @@
   LSON.Take.prototype.index = LSON.Take.prototype.key;
 
 
-  LSON.Take.prototype.setKey = function ( key, val ) {
-
-    var oldExecutable = this.executable;
-    if ( key instanceof LSON.Take ) {
-
-      this.$mergePathAndProps( key );
-
-      if ( val instanceof LSON.Take ) {
-
-        this.$mergePathAndProps( val );
-
-        this.executable = function () {
-          var oldVal = oldExecutable.call( this );
-          oldVal[ key.execute( this ) ] = val.execute( this );
-          return oldVal;
-        };
-
-      } else {
-
-        this.executable = function () {
-          var oldVal = oldExecutable.call( this );
-          oldVal[ key.execute( this ) ] = val;
-          return oldVal;
-        };
-
-      }
-    } else if ( val instanceof LSON.Take ) {
-      this.$mergePathAndProps( val );
-      this.executable = function () {
-        var oldVal = oldExecutable.call( this );
-        oldVal[ key ] = val.execute( this );
-        return oldVal;
-      };
-
-    } else {
-
-      this.executable = function () {
-        var oldVal = oldExecutable.call( this );
-        oldVal[ key ] = val;
-        return oldVal;
-      };
-    }
-    return this;
-
-  };
-
-  LSON.Take.prototype.setIndex = setKey;
 
 
   LSON.Take.prototype.min = function ( val ) {
@@ -636,16 +589,69 @@
   };
 
 
+  LSON.Take.protoype.colorLighten = function ( val ) {
 
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().lighten( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().lighten( val );
+      };
+    }
+    return this;
+
+  };
+
+
+  LSON.Take.protoype.colorDarken = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().darken( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().darken( val );
+      };
+    }
+    return this;
+
+  };
+
+  LSON.Take.protoype.colorAlpha = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().alpha( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().alpha( val );
+      };
+    }
+    return this;
+
+  };
 
   /*
   * Call custom function with arguments, where arguments
   * can be LSON.Take objects.
-  * TODO: Optimize to use without loops (for arguments) for upto 2 arguments.
   */
   LSON.Take.prototype.fn = function ( ) {
-
-
 
     var fnExecutable = this.executable;
 

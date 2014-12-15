@@ -116,17 +116,17 @@ The keys within `props` are predefined
 
 - originX
   `number`
-  In percent
-  Default: 50
+  in fraction (percent)
+  Default: 0.5
 
 - originY
   `number`
-  In percent
-  Default: 50
+  in fraction (percent)
+  Default: 0.5
 
 - originZ
   `number`
-  In percent
+  in fraction (percent)
   Default: 0
 
 - perspective
@@ -136,13 +136,13 @@ The keys within `props` are predefined
 
 - perspectiveOriginX
   `number`
-  In percent
-  Default: 50
+  in fraction (percent)
+  Default: 0.5
 
 - perspectiveOriginY
   `number`
-  In percent
-  Default: 50
+  in fraction (percent)
+  Default: 0.5
 
 - top
   `number`
@@ -328,20 +328,20 @@ The keys within `props` are predefined
             "opacity" | "saturate" | "sepia",  
       url: string |
       blur: number (in pixels) |
-      brightness: number (in percent) |
-      contrast: number (in percent) |
+      brightness: number (in fraction (percent)) |
+      contrast: number (in fraction (percent)) |
       dropShadow: {
         x: number (in pixels) ,
         y: number (in pixels) ,
         blur: number (in pixels),
         color: LSON.Color
       } |
-      grayscale: number (in percent) |
+      grayscale: number (in fraction (percent)) |
       hueRotate: number (in degrees) |
-      invert: number (in percent) |
-      opacity: number (in percent) |
-      saturate: number (in percent) |
-      sepia: number (in percent) |
+      invert: number (in fraction (percent)) |
+      opacity: number (in fraction (percent)) |
+      saturate: number (in fraction (percent)) |
+      sepia: number (in fraction (percent)) |
 
     ]
     ...
@@ -496,7 +496,7 @@ The keys within `props` are predefined
 - linkTarget
   `string`
   HTML a[target]
-  Default: "_self"
+  Default: `_self`
 
 - imageUrl
   `string`
@@ -707,7 +707,7 @@ LSON.Take methods
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (LSON.Color) colorLighten, colorDarken, colorSaturate, colorContrast
+  - (LSON.Color) colorLighten, colorDarken, colorSaturate, colorContrast, colorAlpha
   - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match (for regex)
@@ -754,9 +754,8 @@ LSON.rgb(r,g,b)   (r,g,b:[0,255])
 LSON.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
 LSON.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
 LSON.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
-LSON.hex(#hexval)
 LSON.color(name)  [name: XML recognized color]
-LSON.transparent
+LSON.transparent()
 
 
 
@@ -769,9 +768,9 @@ others will come soon
 
 eg of take with color:
 
-  color: LSON.rgb(100, LSON.take('','data.green'),200).lighten(0.1)
+  color: LSON.rgb(100, LSON.take('','data.green'),200).colorLighten(0.1)
 
-  color: LSON.take('header', 'color').lighten(0.5)
+  color: LSON.take('header', 'color').colorDarken(0.5)
 
 
 
