@@ -8,7 +8,7 @@
     this.path = path;
     this.lson = lson;
     this.parent = parent;
-    this.inherited = false;
+    this.$inherited = false;
     this.prepared = false;
     this.isPart = undefined;
     this.$stateS = [];
@@ -57,22 +57,22 @@
 
   LSON.Level.prototype.$inherit = function() {
 
-    if ( !this.inherited ) {
+    if ( !this.$inherited ) {
       LSON.$normalize( lson, false );
-      if ( !this.lson.inherit ) { // does not contain the inherit key itself
+      if ( this.lson.inherits === undefined ) { // does not contain anything to inherit from
 
-        this.inherited = true;
+        this.$inherited = true;
 
       } else {
 
-        var refS = this.lson.inherit;
+        var refS = this.lson.inherits;
         for ( var i = 0, len = refS.length, ref, level, inheritedAndNormalizedLson; i < len; i++ ) {
 
           ref = refS[ i ];
           if ( typeof ref === "string" ) { // pathname reference
 
             level = ( new LSON.Path( ref ) ).resolve( this );
-            if ( !level.inherited ) {
+            if ( !level.$inherited ) {
 
               level.$inherit();
 
@@ -86,7 +86,7 @@
 
           }
 
-          LSON.$inherit( inheritedAndNormalizedLson, this.lson );
+          LSON.$inherit( this.lson, inheritedAndNormalizedLson );
 
         }
       }
@@ -330,9 +330,10 @@
   };
 
   // diff required when changing states
+  // TODO: change name ot $updateState?
   LSON.Level.protoype.$diffAttrs = function () {
 
-    LSON.$inherit( inheritedAndNormalizedLson, this.lson );
+    //LSON.$inherit( this.lson, inheritedAndNormalizedLson );
 
 
     for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {

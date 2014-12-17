@@ -27,7 +27,7 @@
 
     attr2fnNormalize.type( lson );
     attr2fnNormalize.props( lson, true );
-    //attr2fnNormalize.data( lson );
+    attr2fnNormalize.when( lson );
     attr2fnNormalize.states( lson );
 
 
@@ -387,6 +387,23 @@ var attr2fnNormalize = {
       }
     }
   },
+
+  when: function ( lson ) {
+
+    var eventType2_fnCallback3fnCallbackS_, eventType, fnCallback3fnCallbackS;
+
+    for ( eventType in eventType2_fnCallback3fnCallbackS_ ) {
+      if ( eventType2_fnCallback3fnCallbackS_.hasOwnProperty( eventType ) ) {
+        fnCallback3fnCallbackS = eventType2_fnCallback3fnCallbackS_[ eventType ];
+        if ( ! ( fnCallback3fnCallbackS instanceof Array ) ) { // not an array
+          // arrayify with a single element
+          eventType2_fnCallback3fnCallbackS_[ eventType ] = [ fnCallback3fnCallbackS ];
+        }
+
+      }
+    }
+
+  },
   /*
   data: function ( lson ) {
     // normalize color here
@@ -418,6 +435,7 @@ var attr2fnNormalize = {
         if ( stateName2state.hasOwnProperty( stateName ) ) {
 
           state = stateName2state[ stateName ];
+          attr2fnNormalize.props( state, false );
           attr2fnNormalize.props( state, false );
 
         }

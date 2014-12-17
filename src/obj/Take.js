@@ -589,6 +589,8 @@
   };
 
 
+
+
   LSON.Take.protoype.colorLighten = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -628,6 +630,56 @@
 
   };
 
+  LSON.Take.protoype.colorSaturate = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().saturate( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().saturate( val );
+      };
+    }
+    return this;
+
+  };
+
+  LSON.Take.protoype.colorDesaturate = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().desaturate( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().desaturate( val );
+      };
+    }
+    return this;
+
+  };
+
+  LSON.Take.protoype.colorGrayscale = function () {
+
+    var oldExecutable = this.executable;
+
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().grayscale();
+    };
+
+    return this;
+
+  };
+
   LSON.Take.protoype.colorAlpha = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -646,6 +698,110 @@
     return this;
 
   };
+
+  LSON.Take.protoype.colorRed = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().red( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().red( val );
+      };
+    }
+    return this;
+  }
+
+  LSON.Take.protoype.colorGreen = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().green( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().green( val );
+      };
+    }
+    return this;
+  }
+  LSON.Take.protoype.colorBlue = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().blue( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().blue( val );
+      };
+    }
+    return this;
+  }
+  LSON.Take.protoype.colorHue = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().hue( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().hue( val );
+      };
+    }
+    return this;
+  }
+  LSON.Take.protoype.colorSaturation = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().saturation( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().saturation( val );
+      };
+    }
+    return this;
+  }
+  LSON.Take.protoype.colorLightness = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LSON.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().lightness( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).copy().lightness( val );
+      };
+    }
+    return this;
+  }
 
   /*
   * Call custom function with arguments, where arguments

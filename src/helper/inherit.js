@@ -6,22 +6,22 @@
   /*
   * Inherit the lson into `intoLson`.
   */
-  LSON._inherit = function ( fromLson, intoLson ) {
+  LSON.$inherit = function ( intoLson, fromLson ) {
 
     for ( var key in fromLson ) {
 
       if ( fromLson.hasOwnProperty( key ) ) {
 
         if ( attr2fnInherit.hasOwnPropoperty( key ) ) {
-          attr2fnInherit[ key ]( fromLson, intoLson, isStateInheritance );
+          attr2fnInherit[ key ]( intoLson, fromLson, isStateInheritance );
         }
       }
     }
   };
 
-  function inheritSingleLevelObject( fromObject, intoObject, key ) {
+  function inheritSingleLevelObject( intoObject, fromObject, key, isDuplicateOn ) {
 
-    var fromKey2value, intoKey2value;
+    var fromKey2value, intoKey2value, fromKey, fromKeyValue;
     fromKey2value = fromObject.key;
     intoKey2value = intoObject.key;
 
@@ -29,19 +29,26 @@
 
       if ( intoKey2value === undefined ) {
 
-        intoObject.key = intoKey2value;
+        intoObject.key = {};
 
-      } else {
+      }
 
-        for ( var fromKey in fromKey2value ) {
+      for ( fromKey in fromKey2value ) {
 
-          if ( fromKey2value.hasOwnProperty( fromKey ) ) {
+        if ( fromKey2value.hasOwnProperty( fromKey ) ) {
 
-            intoKey2value[ fromKey ] =
-            intoKey2value[ fromKey ] ||
-            fromKey2value[ fromKey ];
+          fromKeyValue = fromKey2value[ fromKey ];
+
+          if ( isDuplicateOn && ( typeof fromKeyValue === "object" ) ) {
+
+            intoObject[ fromKey ] = LSON.$clone( fromKeyValue );
+
+          } else {
+
+            intoObject[ fromKey ] = fromKeyValue;
 
           }
+
         }
       }
 
@@ -52,29 +59,36 @@
   var attr2fnInherit = {
 
 
-    type: function( fromLson, intoLson ) {
+    type: function( intoLson, fromLson ) {
 
-      intoLson.type = intoLson.type || fromLson.type;
-
-    },
-
-    inputType : function ( fromLson, intoLson ) {
-
-      intoLson.inputType = intoLson.inputType || fromLson.inputType;
-
-    },
-    data: function( fromLson, intoLson ) {
-
-      inheritSingleLevelObject( fromLson, intoLson, "data" );
+      intoLson.type = fromLson.type !== undefined ?  fromLson.type : intoLson.type;
 
     },
 
-    props: function( fromLson, intoLson ) {
+    inputType : function ( intoLson, fromLson ) {
 
-      inheritSingleLevelObject( fromLson, intoLson, "props" );
+      intoLson.inputType = fromLson.inputType !== undefined ?  fromLson.inputType : intoLson.inputType;
+
+    },
+    data: function( intoLson, fromLson ) {
+
+      inheritSingleLevelObject( intoLson, fromLson, "data" );
+
     },
 
-    many: function( fromLson, intoLson ) {
+    props: function( intoLson, fromLson ) {
+
+      inheritSingleLevelObject( intoLson, fromLson, "props" );
+    },
+
+
+    transition: function ( intoLson, fromLson ) {
+
+      inheritSingleLevelObject( intoLson, fromLson, "transition" );
+
+    },
+
+    many: function( intoLson, fromLson ) {
 
       var fromManyAttr2val, intoManyAttr2val;
       fromManyAttr2val = fromLson.many;
@@ -83,19 +97,28 @@
       if ( fromManyAttr2val !== undefined ) {
 
         if ( intoManyAttr2val === undefined ) {
+          intoLson.many = {};
+          intoManyAttr2val = intoLson.many;
+        }
+        LSON.$inherit( intoManyAttr2val, fromManyAttr2val );
 
-          intoLson.many = fromManyAttr2val;
+      }
 
-        } else {
+    },
+    
+    rows: function( intoLson, fromLson ) {
+      // TODO: fix
+      var intoLsonRowS, fromLsonRowS;
+      intoLsonRowS = intoLson.rows;
+      fromLsonRowS = fromLson.rows;
 
-          LSON._inherit( fromManyAttr2val, intoManyAttr2val );
+      if ( fromLsonRowS !== undefined ) {
+
+        for ( var i = 0, len = fromLsonRowS.length; i < len; i++ )  {
 
         }
+
       }
-    },
-
-    rows: function( fromLson, intoLson ) {
-
       intoLson.rows = intoLson.rows || fromLson.rows;
 
     },
@@ -104,30 +127,35 @@
 
 
 
-    children: function( fromLson, intoLson ) {
+    children: function( intoLson, fromLson ) {
       var fromChildName2lson, intoChildName2lson;
       fromChildName2lson = fromLson.children;
       intoChildName2lson = intoLson.children;
 
-      for ( var name in fromChildName2lson ) {
+      // TODO: fix
+      if ( fromChildName2lson !== undefined ) {
 
-        if ( fromChildName2lson.hasOwnProperty( name ) ) {
 
-          if ( !intoChildName2lson[ name ] ) { // inexistent child
+        for ( var name in fromChildName2lson ) {
 
-            intoChildName2lson[ name ] = fromChildName2lson[ name ];
+          if ( fromChildName2lson.hasOwnProperty( name ) ) {
 
-          } else {
+            if ( !intoChildName2lson[ name ] ) { // inexistent child
 
-            inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
+              intoChildName2lson[ name ] = fromChildName2lson[ name ];
 
+            } else {
+
+              LSON.$inherit( fromChildName2lson[ name ], intoChildName2lson[ name ] );
+
+            }
           }
         }
       }
     },
 
-
-    states: function( fromLson, intoLson ) {
+    // TODO: fix
+    states: function( intoLson, fromLson ) {
 
       var fromStateName2state, intoStateName2state;
       fromStateName2state = fromLson.states;
@@ -150,10 +178,11 @@
             inheritIntoState.onlyif = inheritIntoState.onlify || inheritFromState.onlify;
             inheritIntoState.install = inheritIntoState.install || inheritFromState.install;
             inheritIntoState.uninstall = inheritIntoState.uninstall || inheritFromState.uninstall;
+            //inheritIntoState.uninstall = inheritIntoState.uninstall || inheritFromState.uninstall;
 
 
-            attr2fnInherit.props( inheritFromState, inheritIntoState );
-            attr2fnInherit.when( inheritFromState, inheritIntoState );
+            attr2fnInherit.props( inheritIntoState, inheritFromState );
+            attr2fnInherit.when( inheritIntoState, inheritFromState );
 
 
           }
@@ -161,29 +190,30 @@
       }
     },
 
-    when: function( fromLson, intoLson ) {
+    // TODO: fix
+    when: function( intoLson, fromLson ) {
 
-      var fromEventName2_fnEventHandlerS_, intoEventName2_fnEventHandlerS_;
-      fromEventName2_fnEventHandlerS_ = fromLson.when;
-      intoEventName2_fnEventHandlerS_ = intoLson.when;
+      var fromEventType2_fnEventHandlerS_, intoEventType2_fnEventHandlerS_;
+      fromEventType2_fnEventHandlerS_ = fromLson.when;
+      intoEventType2_fnEventHandlerS_ = intoLson.when;
 
-      if ( fromEventName2_fnEventHandlerS_ !== undefined ) {
+      if ( fromEventType2_fnEventHandlerS_ !== undefined ) {
 
-        if ( intoEventName2_fnEventHandlerS_ === undefined ) {
+        if ( intoEventType2_fnEventHandlerS_ === undefined ) {
 
-          intoLson.when = fromEventName2_fnEventHandlerS_;
+          intoLson.when = fromEventType2_fnEventHandlerS_;
 
         } else {
           var fnFromEventHandlerS, fnIntoEventHandlerS;
 
-          for ( var fromEventName in fromEventName2_fnEventHandlerS_ ) {
+          for ( var fromEventType in fromEventType2_fnEventHandlerS_ ) {
 
-            fnFromEventHandlerS = fromEventName2_fnEventHandlerS_[ fromEventName ];
-            fnIntoEventHandlerS = intoEventName2_fnEventHandlerS_[ fromEventName ];
+            fnFromEventHandlerS = fromEventType2_fnEventHandlerS_[ fromEventType ];
+            fnIntoEventHandlerS = intoEventType2_fnEventHandlerS_[ fromEventType ];
 
             if ( fnIntoEventHandlerS === undefined ) {
 
-              intoEventName2_fnEventHandlerS_[ fromEventName ] = fnIntoEventHandlerS;
+              intoEventType2_fnEventHandlerS_[ fromEventType ] = fnIntoEventHandlerS;
 
             } else {
 

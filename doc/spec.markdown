@@ -571,38 +571,60 @@ The keys within `props` are predefined
 
 
 
-### many
+### LSON many
 
 Type: `Object`
 
 
-### state
+
+### LSON states
+
+object containing states
+
+### LSON children
+
+children levels
 
 
-### states
+### LSON when
 
-### children
+contains events as keys, and values as a callback function or
+arrays of callback functions (order respected)
 
-### when
+example with a single callback function specified:
 
-  LSON.start({
+    LSON.start({
+        Box: {
+          props: {
+            text: "Hello World"
+          },
+          when: {
+            click: function() {
+                console.log( "Hello \n World!" );
+              }
+          }
+        }
+    })
 
+example with multiple callback functions specified (with the aid on array):
+
+    LSON.start({
       Box: {
         props: {
           text: "Hello World"
-        },
-
-        when: {
-          click: [
-            function() {
-              console.log( "Hello World!" );
-            }
-
-          ]
+          },
+          when: {
+            click: [
+              function() {
+                console.log( "Hello" );
+              },
+              function() {
+                console.log( "World!" );
+              }
+            ]
+          }
         }
-      }
-  })
-
+    })
 
 
 
@@ -706,7 +728,7 @@ LSON.Take methods
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (LSON.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation
+  - (LSON.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation
   - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match (for regex)
@@ -773,15 +795,10 @@ eg of take with color:
 
 
 
-### LSON.chain
 
-unimplemented (discussion: need for disucussion)
+### LSON inherits
 
-
-
-### LSON inheritance
-
-    LSON.compile({
+    LSON.run({
       "BigBox": {
         inherits: < level string >
       }
@@ -789,16 +806,16 @@ unimplemented (discussion: need for disucussion)
 
 or
 
-    LSON.compile({
+    LSON.run({
       "BigBox": {
         inherits: < object reference >
       }
     })
 
 
-also together using an array (the order of the array IS respected)
+also together using an array (the order of the array is respected from left to right)
 
-  LSON.compile({
+  LSON.run({
     "BigBox": {
       inherits: [ < object reference > | < level string >, ... ]
     }
@@ -807,7 +824,7 @@ also together using an array (the order of the array IS respected)
 
 looks like:
 
-  LSON.compile({
+  LSON.run({
     "BigBox": {
       inherits: [ '../Box', someBoxObject ]
     }
@@ -815,9 +832,6 @@ looks like:
 
 
 
-
-inheritance stacks up
-(multiple levels of inheritance through arrays)
 for example:
 
     var box =  {
@@ -841,7 +855,7 @@ for example:
 
 
 
-    LSON.compile({
+    LSON.run({
       "BigBox": {
         inherits: [ box ],
         props: {
@@ -895,6 +909,50 @@ becomes:
     }
 
 
+##### LSON inheritance rules
+
+- events within 'when' key stacks up as an array
+- the scope of `states[state]` and `many` are inherited at a further level deep
+- the `many.rows` key is overwritten at the same level with clones made of each row (array) element
+- all other props are overwritten at single level, and copied data values which are objects are cloned before copying over.
+
+
+example of `when` stacking up:
+
+  LSON.run({
+      "Box": {
+        when: {
+          "click": function() {
+            console.log("Box clicked");
+          }
+        }
+      },
+      "OtherBox": {
+        inherits: ["Box"],
+        when: {
+          "click": function() {
+            console.log("OtherBox clicked");
+          }
+        }
+      }
+  })
+
+would essentially compile to:
+
+  "OtherBox": {
+    when: {
+      "click": [
+        function() {
+          console.log("Box clicked");
+        },
+        function() {
+          console.log("OtherBox clicked");
+        }
+      ]
+    }
+  }
+
+
 
 ### LSON references
 
@@ -924,7 +982,7 @@ becomes:
 ### LSON states
 
 
-  LSON.compile({
+  LSON.run({
     LeaderBoard: {
           children: {
             Nav: {
