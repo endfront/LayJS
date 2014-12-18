@@ -110,7 +110,7 @@ function flattenProp( lson, prop ) {
   var props, value, type, flattenedProp;
   props = lson.props;
   value = props[ prop ];
-  type = LSON.$findType( value );
+  type = LSON.type( value );
 
 
   if ( type === "Array" ) {

@@ -16,7 +16,7 @@
 };
 
 
-  LSON.$findType = function( obj ) {
+  LSON.type = function( obj ) {
     if ( obj === null ) {
       return obj + "";
     }

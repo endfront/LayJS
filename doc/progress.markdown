@@ -1,6 +1,6 @@
 
 Current:
-  - inherit rules to spec, fix inherit
+  - deciding if when key should duplicate for inherits (you were essentially stepping through the 2 use-cases of inherits), inherit rules to spec, fix inherit, also fix LSON.Level.$inherit, also create a LSON.$inheritState (or LSON.$inherit with arg specifiying state)
   - add to spec warning that multiple props don't come with defaults, order of transformation
   - How to disable value less html properties? (check if when using javascript you set to null and/or false it goes away?)
   - Add numeric psuedo prop for multiple props (eg filters, boxShadows, etc) (Make sure numberic psuedo prop all have non null props in attr2attr2value )
@@ -15,10 +15,10 @@ think about introducing a way to prevent same render methods from being repeaded
   - Add link defaults
   - Add/interface HTML history module support
   - LSON.level
-  - LSON.Many
+  - LSON.Many ( + LSON.takeMany)
   - todoMVC preliminary  
   - dataTravel
-  - todoMVC final
+  - todoMVC final  
   - Change datenow to performancenow
 
 
