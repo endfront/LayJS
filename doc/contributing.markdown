@@ -32,9 +32,7 @@ would be lesser preferable to:
   function foo() {
 
     for ( var i = 0; i < 10; i++ ) {
-
         console.log( "number is: " + i );
-
     }
 
   }
@@ -145,3 +143,9 @@ eg: element3elementS (either an element or array of elements)
 Normally hidden variables are denoted by prefixing the variable name with an "_".
 However given that we use "_" for demarcation in variable names within data structures,
 we shall instead use "$" as the prefix.
+
+**User API**
+
+For the LSON API including its methods and direct variable access, the above rules
+mentioned do not apply. Example `LSON.Level.states` is an array, albiet with the
+internal naming convention it should be `LSON.Level.stateS`.

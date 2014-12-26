@@ -1,6 +1,11 @@
 (function() {
   "use strict";
 
+  // Check for CSS3 color support within the browser
+  document.body.style.color = "rgba(0,0,0,0)";
+  var isCss3ColorSupported = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( "color" ) );
+
+
   // inspiration from: sass (https://github.com/sass/sass/)
 
   LSON.Color = function ( format, key2value, alpha ) {
@@ -16,6 +21,40 @@
     this.l = key2value.l;
 
     this.a = alpha;
+
+  };
+
+  LSON.Color.prototype.stringify = function () {
+
+    var rgb, hsl;
+    if ( isCss3ColorSupported ) {
+
+      if ( this.format === "hsl" ) {
+        hsl = this.hsl();
+        if ( alpha === 1 ) {
+          return "hsl(" + hsl.h + "," + hsl.s + "," + hsl.l + ")";
+        } else {
+          return "hsla(" + hsl.h + "," + hsl.s + "," + hsl.l + "," + this.a + ")";
+        }
+
+      } else {
+        rgb = this.rgb();
+        if ( alpha === 1 ) {
+          return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+        } else {
+          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + this.a + ")";
+        }
+      }
+
+    } else {
+
+      // for IE8 and legacy browsers
+      // where rgb is the sole color
+      // mode available
+      rgb = this.rgb();
+      return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+
+    }
 
   };
 

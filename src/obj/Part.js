@@ -22,7 +22,7 @@
   if ( isGpuAccelerated ) {
     // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
     allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
-    isGpuAccelerated = window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) );
+    isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
   }
 
   allStyles = undefined;
@@ -54,9 +54,7 @@
 
   };
 
-  function convertColorToCss ( lsonColor ) {
 
-  }
 
   // Below we will customize prototypical functions
   // using conditionals. As per the results from
@@ -206,7 +204,7 @@
   };
 
   LSON.Part.prototype.$renderFn_backgroundColor = function () {
-    this.node.style.backgroundColor = convertColorToCss( this.level.$attr2attrValue.backgroundColor.curCalcValue );
+    this.node.style.backgroundColor = convertColorToCss( this.level.$attr2attrValue.backgroundColor.curCalcValue.stringify() );
   };
 
   LSON.Part.prototype.$renderFn_backgroundImage = function () {
@@ -240,7 +238,7 @@
       ( attr2attrValue["boxShadow" + i + "Y" ].curCalcValue + "px " ) +
       ( attr2attrValue["boxShadow" + i + "Blur" ].curCalcValue + "px " ) +
       ( attr2attrValue["boxShadow" + i + "Spread" ].curCalcValue + "px " ) +
-      ( convertColorToCss( attr2attrValue["boxShadow" + i + "Color" ].curCalcValue ) );
+      ( attr2attrValue["boxShadow" + i + "Color" ].curCalcValue.stringify() );
 
     }
   };

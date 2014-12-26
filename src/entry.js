@@ -107,7 +107,7 @@ appearance: none;
     // initiate with the start clog key: 1
     $clogKey2_levelS_: { },
     $dirtyLevelS: [],
-    $prevFrameTime: 0,
+    $prevFrameTime: 0
     //$colorMode: "rgb"
   };
 

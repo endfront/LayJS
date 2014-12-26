@@ -10,20 +10,23 @@ LSON - > Layout Syntax Object Notation
 
   LSON.run()
   LSON.level()
+  LSON.many()
+  LSON.part()
   LSON.take()
+  LSON.takeMany()
 
   LSON.rgb()
   LSON.rgba()
   LSON.hsla()
   LSON.hsl()
-  LSON.color() // takes a color name
+  LSON.color()
 
 
 ### LSON.run
 
 
     LSON.add([optional: root properties (object)], {
-        "x": {
+        "Name": {
 
           type: string,
           inherits: string | object,
@@ -31,23 +34,24 @@ LSON - > Layout Syntax Object Notation
           props: object,
           when: object,
           transition: transitionObj,
-          load: function,
           many: {
               data: object,
               props: {
                   formation: string,
                   sort: array | string,
                   order: string,
+                  id: string (constant)
                   ...
               },
               transition: transitionObj,
               states: {
                   props: object
                   < name >: {
+                      props: object,
                       onlyif: LSON.Take,
-                      load: function,
-                      unload: function,
-                      transition: transitionObj
+                      transition: transitionObj,
+                      install: function,
+                      uninstall: function
                   }
               },
           },
@@ -56,9 +60,9 @@ LSON - > Layout Syntax Object Notation
                   props: object,
                   when: object,
                   onlyif: LSON.Take,
-                  load: function,
-                  unload: function,
-                  transition: transitionObj
+                  transition: transitionObj,
+                  install: function,
+                  uninstall: function
               }
           },
           children: object
@@ -132,17 +136,17 @@ The keys within `props` are predefined
 - perspective
   `number`
   In pixels
-  Default: 0
+  Psuedo-Default: 0
 
 - perspectiveOriginX
   `number`
   in fraction (percent)
-  Default: 0.5
+  Psuedo-Default: 0.5
 
 - perspectiveOriginY
   `number`
   in fraction (percent)
-  Default: 0.5
+  Psuedo-Default: 0.5
 
 - top
   `number`
@@ -177,48 +181,46 @@ The keys within `props` are predefined
 - width
   `number`
   Width of part (excluding scale)
-  Default: LSON.take('$naturalWidth')
+  Default: LSON.take('this', '$naturalWidth')
 
 - height
   `number`
   Height of part (excluding scale)
-  Default: LSON.take('$naturalHeight')
+  Default: LSON.take('this', '$naturalHeight')
 
 - opacity
   `number`
-  Default: 1
+  Psuedo-Default: 1
 
 
 - overflowX
   `string`
   CSS overflow property
-  Default: 'visible'
+  Psuedo-Default: 'visible'
 
 - overflowY
   `string`
   CSS overflow property
-  Default: 'visible'
+  Psuedo-Default: 'visible'
 
 
 - scrollX
   `number`
-  Default: 0
 
 
 - scrollY
   `number`
-  Default: 0
 
 
 - cursor
   `string`
   CSS cursor property
-  Default: 'default'
+  Psuedo-Default: 'default'
 
 
 - background (no support for multiple backgrounds)
   {
-    color: LSON.Color (default: LSON.transparent ),
+    color: LSON.Color (Psuedo-default: LSON.transparent()),
     image: string,
     attachment: string (CSS background-attachment)
     repeat: string (CSS background-repeat),
@@ -308,7 +310,6 @@ The keys within `props` are predefined
 - cornerRadius
   `number`
   Shorthand for `cornerRadiusTopLeft`, `cornerRadiusTopRight`, `cornerRadiusBottomRight`, `cornerRadiusBottomLeft`
-  Default: 0
 
 
 - border
@@ -326,7 +327,6 @@ The keys within `props` are predefined
     [  
       type: "url" | "blur" | "brightness" | "contrast" | "dropShadow" | "grayscale" | "hueRotate" | "invert" |
             "opacity" | "saturate" | "sepia",  
-      url: string |
       blur: number (in pixels) |
       brightness: number (in fraction (percent)) |
       contrast: number (in fraction (percent)) |
@@ -342,6 +342,7 @@ The keys within `props` are predefined
       opacity: number (in fraction (percent)) |
       saturate: number (in fraction (percent)) |
       sepia: number (in fraction (percent)) |
+      url: string
 
     ]
     ...
@@ -351,26 +352,25 @@ The keys within `props` are predefined
 
 - text
   `string`
-  Default: undefined
 
 - textSize
   in pixels
   `number`
-  Default: 13
+  Psuedo-Default: 13
 
 - textFamily
   `string`
   CSS font-family
-  Default: 'sans-serif'
+  Psuedo-Default: 'sans-serif'
 
 - textWeight
   `string`
   CSS font-weight
-  Default: 'normal'
+  Psuedo-Default: 'normal'
 
 - textColor
   `LSON.Color`
-  Default: LSON.color("black")
+  Psuedo-Default: LSON.color("black")
 
 
 - textShadows
@@ -390,51 +390,49 @@ The keys within `props` are predefined
 - textVariant
   `string`
   CSS font-variant
-  Default: 'normal'
+  Psuedo-Default: 'normal'
 
 - textStyle
   `string`
   CSS font-style
-  Default: 'normal'
+  Psuedo-Default: 'normal'
 
 
 - textDecoration
   `string`
   CSS text-decoration
-  Default: 'none'
+  Psuedo-Default: 'none'
 
 - textAlign
   `string`
   CSS text-align
-  Default: 'left'
+  Psuedo-Default: 'left'
 
 
 - textLetterSpacing
   `number` / `null`
   In pixels. null for native letter spacing.
-  Default: null
 
 
 - textWordSpacing
   `number` / `null`
   In pixels. null for native word spacing.
-  Default: null
 
 
 - textOverflow
   `string`
   CSS text-overflow
-  Default: 'normal'
+  Psuedo-Default: 'normal'
 
 
 - textIndent
   `number`
-  Default: 0
+  Psuedo-Default: 0
 
 - textWhitespace
   `string`
   CSS white-space
-  Default: 'normal'
+  Psuedo-Default: 'normal'
 
 
 
@@ -442,8 +440,7 @@ The keys within `props` are predefined
   `number`
   Border box padding.
   Shorthand for `textPaddingTop`, `textPaddingRight`, `textPaddingBottom` and `textPaddingLeft`
-  Default: 0
-
+  Psuedo-Default: 0
 
 
 - inputLabel
@@ -453,8 +450,7 @@ The keys within `props` are predefined
 - inputRows
   `number`
   Rows for textarea
-  Default: 2
-
+  Psuedo-Default: 2
 
 - inputText
   `string`
@@ -463,44 +459,41 @@ The keys within `props` are predefined
 
 - inputPlaceholder
   `string`
-  Default: ""
 
 - inputAutocomplete
   `boolean`
-  Default: true
+  Psuedo-Default: true
 
 
 - inputAutocorrect
   `boolean`
-  Default: true
+  Psuedo-Default: true
 
 - inputDisabled
   `boolean`
-  Default: false
+  Psuedo-Default: false
 
 
 
 - linkHref
   `string`
-  Default: null
+  Psuedo-Default: null
 
 - linkRel
   `string`
   HTML a[rel]
-  Default: ""
+  Psuedo-Default: ""
 
 - linkDownload
   `boolean`
-  Default: false
+  Psuedo-Default: false
 
 - linkTarget
   `string`
   HTML a[target]
-  Default: `_self`
 
 - imageUrl
   `string`
-  Default: ""
 
 
 - videoSources / audioSources
@@ -521,7 +514,7 @@ The keys within `props` are predefined
       kind: string ( html5 < track > kind ) (default: ""),
       label: string ( html5 < track > label ) (default: ""),
       src: string ( html5 < track > src ) (default: ""),
-      srclang: string ( html5 < track > srcland ) (default: "")
+      srclang: string ( html5 < track > srclang ) (default: "")
     },
     ...
   ]
@@ -529,45 +522,45 @@ The keys within `props` are predefined
 
 - videoAutoplay
   `boolean`
-  Default: false
+  Psuedo-Default: false
 
 
 - videoControls / audioControls
   `boolean`
-  Default: true
+  Psuedo-Default: true
 
 
 - videoCrossorigin
   `string`
   html5 < video > crossorigin
-  Default: "anonymous"
+  Psuedo-Default: "anonymous"
 
 
 - videoLoop / audioLoop
   `boolean`
-  Default: false
+  Psuedo-Default: false
 
 
 - videoMuted / audioMuted
   `boolean`
-  Default: false
+  Psuedo-Default: false
 
 
 
 - videoPreload / audioPreload
   `string`
   html5 < video >/< audio > preload
-  Default: 'auto'
+  Psuedo-Default: 'auto'
 
 
 - videoPoster
   `string` / `null`
-  Default: null
+  Psuedo-Default: null
 
 
 - audioVolume
   `number`
-  Default: 0.7
+  Psuedo-Default: 0.7
 
 
 
@@ -645,17 +638,35 @@ LSON.Level methods:
 ### Constraints Available (Known as "attributes")
 
 The below values can be directly accessed through
-the LSON Level through `.attribute(< access key >)`
+the LSON Level through `.attr(< access key >)`
 The same access keys are used as the 2nd argument in LSON.Take
 
-  - props
-    access: < prop name >
+  - <prop>
 
-  - data
-    access: data.< data key >
+  - data.<data>
 
-  - state
-    access: state.< state name > (returns true is state is active)
+  - when.<event><num>
+
+  - transition.<attr><duration/delay/done>
+
+  - state.<state>
+  returns true if state is active
+
+  - <state>.<prop>
+
+  - <state>.when<event><num>
+
+  - <state>.transition.<attr><duration/delay/done>
+
+  - <state>.onlyif
+
+  - <state>.install
+
+  - <state>.uninstall
+
+
+
+
 
   - read only properties (prefix: $)
     - $dataTravelling (`boolean`)
@@ -680,6 +691,8 @@ The same access keys are used as the 2nd argument in LSON.Take
       -- >
 
     - $focused (`boolean`)
+
+    - $clicked (`boolean`)
 
     - $hovered (`boolean`)
 
@@ -780,20 +793,16 @@ LSON.transparent()
 
 
 
-LSON.Color functions:
-
-LSON.lighten(mag) (mag:[0,1])
-LSON.darken(mag)  (mag:[0,1])
-
-others will come soon
-
 eg of take with color:
 
-  color: LSON.rgb(100, LSON.take('','data.green'),200).colorLighten(0.1)
-
   color: LSON.take('header', 'color').colorDarken(0.5)
+  color: LSON.rgb(100, LSON.take('this','data.green'),200).colorLighten(0.1)
 
 
+
+### Order of Transformation
+
+Scale -> Position -> Skew -> Rotate
 
 
 ### LSON inherits
@@ -981,6 +990,7 @@ would essentially compile to:
 
 ### LSON states
 
+  Reserved state name: "root"
 
   LSON.run({
     LeaderBoard: {
@@ -1007,6 +1017,28 @@ would essentially compile to:
   })
 
 
+
+States are unordered.
+The inheritance mechanism governing states matches that mentioned for the `inherits` key.
+onlyif is the condition for which a state needs to be activated.
+Takes across states and root lson takes place by prefixing "<state name>." to the corresponding "props", "when", and "transition" keys:
+
+LSON.run({
+    Box: {
+      props: {
+        backgroundColor: LSON.rgba(245, 100, 145, 0.5)
+      },
+      states: {
+        hovered: {
+          onlyif: LSON.take("this", "$hovered"),
+          props: {
+            backgroundColor: LSON.take("this", "root.backgroundColor").colorDarken(0.8)
+          }
+        }
+      }
+    }
+
+})
 
 
 
@@ -1122,20 +1154,22 @@ for grid (note that the width and height cannot be used effectively for a grid)
 
 {
 
-  all: 500,
-  left: 200,
+  all: { duration: 100 },
+  props: { duration: 300 }
+  left: { duration: 200},
   top: { delay: 500 },
   opacity: { duration:2000, done: function(){ console.log("opaque") }  }
 
 }
 
-Each key in the state transition object except for "all" refer to an attribute.
-The key can either map to a number or object.
-  (1) Case 1 number: The number is the duration
-  (2) Case 2 object: 3 possible keys:
+Each key in the state transition object except for "all" and "props" refer to an attribute.
+The key is an object with 3 possible keys:
     (i) duration (of the transition)
     (ii) delay (till the start of the transition)
     (iii) done (function handler executed at the end of the transition)
+
+"all" refers to every attribute  
+"props" secludes prop-typed attributes
 
 An attribute can be of 2 types:
 
@@ -1240,7 +1274,7 @@ function touchMoveHandler () {
 
 function touchEndHandler () {
 
-  var threshold = 0.8; // this can be tweaked, or even be made based on momentum or any other thing
+  var threshold = 0.8; // this can be tweaked, or even be made based on momentum or any other factor
 
   var isCollapsingMenu = !(this).attr("data.collapsed");  
   // Note the below function call is a dummy function

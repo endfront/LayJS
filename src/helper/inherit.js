@@ -4,17 +4,34 @@
 
 
   /*
-  * Inherit the lson into `intoLson`.
+  * Inherit the root, state, or many LSON from `from` into `into`.
   */
-  LSON.$inherit = function ( intoLson, fromLson ) {
+  LSON.$inherit = function ( into, from, isState ) {
 
-    for ( var key in fromLson ) {
+    if ( !isState ) {
+      for ( var key in from ) {
 
-      if ( fromLson.hasOwnProperty( key ) ) {
+        if ( from.hasOwnProperty( key ) ) {
 
-        if ( key2fnInherit.hasOwnPropoperty( key ) ) {
-          key2fnInherit[ key ]( intoLson, fromLson, isStateInheritance );
+          if ( key2fnInherit.hasOwnPropoperty( key ) ) {
+            key2fnInherit[ key ]( into, from );
+          }
         }
+      }
+    } else {
+
+      into.onlyif = into.onlyif || into.onlyif;
+      into.install = from.install || into.install;
+      into.uninstall = from.uninstall || into.uninstall;
+
+      if ( from.props !== undefined ) {
+        key2fnInherit.props( into, from );
+      }
+      if ( from.when !== undefined ) {
+        key2fnInherit.when( into, from );
+      }
+      if ( from.transition !== undefined ) {
+        key2fnInherit.transition( into, from );
       }
     }
   };
@@ -49,6 +66,7 @@
       }
     }
   }
+
 
 
   // Precondition: `into<Scope>.key (eg: intoLSON.key)` is already defined
@@ -90,7 +108,7 @@
         intoLson.many = {};
       }
 
-      LSON.$inherit( intoLson.many, fromLson.many );
+      LSON.$inherit( intoLson.many, fromLson.many, false );
 
 
 
@@ -132,7 +150,7 @@
             intoChildName2lson[ name ] = {};
 
           }
-          LSON.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ] );
+          LSON.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], true );
 
         }
 
@@ -157,23 +175,7 @@
 
           }
 
-          inheritFromState = fromStateName2state[ name ];
-          inheritIntoState = intoStateName2state[ name ];
-
-          inheritIntoState.onlyif = inheritFromState.onlyif || inheritIntoState.onlyif;
-          inheritIntoState.install = inheritFromState.install || inheritIntoState.install;
-          inheritIntoState.uninstall = inheritFromState.uninstall || inheritIntoState.uninstall;
-
-          if ( inheritFromState.props ) {
-            key2fnInherit.props( inheritIntoState, inheritFromState );
-          }
-          if ( inheritFromState.when ) {
-            key2fnInherit.when( inheritIntoState, inheritFromState );
-          }
-          if ( inheritFromState.transition ) {
-            key2fnInherit.transition( inheritIntoState, inheritFromState );
-          }
-
+          LSON.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true );
 
         }
 
@@ -181,37 +183,35 @@
 
     },
 
-    // TODO: fix!
     when: function( intoLson, fromLson ) {
 
-      var fromEventType2_fnEventHandlerS_, intoEventType2_fnEventHandlerS_;
+      var fromEventType2_fnEventHandlerS_, intoEventType2_fnEventHandlerS_,
+      fnFromEventHandlerS, fnIntoEventHandlerS, fromEventType;
+
       fromEventType2_fnEventHandlerS_ = fromLson.when;
       intoEventType2_fnEventHandlerS_ = intoLson.when;
 
       if ( intoEventType2_fnEventHandlerS_ === undefined ) {
 
-        intoLson.when = fromEventType2_fnEventHandlerS_;
+        intoLson.when = {};
 
-      } else {
-        var fnFromEventHandlerS, fnIntoEventHandlerS;
-
-        for ( var fromEventType in fromEventType2_fnEventHandlerS_ ) {
-
-          fnFromEventHandlerS = fromEventType2_fnEventHandlerS_[ fromEventType ];
-          fnIntoEventHandlerS = intoEventType2_fnEventHandlerS_[ fromEventType ];
-
-          if ( fnIntoEventHandlerS === undefined ) {
-
-            intoEventType2_fnEventHandlerS_[ fromEventType ] = fnIntoEventHandlerS;
-
-          } else {
-
-            fnIntoEventHandlerS = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
-
-          }
-        }
       }
 
+      for ( fromEventType in fromEventType2_fnEventHandlerS_ ) {
+
+        fnFromEventHandlerS = fromEventType2_fnEventHandlerS_[ fromEventType ];
+        fnIntoEventHandlerS = intoEventType2_fnEventHandlerS_[ fromEventType ];
+
+        if ( fnIntoEventHandlerS === undefined ) {
+
+          intoEventType2_fnEventHandlerS_[ fromEventType ] = Array.prototype.slice.call( fnIntoEventHandlerS );
+
+        } else {
+
+          intoEventType2_fnEventHandlerS_[ fromEventType ] = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
+        }
+
+      }
     }
 
   };

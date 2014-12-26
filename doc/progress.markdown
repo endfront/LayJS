@@ -1,28 +1,37 @@
 
 Current:
-  - deciding if when key should duplicate for inherits (you were essentially stepping through the 2 use-cases of inherits), inherit rules to spec, fix inherit, also fix LSON.Level.$inherit, also create a LSON.$inheritState (or LSON.$inherit with arg specifiying state)
-  - add to spec warning that multiple props don't come with defaults, order of transformation
-  - How to disable value less html properties? (check if when using javascript you set to null and/or false it goes away?)
-  - Add numeric psuedo prop for multiple props (eg filters, boxShadows, etc) (Make sure numberic psuedo prop all have non null props in attr2attr2value )
-  - Check support for css value (ie8 and below) 'rgba' in render functions
-think about introducing a way to prevent same render methods from being repeadedly called
+  - Undefine active props and when attrs when changing states
+  - Level.$update/changeState (Also fix LSON.Level.$inherit, also create a LSON.$inheritState (or LSON.$inherit with arg specifying state))
+  think about introducing a way to prevent same render methods from being repeatedly called
+  - In LSON.Part add 'div'/<other html node dependent of type> node creation. (Add Psuedo defaults to element node in LSON.Part)
+  - Add support for psuedo defaults, and add the details to the spec (handle mixed psuedo properties like perspectiveOrigin and background)
+  - Add support for $scrollX, $value, $naturalWidth and other input properties, and dont forget to bind 'scrollX' to '$scrollX', etc, etc.
+  - Thinking about duplications within data which can be color
   - Add $time as a read only property of root '/'
-  - Add observe (array-valued) prop to lson root
+  - Add will-observe (array-valued) prop to lson root
   - Circular reference delay lists (within AttrValue prototype methods)
-  - Level.$update/changeState
-  - Support for $<observe> properties with ($naturalWidth/Height, $numChildren, $numDisplayedChildren)
   - Insert CSS from entry.js
   - Add link defaults
   - Add/interface HTML history module support
   - LSON.level
+  - LSON.Level.attr()
+  - Dont allow (by throwing on error on disobidience) the use of attr references
   - LSON.Many ( + LSON.takeMany)
   - todoMVC preliminary  
   - dataTravel
   - todoMVC final  
-  - Change datenow to performancenow
+  - Change dateNow to performanceNow
+  - Add support for adding more children (got to be careful with naturalWidth and naturalHeight here)
+  - Add animation support with "position" macro prop
+  - Change conole.error to throws for lson errors
+
+Tests:
+  - For illegal take references to expander props or expander props mentioned as takes
+
 
 
 Future:
+  - Introduce order number key for states
   - feature function which checks for overlapping parts
 hardware acceleration flag
   - Add constraint which tells you the (x, y) co-ordinates of the mouse position (use observe list for level '/' to activate)
@@ -33,3 +42,4 @@ hardware acceleration flag
   - 'when' for formation, it should include function handler for insertion of new item into the formation alongwith deletion.
   - Opacity to 0.999999 research and implementation within LSON
   - LSON.Color mix
+  - Expand out object-typed data values
