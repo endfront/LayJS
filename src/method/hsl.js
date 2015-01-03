@@ -2,9 +2,9 @@
   "use strict";
 
 
-  LSON.hsl = function ( h, s, l ) {
+  LAID.hsl = function ( h, s, l ) {
 
-    return LSON.hsla( h, s, l, 1 );
+    return LAID.hsla( h, s, l, 1 );
 
   };
 

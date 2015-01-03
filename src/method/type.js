@@ -16,7 +16,7 @@
 };
 
 
-  LSON.type = function( obj ) {
+  LAID.type = function( obj ) {
     if ( obj === null ) {
       return obj + "";
     }

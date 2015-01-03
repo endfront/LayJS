@@ -100,7 +100,7 @@ appearance: none;
 (function () {
   "use strict";
 
-  window.LSON = {
+  window.LAID = {
 
     $path2level: {},
     $curClogKey: 1,

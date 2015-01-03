@@ -4,23 +4,23 @@
 
   function takeRGBA ( h, s, l, a ) {
 
-    var color = new LSON.Color( "rgb", { r: r, g: g, b: b }, a );
+    var color = new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
 
   }
 
-  LSON.rgba = function ( r, g, b, a ) {
+  LAID.rgba = function ( r, g, b, a ) {
 
 
-    if ( r instanceof LSON.Take ||
-      g instanceof LSON.Take ||
-      b instanceof LSON.Take ||
-      a instanceof LSON.Take ) {
+    if ( r instanceof LAID.Take ||
+      g instanceof LAID.Take ||
+      b instanceof LAID.Take ||
+      a instanceof LAID.Take ) {
 
-          return new LSON.Take( takeRGBA ).fn( r, g, b, a );
+          return new LAID.Take( takeRGBA ).fn( r, g, b, a );
 
       } else {
 
-        return new LSON.Color( "rgb", { r: r, g: g, b: b }, a );
+        return new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
       }
 
     };

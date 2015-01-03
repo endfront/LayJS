@@ -2,9 +2,9 @@
   "use strict";
 
 
-  LSON.transparent = function ( ) {
+  LAID.transparent = function ( ) {
 
-    return new LSON.Color( 'rgb', { r: 0, g: 0, b: 0 }, 0 );
+    return new LAID.Color( 'rgb', { r: 0, g: 0, b: 0 }, 0 );
 
   };
 

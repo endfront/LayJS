@@ -1,4 +1,4 @@
-// LSON has taken the below source from 'tmaeda1981jp'
+// LAID has taken the below source from 'tmaeda1981jp'
 // source: https://github.com/tmaeda1981jp/string-format-js/blob/master/format.js
 
 (function() {
@@ -218,7 +218,7 @@
       return Constr;
     }());
 
-    LSON.$format = function() {
+    LAID.$format = function() {
 
       var i,
           result,

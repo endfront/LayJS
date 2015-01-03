@@ -2,8 +2,8 @@
   "use strict";
 
 
-  LSON.$generateMultipleTypePropNumName = function ( prop ) {
-    return "$num" + LSON.$capitalize( prop );
+  LAID.$generateMultipleTypePropNumName = function ( prop ) {
+    return "$num" + LAID.$capitalize( prop );
   };
 
 })();

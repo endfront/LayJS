@@ -2,11 +2,14 @@
 (function () {
   "use strict";
 
+  // Inheritance allows modifications to the
+  // `intoLson` object, but disallows modifications
+  // to `fromLson`
 
   /*
-  * Inherit the root, state, or many LSON from `from` into `into`.
+  * Inherit the root, state, or many LAID from `from` into `into`.
   */
-  LSON.$inherit = function ( into, from, isState ) {
+  LAID.$inherit = function ( into, from, isState, isRootState ) {
 
     if ( !isState ) {
       for ( var key in from ) {
@@ -20,9 +23,11 @@
       }
     } else {
 
-      into.onlyif = into.onlyif || into.onlyif;
-      into.install = from.install || into.install;
-      into.uninstall = from.uninstall || into.uninstall;
+      if ( !isRootState ) {
+        into.onlyif = from.onlyif || into.onlyif;
+        into.install = from.install || into.install;
+        into.uninstall = from.uninstall || into.uninstall;
+      }
 
       if ( from.props !== undefined ) {
         key2fnInherit.props( into, from );
@@ -60,7 +65,7 @@
         fromKeyValue = fromKey2value[ fromKey ];
 
         intoObject[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
-        LSON.$clone( fromKeyValue ) :
+        LAID.$clone( fromKeyValue ) :
         fromKeyValue;
 
       }
@@ -69,7 +74,7 @@
 
 
 
-  // Precondition: `into<Scope>.key (eg: intoLSON.key)` is already defined
+  // Precondition: `into<Scope>.key (eg: intoLAID.key)` is already defined
   var key2fnInherit = {
 
 
@@ -108,7 +113,7 @@
         intoLson.many = {};
       }
 
-      LSON.$inherit( intoLson.many, fromLson.many, false );
+      LAID.$inherit( intoLson.many, fromLson.many, false, false );
 
 
 
@@ -126,7 +131,7 @@
       for ( var i = 0, len = fromLsonRowS.length, fromLsonRow; i < len; i++ )  {
 
         fromLsonRow = fromLsonRowS[ i ];
-        intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ? LSON.$clone( fromLsonRow ) : fromLsonRow;
+        intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ? LAID.$clone( fromLsonRow ) : fromLsonRow;
 
       }
 
@@ -150,7 +155,7 @@
             intoChildName2lson[ name ] = {};
 
           }
-          LSON.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], true );
+          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], false, false );
 
         }
 
@@ -175,12 +180,10 @@
 
           }
 
-          LSON.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true );
+          LAID.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true, false );
 
         }
-
       }
-
     },
 
     when: function( intoLson, fromLson ) {

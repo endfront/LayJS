@@ -9,10 +9,11 @@ var js_fileS = [ "./src/entry.js", "./src/obj/*.js", "./src/helper/*.js", "./src
 gulp.task( 'concat', function() {
 
 	gulp.src( js_fileS )
-	.pipe( concat( "LSON.js" ) )
+	.pipe( concat( "laid.js" ) )
 	.pipe( gulp.dest( "./" ) );
 
 });
+
 
 
 gulp.task('default', function() {

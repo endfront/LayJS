@@ -7,7 +7,7 @@
    "borderTop", "borderRight", "borderBottom", "borderLeft",
     "data", "when", "transition", "state", "type", "inherits", "states"
      ];
-  var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^when\.[a-zA-Z]+$)/;
+  var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
   var nonStateAttrPrefixS = [ "data", "when", "transition", "state" ];
 
   function stripStateAttrPrefix( attr ) {
@@ -24,10 +24,10 @@
     }
   }
 
-  LSON.$checkIsExpanderAttr = function ( attr ) {
+  LAID.$checkIsExpanderAttr = function ( attr ) {
     var strippedStateAttr = stripStateAttrPrefix( attr );
     return ( ( expanderAttrS.indexOf( strippedStateAttr ) !== -1 ) ||
-    ( strippedStateAttr.match( regexExpanderAttrs ) !== null )
+    ( regexExpanderAttrs.test( strippedStateAttr ) )
   );
   };
 

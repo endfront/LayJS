@@ -2,10 +2,10 @@
   "use strict";
 
 
-  LSON.unclog = function ( clogKey ) {
+  LAID.unclog = function ( clogKey ) {
 
 
-    var levelS = LSON.$clogKey2_levelS_[ clogKey ];
+    var levelS = LAID.$clogKey2_levelS_[ clogKey ];
 
     if ( levelS !== undefined ) {
 
@@ -18,7 +18,7 @@
         levelS[ i ].$inherit();
 
       }
-
+      // TODO: SOMEWHERE HERE CHECK IF LEVEL IS 'MANY'
       for ( i = 0; i < len; i++ ) {
 
         levelS[ i ].$initAttrs();
@@ -46,7 +46,7 @@
 
 
 
-      LSON.$clogKey2_levelS_[ clogKey ] = null;
+      LAID.$clogKey2_levelS_[ clogKey ] = null;
 
     }
 

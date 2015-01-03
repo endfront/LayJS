@@ -2,17 +2,17 @@
   "use strict";
 
 
-  LSON.Take = function ( relativePath, attr ) {
+  LAID.Take = function ( relativePath, attr ) {
 
     var _relPath00attr_S;
 
     if ( attr !== undefined ) {
-      var path = new LSON.RelPath( relativePath );
+      var path = new LAID.RelPath( relativePath );
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
 
-        return path.resolve( this ).$getAttrValue( attr ).curCalcValue;
+        return path.resolve( this ).$getAttrValue( attr ).calcValue;
 
       };
     } else { // direct value provided
@@ -31,7 +31,7 @@
   };
 
 
-  LSON.Take.prototype.execute = function ( contextPart ) {
+  LAID.Take.prototype.execute = function ( contextPart ) {
 
     // pass in context part for relative path lookups
     return this.executable.call( contextPart );
@@ -40,7 +40,7 @@
 
 
 
-  LSON.Take.prototype.$mergePathAndProps = function ( take ) {
+  LAID.Take.prototype.$mergePathAndProps = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
@@ -52,10 +52,10 @@
   };
 
 
-  LSON.Take.prototype.colorLighten = function ( val ) {
+  LAID.Take.prototype.colorLighten = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -71,10 +71,10 @@
   };
 
 
-  LSON.Take.prototype.add = function ( val ) {
+  LAID.Take.prototype.add = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -91,10 +91,10 @@
 
 
 
-  LSON.Take.prototype.subtract = function ( val ) {
+  LAID.Take.prototype.subtract = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -109,10 +109,10 @@
     return this;
   };
 
-  LSON.Take.prototype.divide = function ( val ) {
+  LAID.Take.prototype.divide = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -127,10 +127,10 @@
     return this;
   };
 
-  LSON.Take.prototype.multiply = function ( val ) {
+  LAID.Take.prototype.multiply = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -145,10 +145,10 @@
     return this;
   };
 
-  LSON.Take.prototype.remainder = function ( val ) {
+  LAID.Take.prototype.remainder = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -163,7 +163,7 @@
     return this;
   };
 
-  LSON.Take.prototype.half = function ( ) {
+  LAID.Take.prototype.half = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -174,7 +174,7 @@
     return this;
   };
 
-  LSON.Take.prototype.double = function ( ) {
+  LAID.Take.prototype.double = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -186,10 +186,10 @@
   };
 
 
-  LSON.Take.prototype.contains = function ( val ) {
+  LAID.Take.prototype.contains = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -204,10 +204,10 @@
     return this;
   };
 
-  LSON.Take.prototype.eq = function ( val ) {
+  LAID.Take.prototype.eq = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -222,10 +222,10 @@
     return this;
   };
 
-  LSON.Take.prototype.gt = function ( val ) {
+  LAID.Take.prototype.gt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -240,10 +240,10 @@
     return this;
   };
 
-  LSON.Take.prototype.gte = function ( val ) {
+  LAID.Take.prototype.gte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -258,10 +258,10 @@
     return this;
   };
 
-  LSON.Take.prototype.lt = function ( val ) {
+  LAID.Take.prototype.lt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -276,10 +276,10 @@
     return this;
   };
 
-  LSON.Take.prototype.lte = function ( val ) {
+  LAID.Take.prototype.lte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -294,10 +294,10 @@
     return this;
   };
 
-  LSON.Take.prototype.or = function ( val ) {
+  LAID.Take.prototype.or = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -312,10 +312,10 @@
     return this;
   };
 
-  LSON.Take.prototype.and = function ( val ) {
+  LAID.Take.prototype.and = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -330,7 +330,7 @@
     return this;
   };
 
-  LSON.Take.prototype.not = function () {
+  LAID.Take.prototype.not = function () {
 
     var oldExecutable = this.executable;
 
@@ -341,7 +341,7 @@
     return this;
   };
 
-  LSON.Take.prototype.positive = function () {
+  LAID.Take.prototype.positive = function () {
 
     var oldExecutable = this.executable;
 
@@ -352,7 +352,7 @@
     return this;
   };
 
-  LSON.Take.prototype.negative = function () {
+  LAID.Take.prototype.negative = function () {
 
     var oldExecutable = this.executable;
 
@@ -363,10 +363,10 @@
     return this;
   };
 
-  LSON.Take.prototype.method = function ( val ) {
+  LAID.Take.prototype.method = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -381,10 +381,10 @@
     return this;
   };
 
-  LSON.Take.prototype.key = function ( val ) {
+  LAID.Take.prototype.key = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -399,15 +399,15 @@
     return this;
   };
 
-  LSON.Take.prototype.index = LSON.Take.prototype.key;
+  LAID.Take.prototype.index = LAID.Take.prototype.key;
 
 
 
 
-  LSON.Take.prototype.min = function ( val ) {
+  LAID.Take.prototype.min = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -422,10 +422,10 @@
     return this;
   };
 
-  LSON.Take.prototype.max = function ( val ) {
+  LAID.Take.prototype.max = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -441,7 +441,7 @@
   };
 
 
-  LSON.Take.prototype.ceil = function () {
+  LAID.Take.prototype.ceil = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -450,7 +450,7 @@
     return this;
   };
 
-  LSON.Take.prototype.floor = function () {
+  LAID.Take.prototype.floor = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -460,7 +460,7 @@
   };
 
 
-  LSON.Take.prototype.sin = function () {
+  LAID.Take.prototype.sin = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -470,7 +470,7 @@
   };
 
 
-  LSON.Take.prototype.cos = function () {
+  LAID.Take.prototype.cos = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -480,7 +480,7 @@
   };
 
 
-  LSON.Take.prototype.tan = function () {
+  LAID.Take.prototype.tan = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -490,10 +490,10 @@
   };
 
 
-  LSON.Take.prototype.pow = function ( val ) {
+  LAID.Take.prototype.pow = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -508,10 +508,10 @@
     return this;
   };
 
-  LSON.Take.prototype.log = function ( val ) {
+  LAID.Take.prototype.log = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -526,15 +526,15 @@
     return this;
   };
 
-  LSON.Take.prototype.format = function () {
+  LAID.Take.prototype.format = function () {
 
     var argS = Array.prototype.slice.call( arguments );
 
 
-    return new LSON.Take(LSON.$format).fn.apply( this, argS);
+    return new LAID.Take(LAID.$format).fn.apply( this, argS);
 
     // Add the `format` function
-    //argS.push(LSON.$format);
+    //argS.push(LAID.$format);
     //return this.fn.apply( this, argS );
 
   };
@@ -542,13 +542,13 @@
 
 
 
-  LSON.Take.prototype.i18nFormat = function () {
+  LAID.Take.prototype.i18nFormat = function () {
 
     this._relPath00attr_S.push( [ '/', 'data.lang' ] );
 
     var argS = Array.prototype.slice.call(arguments);
 
-    return new LSON.Take(i18nFormat).fn.apply( this, argS);
+    return new LAID.Take(i18nFormat).fn.apply( this, argS);
 
     // Add the `i18nFormat` function
     //argS.push(i18nFormat);
@@ -560,19 +560,19 @@
 
     var argS = Array.prototype.slice.call( arguments );
 
-    argS[ 0 ] = ( argS[ 0 ] )[ LSON.level( '/' ).attr( 'data.lang' ) ];
+    argS[ 0 ] = ( argS[ 0 ] )[ LAID.level( '/' ).attr( 'data.lang' ) ];
 
-    return LSON.$format.apply( undefined, argS );
+    return LAID.$format.apply( undefined, argS );
 
   }
 
-  LSON.Take.prototype.concat = LSON.Take.prototype.add;
+  LAID.Take.prototype.concat = LAID.Take.prototype.add;
 
 
-  LSON.Take.prototype.match = function () {
+  LAID.Take.prototype.match = function () {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -591,10 +591,10 @@
 
 
 
-  LSON.Take.protoype.colorLighten = function ( val ) {
+  LAID.Take.protoype.colorLighten = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -611,10 +611,10 @@
   };
 
 
-  LSON.Take.protoype.colorDarken = function ( val ) {
+  LAID.Take.protoype.colorDarken = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -630,10 +630,10 @@
 
   };
 
-  LSON.Take.protoype.colorSaturate = function ( val ) {
+  LAID.Take.protoype.colorSaturate = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -649,10 +649,10 @@
 
   };
 
-  LSON.Take.protoype.colorDesaturate = function ( val ) {
+  LAID.Take.protoype.colorDesaturate = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -668,7 +668,7 @@
 
   };
 
-  LSON.Take.protoype.colorGrayscale = function () {
+  LAID.Take.protoype.colorGrayscale = function () {
 
     var oldExecutable = this.executable;
 
@@ -680,10 +680,10 @@
 
   };
 
-  LSON.Take.protoype.colorAlpha = function ( val ) {
+  LAID.Take.protoype.colorAlpha = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -699,10 +699,10 @@
 
   };
 
-  LSON.Take.protoype.colorRed = function ( val ) {
+  LAID.Take.protoype.colorRed = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -717,10 +717,10 @@
     return this;
   }
 
-  LSON.Take.protoype.colorGreen = function ( val ) {
+  LAID.Take.protoype.colorGreen = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -734,10 +734,10 @@
     }
     return this;
   }
-  LSON.Take.protoype.colorBlue = function ( val ) {
+  LAID.Take.protoype.colorBlue = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -751,10 +751,10 @@
     }
     return this;
   }
-  LSON.Take.protoype.colorHue = function ( val ) {
+  LAID.Take.protoype.colorHue = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -768,10 +768,10 @@
     }
     return this;
   }
-  LSON.Take.protoype.colorSaturation = function ( val ) {
+  LAID.Take.protoype.colorSaturation = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -785,10 +785,10 @@
     }
     return this;
   }
-  LSON.Take.protoype.colorLightness = function ( val ) {
+  LAID.Take.protoype.colorLightness = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LSON.Take ) {
+    if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
@@ -805,9 +805,9 @@
 
   /*
   * Call custom function with arguments, where arguments
-  * can be LSON.Take objects.
+  * can be LAID.Take objects.
   */
-  LSON.Take.prototype.fn = function ( ) {
+  LAID.Take.prototype.fn = function ( ) {
 
     var fnExecutable = this.executable;
 
@@ -821,7 +821,7 @@
 
       var arg = arguments[ 0 ];
 
-      if ( arg instanceof LSON.Take ) {
+      if ( arg instanceof LAID.Take ) {
 
         this.$mergePathAndProps( arg );
 
@@ -841,11 +841,11 @@
       var arg1 = arguments[ 0 ];
       var arg2 = arguments[ 1 ];
 
-      if ( arg1 instanceof LSON.Take ) {
+      if ( arg1 instanceof LAID.Take ) {
 
         this.$mergePathAndProps( arg1 );
 
-        if ( arg2 instanceof LSON.Take ) {
+        if ( arg2 instanceof LAID.Take ) {
 
           this.$mergePathAndProps( arg2 );
 
@@ -861,7 +861,7 @@
           };
         }
 
-      } else if ( arg2 instanceof LSON.Take ) {
+      } else if ( arg2 instanceof LAID.Take ) {
 
         this.$mergePathAndProps( arg2 );
         this.executable = function () {
@@ -886,7 +886,7 @@
 
         curArg = arguments[ i ];
 
-        if ( curArg instanceof LSON.Take ) {
+        if ( curArg instanceof LAID.Take ) {
 
           this.$mergePathAndProps( curArg );
 
@@ -901,7 +901,7 @@
 
           arg = argS[ i ];
 
-          executedArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+          executedArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
 
         }
 
@@ -921,7 +921,7 @@
 
     fn = arguments[ 0 ];
 
-    if ( fn instanceof LSON.Take ) {
+    if ( fn instanceof LAID.Take ) {
 
     this.$mergePathAndProps( fn );
     this.executable = function () {
@@ -945,11 +945,11 @@ else if (arguments.length === 2 ) {
 var arg = arguments[ 0 ];
 fn = arguments[ 1 ];
 
-if ( fn instanceof LSON.Take ) {
+if ( fn instanceof LAID.Take ) {
 
 this.$mergePathAndProps( fn );
 
-if ( arg instanceof LSON.Take ) {
+if ( arg instanceof LAID.Take ) {
 
 this.$mergePathAndProps( arg );
 
@@ -971,7 +971,7 @@ return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
 
 } else {
 
-if ( arg instanceof LSON.Take ) {
+if ( arg instanceof LAID.Take ) {
 
 this.$mergePathAndProps( arg );
 
@@ -1000,7 +1000,7 @@ for ( var i = 0, curArg; i < argSlength; i++ ) {
 
 curArg = arguments[ i ];
 
-if ( curArg instanceof LSON.Take ) {
+if ( curArg instanceof LAID.Take ) {
 
 this.$mergePathAndProps( curArg );
 
@@ -1009,12 +1009,12 @@ this.$mergePathAndProps( curArg );
 
 fn = argS[ argSlength - 1 ];
 
-if ( fn instanceof LSON.Take ) {
+if ( fn instanceof LAID.Take ) {
 
 this.executable = function () {
 
 
-// The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+// The "+1" allocates space for the first argument which is of the LAID.Take in current context.
 var callableArgS = new Array( argSlength + 1 );
 callableArgS[ 0 ] = oldExecutable.call( this );
 
@@ -1022,7 +1022,7 @@ for ( var i = 0, arg; i < argSlength; i++ ) {
 
 arg = argS[ i ];
 
-callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+callableArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
 
 }
 
@@ -1034,7 +1034,7 @@ return ( fn.execute( this ) ).apply( this, callableArgS );
 
 this.executable = function () {
 
-// The "+1" allocates space for the first argument which is of the LSON.Take in current context.
+// The "+1" allocates space for the first argument which is of the LAID.Take in current context.
 var callableArgS = new Array( argSlength + 1 );
 callableArgS[ 0 ] = oldExecutable.call( this );
 
@@ -1042,7 +1042,7 @@ for ( var i = 0, arg; i < argSlength; i++ ) {
 
 arg = argS[ i ];
 
-callableArgS[ i ] = arg instanceof LSON.Take ? arg.execute( this ) : arg;
+callableArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
 
 }
 

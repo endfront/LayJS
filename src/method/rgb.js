@@ -2,9 +2,9 @@
   "use strict";
 
 
-  LSON.rgb = function ( r, g, b ) {
+  LAID.rgb = function ( r, g, b ) {
 
-    return LSON.rgb( r, g, b, 1 );
+    return LAID.rgb( r, g, b, 1 );
 
   };
 

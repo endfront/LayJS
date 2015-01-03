@@ -2,14 +2,14 @@
   "use strict";
 
 
-  LSON.take = function ( relativePath, prop ) {
+  LAID.take = function ( relativePath, prop ) {
 
 
-    if ( ( prop !== undefined ) && ( LSON.$checkIsExpanderAttr( prop ) ) ) {
-        throw ( "LSON Error: takes using expander props such as '" + relativePath  + "' are not permitted." );
+    if ( ( prop !== undefined ) && ( LAID.$checkIsExpanderAttr( prop ) ) ) {
+        throw ( "LAID Error: takes using expander props such as '" + relativePath  + "' are not permitted." );
     } else {
 
-      return new LSON.Take( relativePath, prop );
+      return new LAID.Take( relativePath, prop );
     }
 
   };

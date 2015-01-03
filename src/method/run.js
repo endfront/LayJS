@@ -4,7 +4,7 @@
 
 
 
-  LSON.run =  function ( rootLson, name2lson ) {
+  LAID.run =  function ( rootLson, name2lson ) {
 
 
 
@@ -31,11 +31,11 @@
 
     window.onresize = updateSize;
 
-    LSON.$clogKey2_levelS_[ 1 ] = [ new LSON.Level( "/", rootLson, 1, undefined ) ];
+    LAID.$clogKey2_levelS_[ 1 ] = [ new LAID.Level( "/", rootLson, 1, undefined ) ];
 
-    LSON.unclog( 1 );
+    LAID.unclog( 1 );
 
-    LSON.$prevTimeFrame = Date.now();
+    LAID.$prevTimeFrame = Date.now();
 
     window.requestAnimationFrame( render );
 
@@ -57,9 +57,9 @@
     var curTimeFrame, timeFrameDiff, i, iLen, j, jLen, dirtyLevelS, dirtyLevel, dirtyAttrS, dirtyAttr, dirtyAttrValue;
 
     curTimeFrame = Date.now();
-    timeFrameDiff = curTimeFrame - LSON.$prevTimeFrame;
+    timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame;
 
-    for ( i = 0, dirtyLevelS = LSON.$dirtyLevelS, iLen = dirtyLevelS.length; i < iLen; i++ ) {
+    for ( i = 0, dirtyLevelS = LAID.$dirtyLevelS, iLen = dirtyLevelS.length; i < iLen; i++ ) {
 
       dirtyLevel = dirtyLevelS[ i ];
 
@@ -77,14 +77,6 @@
 
         } else {
 
-          //   change value
-          dirtyAttrValue.stagedCalValue = dirtyAttrValue.finalCalcValue;
-          //   if part and if css type then cssify
-          if ( dirtyLevel.isPart ) {
-
-            if ( )
-
-          }
           //   remove
 
         }

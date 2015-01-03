@@ -1,10 +1,10 @@
-LSON.run( {
+LAID.run( {
   Header: {
     props: {
       left: 0,
-      centerY: LSON.take('/', 'centerY'),
+      centerY: LAID.take('/', 'centerY'),
       width: 300,
-      height: LSON.take('/', 'height').divide(2),
+      height: LAID.take('/', 'height').divide(2),
       backgroundColor: "gainsboro"
     },
 

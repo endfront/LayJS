@@ -1,8 +1,8 @@
 {
-  "name": "LSON",
+  "name": "LAID",
   "version": "0.0.0",
-  "description": "LSON is LSON",
-  "main": "LSON.js",
+  "description": "LAID is LAID",
+  "main": "LAID.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

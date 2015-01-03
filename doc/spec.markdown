@@ -1,31 +1,31 @@
-< <  Warning: This is the specification which is not to be read as a tutorial for LSON > >
+< <  Warning: This is the specification which is not to be read as a tutorial for LAID > >
 
 
-### LSON
+### LAID
 
-LSON - > Layout Syntax Object Notation
-
-
-### LSON methods
-
-  LSON.run()
-  LSON.level()
-  LSON.many()
-  LSON.part()
-  LSON.take()
-  LSON.takeMany()
-
-  LSON.rgb()
-  LSON.rgba()
-  LSON.hsla()
-  LSON.hsl()
-  LSON.color()
+LAID involves writing LSON (Layout Syntax Object Notation)
 
 
-### LSON.run
+### LAID methods
+
+  LAID.run()
+  LAID.level()
+  LAID.many()
+  LAID.part()
+  LAID.take()
+  LAID.takeMany()
+
+  LAID.rgb()
+  LAID.rgba()
+  LAID.hsla()
+  LAID.hsl()
+  LAID.color()
 
 
-    LSON.add([optional: root properties (object)], {
+### LAID.run
+
+
+    LAID.run([optional: root properties (object)], {
         "Name": {
 
           type: string,
@@ -48,7 +48,7 @@ LSON - > Layout Syntax Object Notation
                   props: object
                   < name >: {
                       props: object,
-                      onlyif: LSON.Take,
+                      onlyif: LAID.Take,
                       transition: transitionObj,
                       install: function,
                       uninstall: function
@@ -59,13 +59,13 @@ LSON - > Layout Syntax Object Notation
               < name >: {
                   props: object,
                   when: object,
-                  onlyif: LSON.Take,
+                  onlyif: LAID.Take,
                   transition: transitionObj,
                   install: function,
                   uninstall: function
               }
           },
-          children: object
+          children: LSON
 
           }
       })
@@ -181,12 +181,12 @@ The keys within `props` are predefined
 - width
   `number`
   Width of part (excluding scale)
-  Default: LSON.take('this', '$naturalWidth')
+  Default: LAID.take('this', '$naturalWidth')
 
 - height
   `number`
   Height of part (excluding scale)
-  Default: LSON.take('this', '$naturalHeight')
+  Default: LAID.take('this', '$naturalHeight')
 
 - opacity
   `number`
@@ -220,7 +220,7 @@ The keys within `props` are predefined
 
 - background (no support for multiple backgrounds)
   {
-    color: LSON.Color (Psuedo-default: LSON.transparent()),
+    color: LAID.Color (Psuedo-default: LAID.transparent()),
     image: string,
     attachment: string (CSS background-attachment)
     repeat: string (CSS background-repeat),
@@ -238,7 +238,7 @@ The keys within `props` are predefined
       y: number (in pixels),
       blur: number,
       spread: number,
-      color: LSON.Color
+      color: LAID.Color
     }
     ...
   ]
@@ -316,7 +316,7 @@ The keys within `props` are predefined
   Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >
   { top/right/bottom/left/< undefined >: {
     style: string (CSS border-style),
-    color: LSON.Color,
+    color: LAID.Color,
     width: number
 
   } }
@@ -334,7 +334,7 @@ The keys within `props` are predefined
         x: number (in pixels) ,
         y: number (in pixels) ,
         blur: number (in pixels),
-        color: LSON.Color
+        color: LAID.Color
       } |
       grayscale: number (in fraction (percent)) |
       hueRotate: number (in degrees) |
@@ -369,8 +369,8 @@ The keys within `props` are predefined
   Psuedo-Default: 'normal'
 
 - textColor
-  `LSON.Color`
-  Psuedo-Default: LSON.color("black")
+  `LAID.Color`
+  Psuedo-Default: LAID.color("black")
 
 
 - textShadows
@@ -380,7 +380,7 @@ The keys within `props` are predefined
       x: number,
       y: number,
       blur: number,
-      color: LSON.Color
+      color: LAID.Color
     }
     ...
   ]
@@ -564,29 +564,29 @@ The keys within `props` are predefined
 
 
 
-### LSON many
+### LAID many
 
 Type: `Object`
 
 
 
-### LSON states
+### LAID states
 
 object containing states
 
-### LSON children
+### LAID children
 
 children levels
 
 
-### LSON when
+### LAID when
 
 contains events as keys, and values as a callback function or
 arrays of callback functions (order respected)
 
 example with a single callback function specified:
 
-    LSON.start({
+    LAID.start({
         Box: {
           props: {
             text: "Hello World"
@@ -601,7 +601,7 @@ example with a single callback function specified:
 
 example with multiple callback functions specified (with the aid on array):
 
-    LSON.start({
+    LAID.start({
       Box: {
         props: {
           text: "Hello World"
@@ -621,14 +621,14 @@ example with multiple callback functions specified (with the aid on array):
 
 
 
-### LSON.Level
+### LAID.Level
 
-To get the LSON.Level:
+To get the LAID.Level:
 
-  LSON.level(level) // fetches level
-  LSON.level(< LSON.Part reference >, level) // fetches level wrt reference
+  LAID.level(level) // fetches level
+  LAID.level(< LAID.Part reference >, level) // fetches level wrt reference
 
-LSON.Level methods:
+LAID.Level methods:
 
   attr( attr ) //gets attr value
   data( changedData, [, stateTransitionObj ] ) //changes data value
@@ -638,8 +638,8 @@ LSON.Level methods:
 ### Constraints Available (Known as "attributes")
 
 The below values can be directly accessed through
-the LSON Level through `.attr(< access key >)`
-The same access keys are used as the 2nd argument in LSON.Take
+the LAID Level through `.attr(< access key >)`
+The same access keys are used as the 2nd argument in LAID.Take
 
   - <prop>
 
@@ -647,7 +647,9 @@ The same access keys are used as the 2nd argument in LSON.Take
 
   - when.<event><num>
 
-  - transition.<attr><duration/delay/done>
+  - transition.<attr>.<duration/delay/done/transition>
+
+  - transition.<attr>.args.<arg>
 
   - state.<state>
   returns true if state is active
@@ -656,7 +658,9 @@ The same access keys are used as the 2nd argument in LSON.Take
 
   - <state>.when<event><num>
 
-  - <state>.transition.<attr><duration/delay/done>
+  - <state>.transition.<attr><duration/delay/done/transition>
+
+  - <state>.transition.<attr>.args.<arg>
 
   - <state>.onlyif
 
@@ -715,18 +719,18 @@ The same access keys are used as the 2nd argument in LSON.Take
 
 
 
-### LSON.take & LSON.Take
+### LAID.take & LAID.Take
 
-creates LSON.Take object:
+creates LAID.Take object:
 
-  LSON.take(level, property)
+  LAID.take(level, property)
 
 or
 
-  LSON.take(property) //this will refer to self
+  LAID.take(property) //this will refer to self
 
 
-LSON.Take methods
+LAID.Take methods
 
   - add,subtract,divide,multiply
   - remainder
@@ -741,62 +745,62 @@ LSON.Take methods
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (LSON.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation
+  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation
   - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match (for regex)
 
 
   takes one argument, either:
-    - LSON.Take object
+    - LAID.Take object
     - anything else
 
-  LSON.take(level, property).add(10).divide(LSON.take(level2,property2)).subtract(10).multiply(1.2)
-  LSON.take(level, property).min(LSON.take(level2,property2), 20, 30)
-  LSON.take("foo:%s, bar:%s, baz:%s").format(LSON.take(level1, prop1), LSON.take(level2, prop2), LSON.take(level3, prop3) )
-  LSON.take(function).fn(LSON.take(level1, prop1), LSON.take(level2, prop2), LSON.take(level3, prop3), function( arg1, arg2, arg3 ) {
+  LAID.take(level, property).add(10).divide(LAID.take(level2,property2)).subtract(10).multiply(1.2)
+  LAID.take(level, property).min(LAID.take(level2,property2), 20, 30)
+  LAID.take("foo:%s, bar:%s, baz:%s").format(LAID.take(level1, prop1), LAID.take(level2, prop2), LAID.take(level3, prop3) )
+  LAID.take(function).fn(LAID.take(level1, prop1), LAID.take(level2, prop2), LAID.take(level3, prop3), function( arg1, arg2, arg3 ) {
     return something
   })
-  LSON.take('/', 'data.lang').i18nFormat(
+  LAID.take('/', 'data.lang').i18nFormat(
   {
     lang-code: formattable string
     .....
   },
-  LSON.take(level1, prop1), LSON.take(level2,prop2)
+  LAID.take(level1, prop1), LAID.take(level2,prop2)
   )
 
 
-LSON.takeMany
+LAID.takeMany
 
   For queries:
 
-  LSON.takeMany( level, queryObject )
+  LAID.takeMany( level, queryObject )
 
   available methods:
   - length()
   - one() (yields a take object)
 
 
-  LSON.takeMany("/Lab/Patient, {"data.age": {$gt:25}, "data.diabetes": {$eq: true} }).length()
+  LAID.takeMany("/Lab/Patient, {"data.age": {$gt:25}, "data.diabetes": {$eq: true} }).length()
 
-  LSON.takeMany("/BuyHosting/Plan", { "data.selected":true } }).one("data.price")
+  LAID.takeMany("/BuyHosting/Plan", { "data.selected":true } }).one("data.price")
 
 
-### LSON.Color (LSON.rgb, LSON.rgba, LSON.hsl, LSON.hsla, LSON.color)
+### LAID.Color (LAID.rgb, LAID.rgba, LAID.hsl, LAID.hsla, LAID.color)
 
-LSON.rgb(r,g,b)   (r,g,b:[0,255])
-LSON.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
-LSON.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
-LSON.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
-LSON.color(name)  [name: XML recognized color]
-LSON.transparent()
+LAID.rgb(r,g,b)   (r,g,b:[0,255])
+LAID.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
+LAID.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
+LAID.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
+LAID.color(name)  [name: XML recognized color]
+LAID.transparent()
 
 
 
 eg of take with color:
 
-  color: LSON.take('header', 'color').colorDarken(0.5)
-  color: LSON.rgb(100, LSON.take('this','data.green'),200).colorLighten(0.1)
+  color: LAID.take('header', 'color').colorDarken(0.5)
+  color: LAID.rgb(100, LAID.take('this','data.green'),200).colorLighten(0.1)
 
 
 
@@ -805,9 +809,9 @@ eg of take with color:
 Scale -> Position -> Skew -> Rotate
 
 
-### LSON inherits
+### LAID inherits
 
-    LSON.run({
+    LAID.run({
       "BigBox": {
         inherits: < level string >
       }
@@ -815,7 +819,7 @@ Scale -> Position -> Skew -> Rotate
 
 or
 
-    LSON.run({
+    LAID.run({
       "BigBox": {
         inherits: < object reference >
       }
@@ -824,7 +828,7 @@ or
 
 also together using an array (the order of the array is respected from left to right)
 
-  LSON.run({
+  LAID.run({
     "BigBox": {
       inherits: [ < object reference > | < level string >, ... ]
     }
@@ -833,7 +837,7 @@ also together using an array (the order of the array is respected from left to r
 
 looks like:
 
-  LSON.run({
+  LAID.run({
     "BigBox": {
       inherits: [ '../Box', someBoxObject ]
     }
@@ -855,8 +859,8 @@ for example:
         children: {
           LeftSide: {
             props: {
-              width: LSON.take('parent', 'width').half(),
-              height: LSON.take('parent', 'height').half()
+              width: LAID.take('parent', 'width').half(),
+              height: LAID.take('parent', 'height').half()
             }
           }
       }
@@ -864,7 +868,7 @@ for example:
 
 
 
-    LSON.run({
+    LAID.run({
       "BigBox": {
         inherits: [ box ],
         props: {
@@ -879,8 +883,8 @@ for example:
         },
         RightSide: {
           props: {
-            left: LSON.take('../LeftSide', 'right'),
-            width: LSON.take('this', 'textWidth'),
+            left: LAID.take('../LeftSide', 'right'),
+            width: LAID.take('this', 'textWidth'),
             text: 'nothing here'
           }
           }
@@ -902,14 +906,14 @@ becomes:
         children: {
           LeftSide: {
             props: {
-              width: LSON.take('parent', 'width').half(),
-              height: LSON.take('parent', 'height').half(),
+              width: LAID.take('parent', 'width').half(),
+              height: LAID.take('parent', 'height').half(),
               backgroundColor: 'red'
             }
           }
           RightSide: {
             props: {
-              left: LSON.take('prev-sibling', 'right'),
+              left: LAID.take('prev-sibling', 'right'),
               text: 'nothing here'
             }
           }
@@ -918,7 +922,7 @@ becomes:
     }
 
 
-##### LSON inheritance rules
+##### LAID inheritance rules
 
 - events within 'when' key stacks up as an array
 - the scope of `states[state]` and `many` are inherited at a further level deep
@@ -928,7 +932,7 @@ becomes:
 
 example of `when` stacking up:
 
-  LSON.run({
+  LAID.run({
       "Box": {
         when: {
           "click": function() {
@@ -963,7 +967,7 @@ would essentially compile to:
 
 
 
-### LSON references
+### LAID references
 
   - Root
     ''
@@ -988,11 +992,11 @@ would essentially compile to:
 
 
 
-### LSON states
+### LAID states
 
   Reserved state name: "root"
 
-  LSON.run({
+  LAID.run({
     LeaderBoard: {
           children: {
             Nav: {
@@ -1006,9 +1010,9 @@ would essentially compile to:
               states: {
                 closed: {
                   props: {
-                    left: LSON.take('this', 'width').negative()
+                    left: LAID.take('this', 'width').negative()
                   },
-                  onlyif: LSON.take('this', 'data.locked').and(LSON.take('../', 'state.collapsed'))
+                  onlyif: LAID.take('this', 'data.locked').and(LAID.take('../', 'state.collapsed'))
                 }
               }
             }
@@ -1023,16 +1027,16 @@ The inheritance mechanism governing states matches that mentioned for the `inher
 onlyif is the condition for which a state needs to be activated.
 Takes across states and root lson takes place by prefixing "<state name>." to the corresponding "props", "when", and "transition" keys:
 
-LSON.run({
+LAID.run({
     Box: {
       props: {
-        backgroundColor: LSON.rgba(245, 100, 145, 0.5)
+        backgroundColor: LAID.rgba(245, 100, 145, 0.5)
       },
       states: {
         hovered: {
-          onlyif: LSON.take("this", "$hovered"),
+          onlyif: LAID.take("this", "$hovered"),
           props: {
-            backgroundColor: LSON.take("this", "root.backgroundColor").colorDarken(0.8)
+            backgroundColor: LAID.take("this", "root.backgroundColor").colorDarken(0.8)
           }
         }
       }
@@ -1045,9 +1049,9 @@ LSON.run({
 ### Many
 
 
-  LSON.start({
+  LAID.start({
       "BioData": {
-        width: LSON.take('Person'),
+        width: LAID.take('Person'),
         children: {
           "Person": {
             width: 200,
@@ -1094,12 +1098,12 @@ example:
 
 more can be added by:
 
-  LSON.many('/BioData/Person').more( [{id:'01010', name: 'Robb Stark', age: 32}] )
+  LAID.many('/BioData/Person').more( [{id:'01010', name: 'Robb Stark', age: 32}] )
 
 
 or committed (facebook react style)
 
-  LSON.many('/BioData/Person').commit( [
+  LAID.many('/BioData/Person').commit( [
     {_id:'00423', name:'Eddard Stark', age: 50},
     {_id:'08383', name:'Tyrion Lannister', age: 40},
     {_id:'01919', name:'Joffrey Baratheon', age: 16},
@@ -1109,8 +1113,8 @@ or committed (facebook react style)
 
 queries (mongodb style)
 
-  LSON.many("/Lab/Patient").query({"data.age": {$gt:25}, "data.diabetes": {$eq: true} })
-  LSON.many("/BuyHosting/Plan").query({ "data.selected":true } })
+  LAID.many("/Lab/Patient").query({"data.age": {$gt:25}, "data.diabetes": {$eq: true} })
+  LAID.many("/BuyHosting/Plan").query({ "data.selected":true } })
 
 formation:
   `String`
@@ -1119,9 +1123,9 @@ formation object examples:
 
 (1) "onebelow" formation
 
-  LSON.formation('onebelow', {
+  LAID.formation('onebelow', {
       algorithm: function (options, prev, cur, all, index) {
-        if (prev) cur.formation('top', LSON.take(prev, 'bottom'))
+        if (prev) cur.formation('top', LAID.take(prev, 'bottom'))
       }
   })
 
@@ -1132,13 +1136,13 @@ formation object examples:
 
 for grid (note that the width and height cannot be used effectively for a grid)
 
-  LSON.formation('grid', {
+  LAID.formation('grid', {
       algorithm: function (options, prev, cur, all, index) {
         if (prev) {
           var row = Math.floor( index / 5 );
           var column = index % 5;
-          cur.formation('left', LSON.take('this', 'width').multiply(column));
-          cur.formation('top', LSON.take('this', 'height').multiply(row));
+          cur.formation('left', LAID.take('this', 'width').multiply(column));
+          cur.formation('top', LAID.take('this', 'height').multiply(row));
         }
       }
   })
@@ -1154,8 +1158,7 @@ for grid (note that the width and height cannot be used effectively for a grid)
 
 {
 
-  all: { duration: 100 },
-  props: { duration: 300 }
+  all: { duration: 100, transition: "spring", args: { tension: 100 } },
   left: { duration: 200},
   top: { delay: 500 },
   opacity: { duration:2000, done: function(){ console.log("opaque") }  }
@@ -1164,12 +1167,14 @@ for grid (note that the width and height cannot be used effectively for a grid)
 
 Each key in the state transition object except for "all" and "props" refer to an attribute.
 The key is an object with 3 possible keys:
-    (i) duration (of the transition)
-    (ii) delay (till the start of the transition)
-    (iii) done (function handler executed at the end of the transition)
+    (i) transition ( type of transition )
+    (ii) duration ( of the transition )
+    (iii) delay ( till the start of the transition )
+    (iv) done ( function handler executed at the end of the transition )
+    (v) args ( additional args )
 
-"all" refers to every attribute  
-"props" secludes prop-typed attributes
+"all" secludes prop-typed attributes
+Non prop-typed attributes can also be transitioned, eg: data and transition.
 
 An attribute can be of 2 types:
 

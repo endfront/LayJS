@@ -1,7 +1,5 @@
 
-
-Hi.
-
+Yo
 
 ## Style Guide
 
@@ -146,6 +144,5 @@ we shall instead use "$" as the prefix.
 
 **User API**
 
-For the LSON API including its methods and direct variable access, the above rules
-mentioned do not apply. Example `LSON.Level.states` is an array, albiet with the
-internal naming convention it should be `LSON.Level.stateS`.
+For the LAID API including its methods and direct variable access, the above rules
+mentioned do not apply.

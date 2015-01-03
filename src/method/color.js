@@ -2,15 +2,15 @@
   "use strict";
 
 
-  LSON.color = function ( colorName ) {
+  LAID.color = function ( colorName ) {
 
 
     var colorValue = colorName2colorValue[ colorName ];
     if ( colorValue === undefined ) {
-      console.error("LSON Error: Color name:", colorName, "not found." );
+      console.error("LAID Error: Color name:", colorName, "not found." );
     }
     else {
-      return new LSON.Color( 'rgb', colorValue, 1 );
+      return new LAID.Color( 'rgb', colorValue, 1 );
 
     }
 

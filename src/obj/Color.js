@@ -8,7 +8,7 @@
 
   // inspiration from: sass (https://github.com/sass/sass/)
 
-  LSON.Color = function ( format, key2value, alpha ) {
+  LAID.Color = function ( format, key2value, alpha ) {
 
     this.format = format;
 
@@ -24,7 +24,7 @@
 
   };
 
-  LSON.Color.prototype.stringify = function () {
+  LAID.Color.prototype.stringify = function () {
 
     var rgb, hsl;
     if ( isCss3ColorSupported ) {
@@ -58,15 +58,15 @@
 
   };
 
-  LSON.Color.prototype.copy = function () {
+  LAID.Color.prototype.copy = function () {
 
     return this.format === "rgb" ?
-    new LSON.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
-    new LSON.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
+    new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
+    new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
 
   };
 
-  LSON.Color.prototype.rgb = function () {
+  LAID.Color.prototype.rgb = function () {
     if ( this.format === "rgb" ) {
 
       return { r: this.r, g: this.g, b: this.b };
@@ -79,7 +79,7 @@
     }
   };
 
-  LSON.Color.prototype.hsl = function () {
+  LAID.Color.prototype.hsl = function () {
     if ( this.format === "hsl" ) {
 
       return { h: this.h, s: this.s, l: this.l };
@@ -91,7 +91,7 @@
   };
 
 
-  LSON.Color.prototype.rgba = function () {
+  LAID.Color.prototype.rgba = function () {
 
     var rgb = this.rgb();
     rgb.a = this.a;
@@ -101,7 +101,7 @@
 
 
 
-  LSON.Color.prototype.hsla = function () {
+  LAID.Color.prototype.hsla = function () {
 
     var hsl = this.hsl();
     hsl.a = this.a;
@@ -113,7 +113,7 @@
 
 
 
-  LSON.Color.prototype.red = function ( val ) {
+  LAID.Color.prototype.red = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.r = val;
@@ -126,7 +126,7 @@
     }
   };
 
-  LSON.Color.prototype.green = function ( val ) {
+  LAID.Color.prototype.green = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.g = val;
@@ -139,7 +139,7 @@
     }
   };
 
-  LSON.Color.prototype.blue = function ( val ) {
+  LAID.Color.prototype.blue = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.b = val;
@@ -152,7 +152,7 @@
     }
   };
 
-  LSON.Color.prototype.hue = function ( val ) {
+  LAID.Color.prototype.hue = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.h = val;
@@ -165,7 +165,7 @@
     }
   };
 
-  LSON.Color.prototype.saturation = function ( val ) {
+  LAID.Color.prototype.saturation = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.s = val;
@@ -178,7 +178,7 @@
     }
   };
 
-  LSON.Color.prototype.lightness = function ( val ) {
+  LAID.Color.prototype.lightness = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.l = val;
@@ -193,11 +193,11 @@
 
 
   /* Sets alpha */
-  LSON.Color.prototype.alpha = function ( alpha ) {
+  LAID.Color.prototype.alpha = function ( alpha ) {
     this.a = alpha;
   };
 
-  LSON.Color.protoype.darken = function ( fraction ) {
+  LAID.Color.protoype.darken = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.l = hsl.l - ( hsl.l * fraction );
@@ -211,7 +211,7 @@
     }
   };
 
-  LSON.Color.protoype.lighten = function ( fraction ) {
+  LAID.Color.protoype.lighten = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.l = hsl.l + ( hsl.l * fraction );
@@ -225,7 +225,7 @@
     }
   };
 
-  LSON.Color.protoype.saturate = function ( fraction ) {
+  LAID.Color.protoype.saturate = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.s = hsl.s + ( hsl.s * fraction );
@@ -239,7 +239,7 @@
     }
   };
 
-  LSON.Color.protoype.desaturate = function ( fraction ) {
+  LAID.Color.protoype.desaturate = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.s = hsl.s - ( hsl.s * fraction );
@@ -253,13 +253,13 @@
     }
   };
 
-  LSON.Color.prototype.grayscale = function ( ) {
+  LAID.Color.prototype.grayscale = function ( ) {
 
     this.desaturate( 1 );
 
   };
 
-  LSON.Color.prototype.invert = function ( ) {
+  LAID.Color.prototype.invert = function ( ) {
 
     var rgb = this.rgb();
     rgb.r = 255 - rgb.r;

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  LSON.RelPath = function ( relativePath ) {
+  LAID.RelPath = function ( relativePath ) {
 
 
     if ( relativePath === "this" ) {
@@ -24,7 +24,7 @@
 
 };
 
-LSON.RelPath.prototype.resolve = function ( referenceLevel ) {
+LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
   if ( this.me ) {
 
@@ -34,7 +34,7 @@ LSON.RelPath.prototype.resolve = function ( referenceLevel ) {
 
     if ( this.absolute ) {
 
-        return LSON.$path2level[ this.absolutePath ];
+        return LAID.$path2level[ this.absolutePath ];
 
     } else {
 
@@ -42,7 +42,7 @@ LSON.RelPath.prototype.resolve = function ( referenceLevel ) {
 
       }
 
-      return LSON.$path2level[ referenceLevel.path + this.childPath ];
+      return LAID.$path2level[ referenceLevel.path + this.childPath ];
     }
 
   }

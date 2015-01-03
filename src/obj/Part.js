@@ -46,11 +46,11 @@
 
 
 
-  LSON.Part = function ( level ) {
+  LAID.Part = function ( level ) {
 
     this.level = level;
 
-    LSON.dirtyPartS.push( this );
+    LAID.dirtyPartS.push( this );
 
   };
 
@@ -71,178 +71,164 @@
 
     this.node.style[ cssPrefix + "transform" ] =
     "scale3d(" +
-    attr2attrValue.scaleX.curCalcValue + "," +
-    attr2attrValue.scaleY.curCalcValue + "," +
-    attr2attrValue.scaleZ.curCalcValue + ") " +
+    attr2attrValue.scaleX.transitionCalcValue + "," +
+    attr2attrValue.scaleY.transitionCalcValue + "," +
+    attr2attrValue.scaleZ.transitionCalcValue + ") " +
     "translate3d(" +
 
-    ( ( ( attr2attrValue.left.curCalcValue + attr2attrValue.shiftX.curCalcValue ) +
-     attr2attrValue.width.curCalcValue * attr2attrValue.originX.curCalcValue )  + "px ," ) +
+    ( ( ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) +
+     attr2attrValue.width.transitionCalcValue * attr2attrValue.originX.transitionCalcValue )  + "px ," ) +
 
-     ( ( ( attr2attrValue.top.curCalcValue + attr2attrValue.shiftY.curCalcValue ) +
-     attr2attrValue.height.curCalcValue * attr2attrValue.originY.curCalcValue )  + "px ," ) +
+     ( ( ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) +
+     attr2attrValue.height.transitionCalcValue * attr2attrValue.originY.transitionCalcValue )  + "px ," ) +
 
-    ( attr2attrValue.Z.curCalcValue) + "px) " +
+    ( attr2attrValue.Z.transitionCalcValue) + "px) " +
     "skew(" +
-    attr2attrValue.skewX.curCalcValue + "deg," +
-    attr2attrValue.skewY.curCalcValue + "deg) " +
-    "rotateX(" + attr2attrValue.rotateX.curCalcValue + "deg) " +
-    "rotateY(" + attr2attrValue.rotateY.curCalcValue + "deg) " +
-    "rotateZ(" + attr2attrValue.rotateZ.curCalcValue + "deg)";
+    attr2attrValue.skewX.transitionCalcValue + "deg," +
+    attr2attrValue.skewY.transitionCalcValue + "deg) " +
+    "rotateX(" + attr2attrValue.rotateX.transitionCalcValue + "deg) " +
+    "rotateY(" + attr2attrValue.rotateY.transitionCalcValue + "deg) " +
+    "rotateZ(" + attr2attrValue.rotateZ.transitionCalcValue + "deg)";
     /* jshint ignore:end */
   }
 
-  function renderPositionNonGpuX() {
-    /* jshint ignore:start */
-    var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style.left = ( attr2attrValue.left.curCalcValue + attr2attrValue.shiftX.curCalcValue ) + "px";
-    /* jshint ignore:end */
-  }
 
-  function renderPositionNonGpuY() {
-    /* jshint ignore:start */
-    var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style.top = ( attr2attrValue.top.curCalcValue + attr2attrValue.shiftY.curCalcValue ) + "px";
-    /* jshint ignore:end */
-  }
-  function renderOrigin() {
-    /* jshint ignore:start */
-    var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style[ cssPrefix + "origin" ] =
-    ( attr2attrValue.originX.curCalcValue * 100 ) + "% " +
-    ( attr2attrValue.originY.curCalcValue * 100 ) + "% " +
-    ( attr2attrValue.originZ.curCalcValue * 100 ) + "%";
-    this.$renderFn_left(); //apply change to transform
-    /* jshint ignore:end */
-  }
 
-  function renderPerspectiveOrigin() {
-    /* jshint ignore:start */
-    var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style[ cssPrefix + "perspective-origin" ] =
-    ( attr2attrValue.perspectiveOriginX.curCalcValue * 100 ) + "% " +
-    ( attr2attrValue.perspectiveOriginY.curCalcValue * 100 ) + "%";
-    /* jshint ignore:end */
-  }
+
+
+
 
   if ( isGpuAccelerated ) {
-    LSON.Part.prototype.$renderFn_left = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_top = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_shiftX = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_shiftY = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_z = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_skewX = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_skewY = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_rotateX = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_rotateY = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_rotateZ = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_scaleX = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_scaleY = renderPositionGpu;
-    LSON.Part.prototype.$renderFn_scaleZ = renderPositionGpu;
 
-    LSON.Part.prototype.$renderFn_originX = renderOrigin;
-    LSON.Part.prototype.$renderFn_originY = renderOrigin;
-    LSON.Part.prototype.$renderFn_originZ = renderOrigin;
 
-    LSON.Part.prototype.$renderFn_perspectiveOriginX = renderPerspectiveOrigin;
-    LSON.Part.prototype.$renderFn_perspectiveOriginY = renderPerspectiveOrigin;
-    LSON.Part.prototype.$renderFn_perspective = function () {
-      this.node.style[ cssPrefix + "perspective" ] = this.level.$attr2attrValue.perspective.curCalcValue + "px";
+    LAID.Part.prototype.$renderFn_width = function () {
+      this.node.style.width = this.level.$attr2attrValue.width.transitionCalcValue + "px";
+      this.$renderFn_position(); //apply change to transform
     };
 
-    LSON.Part.prototype.$renderFn_width = function () {
-      this.node.style.width = this.level.$attr2attrValue.width.curCalcValue + "px";
-      this.$renderFn_left(); //apply change to transform
-    };
-
-    LSON.Part.prototype.$renderFn_height = function () {
-      this.node.style.height = this.level.$attr2attrValue.height.curCalcValue + "px";
-      this.$renderFn_left(); //apply change to transform
+    LAID.Part.prototype.$renderFn_height = function () {
+      this.node.style.height = this.level.$attr2attrValue.height.transitionCalcValue + "px";
+      this.$renderFn_position(); //apply change to transform
     };
 
 
   } else {
-    LSON.Part.prototype.$renderFn_left = renderPositionNonGpuX;
-    LSON.Part.prototype.$renderFn_top = renderPositionNonGpuY;
-    LSON.Part.prototype.$renderFn_shiftX = renderPositionNonGpuX;
-    LSON.Part.prototype.$renderFn_shiftY = renderPositionNonGpuY;
 
-    LSON.Part.prototype.$renderFn_width = function () {
-      this.node.style.width = this.level.$attr2attrValue.width.curCalcValue + "px";
+    LAID.Part.prototype.$renderFn_width = function () {
+      this.node.style.width = this.level.$attr2attrValue.width.transitionCalcValue + "px";
     };
 
-    LSON.Part.prototype.$renderFn_height = function () {
-      this.node.style.height = this.level.$attr2attrValue.height.curCalcValue + "px";
+    LAID.Part.prototype.$renderFn_height = function () {
+      this.node.style.height = this.level.$attr2attrValue.height.transitionCalcValue + "px";
     };
   }
 
-
-
-
-  LSON.Part.prototype.$renderFn_opacity = function () {
-    this.node.style.opacity = this.level.$attr2attrValue.opacity.curCalcValue;
+  // legacy browser usage
+  LAID.Part.prototype.$renderFn_positionX = function () {
+    var attr2attrValue = this.level.$attr2attrValue;
+    this.node.style.left = ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) + "px";
   };
 
-  LSON.Part.prototype.$renderFn_scrollX = function () {
-    this.node.scrollTop = this.level.$attr2attrValue.scrollX.curCalcValue;
+  // legacy browser usage
+  LAID.Part.prototype.$renderFn_positionY = function () {
+    var attr2attrValue = this.level.$attr2attrValue;
+    this.node.style.top = ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) + "px";
   };
 
-  LSON.Part.prototype.$renderFn_scrollY = function () {
-    this.node.scrollLeft = this.level.$attr2attrValue.scrollY.curCalcValue;
+
+  LAID.Part.prototype.$renderFn_position = renderPositionGpu;
+
+  LAID.Part.prototype.$renderFn_origin = function () {
+    var attr2attrValue = this.level.$attr2attrValue;
+    this.node.style[ cssPrefix + "origin" ] =
+    ( attr2attrValue.originX.transitionCalcValue * 100 ) + "% " +
+    ( attr2attrValue.originY.transitionCalcValue * 100 ) + "% " +
+    ( attr2attrValue.originZ.transitionCalcValue * 100 ) + "%";
+    this.$renderFn_position(); //apply change to transform
   };
 
-  LSON.Part.prototype.$renderFn_overflowX = function () {
-    this.node.style.overflowX = this.level.$attr2attrValue.overflowX.curCalcValue;
+
+  LAID.Part.prototype.$renderFn_perspective = function () {
+    this.node.style[ cssPrefix + "perspective" ] = this.level.$attr2attrValue.perspective.transitionCalcValue + "px";
   };
 
-  LSON.Part.prototype.$renderFn_overflowY = function () {
-    this.node.style.overflowY = this.level.$attr2attrValue.overflowY.curCalcValue;
+  LAID.Part.prototype.$renderFn_perspectiveOrigin = function () {
+    var attr2attrValue = this.level.$attr2attrValue;
+    this.node.style[ cssPrefix + "perspective-origin" ] =
+    ( attr2attrValue.perspectiveOriginX.transitionCalcValue * 100 ) + "% " +
+    ( attr2attrValue.perspectiveOriginY.transitionCalcValue * 100 ) + "%";
   };
 
-  LSON.Part.prototype.$renderFn_cursor = function () {
-    this.node.style.cursor = this.level.$attr2attrValue.cursor.curCalcValue;
+
+  LAID.Part.prototype.$renderFn_opacity = function () {
+    this.node.style.opacity = this.level.$attr2attrValue.opacity.transitionCalcValue;
   };
 
-  LSON.Part.prototype.$renderFn_backgroundColor = function () {
-    this.node.style.backgroundColor = convertColorToCss( this.level.$attr2attrValue.backgroundColor.curCalcValue.stringify() );
+  LAID.Part.prototype.$renderFn_scrollX = function () {
+    this.node.scrollTop = this.level.$attr2attrValue.scrollX.transitionCalcValue;
   };
 
-  LSON.Part.prototype.$renderFn_backgroundImage = function () {
-    this.node.style.backgroundImage = this.level.$attr2attrValue.backgroundImage.curCalcValue;
+  LAID.Part.prototype.$renderFn_scrollY = function () {
+    this.node.scrollLeft = this.level.$attr2attrValue.scrollY.transitionCalcValue;
   };
 
-  LSON.Part.prototype.$renderFn_backgroundAttachment = function () {
-    this.node.style.backgroundAttachment = this.level.$attr2attrValue.backgroundAttachment.curCalcValue;
+  LAID.Part.prototype.$renderFn_overflowX = function () {
+    this.node.style.overflowX = this.level.$attr2attrValue.overflowX.transitionCalcValue;
   };
 
-  LSON.Part.prototype.$renderFn_backgroundRepeat = function () {
-    this.node.style.backgroundRepeat = this.level.$attr2attrValue.backgroundColor.curCalcValue;
+  LAID.Part.prototype.$renderFn_overflowY = function () {
+    this.node.style.overflowY = this.level.$attr2attrValue.overflowY.transitionCalcValue;
   };
 
-  LSON.Part.prototype.$renderFn_backgroundSize = function () {
-    this.node.style.backgroundColor = this.level.$attr2attrValue.backgroundSize.curCalcValue;
+  LAID.Part.prototype.$renderFn_cursor = function () {
+    this.node.style.cursor = this.level.$attr2attrValue.cursor.transitionCalcValue;
   };
 
-  LSON.Part.prototype.$renderFn_backgroundPosition = function () {
-    this.node.style.backgroundPosition = this.level.$attr2attrValue.backgroundPosition.curCalcValue;
+  LAID.Part.prototype.$renderFn_backgroundColor = function () {
+    this.node.style.backgroundColor = convertColorToCss( this.level.$attr2attrValue.backgroundColor.transitionCalcValue.stringify() );
   };
 
-  LSON.Part.prototype.$renderFn_boxShadows = function () {
+  LAID.Part.prototype.$renderFn_backgroundImage = function () {
+    this.node.style.backgroundImage = this.level.$attr2attrValue.backgroundImage.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_backgroundAttachment = function () {
+    this.node.style.backgroundAttachment = this.level.$attr2attrValue.backgroundAttachment.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_backgroundRepeat = function () {
+    this.node.style.backgroundRepeat = this.level.$attr2attrValue.backgroundColor.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_backgroundSize = function () {
+    this.node.style.backgroundColor = this.level.$attr2attrValue.backgroundSize.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_backgroundPosition = function () {
+    this.node.style.backgroundPosition = this.level.$attr2attrValue.backgroundPosition.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_boxShadows = function () {
     var boxShadow, i, numBoxShadows, attr2attrValue;
     attr2attrValue = this.level.$attr2attrValue;
     var s="";
     for ( i = 1; i <= len; i++ ) {
       s +=
-      ( attr2attrValue["boxShadow" + i + "Inset" ].curCalcValue ? "inset " : "" ) +
-      ( attr2attrValue["boxShadow" + i + "X" ].curCalcValue + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Y" ].curCalcValue + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Blur" ].curCalcValue + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Spread" ].curCalcValue + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Color" ].curCalcValue.stringify() );
+      ( attr2attrValue["boxShadow" + i + "Inset" ].transitionCalcValue ? "inset " : "" ) +
+      ( attr2attrValue["boxShadow" + i + "X" ].transitionCalcValue + "px " ) +
+      ( attr2attrValue["boxShadow" + i + "Y" ].transitionCalcValue + "px " ) +
+      ( attr2attrValue["boxShadow" + i + "Blur" ].transitionCalcValue + "px " ) +
+      ( ( attr2attrValue["boxShadow" + i + "Spread" ].transitionCalcValue || 0 ) + "px " ) +
+      ( attr2attrValue["boxShadow" + i + "Color" ].transitionCalcValue.stringify() );
 
     }
   };
 
+  LAID.Part.prototype.$renderFn_when = function () {
+
+
+
+  };
 
 
 })();
