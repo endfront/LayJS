@@ -14,11 +14,8 @@
     if ( !isState ) {
       for ( var key in from ) {
 
-        if ( from.hasOwnProperty( key ) ) {
-
-          if ( key2fnInherit.hasOwnPropoperty( key ) ) {
-            key2fnInherit[ key ]( into, from );
-          }
+        if ( from[ key ] !== undefined ) {
+          key2fnInherit[ key ]( into, from );
         }
       }
     } else {
@@ -60,15 +57,12 @@
 
     for ( fromKey in fromKey2value ) {
 
-      if ( fromKey2value.hasOwnProperty( fromKey ) ) {
+      fromKeyValue = fromKey2value[ fromKey ];
 
-        fromKeyValue = fromKey2value[ fromKey ];
+      intoObject[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
+      LAID.$clone( fromKeyValue ) :
+      fromKeyValue;
 
-        intoObject[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
-        LAID.$clone( fromKeyValue ) :
-        fromKeyValue;
-
-      }
     }
   }
 
@@ -80,13 +74,15 @@
 
     type: function( intoLson, fromLson ) {
 
-      intoLson.type =  fromLson.type;
+      if ( fromLson.type !== "none" ) {
+        intoLson.type =  fromLson.type;
+      }
 
     },
 
     inputType : function ( intoLson, fromLson ) {
 
-      intoLson.inputType = fromLson.inputType;
+      intoLson.inputType = fromLson.inputType || intoLson.inputType;
 
     },
     data: function( intoLson, fromLson ) {
@@ -103,9 +99,67 @@
 
     transition: function ( intoLson, fromLson ) {
 
-      inheritSingleLevelObject( intoLson, fromLson, "transition" );
+      var
+      fromTransitionAttr2transitionDirective = fromLson.transition,
+      intoTransitionAttr2transitionDirective = intoLson.transition,
+      fromTransitionAttr,
+      fromTransitionDirective, intoTransitionDirective,
+      fromTransitionArgKey2val,  intoTransitionArgKey2val,
+      fromTransitionArgKey;
+
+
+      if ( ( intoTransitionAttr2transitionDirective === undefined ) ||
+        intoTransitionAttr2transitionDirective.all !== undefined ) {
+        intoTransitionAttr2transitionDirective = intoLson.transition = {};
+      }
+
+
+      for ( fromTransitionAttr in fromTransitionAttr2transitionDirective ) {
+
+        fromTransitionDirective = fromTransitionAttr2transitionDirective[ fromTransitionAttr ];
+        intoTransitionDirective = intoTransitionAttr2transitionDirective[ fromTransitionAttr ];
+
+        
+        if ( intoTransitionDirective === undefined ) {
+          intoTransitionDirective =
+          intoTransitionAttr2transitionDirective[ fromTransitionAttr ] = {};
+        }
+
+        intoTransitionDirective.type = fromTransitionDirective.type ||
+        intoTransitionDirective.type;
+
+        intoTransitionDirective.duration = fromTransitionDirective.duration ||
+        intoTransitionDirective.duration;
+
+        intoTransitionDirective.delay = fromTransitionDirective.delay ||
+        intoTransitionDirective.delay;
+
+        intoTransitionDirective.done = fromTransitionDirective.done ||
+        intoTransitionDirective.done;
+
+        fromTransitionArgKey2val = fromTransitionDirective.args;
+        intoTransitionArgKey2val = intoTransitionDirective.args;
+
+
+        if ( fromTransitionArgKey2val !== undefined ) {
+
+          if ( intoTransitionArgKey2val === undefined ) {
+            intoTransitionArgKey2val =
+            intoTransitionDirective.args = {};
+          }
+
+          for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
+
+            intoTransitionArgKey2val[ fromTransitionArgKey ] =
+            fromTransitionArgKey2val[ fromTransitionArgKey ] ||
+            intoTransitionArgKey2val[ fromTransitionArgKey ];
+          }
+        }
+      }
 
     },
+
+
 
     many: function( intoLson, fromLson ) {
 
@@ -114,8 +168,6 @@
       }
 
       LAID.$inherit( intoLson.many, fromLson.many, false, false );
-
-
 
     },
 
@@ -146,58 +198,57 @@
       fromChildName2lson = fromLson.children;
       intoChildName2lson = intoLson.children;
 
+      if ( intoChildName2lson === undefined ) {
+        intoChildName2lson = intoLson.children = {};
+      }
+
       for ( var name in fromChildName2lson ) {
 
-        if ( fromChildName2lson.hasOwnProperty( name ) ) {
+        if ( intoChildName2lson[ name ] === undefined ) { // inexistent child
 
-          if ( intoChildName2lson[ name ] === undefined ) { // inexistent child
-
-            intoChildName2lson[ name ] = {};
-
-          }
-          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], false, false );
+          intoChildName2lson[ name ] = {};
 
         }
+        LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], false, false );
 
       }
     },
 
     states: function( intoLson, fromLson ) {
 
-      var fromStateName2state, intoStateName2state;
-      fromStateName2state = fromLson.states;
-      intoStateName2state = intoLson.states;
+      var
+      fromStateName2state = fromLson.states,
+      intoStateName2state = intoLson.states,
+      inheritFromState, inheritIntoState;
 
-      var inheritFromState, inheritIntoState;
+      if ( intoStateName2state === undefined ) {
+        intoStateName2state = intoLson.states = {};
+      }
 
       for ( var name in fromStateName2state ) {
 
-        if ( fromStateName2state.hasOwnProperty( name ) ) {
+        if ( !intoStateName2state[ name ] ) { //inexistent state
 
-          if ( !intoStateName2state[ name ] ) { //inexistent state
-
-            intoStateName2state[ name ] = {};
-
-          }
-
-          LAID.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true, false );
+          intoStateName2state[ name ] = {};
 
         }
+
+        LAID.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true, false );
+
       }
     },
 
     when: function( intoLson, fromLson ) {
 
-      var fromEventType2_fnEventHandlerS_, intoEventType2_fnEventHandlerS_,
+
+      var
+      fromEventType2_fnEventHandlerS_ = fromLson.when,
+      intoEventType2_fnEventHandlerS_ = intoLson.when,
       fnFromEventHandlerS, fnIntoEventHandlerS, fromEventType;
 
-      fromEventType2_fnEventHandlerS_ = fromLson.when;
-      intoEventType2_fnEventHandlerS_ = intoLson.when;
 
       if ( intoEventType2_fnEventHandlerS_ === undefined ) {
-
-        intoLson.when = {};
-
+        intoEventType2_fnEventHandlerS_ = intoLson.when = {};
       }
 
       for ( fromEventType in fromEventType2_fnEventHandlerS_ ) {
@@ -207,15 +258,29 @@
 
         if ( fnIntoEventHandlerS === undefined ) {
 
-          intoEventType2_fnEventHandlerS_[ fromEventType ] = Array.prototype.slice.call( fnIntoEventHandlerS );
+          intoEventType2_fnEventHandlerS_[ fromEventType ] = LAID.$arrayUtils.cloneSingleLevel( fnFromEventHandlerS );
 
         } else {
 
-          intoEventType2_fnEventHandlerS_[ fromEventType ] = fnFromEventHandlerS.concat( fnIntoEventHandlerS );
+          intoEventType2_fnEventHandlerS_[ fromEventType ] = fnIntoEventHandlerS.concat( fnFromEventHandlerS );
         }
 
+        LAID.$meta.set( intoLson, "$$num", "when." + fromEventType,
+        ( intoEventType2_fnEventHandlerS_[ fromEventType ] ).length );
+
+
       }
-    }
+    },
+
+    $$keys: function ( intoLson, fromLson ) {
+
+      LAID.$meta.inherit.$$keys( intoLson, fromLson );
+    },
+
+    $$max: function ( intoLson, fromLson ) {
+
+      LAID.$meta.inherit.$$max( intoLson, fromLson );
+    },
 
   };
 

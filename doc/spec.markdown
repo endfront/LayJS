@@ -29,6 +29,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
         "Name": {
 
           type: string,
+          interface: boolean,
           inherits: string | object,
           data: object | array | string | number,
           props: object,
@@ -94,6 +95,10 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
 
 
+### interface
+
+  If set to true, the level will not render.
+  Primary usage for such a level exists during inheritance.
 
 ### inherits
 
@@ -583,6 +588,7 @@ children levels
 
 contains events as keys, and values as a callback function or
 arrays of callback functions (order respected)
+The context of the handler function will be the corresponding Level.
 
 example with a single callback function specified:
 
@@ -631,7 +637,7 @@ To get the LAID.Level:
 LAID.Level methods:
 
   attr( attr ) //gets attr value
-  data( changedData, [, stateTransitionObj ] ) //changes data value
+  data( changedData ) //changes data value
 
 
 
@@ -647,7 +653,7 @@ The same access keys are used as the 2nd argument in LAID.Take
 
   - when.<event><num>
 
-  - transition.<attr>.<duration/delay/done/transition>
+  - transition.<attr>.<duration/delay/done/type>
 
   - transition.<attr>.args.<arg>
 
@@ -658,7 +664,7 @@ The same access keys are used as the 2nd argument in LAID.Take
 
   - <state>.when<event><num>
 
-  - <state>.transition.<attr><duration/delay/done/transition>
+  - <state>.transition.<attr><duration/delay/done/type>
 
   - <state>.transition.<attr>.args.<arg>
 
@@ -1156,32 +1162,57 @@ for grid (note that the width and height cannot be used effectively for a grid)
 
 ### State Transition Object
 
-{
+Transitions for numeric prop-typed attributes.
 
-  all: { duration: 100, transition: "spring", args: { tension: 100 } },
-  left: { duration: 200},
-  top: { delay: 500 },
-  opacity: { duration:2000, done: function(){ console.log("opaque") }  }
+  {
 
-}
+    all: { duration: 100, transition: "linear", args: { tension: 100 } },
+    gpu: { transition: "spring" },
+    left: { duration: 200},
+    top: { delay: 500 },
+    opacity: { duration:2000, done: function(){ console.log("opaque") }  }
 
-Each key in the state transition object except for "all" and "props" refer to an attribute.
-The key is an object with 3 possible keys:
-    (i) transition ( type of transition )
+  }
+
+Each key in the state transition object except for "all" and "gpu" refer to a prop-typed attribute.
+The key refers to an object with 5 possible keys:
+    (i) type ( type of transition )
     (ii) duration ( of the transition )
     (iii) delay ( till the start of the transition )
     (iv) done ( function handler executed at the end of the transition )
     (v) args ( additional args )
 
-"all" secludes prop-typed attributes
-Non prop-typed attributes can also be transitioned, eg: data and transition.
+The key "all" refers to all prop-typed attributes.
+The key "gpu" refers to the following gpu related prop-typed attributes:
+  - opacity
+  - left
+  - centerX
+  - right
+  - top
+  - centerY
+  - bottom
+  - z
+  - shiftX
+  - shiftY
+  - scaleX
+  - scaleY
+  - rotateX
+  - rotateY
+  - rotateZ
+  - skewX
+  - skewY
+
+Using "gpu" (exclusively) for transitions is highly recommended for
+better performance via bypassing GPU uploads.
+
+
 
 An attribute can be of 2 types:
 
   (1) Transitionable
     Any numeric attribute can be transitioned.
   (2) Non-transitionable
-    Non numeric attributes such as textFamily (font fmaily) are non transitionable.
+    Non numeric attributes such as textFamily (font family) are non transitionable.
 Upon transition, the duration value for its transition will be ignored, and the
 new value will come into effect immediately. If a delay is required, the delay
 key can be specified with a duration, implying that the value will come into

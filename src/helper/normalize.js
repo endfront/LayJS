@@ -3,7 +3,12 @@
 
   var normalizedExternalLsonS = [];
 
-
+  /*
+  * Rules of a state name:
+  * (1) Must only contain alphanumeric characters, the underscore ("_"), or the hyphen ("-")
+  * (2) Must contain atleast one character
+  * (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
+  */
   function checkIsValidStateName( stateName ) {
 
     return ( ( /^[\w\-]+$/ ).test( stateName ) ) && ( ( [ "root", "transition", "data", "when", "state" ] ).indexOf( stateName ) === -1 );
@@ -33,13 +38,13 @@
     var rootProp2val, stateProp2val, stateName2state, stateName,
     multipleTypeProp, multipleTypePropNumName;
 
-    attr2fnNormalize.type( lson );
-    attr2fnNormalize.inherits( lson );
-    attr2fnNormalize.props( lson );
-    attr2fnNormalize.transition( lson );
-    attr2fnNormalize.when( lson );
-    attr2fnNormalize.many( lson );
-    attr2fnNormalize.states( lson );
+    key2fnNormalize.type( lson );
+    key2fnNormalize.inherits( lson );
+    key2fnNormalize.props( lson );
+    key2fnNormalize.transition( lson );
+    key2fnNormalize.when( lson );
+    key2fnNormalize.many( lson );
+    key2fnNormalize.states( lson );
 
 
     rootProp2val = lson.props;
@@ -49,344 +54,323 @@
     rootProp2val.centerY = takeTopToCenterY;
     rootProp2val.bottom = takeTopToBottom;
 
-    // Find the multiple-type prop highest number for
-    // each multiple-type prop
 
-    for ( multipleTypeProp in multipleTypeProp2multipleTypePropRegex ) {
-      if ( multipleTypeProp2multipleTypePropRegex.hasOwnProperty( multipleTypeProp ) ) {
 
-        rootProp2val[ LAID.$generateMultipleTypePropNumName( multipleTypeProp ) ] =
-        findHighestMultipleTypePropNum( multipleTypeProp, rootProp2val );
 
-      }
+
+
+    // Recurse to normalize children
+
+    if ( isRecursive ) {
+
+      key2fnNormalize.children( lson );
+
     }
-
-    stateName2state = lson.states;
-    for ( stateName in stateName2state ) {
-      if ( stateName2state.hasOwnProperty( stateName ) ) {
-        stateProp2val = stateName2state[ stateName ].props;
-        for ( multipleTypeProp in multipleTypeProp2multipleTypePropRegex ) {
-          if ( multipleTypeProp2multipleTypePropRegex.hasOwnProperty( multipleTypeProp ) ) {
-
-            multipleTypePropNumName = LAID.$generateMultipleTypePropNumName( multipleTypeProp );
-            rootProp2val[ multipleTypePropNumName ] =
-            Math.max( rootProp2val[ multipleTypePropNumName ],
-              findHighestMultipleTypePropNum( multipleTypeProp, stateProp2val ) );
-
-            }
-          }
-        }
-      }
+  }
 
 
-      // Recurse to normalize children
 
-      if ( isRecursive ) {
 
-        attr2fnNormalize.children( lson );
-
-      }
+  function checkAndThrowErrorAttrAsTake ( name, val ) {
+    if ( val instanceof LAID.Take ) {
+      throw ( "LAID Error: takes for special/expander props such as '" + name  + "' are not permitted." );
     }
+  }
 
 
 
 
-    function checkAndThrowErrorAttrAsTake ( name, val ) {
-      if ( val instanceof LAID.Take ) {
-        throw ( "LAID Error: takes for special/expander props such as '" + name  + "' are not permitted." );
+  var defaulterProp2_defaultedPropS_ = {
+
+    borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
+    borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
+    borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
+    textPadding: [ "textTopPadding", "textRightPadding", "textBottomPadding", "textLeftPadding" ],
+    cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ],
+
+  };
+
+  var multipleTypeProp2multipleTypePropRegex = {
+
+    filters: /^filters(\d+)/,
+    boxShadows: /^boxShadows(\d+)/,
+    textShadows: /^textShadows(\d+)/,
+    audioTracks: /^audioTracks(\d+)/,
+    videoTracks: /^videoTracks(\d+)/,
+    audioSources: /^audioSources(\d+)/,
+    videoSources: /^videoSources(\d+)/
+
+  };
+
+  /*
+  * Recursively flatten the prop if object or array typed
+  */
+  function flattenProp( lson, obj, key, prefix ) {
+
+    var val, type;
+    val = obj[ key ];
+    type = LAID.type( val );
+
+    if ( type === "Array" ) {
+
+      for ( var i = 0, len = val.length; i < length; i++ ) {
+        flattenedAttr = prefix + i;
+        flattenProp( lson,  val[ i ], flattenedAttr );
       }
-    }
+      obj[ key ] = undefined;
 
+    } else if ( type === "Object" && !( val instanceof LAID.Color ) && !( val instanceof LAID.Take ) ) {
 
-    var expanderProp2_expandedPropS_ = {
+      for ( var subKey in val ) {
 
-      borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
-      borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
-      borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
-      textPadding: [ "textTopPadding", "textRightPadding", "textBottomPadding", "textLeftPadding" ],
-      cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ],
+        flattenedProp = prop + LAID.$capitalize( subKey );
+        flattenProp( lson,  val[ subKey ], flattenedAttr );
 
-    };
-
-    var multipleTypeProp2multipleTypePropRegex = {
-
-      filters: /^filters(\d+)/,
-      boxShadows: /^boxShadows(\d+)/,
-      textShadows: /^textShadows(\d+)/,
-      audioTracks: /^audioTracks(\d+)/,
-      videoTracks: /^videoTracks(\d+)/,
-      audioSources: /^audioSources(\d+)/,
-      videoSources: /^videoSources(\d+)/
-
-    };
-
-    /*
-    * Recursively flatten the prop if object or array typed
-    */
-    function flattenProp( lson, obj, key, prefix ) {
-
-      var val, type;
-      val = obj[ key ];
-      type = LAID.type( val );
-
-      if ( type === "Array" ) {
-
-        for ( var i = 0, len = val.length; i < length; i++ ) {
-          flattenedAttr = prefix + i;
-          flattenAttr( lson,  val[ i ], flattenedAttr );
-        }
         obj[ key ] = undefined;
+      }
 
-      } else if ( type === "Object" && !( val instanceof LAID.Color ) && !( val instanceof LAID.Take ) ) {
+    } else {
 
-        for ( var subKey in val ) {
+      if ( LAID.$checkIsExpanderAttr( prefix ) ) {
+        checkAndThrowErrorAttrAsTake( prefix, val );
+      }
 
-          if ( val.hasOwnProperty( subKey ) ) {
+      lson[ prefix ] = val;
 
-            flattenedProp = prop + LAID.$capitalize( subKey );
-            flattenAttr( lson,  val[ subKey ], flattenedAttr );
+    }
+  }
 
-          }
-          obj[ key ] = undefined;
-        }
+  /*
+  Given a dictionary of `props`, find the highest prop number mentioend
+  of the multiple-typed-prop `multipleTypeProp`
+  */
+  function findMaxMultipleTypePropNum( multipleTypeProp, prop2val ) {
 
-      } else {
-
-        if ( LAID.$checkIsExpanderAttr( prefix ) ) {
-          checkAndThrowErrorAttrAsTake( prefix, val );
-        }
-
-        lson[ prefix ] = val;
-
+    var prop, multipleTypePropRegex, multipleTypePropRegexMatch, max;
+    max = 0;
+    multipleTypePropRegex = multipleTypeProp2multipleTypePropRegex[ multipleTypeProp ];
+    for ( prop in prop2val ) {
+      multipleTypePropRegexMatch = prop.match( multipleTypePropRegex );
+      if ( multipleTypePropRegexMatch !== null ) {
+        max = Math.max( max, parseInt( multipleTypePropRegexMatch[ 1 ] ) );
       }
     }
+    return max;
+  }
+
+
+  var allTypeProp2defaultValue = {
+    width: new LAID.Take( "this", "$naturalWidth" ),
+    height: new LAID.Take( "this", "$naturalHeight" ),
+    top: 0,
+    left: 0,
+    z: 0,
+    originX:0.5,
+    originY:0.5,
+    originZ: 0,
+    shiftX: 0,
+    shiftY: 0,
+    rotateX:0,
+    rotateY:0,
+    rotateZ:0,
+    scaleX:0,
+    scaleY:0,
+    scaleZ:0,
+    skewX:0,
+    skewY:0
+  };
+
+
+
+
+  var fnCenterToPos = function( center, width ) {
+    return center - ( width / 2 );
+  };
+
+  var fnEdgeToPos = function( edge, width ) {
+    return center - ( width );
+  };
+
+  var fnPosToCenter = function( pos, width ) {
+    return pos + ( width / 2 );
+  };
+
+  var fnPosToEdge = function( pos, width ) {
+    return pos + ( width );
+  };
+
+
+  var takeLeft = new LAID.Take( "this", "left" );
+  var takeWidth = new LAID.Take( "this", "width" );
+  var takeTop = new LAID.Take( "this", "top" );
+  var takeHeight = new LAID.Take( "this", "height" );
+
+
+  var takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
+  var takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
+  var takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
+  var takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+
+
+
+
+
+  var key2fnNormalize = {
+    type: function ( lson ) {
+
+      checkAndThrowErrorAttrAsTake( "type", lson.type );
+
+      if ( lson.type === undefined ) {
+        // check if text type
+        var isTextType = false;
+        if ( lson.props.text !== undefined ) {
+          isTextType = true;
+        } else {
+          var stateName, stateName2state;
+          stateName2state = lson.states;
+          if ( stateName2state !== undefined ) {
+            for ( stateName in stateName2state ) {
+              if ( stateName2state[ stateName ].props.text !== undefined ) {
+                isTextType = true;
+                break;
+              }
+            }
+          }
+        }
+        lson.type = isTextType ? "text" : "none";
+      }
+      var type = lson.type;
+      if ( type.startsWith( "input" ) ) {
+        lson.type = "input";
+        lson.inputType = type.slice("input:".length);
+      }
+
+    },
+
+    inherits: function ( lson ) {
+
+      checkAndThrowErrorAttrAsTake( "inherits", lson.inherits );
+
+    },
+
+    interface: function ( lson ) {
+
+      checkAndThrowErrorAttrAsTake( "interface", lson.interface );
+
+    },
 
     /*
-    Given a dictionary of `props`, find the highest prop number mentioend
-    of the multiple-typed-prop `multipleTypeProp`
+    * normalize the `lson`
     */
-    function findHighestMultipleTypePropNum( multipleTypeProp, prop2val ) {
+    props: function( lson ) {
 
-      var prop, multipleTypePropRegex, multipleTypePropRegexMatch, highest;
-      highest = 0;
-      multipleTypePropRegex = multipleTypeProp2multipleTypePropRegex[ multipleTypeProp ];
+      if ( lson.props === undefined ) {
+
+        lson.props = {};
+
+      }
+
+      var prop2val = lson.props;
+      checkAndThrowErrorAttrAsTake( "props", lson.props );
+
+
+      if ( prop2val.centerX ) {
+
+        prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerX, takeWidth );
+
+      }
+
+      if ( prop2val.right ) {
+
+        prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.right, takeWidth );
+
+      }
+
+      if ( prop2val.centerY ) {
+
+        prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerY, takeHeight );
+
+
+      }
+
+      if ( prop2val.bottom ) {
+
+        prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.bottom, takeHeight );
+
+      }
+
+
+      var prop, val;
       for ( prop in prop2val ) {
-        if ( prop2val.hasOwnProperty( prop ) ) {
-          multipleTypePropRegexMatch = prop.match( multipleTypePropRegex );
-          if ( multipleTypePropRegexMatch !== null ) {
-            highest = Math.max( highest, parseInt( multipleTypePropRegexMatch[ 1 ] ) );
+        flattenProp( lson, prop2val, prop, prop, true );
+      }
+
+
+      var defaulterProp, defaulterVal, defaultedPropS, defaultedProp;
+      for ( defaulterProp in defaulterProp2_defaultedPropS_ ) {
+
+        defaulterVal = prop2val[ defaulterProp ];
+        if ( defaulterVal !== undefined ) {
+
+          defaultedPropS = defaulterProp2_defaultedPropS_[ defaulterProp ];
+          for ( var i = 0, len = defaultedPropS.length; i < len; i++ ) {
+
+            defaultedProp = defaultedPropS[ i ];
+            // Only change if the property does not exist as yet
+            // to prevent overwriting of "specefic" prop-keys
+            if ( prop2val[ defaultedProp ] === undefined ) {
+
+              prop2val[ defaultedProp ] = defaulterVal;
+
+            }
           }
         }
       }
-      return highest;
-    }
-
-
-    var allTypeProp2defaultValue = {
-      width: new LAID.Take( "this", "$naturalWidth" ),
-      height: new LAID.Take( "this", "$naturalHeight" ),
-      top: 0,
-      left: 0,
-      z: 0,
-      originX:0.5,
-      originY:0.5,
-      originZ: 0,
-      shiftX: 0,
-      shiftY: 0,
-      rotateX:0,
-      rotateY:0,
-      rotateZ:0,
-      scaleX:0,
-      scaleY:0,
-      scaleZ:0,
-      skewX:0,
-      skewY:0
-    };
 
 
 
+      /* Filling in the defaults here */
+      var allTypeProp, typeProp2defaultValue, typeProp;
 
-    var fnCenterToPos = function( center, width ) {
-      return center - ( width / 2 );
-    };
-
-    var fnEdgeToPos = function( edge, width ) {
-      return center - ( width );
-    };
-
-    var fnPosToCenter = function( pos, width ) {
-      return pos + ( width / 2 );
-    };
-
-    var fnPosToEdge = function( pos, width ) {
-      return pos + ( width );
-    };
-
-
-    var takeLeft = new LAID.Take( "this", "left" );
-    var takeWidth = new LAID.Take( "this", "width" );
-    var takeTop = new LAID.Take( "this", "top" );
-    var takeHeight = new LAID.Take( "this", "height" );
-
-
-    var takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
-    var takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
-    var takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
-    var takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
-
-
-
-
-
-    var attr2fnNormalize = {
-      type: function ( lson ) {
-
-        checkAndThrowErrorAttrAsTake( "type", lson.type );
-
-        if ( lson.type === undefined ) {
-          // check if text type
-          var isTextType = false;
-          if ( lson.props.text !== undefined ) {
-            isTextType = true;
-          } else {
-            var stateName, stateName2state;
-            stateName2state = lson.states;
-            for ( stateName in stateName2state ) {
-              if ( stateName2state.hasOwnProperty( stateName ) ) {
-                if ( stateName2state[ stateName ].props.text !== undefined ) {
-                  isTextType = true;
-                  break;
-                }
-              }
-            }
-          }
-          lson.type = isTextType ? "text" : "none";
+      for ( allTypeProp in allTypeProp2defaultValue ) {
+        if ( prop2val[ allTypeProp ] === undefined ) {
+          prop2val[ allTypeProp ] = allTypeProp2defaultValue[ allTypeProp ];
         }
-        var type = lson.type;
-        if ( type.startsWith( "input" ) ) {
-          lson.type = "input";
-          lson.inputType = type.slice("input:".length);
+      }
+
+      var multipleTypeProp, maxMultipleTypePropNum;
+      for ( multipleTypeProp in multipleTypeProp2multipleTypePropRegex ) {
+        maxMultipleTypePropNum = findMaxMultipleTypePropNum( multipleTypeProp, prop2val );
+        if ( maxMultipleTypePropNum !== 0 ) {
+          LAID.$meta.set( lson, "max", multipleTypeProp, maxMultipleTypePropNum );
         }
-
-      },
-
-      inherits: function ( lson ) {
-
-        checkAndThrowErrorAttrAsTake( "inherits", lson.inherits );
-
-
-      },
-
-
+      }
       /*
-      * normalize the `lson`
-      */
-      props: function( lson ) {
-
-        var prop2val = lson.props;
-
-        checkAndThrowErrorAttrAsTake( "props", lson.props );
-
-
-        if ( prop2val === undefined ) {
-
-          lson.props = {};
-          prop2val = lson.props;
-
-        }
-
-        if ( prop2val.centerX ) {
-
-          prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerX, takeWidth );
-
-        }
-
-        if ( prop2val.right ) {
-
-          prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.right, takeWidth );
-
-        }
-
-        if ( prop2val.centerY ) {
-
-          prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerY, takeHeight );
-
-
-        }
-
-        if ( prop2val.bottom ) {
-
-          prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.bottom, takeHeight );
-
-        }
-
-
-        var prop, val;
-        for ( prop in prop2val ) {
-          if ( prop2val.hasOwnProperty( prop ) ) {
-
-            flattenProp( lson, prop2val, prop, prop, true );
-          }
-        }
-
-
-        var expanderProp, expanderVal, expandedPropS, expandedProp;
-        for ( expanderProp in expanderProp2expandedPropS ) {
-
-          if ( expanderProp2expandedPropS.hasOwnProperty( expanderProp ) ) {
-
-            expanderVal = prop2val[ expanderProp ];
-            if ( expanderVal !== undefined ) {
-
-              expandedPropS = expanderProp2expandedPropS[ expanderProp ];
-              for ( var i = 0, len = expandedPropS.length; i < len; i++ ) {
-
-                expandedProp = expandedPropS[ i ];
-                // Only change if the property does not exist as yet
-                // to prevent overwriting of "specefic" prop-keys
-                if ( prop2val[ expandedProp ] === undefined ) {
-
-                  prop2val[ expandedProp ] = expanderVal;
-
-                }
-              }
-            }
-          }
-        }
-
-
-
-        /* Filling in the defaults here */
-        var allTypeProp, typeProp2defaultValue, typeProp;
-
-        for ( allTypeProp in allTypeProp2defaultValue ) {
-          if ( ( allTypeProp2defaultValue.hasOwnProperty( allTypeProp ) ) && ( prop2val[ allTypeProp ] === undefined ) ) {
-            prop2val[ allTypeProp ] = allTypeProp2defaultValue[ allTypeProp ];
-          }
-        }
-        /*
-        typeProp2defaultValue = type2_typeProp2defaultValue_[ lson.type ];
-        if ( typeProp2defaultValue !== undefined ) {
-        for ( typeProp in typeProp2defaultValue ) {
-        if ( ( typeProp2defaultValue.hasOwnProperty( typeProp ) ) && ( prop2val[ typeProp ] === undefined ) ) {
-        prop2val[ typeProp ] = typeProp2defaultValue[ typeProp ];
-      }
+      typeProp2defaultValue = type2_typeProp2defaultValue_[ lson.type ];
+      if ( typeProp2defaultValue !== undefined ) {
+      for ( typeProp in typeProp2defaultValue ) {
+      if ( ( prop2val[ typeProp ] === undefined ) ) {
+      prop2val[ typeProp ] = typeProp2defaultValue[ typeProp ];
     }
-  }*/
+  }
+}*/
 
 },
 
 when: function ( lson ) {
 
-  checkAndThrowErrorAttrAsTake( "when", lson.when );
+  // TODO: fix this unicorn
+  if ( lson.when !== undefined ) {
 
-  var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
+    checkAndThrowErrorAttrAsTake( "when", lson.when );
 
-  for ( eventType in eventType2_fnCallbackS_ ) {
-    if ( eventType2_fnCallbackS_.hasOwnProperty( eventType ) ) {
+    var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
+
+    for ( eventType in eventType2_fnCallbackS_ ) {
       fnCallbackS = eventType2_fnCallbackS_[ eventType ];
       checkAndThrowErrorAttrAsTake( "when." + eventType,
       fnCallbackS );
+      LAID.$meta.set( lson, "$$num", "when." + eventType, fnCallbackS.length );
 
     }
   }
@@ -399,11 +383,9 @@ var key2value = lson.data;
 
 for ( var key in key2value ) {
 
-if ( key2value.hasOwnProperty( key ) ) {
 
 if ()
 
-}
 }
 
 
@@ -411,29 +393,69 @@ if ()
 */
 
 transition: function( lson ) {
-  var transitionAttr2transitionDirective, transitionAttr, transitionDirective;
-  transitionAttr2transitionDirective = lson.transition;
-  if ( transitionAttr2transitionDirective !== undefined ) {
-    checkAndThrowErrortransitionAttrAsTake( "transition", lson.transition );
 
-    for ( transitionAttr in transitionAttr2transitionDirective ) {
-      if ( transitionAttr2transitionDirective.hasOwnProperty( transitionAttr ) ) {
+  if ( lson.transition !== undefined ) {
 
+
+    var transitionAttr, transitionDirective,
+    transitionArgKey2val, transitionArgKey, transitionArgKeyS,
+    transitionAttr2transitionDirective = lson.transition,
+    defaulterProp, defaultedPropS, i, len;
+
+    if ( transitionAttr2transitionDirective !== undefined ) {
+      checkAndThrowErrortransitionAttrAsTake( "transition", lson.transition );
+
+      if ( transitionAttr2transitionDirective.centerX !== undefined ) {
+          transitionAttr2transitionDirective.left =
+          transitionAttr2transitionDirective.centerX;
+      }
+      if ( transitionAttr2transitionDirective.right !== undefined ) {
+        transitionAttr2transitionDirective.left =
+        transitionAttr2transitionDirective.right;
+      }
+      if ( transitionAttr2transitionDirective.centerY !== undefined ) {
+        transitionAttr2transitionDirective.top =
+        transitionAttr2transitionDirective.centerY;
+      }
+      if ( transitionAttr2transitionDirective.bottom !== undefined ) {
+        transitionAttr2transitionDirective.top =
+        transitionAttr2transitionDirective.bottom;
+      }
+
+
+      for ( defaulterProp in defaulterProp2_defaultedPropS_ ) {
+          if ( transitionAttr2transitionDirective[ defaulterProp ] !== undefined ) {
+            defaultedPropS = defaulterProp2_defaultedPropS_[ defaulterProp ];
+            for ( i = 0, len = defaultedPropS.length; i < len; i++ ) {
+              transitionAttr2transitionDirective[ defaultedPropS[ i ] ] =
+              transitionAttr2transitionDirective[ defaulterProp ];
+            }
+          }
+      }
+      
+
+
+
+      for ( transitionAttr in transitionAttr2transitionDirective ) {
+        if ( LAID.$checkIsExpanderAttr( transitionAttr ) ) {
+          throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
+        }
         transitionDirective = transitionAttr2transitionDirective[ transitionAttr ];
         checkAndThrowErrortransitionAttrAsTake( "transition." + transitionAttr,
         transitionDirective  );
 
-        if ( transitionDirective.args !== undefined ) {
+        transitionArgKey2val = transitionDirective.args;
+        if ( transitionArgKey2val !== undefined ) {
 
           checkAndThrowErrortransitionAttrAsTake( "transition." + transitionAttr + ".args",
-          transitionDirective.args  );
+          transitionArgKey2val  );
 
-
-
-
+          transitionArgKeyS = [];
+          for ( transitionArgKey in transitionArgKey2val ) {
+              transitionArgKeyS.push( transitionArgKey );
+          }
+          LAID.$meta.set( lson, "keys", "transition." + transitionAttr, transitionArgKeyS );
         }
-
-
       }
     }
   }
@@ -441,16 +463,17 @@ transition: function( lson ) {
 
 many: function ( lson ) {
 
-  var many = lson.many;
-  if ( many !== undefined ) {
+  if ( lson.many !== undefined ) {
+    var many = lson.many;
     checkAndThrowErrorAttrAsTake( "many", many );
 
-    attr2fnNormalize.inherits( many );
-    attr2fnNormalize.props( many );
-    attr2fnNormalize.transition( many );
-    //attr2fnNormalize.when( many );
-    attr2fnNormalize.states( many );
+    key2fnNormalize.inherits( many );
+    key2fnNormalize.props( many );
+    key2fnNormalize.transition( many );
+    //key2fnNormalize.when( many );
+    key2fnNormalize.states( many );
 
+    //TODO: rows
 
 
   }
@@ -461,29 +484,26 @@ many: function ( lson ) {
 
 states: function( lson ) {
 
-  var stateName2state = lson.states, state;
-  if ( stateName2state !== undefined ) {
-    if ( stateName2state instanceof LAID.Take ) {
-      return errorAttrAsTake( "states" );
-    }
+  if ( lson.states !== undefined ) {
+
+
+    var stateName2state = lson.states, state;
+    checkAndThrowErrorAttrAsTake( "states",  stateName2state );
+
     for ( var stateName in stateName2state ) {
 
-      if ( stateName2state.hasOwnProperty( stateName ) ) {
-
-        if ( !checkIsValidStateName( stateName ) ) {
-          throw ( "LAID Error: Invalid state name: " + stateName );
-        }
-
-        state = stateName2state[ stateName ];
-
-        if ( stateName2state instanceof LAID.Take ) {
-          return errorAttrAsTake( "states" );
-        }
-        attr2fnNormalize.props( state );
-        attr2fnNormalize.when( state );
-        attr2fnNormalize.transition( state );
-
+      if ( !checkIsValidStateName( stateName ) ) {
+        throw ( "LAID Error: Invalid state name: " + stateName );
       }
+
+      state = stateName2state[ stateName ];
+
+      checkAndThrowErrorAttrAsTake( "states." + stateName, state );
+
+      key2fnNormalize.props( state );
+      key2fnNormalize.when( state );
+      key2fnNormalize.transition( state );
+
     }
   }
 },
@@ -491,17 +511,16 @@ states: function( lson ) {
 
 children: function( lson ) {
 
-  var childName2childLson = lson.children;
-  if ( childName2childLson !== undefined ) {
+  if ( lson.children !== undefined ) {
+
+
+    var childName2childLson = lson.children;
 
     for ( var childName in childName2childLson ) {
-
-      if ( childName2childLson.hasOwnProperty( childName ) ) {
 
         _normalize( childName2childLson[ childName ], true );
 
       }
-    }
   }
 }
 };

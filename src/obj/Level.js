@@ -6,7 +6,7 @@
     return ( /^[\w\-]+$/ ).test( levelName );
   }
 
-  LAID.Level = function ( path, lson, clogKey, parent ) {
+  LAID.Level = function ( path, lson, parent ) {
 
     this.path = path;
     this.parent = parent; // parent Level
@@ -32,644 +32,727 @@
     // a reference to that Many object
     this.$derivedMany = undefined;
 
-
     this.$lson = lson;
-    this.$isInherited = false;
-    this.$dirtyAttrS = [];
     this.$attr2attrValue = {};
-    this.$isStateUpdating = false;
-    this.$stateS = [];
-    // alphabetical order state sort dict?
-    this.$stringHashedStates2_cachedAttr2val_ = {};
 
-    if ( lson.children !== undefined ) {
-      this.addChildren( lson.children, clogKey );
-    }
+
+    this.recalculateDirtyAttrValueS = [];
+    this.renderDirtyAttrValueS = [];
+
+    this.$stateS = [];
+    this.$stringHashedStates2_cachedAttr2val_ =  {};
+
+    this.$whenEventType2fnMainHandler = {};
+
+
+
 
   };
 
 
 
-  LAID.Level.prototype.addChildren = function ( name2lson, clogKey ) {
+  LAID.Level.prototype.init = function () {
 
-    if ( clogKey === undefined ) {
+    LAID.$path2level[ this.path ] = this;
 
-      clogKey = ++LAID.$curClogKey;
-      LAID.$clogKey2_levelS_[ clogKey ] = [];
+    if ( !LAID.$isClogged ) {
+      LAID.$newLevelS.push( this );
+      if ( !LAID.$isSolvingNewLevels ) {
+        LAID.$solveForNew();
+      }
 
+    } else {
+      LAID.$cloggedLevelS.push( this );
     }
 
-    var childPath, childLevel;
-    for ( var name in name2lson ) {
+  };
 
-      if ( name2lson.hasOwnProperty( name ) ) {
+  LAID.Level.prototype.addChildren = function ( name2lson ) {
+
+    var childPath, childLevel;
+    if ( name2lson !== undefined ) {
+      for ( var name in name2lson ) {
 
         if ( !checkIsValidLevelName( name ) ) {
           throw ( "LAID Error: Invalid Level Name: " + name );
         }
 
         childPath = this.path + '/' + name;
-        childLevel = new LAID.Level( childPath, name2lson[ name ], clogKey, this );
-        LAID.$path2level[ childPath ] = childLevel;
-        LAID.$clogKey2_levelS_[ clogKey ].push( childLevel );
+        if ( LAID.$path2level[ childPath ] !== undefined ) {
+          throw ( "LAID Error: Level already exists with path: " + childPath );
+        }
+        ( new LAID.Level( childPath, name2lson[ name ], this ) ).init();
 
       }
     }
 
   };
 
-  LAID.Level.prototype.$inherit = function() {
 
 
-    if ( !this.$isInherited ) {
-      LAID.$normalize( lson, false );
-      if ( this.$lson.inherits === undefined ) { // does not contain anything to inherit from
+  /*
+  * Return false if the level could not be inherited (due
+  * to another level not being present or started as yet)
+  * Else add the level's children to the tree and return true
+  */
+  LAID.Level.prototype.$inheritAndReproduce = function () {
 
-        this.$isInherited = true;
+    var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
 
-      } else {
-        var lson = {};
-        var refS = this.$lson.inherits;
-        for ( var i = 0, len = refS.length, ref, level, inheritedAndNormalizedLson; i < len; i++ ) {
+    LAID.$normalize( lson, false );
+    if ( this.$lson.inherits !== undefined ) { // does not contain anything to inherit from
 
-          ref = refS[ i ];
-          if ( typeof ref === "string" ) { // pathname reference
+      lson = { type: "none" };
+      refS = this.$lson.inherits;
+      for ( i = 0, len = refS.length; i < len; i++ ) {
 
-            level = ( new LAID.Path( ref ) ).resolve( this );
-            if ( !level.$inherited ) {
+        ref = refS[ i ];
+        if ( typeof ref === "string" ) { // pathname reference
 
-              level.$inherit();
+          level = ( new LAID.Path( ref ) ).resolve( this );
+          if ( level === undefined || !level.$isStarted ) {
 
-            }
-
-            inheritedAndNormalizedLson = level.lson;
-
-          } else { // object reference
-
-            inheritedAndNormalizedLson = LAID.$normalize( ref, true );
+            return false;
 
           }
+        }
+      }
+      for ( i = 0; i < len; i++ ) {
 
-          LAID.$inherit( lson, inheritedAndNormalizedLson, false, false );
+        ref = refS[ i ];
+        if ( typeof ref === "string" ) { // pathname reference
+
+          level = ( new LAID.Path( ref ) ).resolve( this );
+
+
+          inheritedAndNormalizedLson = level.$lson;
+
+        } else { // object reference
+
+          inheritedAndNormalizedLson = LAID.$normalize( ref, true );
 
         }
-        LAID.$inherit( lson, this.$lson, false, false );
-        this.$lson = lson;
+
+        LAID.$inherit( lson, inheritedAndNormalizedLson, false, false );
+
       }
+
+      LAID.$inherit( lson, this.$lson, false, false );
+      this.$lson = lson;
     }
+
+
+
+    if ( this.$lson.children !== undefined ) {
+      this.addChildren( $lson.children );
+    }
+
+    return true;
+
   };
 
 
 
-  LAID.Level.prototype.$initAttrsObj = function ( attrPrefix, key2val ) {
+  function initAttrsObj( attrPrefix, key2val, attr2val ) {
 
     var key, val;
 
     for ( key in key2val ) {
 
-      if ( key2val.hasOwnProperty( key ) ) {
+      attr2val[ attrPrefix + key ] = key2val[ key ];
 
-        val = key2val[ key ];
-
-        this.$initAttr( attrPrefix + key, elementS[ i ] );
-
-      }
     }
-  };
+  }
 
-  LAID.Level.prototype.$initAttrsArray = function ( attrPrefix, elementS ) {
+  function initAttrsArray( attrPrefix, elementS, attr2val ) {
 
     var i, len;
 
     for ( i = 0, len = attrS.length ; i < len; i++ ) {
 
-      this.$initAttr( attrPrefix + i, elementS[ i ] );
+      attr2val[ attrPrefix + i ] = elementS[ i ];
 
     }
+  }
+
+  /* Flatten the slson to attr2val dict */
+  function convertSLSONtoAttr2Val( slson, attr2val, statePrefix, isRootState ) {
+
+    var prop,
+    transitionAttr, transitionDirective,
+    transitionAttrPrefix,
+    eventType, fnCallbackS,
+    prop2val = slson.props,
+    eventType2fnCallbackS = slson.when,
+    transitionAttr2directive = slson.transition,
+    i, len;
+
+
+    initAttrsObj( statePrefix, slson.props, attr2val );
+
+    for ( transitionAttr in transitionAttr2directive ) {
+      transitionDirective = transition[ transitionAttr ];
+      transitionAttrPrefix = statePrefix + "transition." + transitionAttr + ".";
+      if ( transitionDirective.type !== undefined ) {
+        attr2val[ transitionAttrPrefix + "type" ] = transitionDirective.type;
+      }
+      if ( transitionDirective.duration !== undefined ) {
+        attr2val[ transitionAttrPrefix + "duration" ] = transitionDirective.duration;
+      }
+      if ( transitionDirective.delay !== undefined ) {
+        attr2val[ transitionAttrPrefix + "delay" ] = transitionDirective.delay;
+      }
+      if ( transitionDirective.done !== undefined ) {
+        attr2val[ transitionAttrPrefix + "done" ] = transitionDirective.done;
+      }
+      if ( transitionDirective.args !== undefined ) {
+        initAttrsObj( transitionAttrPrefix, transitionDirective.args, attr2val );
+      }
+    }
+
+    for ( eventType in eventType2fnCallbackS ) {
+      fnCallbackS = eventType2fnCallbackS[ eventType ];
+      initAttrsArray( statePrefix + "when." + eventType, fnCallbackS, attr2val );
+    }
+
+    if ( slson.$$num !== undefined ) {
+      initAttrsObj( statePrefix + "$$num.", slson.$$num, attr2val );
+    }
+
+    if ( slson.$$max !== undefined ) {
+      initAttrsObj( statePrefix + "$$max.", slson.$$max, attr2val );
+    }
+
+    if ( slson.$$keys !== undefined ) {
+      initAttrsObj( statePrefix + "$$keys.", slson.$$keys, attr2val );
+    }
+
+
+
+    if ( !isRootState ) {
+      attr2val[ statePrefix + "onlyif" ] = slson.onlyif;
+      attr2val[ statePrefix + "install" ] = slson.install;
+      attr2val[ statePrefix + "uninstall" ] = slson.uninstall;
+    }
+  }
+
+  LAID.Level.prototype.$initAllAttrs = function () {
+
+    this.$initNonStateProjectedAttrs();
+    this.$updateStates();
+
   };
 
-  LAID.Level.prototype.$initAttr = function ( attr, val ) {
-
-    this.attr2attrValue[ attr ] = new AttrValue( attr, this );
-    this.attr2attrValue[ attr ].update( val );
-
-  };
-
-  LAID.Level.prototype.$initAttrs = function () {
+  LAID.Level.prototype.$initNonStateProjectedAttrs = function () {
 
     var i, key, val, stateName, state,
 
     states = this.$lson.states, when = this.$lson.when,
-    transition = this.$lson.transition;
+    transition = this.$lson.transition,
+    attr2val = {};
 
-    this.$initAttrsObj( "", this.$lson.props );
-    this.$initAttrsObj( "root.", this.$lson.props );
-    this.$initAttrsObj( "data.", this.$lson.data );
 
-    if ( when !== undefined ) {
 
-      for ( key in when ) {
-        if ( when.hasOwnProperty( key ) ) {
+    initAttrsObj( "data.", this.$lson.data, attr2val );
 
-          this.$initAttrsArray( "when." + key, when[ key ] );
-          this.$initAttrsArray( "root.when." + key, when[ key ] );
+    convertSLSONtoAttr2Val( this.$lson, attr2val, "root.", true );
 
-        }
-      }
-    }
-    if ( transition !== undefined ) {
-
-      for ( key in transition ) {
-        if ( transition.hasOwnProperty( key ) ) {
-
-          this.$initAttrsObj( "transition." + key, transition[ key ] );
-          this.$initAttrsObj( "root.transition." + key, transition[ key ] );
-
-        }
-      }
-    }
 
     for ( stateName in states ) {
-      if ( states.hasOwnProperty( stateName ) ) {
+      convertSLSONtoAttr2Val( states[ stateName ] , attr2val, stateName + ".", false );
+    }
 
-        state = states[ key ];
-
-
-        this.$initAttr( "state." + key, false );
-        if ( state.install !== undefined ) { this.$initAttr( stateName + ".install", state.install ); }
-          if ( state.uninstall !== undefined ) { this.$initAttr( stateName + ".uninstall", state.uninstall ); }
-
-            when = val.when;
-            transition = val.transition;
-
-            this.$initAttrsObj( stateName + ".", state.props );
-
-            if ( when !== undefined ) {
-              for ( key in when ) {
-                if ( when.hasOwnProperty( key ) ) {
-
-                  this.$initAttrsArray( stateName + ".when." + key, state.when[ key ] );
-
-                }
-              }
-            }
-
-            if ( transition !== undefined ) {
-              for ( key in transition ) {
-                if ( transition.hasOwnProperty( key ) ) {
-
-                  this.$initAttrsObj( stateName + ".transition." + key, state.transition[ key ] );
-
-                }
-              }
-            }
-          }
-        }
+    this.$commitAttr2Val( attr2val );
 
 
 
-        //this.initAttrsSet( "data.", this.$lson.data );
+  };
 
+  LSON.prototype.$commitAttr2Val = function ( attr2val ) {
 
-
-
-
-      };
-
-      /*
-      Filter out those attributes which are influencable
-      by states: props, transition, when
-      */
-      LAID.Level.protoype.$filterStateProjectedAttrs = function() {
-
-        var attr, stateProjectedAttrS = [];
-        for ( attr in this.attr2attrValue ) {
-          if ( this.attr2attrValue.hasOwnProperty( attr ) ) {
-
-            if ( this.attr2attrValue[ attr ].isStateProjectedAttr ) {
-              stateProjectedAttrS.push( attr );
-            }
-          }
-        }
-        return stateProjectedAttrS;
-      };
-
-
-
-
-      /* Return the attr2value generated
-      by the current states */
-      LAID.Level.prototype.getStateAttrVal = function () {
-
-        if ( this.isManyDerived ) {
-          // TODO: get from Many object
-        } else {
-          var stringHashedStates = this.states.sort().join("&");
-          if ( this.stringHashedStates2_cachedAttr2val_[ stringHashedStates ] === undefined ) {
-            this.stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
-            convertSLSONtoAttr2Val( this.generateSLSON() );
-          }
-          return this.stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
-        }
-
-      };
-
-
-      /*
-      *  From the current states generate the
-      *  correspinding SLSON (state projected lson)
-      *  Requirement: the order of states must be sorted
-      */
-      LAID.Level.prototype.generateSLSON =  function () {
-
-        this.$stateS.sort();
-
-        var slson = {}, attr2val;
-
-        LSON.$inherit( slson, this.$lson, true, true );
-        for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
-          LSON.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ] , true, true );
-        }
-
-        return slson;
-
-      };
-
-      /* Flatten the slson to attr2val dict */
-      function convertSLSONtoAttr2Val( slson ) {
-
-        var prop,
-         transitionAttr, transitionDirective, transitionArgs,
-         eventType, fnCallbackS,
-        props = slson.props, when = slson.when, transition = slson.transition,
-        attr2val = {};
-
-        for ( prop in props ) {
-          if ( props.hasOwnProperty( prop ) ) {
-            attr2val[ prop ] = props[ prop ];
-          }
-        }
-
-        for ( transitionAttr in transition ) {
-          if ( transition.hasOwnProperty( transitionAttr ) ) {
-            transitionDirective = transition[ transitionAttr ];
-          }
-        }
-
-
+    var attr;
+    for ( attr in attr2val ) {
+      val = attr2val[ attr ];
+      attrValue = this.attr2attrValue[ attr ];
+      if ( ( attrValue === undefined ) ) {
+        attrValue = this.attr2attrValue[ attr ] = new AttrValue( this, attr );
       }
+      attrValue.update( val );
+
+    }
+  };
+
+  /*
+  * Solve by recalculating each attr within the
+  * level which requires recalculation
+  * Return 1 if all attributes were solved
+  * Return 2 if some attributes were solved
+  * Return 3 if no attributes were solved
+  */
+  LAID.prototype.$solveForRecalculation = function () {
+
+    var i, len,
+    isSolveProgressed,
+    isSolvedProgressedOnce = false,
+    recalculateDirtyAttrValueS = this.$recalculateDirtyAttrValueS;
 
 
-      LAID.Level.protoype.$updateStates = function () {
-
-        var cleanStateProjectedAttrS = this.$filterStateProjectedAttrs(),
-        affectedAttrValueS = [];
-
-        >>>>>>>>>>>for looppzz
-
-        attrValue = this.attr2attrValue[ prop ];
-        // Attributes which were not included within the
-        // root (state), would not have been defined as yet.
-        // This is a "lazy" initiliazation method.
-        if ( ( attrValue === undefined )  && ( TODO: thisrawval notequals undefined ) ) {
-          this.$initAttr( prop, props[ prop ] );
-          affectedAttrValueS.push( prop );
-        } else {
-          if ( attrValue.update( props[ prop ] ) ) {
-            affectedAttrValueS.push( prop );
-          }
-        }
-        LAID.$arrayUtils.remove( cleanStateProjectedAttrS, prop );
-
-        >>>>>>>>>>>end forloopps
-
-
-        // Algorithm
-        //
-        // allATTRS = filter(curATTRS)
-        // for ATTR in (stateProjected) newATTRS
-        //   dirty ATTR (=new value)
-        //   remove ATTR from allATTRS
-        // for ATTR in allATTRS
-        //   dirty ATTR (=undefined)
-        //
-
-
-
-        // state projected attributes are those attributes which
-        // can be (key-)value modified by a state. This essentially
-        // includes keys within "props", "when", and "transition".
-        //
-        // Get the entire list of state projected attributes with
-        // the motive of removing (splicing) those attributes which
-        // have been modified by the state. Ideally the list should
-        // be empty at the end of
-
-
-
-
-        // TODO: add changes to `when` and `transition`
-        // TODO: solve. what is state changes out here?
-
-
-      };
-
-      LAID.Level.prototype.$getAttrValue = function ( attr ) {
-
-        return this.$attr2attrValue[ attr ];
-
-      };
-
-
-
-
-
-      function checkIsAttrState ( attr ) {
-
-        return attr[ 0 ] === "s" &
-        attr[ 1 ] === "t" &
-        attr[ 2 ] === "a" &
-        attr[ 3 ] === "t" &
-        attr[ 4 ] === "e" &
-        attr[ 5 ] === ".";
-
-      }
-
-      function checkIsAttrData ( attr ) {
-
-        return attr[ 0 ] === "d" &
-        attr[ 1 ] === "a" &
-        attr[ 2 ] === "t" &
-        attr[ 3 ] === "a" &
-        attr[ 4 ] === ".";
-
-      }
-
-      LAID.Level.prototype.$prepare = function () {
-
-
-
-        var isMany = this.$lson.many !== undefined;
-        var lson = isMany ? this.$lson.many : this.$lson;
-
-        this.isPart = true;
-        this.part = new LAID.Part( this );
-        var dirtyAttrS = this.dirtyAttrS;
-        //var attr2attrValue =  this.$attr2attrValue;
-
-        for ( var i = 0, len = dirtyAttrS.length, dirtyAttr; i < len; i++ ) {
-
-          dirtyAttr = dirtyAttrS[ i ];
-          if ( !checkIsAttrState( dirtyAttr ) ) {
-
-            this.$cleanifyAttr( dirtyAttr );
-
-          }
-        }
-
-
-
-      };
-
-
-
-      /* Given a list of AttrValues, it recalculates
-      * each one. If a persistent
-      * cyclic dependency is encountered
-      * then false is returned, else true.
-      */
-      function solveAttrValueCalculation( attrValueS ) {
-        var pendingTakerAttrValueS, isSecondTry, i, len, prevLen;
-        pendingTakerAttrValueS = LAID.$arrayUtils.cloneSingleLevel( attrValueS );
-
-        isSecondTry = false;
-
-        prevLen = pendingTakerAttrValueS.length;
-
-        while ( true ) {
-
-
-          for ( i = pendingTakerAttrValueS.length - 1; i + 1; i-- ) {
-
-            if ( pendingTakerAttrValueS[ i ].reCalculate( numReCalcDepth + 1 ) ) {
-              pendingTakerAttrValueS.pop();
-            }
-          }
-
-          if ( pendingTakerAttrValueS.length !== 0 ) {
-            if ( prevLen === len ) {
-              if ( isSecondTry ) {
-                break;
-              } else {
-                isSecondTry = true;
-              }
-            }
-          } else {
-            break;
-          }
-          prevLen = len;
-        }
-        return pendingTakerAttrValueS.length === 0;
-
-      }
-
-
-
-
-
-
-
-      function checkIsStateProjectedAttr( attr ) {
-        var i = attr.indexOf( "." );
-        if ( i === -1 ) {
-          return true;
-        } else {
-          var prefix = attr.slice( 0, i );
-          return ( ( [ "when", "transition" ] ).indexOf( prefix ) !== -1 );
+    do {
+      isSolveProgressed = false;
+      for ( i = 0, len = recalculateDirtyAttrValueS.length; i < len; i++ ) {
+        isSolveProgressed = recalculateDirtyAttrValueS[ i ].recalculate() || true;
+        if ( isSolveProgressed ) {
+          isSolvedProgressedOnce = true;
+          this.$removeRecalculateDirtyAttrValue( recalculateDirtyAttrValueS[ i ] );
+          i--;
         }
       }
 
-      function AttrValue ( attr, level ) {
-
-        // undefined initializations:
-        // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
-        // (2) readability
-
-        this.level = level;
-        this.attr = attr;
-        this.value = undefined;
-        this.isTaker = false;
-        this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
+      // The reason we will not use `len` to check the length below is
+      // that more recalculate dirty levels could have been added during
+      // the loop
+    } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
 
 
-        this.isDirty = false;
-        this.isCalculating = false;
+    return recalculateDirtyLevelS.length === 0 ? 1 : ( isSolveProgressedOnce ? 2 : 3 );
 
-        this.calcValue = undefined;
-        this.transitionCalcValue = undefined;
+  };
 
-        this.transition = undefined;
+  /*
+  Undefine all current attributes which are influencable
+  by states: props, transition, when, $$num, $$keys, $$max
+  */
+  LAID.Level.protoype.$undefineStateProjectedAttrs = function() {
 
-        this.takerAttrValueS = [];
+    var attr;
+    for ( attr in this.attr2attrValue ) {
+      if ( this.attr2attrValue[ attr ].isStateProjectedAttr ) {
+        this.attr2attrValue[ attr ].update( undefined );
+      }
+    }
+  };
 
+
+
+
+
+  /* Return the attr2value generated
+  by the current states */
+  LAID.Level.prototype.getStateAttr2val = function () {
+
+    if ( this.isManyDerived ) {
+      // TODO: get from Many object
+    } else {
+      var stringHashedStates = this.states.sort().join("&");
+      if ( this.stringHashedStates2_cachedAttr2val_[ stringHashedStates ] === undefined ) {
+        this.stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
+        convertSLSONtoAttr2Val( this.generateSLSON(), {}, "", true );
+      }
+      return this.stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
+    }
+
+  };
+
+
+  /*
+  *  From the current states generate the
+  *  correspinding SLSON (state projected lson)
+  *  Requirement: the order of states must be sorted
+  */
+  LAID.Level.prototype.generateSLSON =  function () {
+
+    this.$stateS.sort();
+
+    var slson = {}, attr2val;
+
+    LSON.$inherit( slson, this.$lson, true, true );
+    for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
+      LSON.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ] , true, true );
+    }
+
+    return slson;
+
+  };
+
+
+
+
+  LAID.Level.protoype.$updateStates = function () {
+
+    var
+    attr2val = this.getStateAttr2val(),
+    attr, val,
+    attrValue,
+    i, len;
+
+    this.undefineStateProjectedAttrs();
+
+    this.$commitAttr2Val( attr2val );
+
+    // TODO: fix this outdated comment below
+    //
+    // state projected attributes are those attributes which
+    // can be (key-)value modified by a state. This essentially
+    // includes keys within "props", "when", and "transition".
+    //
+    // Get the entire list of state projected attributes with
+    // the motive of removing (splicing) those attributes which
+    // have been modified by the state. Ideally the list should
+    // be empty at the end of
+
+    // Algorithm
+    //
+    // allATTRS = filter(curATTRS)
+    // for ATTR in (stateProjected) newATTRS
+    //   dirty ATTR (=new value)
+    //   remove ATTR from allATTRS
+    // for ATTR in allATTRS
+    //   dirty ATTR (=undefined)
+    //
+
+
+
+  };
+
+
+
+  LAID.Level.prototype.$getAttrValue = function ( attr ) {
+
+    return this.$attr2attrValue[ attr ];
+
+  };
+
+
+  LAID.Level.prototype.$addRecalculateDirtyAttrValue = function ( attrValue ) {
+
+    LAID.$arrayUtils.pushUnique( this.$recalculateDirtyAttrValueS, attrValue );
+    LAID.$arrayUtils.pushUnique( LAID.$recalculateDirtyLevelS, this );
+
+  };
+
+  LAID.Level.prototype.$addRenderDirtyAttrValue = function ( attrValue ) {
+
+    LAID.$arrayUtils.pushUnique( this.$renderDirtyAttrValueS, attrValue );
+    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
+
+  };
+
+  LAID.Level.prototype.$removeRecalculateDirtyAttrValue = function ( attrValue ) {
+
+    LAID.$arrayUtils.remove( this.$recalculateDirtyAttrValueS, attrValue );
+
+  };
+
+  LAID.Level.prototype.$removeRenderDirtyAttrValue = function ( attrValue ) {
+
+    LAID.$arrayUtils.remove( this.$renderDirtyAttrValueS, attrValue );
+
+  };
+
+  LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
+
+    var
+    numFnHandlersForEventType = this.attr2attrValue[ "$$num." + eventType ],
+    fnMainHandler,
+    thisLevel = this;
+
+
+
+    if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
+      LAID.$eventUtils.remove( this.$part.node, eventType, prevWrapperEventHandlerS[ i ] );
+    }
+
+
+    if ( numFnHandlers !== 0 ) {
+      fnMainHandler = function () {
+        var i, len, attrValueForFnHandler;
+        for ( i = 0; i < numFnHandlersForEventType; i++ ) {
+          attrValueForFnHandler = thisLevel.attr2attrValue[ "when." + eventType + ( i + 1 ) ];
+          if ( attrValueForFnHandler !== undefined ) {
+            attrValueForFnHandler.calcValue.call( thisLevel );
+          }
+        }
+      };
+      LAID.$eventUtils.add( this.$part.node, eventType, fnMainHandler );
+      this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
+
+    } else {
+      this.$whenEventType2fnMainHandler[ eventType ] = undefined;
+
+    }
+  };
+
+  LAID.Level.prototype.$updateTransitionAttr = function ( transitionAttr ) {
+
+    var affectedAttrS = [];
+    if ( transitionAttr === "position" ) {
+      affectedAttrS.concat([ "left", "top", "shiftX", "shiftY", "z",
+      "scaleX", "scaleY",
+      "rotateX", "rotateY", "rotateZ",
+      "skewX", "skewY"
+       ]);
+
+    }
+
+  };
+
+
+
+  /*
+  * For attrs which are of type state ( i.e state.<name> )
+  * Return the name component.
+  * Else return the empty string.
+  */
+  function getStateNameOfAttrState ( attr ) {
+
+    return attr.startsWith( "state." ) ?
+    attr.slice( 6 ) : "";
+
+  }
+
+  /*
+  * For attrs which are of type when ( i.e state.<eventType><eventNum> )
+  * Return the event type component.
+  * Else return the empty string.
+  */
+  function getWhenEventTypeOfAttrWhen ( attr ) {
+
+    return attr.startsWith( "when." ) ?
+    attr.slice( 5, attr.length - 1 ) : "";
+
+  }
+
+
+
+
+
+
+
+
+
+  function checkIsStateProjectedAttr( attr ) {
+    var i = attr.indexOf( "." );
+    if ( i === -1 ) {
+      return true;
+    } else {
+      var prefix = attr.slice( 0, i );
+      return ( ( [ "when", "transition", "$$num", "$$max", "$$keys" ] ).indexOf( prefix ) !== -1 );
+    }
+  }
+
+  function AttrValue ( attr, level ) {
+
+    // undefined initializations:
+    // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
+    // (2) readability
+
+    this.level = level;
+    this.value = undefined;
+    this.valueUsedForLastRecalculation = undefined;
+    this.isTaken = undefined;
+    this.attr = attr;
+    this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
+
+    this.calcValue = undefined;
+    this.transitionCalcValue = undefined;
+
+    this.transition = undefined;
+
+    this.takerAttrValueS = [];
+
+  }
+
+  /* TODO: update this doc below along with its slash-asterisk
+  formatting
+
+  Returns true if the value is different,
+  false otherwise */
+  AttrValue.prototype.update = function ( value ) {
+
+    this.value = value;
+
+    if ( value !== this.valueUsedForLastRecalculation ) {
+
+      if ( this.value instanceof LAID.Take ) {
+        this.takeNot();
       }
 
-      /* Returns true if the value is different,
-      false otherwise */
-      AttrValue.prototype.update = function ( value ) {
+      this.value = value;
+      this.isTaken = false;
+      this.requestRecalculation();
 
-        this.isCalculating = false;
+      return true;
 
-        if ( value === this.value ) {
+    }
 
+  };
+
+  /*
+  * Request the level corresponding to the given AttrValue
+  * to recalculate this AttrValue.
+  */
+  AttrValue.prototype.requestRecalculation = function () {
+    this.level.$addRecalculateDirtyAttrValue( this );
+  };
+
+
+  /*
+  * TODO: update this doc below
+  *
+  * Recalculate the value of the attr value.
+  * Propagate the change across the LOM (LAID object model)
+  * if the change in value produces a change.
+  * For constraint (take) based attributes, recalculate the
+  * value, for non constraint based use the `value` parameter
+  * as the change.
+  * Return true if calculation successful, false if
+  * a circular reference rendered it unsuccessful
+  */
+  AttrValue.prototype.recalculate = function () {
+
+    var
+    isDirty = false,
+    reCalc,
+    i, len;
+
+    if ( this.value instanceof LAID.Take ) { // is LAID.Take
+
+
+
+      // TODO: check if any of the attrvalue's takes
+      // have not been initialized yet or are dirty for
+      // recalculation
+
+      if ( !this.isTaken ) {
+        if ( !this.take() ) {
           return false;
-
-        } else {
-
-          if ( this.isTaker ) {
-            this.takeNot();
-          }
-
-          this.value = value;
-          this.isTaker = value instanceof LAID.Take;
-
-          return true;
-
         }
+      }
+      this.isTaken = true;
 
-      };
+      reCalc = this.value.execute( this );
+      if ( reCalc !== this.calcValue ) {
 
+        isDirty = true;
+        this.calcValue = reCalc;
+      }
+    } else {
 
-      /*
-      * Recalculate the value of the attr value.
-      * Propagate the change across the LOM (LAID object model)
-      * if the change in value produces a change.
-      * For constraint (take) based attributes, recalculate the
-      * value, for non constraint based use the `value` parameter
-      * as the change.
-      * Return true if calculation successful, false if
-      * a circular reference rendered it unsuccessful
-      */
-      AttrValue.prototype.reCalculate = function ( numReCalcDepth ) {
+      if ( this.value !== this.calcValue ) {
 
-
-        var isSolved;
-
-        if ( this.isCalculating ) { // Check for circular reference
-
-          // circular reference
-          return false;
-
-        } else {
-
-          isSolved = false;
-
-          this.isCalculating = true;
-
-
-
-          if ( this.isTaker ) { // is LAID.Take
-
-            var reCalc = this.value.execute( this );
-            if ( reCalc !== this.calcValue ) {
-
-              this.isDirty = true;
-              this.calcValue = reCalc;
-
-            }
-
-          } else {
-
-            if ( this.value !== this.transitionCalcValue ) {
-
-              this.isDirty = true;
-
-            }
-          }
-
-          // TODO: code for transition change recalculation
-
-          isSolved = ( this.isDirty && ( this.takerAttrValueS.length !== 0 ) ) ?
-          solveAttrValueCalculation( this.takerAttrValueS ) : true;
-
-          this.isCalculating = false;
-          return isSolved;
-
-        }
-      };
-
-      AttrValue.prototype.give = function ( attrValue ) {
-        LAID.$arrayUtils.add( this.takerAttrValueS, attrValue );
-      };
-      AttrValue.prototype.giveNot = function ( attrValue ) {
-        LAID.$arrayUtils.remove( this.takerAttrValueS, attrValue );
-      };
-
-
-      AttrValue.prototype.take = function () {
-
-        if ( this.isTaker ) {
-          var _relPath00attr_S, relPath, level, attr;
-          // value is of type `LAID.Take`
-          _relPath00attr_S = this.value._relPath00attr_S;
-
-          for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-
-            relPath = _relPath00attr_S[ i ][ 0 ];
-            attr = _relPath00attr_S[ i ][ 1 ];
-
-            level = relPath.resolve( this.level );
-            if ( level === undefined ) {
-
-              console.error("LAID ERROR: Undefined level relative path: " + relPath.childPath );
-
-            } else {
-
-              level.$getAttrValue( attr ).give( this );
-            }
-          }
-        }
-
-      };
-
-      AttrValue.prototype.takeNot = function ( attrValue ) {
-
-        if ( this.isTaker ) {
-          var _relPath00attr_S, relPath, level, attr;
-          // value is of type `LAID.Take`
-          _relPath00attr_S = this.value._relPath00attr_S;
-
-          for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-
-            relPath = _relPath00attr_S[ i ][ 0 ];
-            attr = _relPath00attr_S[ i ][ 1 ];
-
-            level = relPath.resolve( this.level );
-            if ( level === undefined ) {
-
-              console.error("LAID ERROR: Undefined level relative path: " + relPath.childPath );
-
-            } else {
-
-              level.$getAttrValue( attr ).giveNot( this );
-            }
-          }
-        }
-
-      };
-
-      // inspiration from https://github.com/koenbok/Framer/blob/master/framer/Animators/
-      function LinearAnimator () {
+        isDirty = true;
 
       }
-      LinearAnimator.prototype.next = function ( delta ) {
+    }
 
-      };
-      LinearAnimator.prototype.done = function () {
+    if ( isDirty ) {
+      var
+      stateName = getStateNameOfAttrState( this.attr ),
+      whenEventType = getWhenEventTypeOfAttrWhen( this.attr ),
+      transitionAttr = getTransitionAttrOfAttrTransition( this.attr )
+      ;
 
-      };
+      this.valueUsedForLastRecalculation = this.value;
+
+      for ( i = 0, len = this.takerAttrValueS.length; i < len; i++ ) {
+        takerAttrValueS.requestRecalculation();
+      }
+
+
+      if (
+        ( stateName !== "" ) &&
+        LAID.$arrayUtils.pushUnique( this.level.$stateS, stateName )
+      ) {
+        this.level.$updateStates();
+
+      } else if ( whenEventType !== "" ) {
+
+        this.$updateWhenEventType( whenEventType );
+
+      } else if ( transitionAttr !== "" ) {
+
+        this.$updateTransitionAttr( transitionAttr );
+
+      }
+
+
+    }
+
+
+  };
+
+  AttrValue.prototype.give = function ( attrValue ) {
+    LAID.$arrayUtils.pushUnique( this.takerAttrValueS, attrValue );
+  };
+  AttrValue.prototype.giveNot = function ( attrValue ) {
+    LAID.$arrayUtils.remove( this.takerAttrValueS, attrValue );
+  };
+
+
+  AttrValue.prototype.take = function () {
+
+    if ( this.value instanceof LAID.Take ) {
+      var _relPath00attr_S, relPath, level, attr,
+      i, len;
+      // value is of type `LAID.Take`
+      _relPath00attr_S = this.value._relPath00attr_S;
+
+      for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+
+        relPath = _relPath00attr_S[ i ][ 0 ];
+        attr = _relPath00attr_S[ i ][ 1 ];
+
+        level = relPath.resolve( this.level );
+        if ( ( level === undefined ) || ( level.$getAttrValue( attr ) === undefined ) ) {
+          return false;
+        }
+
+      }
+
+      for ( i = 0; i < len; i++ ) {
+
+        relPath = _relPath00attr_S[ i ][ 0 ];
+        attr = _relPath00attr_S[ i ][ 1 ];
+
+        relPath.resolve( this.level ).$getAttrValue( attr ).give( this );
+
+      }
+    }
+
+  };
+
+  AttrValue.prototype.takeNot = function ( attrValue ) {
+
+    if ( this.value instanceof LAID.Take ) {
+      var _relPath00attr_S, relPath, level, attr;
+      _relPath00attr_S = this.value._relPath00attr_S;
+
+      for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+
+        relPath = _relPath00attr_S[ i ][ 0 ];
+        attr = _relPath00attr_S[ i ][ 1 ];
+
+        level = relPath.resolve( this.level );
+        if ( ( level === undefined ) && ( level.$getAttrValue( attr ) !== undefined ) ) {
+          level.$getAttrValue( attr ).giveNot( this );
+        }
+      }
+    }
+
+  };
+
+  // inspiration from https://github.com/koenbok/Framer/blob/master/framer/Animators/
+  function LinearAnimator () {
+
+  }
+  LinearAnimator.prototype.next = function ( delta ) {
+
+  };
+  LinearAnimator.prototype.done = function () {
+
+  };
 
 
 
 
-    })();
+})();

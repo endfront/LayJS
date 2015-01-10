@@ -1,20 +1,3 @@
-There are 3 ways an attr can be modified:
-  - through a key change by a state
-  - though initialization of the attr
-  - through a modification of an attr it is taking (which could have its source in either or both of the above 2)
-
-Steps of initializations:
-  - init AttrValue for every attr
-  - take other levels for every AttrValue
-  - calculate (without propagating) every (if it has not been calculated already)
-   other AttrValue. If an AttrValue is a taker then first
-   calculate its dependencies before propagating.
-
-How an AttrValue is changed:
-  - (optional) an update to the value of the AttrValue is done
-  - a reCalculate request is made to the AttrValue
-  -
-
 
 
 
@@ -30,7 +13,7 @@ Algorithm of event loop
         else:
           isNoTransitionLeft = false
         if attr.renderProp:
-          level.renderFn_<renderProp>()
+          level.renderFn _<renderProp>()
       else:
         dirty(level, attr).pop()
         if attr.renderProp:
@@ -40,68 +23,30 @@ Algorithm of event loop
 
 
 
-
-
-
-
-When (implementation)
-
-root
-  click
-    fnA
-    fnB
-
-state1
-  click
-    fnX
-
-state2
-  click
-    fnP
-
-root
-  total = 2
-  click1 = fnA
-  click2 = fnB
-
-
-root+state1
-  total = 3
-  click1 = fnA
-  click2 = fnB
-  click3 = fnX
-
-root+state2
-  total = 3
-  click1 = fnA
-  click2 = fnB
-  click3 = fnP
-
-
-During normilization: total is created, and all events are collected to make a hashmap of corresponding lists
-During inheritance: total stacks up, and list stacks up
-During change:
-
-When an AttrValue is changed:
-
-TODO:
+API of adding children
+  - LAID.clog()
+  - rootLevel.addChildren({1,2})
+  - rootLevel.addChildren({3,4,5})
+  - LAID.unclog()
 
 
 Current:
-  - Fix flattenAttr, add options for preserving object information for transition and maybe length for when
-  - transition and when normalization, boil down to single string attrs? (then clear out object attrs eg: {when:click:[fn1]} since
-    we have when.click1 exists)
-  - think about when.click1 should point to when.click
-  - Remove $initAttrsArray
-  - Think about pre-initializing all undefined props in root state
-  - LAID.Level.addChildren after inherit as additonal children are added?
-  - (create map for renderFn ) check is .stateContainedAttr before  trying to call renderFn, in order to reduce the chance of a miss
-  - argument passing to renderFn (to distinguish between "click" and "keydown" for when?)
+  - Change transition.centerX to transition.left? or duplicate+rename and ignore
+  centerX when transitioning, check If expander property? also subsitute for
+  expander props such as cornerraidus and borderstyle!ss
+  - Inherit of transition.<attr>.all
+  - AttrValue.recalculate (check if attr is state or when or transition, first
+    figure out whether you want to store attr string within AttrValue, think
+    about the decomposition role it will play within when attrs)
+  - display, webkit elastic scroll
+  - In LAID.Part add 'div'/<other html node dependent of type> node creation. (Add Psuedo defaults to element node in LAID.Part)
+  - Add support for psuedo defaults, and add the details to the spec (handle mixed psuedo properties like perspectiveOrigin and background)
   - Update state solve calculation (first update each attr, add to list and then selectively append (if changed) to list to solve)
-  - When decompression
+  - (create map for renderFn ) check is .stateContainedAttr before  trying to call renderFn, in order to reduce the chance of a miss
   - AttrValue.renderableName
+  - (to distinguish between "click" and "keydown" for when?)
   - LAID.Part.prototype.$renderFn_positionX = renderPositionNonGpuX; in Part.js for < IE 8
-  - Add psuedo defaults for multiple-type prop to SPEC! (good news, eg: spread for boxShadows)
+  - Add psuedo defaults for multiple-type prop to SPEC! (good news, eg: spread for boxShadows AND maybe also for skewX, skewY, etc!)
   - Remove isTransitioning and replace with transition object as Take Objects, and also Transition string options (add this all to
     the spec)
   - Transition custom parameters (eg viscosity) passing through object (add in spec)
@@ -110,9 +55,9 @@ Current:
   - Think of moving control of `Level.dirtyAttrS` into `AttrValue` (DIRTY WITHIN INITIALIZATION OF AttrValue?)
   - Level.$update/changeState (Also fix LAID.Level.$inherit, also create a LAID.$inheritState (or LAID.$inherit with arg specifying state))
   - Change passing in "/" lson in LAID.run()
+  - clone .data keys which are objects to prevent problems during inheritance
+  - LAID.Level.addChildren after inherit as additonal children are added?
   - think about introducing a way to prevent same render methods from being repeatedly called
-  - In LAID.Part add 'div'/<other html node dependent of type> node creation. (Add Psuedo defaults to element node in LAID.Part)
-  - Add support for psuedo defaults, and add the details to the spec (handle mixed psuedo properties like perspectiveOrigin and background)
   - Add support for $scrollX, $value, $naturalWidth and other input properties, and dont forget to bind 'scrollX' to '$scrollX', etc, etc.
   - Thinking about duplications within data which can be color
   - Add $time as a read only property of root '/'

@@ -6,7 +6,7 @@
     * Add to array if element does not exist already
     * Return true the element was added (as it did not exist previously)
     */
-    add: function ( elementS, element ) {
+    pushUnique: function ( elementS, element ) {
       if ( elementS.indexOf( element ) !== -1  ) {
         itemS.push( element );
         return true;

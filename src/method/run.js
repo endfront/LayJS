@@ -31,9 +31,7 @@
 
     window.onresize = updateSize;
 
-    LAID.$clogKey2_levelS_[ 1 ] = [ new LAID.Level( "/", rootLson, 1, undefined ) ];
-
-    LAID.unclog( 1 );
+    ( new LAID.Level( "/", rootLson, undefined ) ).init();
 
     LAID.$prevTimeFrame = Date.now();
 

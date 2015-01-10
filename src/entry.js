@@ -100,15 +100,16 @@ appearance: none;
 (function () {
   "use strict";
 
-  window.LAID = {
+  window.laid = window.LAID = {
 
     $path2level: {},
-    $curClogKey: 1,
-    // initiate with the start clog key: 1
-    $clogKey2_levelS_: { },
-    $dirtyLevelS: [],
-    $prevFrameTime: 0
-    //$colorMode: "rgb"
+    $cloggedLevelS: [],
+    $newLevelS: [],
+    $recalculateDirtyLevelS: [],
+    $renderDirtyLevelS: [],
+    $prevFrameTime: 0,
+    $isClogged:false,
+    $isSolvingNewLevels: false
   };
 
 })();
