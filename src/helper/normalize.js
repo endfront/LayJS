@@ -55,12 +55,7 @@
     rootProp2val.bottom = takeTopToBottom;
 
 
-
-
-
-
     // Recurse to normalize children
-
     if ( isRecursive ) {
 
       key2fnNormalize.children( lson );
@@ -79,16 +74,6 @@
 
 
 
-
-  var defaulterProp2_defaultedPropS_ = {
-
-    borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
-    borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
-    borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
-    textPadding: [ "textTopPadding", "textRightPadding", "textBottomPadding", "textLeftPadding" ],
-    cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ],
-
-  };
 
   var multipleTypeProp2multipleTypePropRegex = {
 
@@ -270,7 +255,11 @@
 
       }
 
-      var prop2val = lson.props;
+      var prop2val = lson.props,
+      prop, val,
+      longhandPropS, longhandProp, shorthandVal,
+      i, len;
+
       checkAndThrowErrorAttrAsTake( "props", lson.props );
 
 
@@ -299,33 +288,23 @@
 
       }
 
-
-      var prop, val;
       for ( prop in prop2val ) {
         flattenProp( lson, prop2val, prop, prop, true );
       }
 
+      for ( prop in prop2val ) {
+        longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( prop );
+        if ( longhandPropS !== undefined ) {
+          shorthandVal = prop2val[ prop ];
+          for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
+            longhandProp = longhandPropS[ i ];
+            prop2val[ longhandProp ] = prop2val[ longhandProp ] ||
+            shorthandVal;
 
-      var defaulterProp, defaulterVal, defaultedPropS, defaultedProp;
-      for ( defaulterProp in defaulterProp2_defaultedPropS_ ) {
-
-        defaulterVal = prop2val[ defaulterProp ];
-        if ( defaulterVal !== undefined ) {
-
-          defaultedPropS = defaulterProp2_defaultedPropS_[ defaulterProp ];
-          for ( var i = 0, len = defaultedPropS.length; i < len; i++ ) {
-
-            defaultedProp = defaultedPropS[ i ];
-            // Only change if the property does not exist as yet
-            // to prevent overwriting of "specefic" prop-keys
-            if ( prop2val[ defaultedProp ] === undefined ) {
-
-              prop2val[ defaultedProp ] = defaulterVal;
-
-            }
           }
         }
       }
+
 
 
 
@@ -397,132 +376,124 @@ transition: function( lson ) {
   if ( lson.transition !== undefined ) {
 
 
-    var transitionAttr, transitionDirective,
+    var transitionProp, transitionDirective,
     transitionArgKey2val, transitionArgKey, transitionArgKeyS,
-    transitionAttr2transitionDirective = lson.transition,
-    defaulterProp, defaultedPropS, i, len;
+    transition = lson.transition,
+    defaulterProp, defaultedPropS, defaultedProp, i, len;
 
-    if ( transitionAttr2transitionDirective !== undefined ) {
-      checkAndThrowErrortransitionAttrAsTake( "transition", lson.transition );
+    if ( transition !== undefined ) {
+      checkAndThrowErrortransitionPropAsTake( "transition", lson.transition );
 
-      if ( transitionAttr2transitionDirective.centerX !== undefined ) {
-          transitionAttr2transitionDirective.left =
-          transitionAttr2transitionDirective.centerX;
+      if ( transition.centerX !== undefined ) {
+        transition.left =
+        transition.centerX;
       }
-      if ( transitionAttr2transitionDirective.right !== undefined ) {
-        transitionAttr2transitionDirective.left =
-        transitionAttr2transitionDirective.right;
+      if ( transition.right !== undefined ) {
+        transition.left =
+        transition.right;
       }
-      if ( transitionAttr2transitionDirective.centerY !== undefined ) {
-        transitionAttr2transitionDirective.top =
-        transitionAttr2transitionDirective.centerY;
+      if ( transition.centerY !== undefined ) {
+        transition.top =
+        transition.centerY;
       }
-      if ( transitionAttr2transitionDirective.bottom !== undefined ) {
-        transitionAttr2transitionDirective.top =
-        transitionAttr2transitionDirective.bottom;
+      if ( transition.bottom !== undefined ) {
+        transition.top =
+        transition.bottom;
       }
 
 
-      for ( defaulterProp in defaulterProp2_defaultedPropS_ ) {
-          if ( transitionAttr2transitionDirective[ defaulterProp ] !== undefined ) {
-            defaultedPropS = defaulterProp2_defaultedPropS_[ defaulterProp ];
-            for ( i = 0, len = defaultedPropS.length; i < len; i++ ) {
-              transitionAttr2transitionDirective[ defaultedPropS[ i ] ] =
-              transitionAttr2transitionDirective[ defaulterProp ];
-            }
+
+
+
+
+
+        for ( transitionProp in transition ) {
+          if ( LAID.$checkIsExpanderAttr( transitionProp ) ) {
+            throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
           }
-      }
-      
+          transitionDirective = transition[ transitionProp ];
+          checkAndThrowErrortransitionPropAsTake( "transition." + transitionProp,
+          transitionDirective  );
 
+          transitionArgKey2val = transitionDirective.args;
+          if ( transitionArgKey2val !== undefined ) {
 
+            checkAndThrowErrortransitionPropAsTake( "transition." + transitionProp + ".args",
+            transitionArgKey2val  );
 
-      for ( transitionAttr in transitionAttr2transitionDirective ) {
-        if ( LAID.$checkIsExpanderAttr( transitionAttr ) ) {
-          throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
-        }
-        transitionDirective = transitionAttr2transitionDirective[ transitionAttr ];
-        checkAndThrowErrortransitionAttrAsTake( "transition." + transitionAttr,
-        transitionDirective  );
-
-        transitionArgKey2val = transitionDirective.args;
-        if ( transitionArgKey2val !== undefined ) {
-
-          checkAndThrowErrortransitionAttrAsTake( "transition." + transitionAttr + ".args",
-          transitionArgKey2val  );
-
-          transitionArgKeyS = [];
-          for ( transitionArgKey in transitionArgKey2val ) {
+            transitionArgKeyS = [];
+            for ( transitionArgKey in transitionArgKey2val ) {
               transitionArgKeyS.push( transitionArgKey );
+            }
+            LAID.$meta.set( lson, "keys", "transition." + transitionProp, transitionArgKeyS );
           }
-          LAID.$meta.set( lson, "keys", "transition." + transitionAttr, transitionArgKeyS );
         }
       }
     }
-  }
-},
+  },
 
-many: function ( lson ) {
+  many: function ( lson ) {
 
-  if ( lson.many !== undefined ) {
-    var many = lson.many;
-    checkAndThrowErrorAttrAsTake( "many", many );
+    if ( lson.many !== undefined ) {
+      var many = lson.many;
+      checkAndThrowErrorAttrAsTake( "many", many );
 
-    key2fnNormalize.inherits( many );
-    key2fnNormalize.props( many );
-    key2fnNormalize.transition( many );
-    //key2fnNormalize.when( many );
-    key2fnNormalize.states( many );
+      key2fnNormalize.inherits( many );
+      key2fnNormalize.props( many );
+      key2fnNormalize.transition( many );
+      //key2fnNormalize.when( many );
+      key2fnNormalize.states( many );
 
-    //TODO: rows
+      //TODO: rows
 
-
-  }
-
-
-
-},
-
-states: function( lson ) {
-
-  if ( lson.states !== undefined ) {
-
-
-    var stateName2state = lson.states, state;
-    checkAndThrowErrorAttrAsTake( "states",  stateName2state );
-
-    for ( var stateName in stateName2state ) {
-
-      if ( !checkIsValidStateName( stateName ) ) {
-        throw ( "LAID Error: Invalid state name: " + stateName );
-      }
-
-      state = stateName2state[ stateName ];
-
-      checkAndThrowErrorAttrAsTake( "states." + stateName, state );
-
-      key2fnNormalize.props( state );
-      key2fnNormalize.when( state );
-      key2fnNormalize.transition( state );
 
     }
-  }
-},
 
 
-children: function( lson ) {
 
-  if ( lson.children !== undefined ) {
+  },
+
+  states: function( lson ) {
+
+    if ( lson.states !== undefined ) {
 
 
-    var childName2childLson = lson.children;
+      var stateName2state = lson.states, state;
+      checkAndThrowErrorAttrAsTake( "states",  stateName2state );
 
-    for ( var childName in childName2childLson ) {
+      for ( var stateName in stateName2state ) {
+
+        if ( !checkIsValidStateName( stateName ) ) {
+          throw ( "LAID Error: Invalid state name: " + stateName );
+        }
+
+        state = stateName2state[ stateName ];
+
+        checkAndThrowErrorAttrAsTake( "states." + stateName, state );
+
+        key2fnNormalize.props( state );
+        key2fnNormalize.when( state );
+        key2fnNormalize.transition( state );
+
+      }
+    }
+  },
+
+
+  children: function( lson ) {
+
+    if ( lson.children !== undefined ) {
+
+
+      var childName2childLson = lson.children;
+
+      for ( var childName in childName2childLson ) {
 
         _normalize( childName2childLson[ childName ], true );
 
       }
+    }
   }
-}
 };
 
 }());

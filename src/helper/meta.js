@@ -25,6 +25,7 @@
     },
 
     inherit: {
+      /*
       $$keys: function ( intoLson, fromLson ) {
 
         var
@@ -52,6 +53,7 @@
           }
         }
       },
+      */
 
       $$max: function ( intoLson, fromLson ) {
 

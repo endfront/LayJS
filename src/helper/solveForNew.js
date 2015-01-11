@@ -15,7 +15,7 @@
         if ( newLevelS[ i ].$inheritAndReproduce() ) {
           isSolveProgressed = true;
           solvedLevelS.push( newLevelS[ i ] );
-            LAID.$arrayUtils.remove( newLevelS, newLevelS[ i ] );
+            LAID.$arrayUtils.removeAtIndex( newLevelS, i );
             i--;
         }
       }

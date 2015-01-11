@@ -64,33 +64,6 @@
 
   // The renderable prop can be accessed via `part.$renderFn_<prop>`
 
-  // TODO: optimize to enter matrix3d directly
-  function renderPositionGpu() {
-    /* jshint ignore:start */
-    var attr2attrValue = this.level.$attr2attrValue;
-
-    this.node.style[ cssPrefix + "transform" ] =
-    "scale3d(" +
-    attr2attrValue.scaleX.transitionCalcValue + "," +
-    attr2attrValue.scaleY.transitionCalcValue + "," +
-    attr2attrValue.scaleZ.transitionCalcValue + ") " +
-    "translate3d(" +
-
-    ( ( ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) +
-     attr2attrValue.width.transitionCalcValue * attr2attrValue.originX.transitionCalcValue )  + "px ," ) +
-
-     ( ( ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) +
-     attr2attrValue.height.transitionCalcValue * attr2attrValue.originY.transitionCalcValue )  + "px ," ) +
-
-    ( attr2attrValue.Z.transitionCalcValue) + "px) " +
-    "skew(" +
-    attr2attrValue.skewX.transitionCalcValue + "deg," +
-    attr2attrValue.skewY.transitionCalcValue + "deg) " +
-    "rotateX(" + attr2attrValue.rotateX.transitionCalcValue + "deg) " +
-    "rotateY(" + attr2attrValue.rotateY.transitionCalcValue + "deg) " +
-    "rotateZ(" + attr2attrValue.rotateZ.transitionCalcValue + "deg)";
-    /* jshint ignore:end */
-  }
 
 
 
@@ -101,18 +74,46 @@
   if ( isGpuAccelerated ) {
 
 
+    LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
+    function renderPositionGpu() {
+      var attr2attrValue = this.level.$attr2attrValue;
+
+      this.node.style[ cssPrefix + "transform" ] =
+      "scale3d(" +
+      attr2attrValue.scaleX.transitionCalcValue + "," +
+      attr2attrValue.scaleY.transitionCalcValue + "," +
+      attr2attrValue.scaleZ.transitionCalcValue + ") " +
+      "translate3d(" +
+
+      ( ( ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) +
+      attr2attrValue.width.transitionCalcValue * attr2attrValue.originX.transitionCalcValue )  + "px ," ) +
+
+      ( ( ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) +
+      attr2attrValue.height.transitionCalcValue * attr2attrValue.originY.transitionCalcValue )  + "px ," ) +
+
+      ( attr2attrValue.Z.transitionCalcValue) + "px) " +
+      "skew(" +
+      attr2attrValue.skewX.transitionCalcValue + "deg," +
+      attr2attrValue.skewY.transitionCalcValue + "deg) " +
+      "rotateX(" + attr2attrValue.rotateX.transitionCalcValue + "deg) " +
+      "rotateY(" + attr2attrValue.rotateY.transitionCalcValue + "deg) " +
+      "rotateZ(" + attr2attrValue.rotateZ.transitionCalcValue + "deg)";
+    };
+
     LAID.Part.prototype.$renderFn_width = function () {
       this.node.style.width = this.level.$attr2attrValue.width.transitionCalcValue + "px";
-      this.$renderFn_position(); //apply change to transform
+      this.$renderFn_positional(); //apply change to transform
     };
 
     LAID.Part.prototype.$renderFn_height = function () {
       this.node.style.height = this.level.$attr2attrValue.height.transitionCalcValue + "px";
-      this.$renderFn_position(); //apply change to transform
+      this.$renderFn_positional(); //apply change to transform
     };
+
 
 
   } else {
+    // legacy browser usage or forced non-gpu mode
 
     LAID.Part.prototype.$renderFn_width = function () {
       this.node.style.width = this.level.$attr2attrValue.width.transitionCalcValue + "px";
@@ -121,22 +122,18 @@
     LAID.Part.prototype.$renderFn_height = function () {
       this.node.style.height = this.level.$attr2attrValue.height.transitionCalcValue + "px";
     };
+
+    LAID.Part.prototype.$renderFn_positional = function () {
+      var attr2attrValue = this.level.$attr2attrValue;
+      this.node.style.left = ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) + "px";
+      this.node.style.top = ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) + "px";
+
+    };
+
   }
 
-  // legacy browser usage
-  LAID.Part.prototype.$renderFn_positionX = function () {
-    var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style.left = ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) + "px";
-  };
-
-  // legacy browser usage
-  LAID.Part.prototype.$renderFn_positionY = function () {
-    var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style.top = ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) + "px";
-  };
 
 
-  LAID.Part.prototype.$renderFn_position = renderPositionGpu;
 
   LAID.Part.prototype.$renderFn_origin = function () {
     var attr2attrValue = this.level.$attr2attrValue;
@@ -144,7 +141,7 @@
     ( attr2attrValue.originX.transitionCalcValue * 100 ) + "% " +
     ( attr2attrValue.originY.transitionCalcValue * 100 ) + "% " +
     ( attr2attrValue.originZ.transitionCalcValue * 100 ) + "%";
-    this.$renderFn_position(); //apply change to transform
+    this.$renderFn_positional(); //apply change to transform
   };
 
 

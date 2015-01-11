@@ -6,6 +6,37 @@
     return ( /^[\w\-]+$/ ).test( levelName );
   }
 
+  var renderCall2regex = {
+    filters: /^filters/,
+    boxShadows: /^boxShadows/,
+    textShadows: /^textShadows/,
+    audioSources: /^audioSources/,
+    videoSources: /^videoSources/,
+    audioTracks: /^audioTracks/,
+    videoTracks: /^videotracks/
+  };
+
+  function findRenderCall( prop ) {
+
+    var renderCall;
+
+    if ( !LAID.$checkIsPropAttr( prop ) ) {
+      return undefined;
+    } else {
+      for ( renderCall in renderCall2regex ) {
+        if ( renderCall2regex.test( prop ) ) {
+          return renderCall;
+        }
+      }
+      renderCall = LAID.$shorthandPropsUtils.getShorthandProp( prop );
+      if ( renderCall !== undefined ) {
+        return renderCall;
+      }
+
+      return prop;
+    }
+  }
+
   LAID.Level = function ( path, lson, parent ) {
 
     this.path = path;
@@ -179,34 +210,34 @@
   function convertSLSONtoAttr2Val( slson, attr2val, statePrefix, isRootState ) {
 
     var prop,
-    transitionAttr, transitionDirective,
-    transitionAttrPrefix,
+    transitionProp, transitionDirective,
+    transitionPropPrefix,
     eventType, fnCallbackS,
     prop2val = slson.props,
     eventType2fnCallbackS = slson.when,
-    transitionAttr2directive = slson.transition,
+    transitionProp2directive = slson.transition,
     i, len;
 
 
     initAttrsObj( statePrefix, slson.props, attr2val );
 
-    for ( transitionAttr in transitionAttr2directive ) {
-      transitionDirective = transition[ transitionAttr ];
-      transitionAttrPrefix = statePrefix + "transition." + transitionAttr + ".";
+    for ( transitionProp in transitionProp2directive ) {
+      transitionDirective = transition[ transitionProp ];
+      transitionPropPrefix = statePrefix + "transition." + transitionProp + ".";
       if ( transitionDirective.type !== undefined ) {
-        attr2val[ transitionAttrPrefix + "type" ] = transitionDirective.type;
+        attr2val[ transitionPropPrefix + "type" ] = transitionDirective.type;
       }
       if ( transitionDirective.duration !== undefined ) {
-        attr2val[ transitionAttrPrefix + "duration" ] = transitionDirective.duration;
+        attr2val[ transitionPropPrefix + "duration" ] = transitionDirective.duration;
       }
       if ( transitionDirective.delay !== undefined ) {
-        attr2val[ transitionAttrPrefix + "delay" ] = transitionDirective.delay;
+        attr2val[ transitionPropPrefix + "delay" ] = transitionDirective.delay;
       }
       if ( transitionDirective.done !== undefined ) {
-        attr2val[ transitionAttrPrefix + "done" ] = transitionDirective.done;
+        attr2val[ transitionPropPrefix + "done" ] = transitionDirective.done;
       }
       if ( transitionDirective.args !== undefined ) {
-        initAttrsObj( transitionAttrPrefix, transitionDirective.args, attr2val );
+        initAttrsObj( transitionPropPrefix, transitionDirective.args, attr2val );
       }
     }
 
@@ -223,9 +254,7 @@
       initAttrsObj( statePrefix + "$$max.", slson.$$max, attr2val );
     }
 
-    if ( slson.$$keys !== undefined ) {
-      initAttrsObj( statePrefix + "$$keys.", slson.$$keys, attr2val );
-    }
+    /*if ( slson.$$keys !== undefined ) {initAttrsObj( statePrefix + "$$keys.", slson.$$keys, attr2val );}*/
 
 
 
@@ -303,7 +332,7 @@
         isSolveProgressed = recalculateDirtyAttrValueS[ i ].recalculate() || true;
         if ( isSolveProgressed ) {
           isSolvedProgressedOnce = true;
-          this.$removeRecalculateDirtyAttrValue( recalculateDirtyAttrValueS[ i ] );
+          LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValueS, i );
           i--;
         }
       }
@@ -437,17 +466,6 @@
 
   };
 
-  LAID.Level.prototype.$removeRecalculateDirtyAttrValue = function ( attrValue ) {
-
-    LAID.$arrayUtils.remove( this.$recalculateDirtyAttrValueS, attrValue );
-
-  };
-
-  LAID.Level.prototype.$removeRenderDirtyAttrValue = function ( attrValue ) {
-
-    LAID.$arrayUtils.remove( this.$renderDirtyAttrValueS, attrValue );
-
-  };
 
   LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
 
@@ -482,17 +500,91 @@
     }
   };
 
-  LAID.Level.prototype.$updateTransitionAttr = function ( transitionAttr ) {
+  LAID.Level.prototype.$checkIsPropInTransition = function ( prop ) {
+    return this.attr2attrValue[ "transition." + transitionProp  + ".type" ] ===
+    undefined;
+  };
 
-    var affectedAttrS = [];
-    if ( transitionAttr === "position" ) {
-      affectedAttrS.concat([ "left", "top", "shiftX", "shiftY", "z",
-      "scaleX", "scaleY",
-      "rotateX", "rotateY", "rotateZ",
-      "skewX", "skewY"
-       ]);
+  LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
+    // TODO: Fix this unicorn as transitionProp could be
+    // a longhand property where only shorthands exist
+
+    var
+    origTransitionProp,
+    transitionPrefix,
+    transitionType, transitionDuration, transitionDelay,
+    transitionArgS, transitionArg2val = {},
+    transitionObj,
+    i, len,
+    longhandPropS,
+    affectedPropS,
+    affectedProp,
+    affectedPropAttrValue;
+
+
+
+    if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( transitionProp ) !== -1  ) {
+      return;
+    }
+
+    if ( !this.$checkIsPropInTransition( transitionProp ) ) {
+      origTransitionProp = transitionProp;
+      transitionProp = LAID.$shorthandPropsUtils.getShorthandProp( transitionProp );
+      if ( transitionProp !== undefined ) {
+        if ( this.$checkIsPropInTransition( transitionProp ) ) {
+          return;
+        } else {
+          affectedProp = origTransitionProp;
+        }
+      }
+    }
+
+    transitionPrefix = "transition." + transitionProp + ".";
+    transitionType = this.attr2attrValue[ transitionPrefix + "type" ].calcValue;
+    transitionDuration =
+    ( this.attr2attrValue[ transitionPrefix + "duration" ] ?
+    this.attr2attrValue[ transitionPrefix + "duration" ].calcValue :
+    0 );
+    transitionDelay = ( this.attr2attrValue[ transitionPrefix + "delay" ] ?
+    this.attr2attrValue[ transitionPrefix + "delay" ].calcValue :
+    0 );
+    transitionArgS = LAID.$transitionType2args[ transitionType ];
+
+    for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
+      transitionArg2val[ transitionArgS[ i ] ] = ( this.attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ]  ] ?
+      this.attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ].calcValue : [] );
+    }
+
+    longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( transitionProp );
+
+    if ( longhandPropS !== undefined ) {
+      affectedPropS = longhandPropS;
+      for ( i = 0, len = affectedPropS.length; i < len; i++ ) {
+        affectedProp = affectedPropS[ i ];
+        if ( !this.$checkIsPropInTransition ) {
+          affectedPropAttrValue = this.attr2attrValue[ affectedProp ];
+
+          if ( affectedPropAttrValue !== undefined && affectedPropAttrValue.transitionCalcValue && affectedPropAttrValue.calcValue ) {
+            affectedPropAttrValue.transition = LAID.$transitionType2object[ transitionType ] ( affectedPropAttrValue.transitionCalcValue, transitionDuration, transitionDelay, transitionDone, transitionArg2val );
+            LAID.$arrayUtils.pushUnique( this.transitionDirtyAttrValueS, propAttrValue );
+          }
+        }
+
+      }
+    } else {
+
+      affectedPropAttrValue = this.attr2attrValue[ affectedProp || transitionProp ];
+      if ( affectedPropAttrValue !== undefined && affectedPropAttrValue.transitionCalcValue && affectedPropAttrValue.calcValue ) {
+        affectedPropAttrValue.transition = LAID.$transitionType2object[ transitionType ] ( affectedPropAttrValue.transitionCalcValue, transitionDuration, transitionDelay, transitionDone, transitionArg2val );
+        LAID.$arrayUtils.pushUnique( this.transitionDirtyAttrValueS, propAttrValue );
+      }
 
     }
+
+
+
+
+
 
   };
 
@@ -536,7 +628,7 @@
       return true;
     } else {
       var prefix = attr.slice( 0, i );
-      return ( ( [ "when", "transition", "$$num", "$$max", "$$keys" ] ).indexOf( prefix ) !== -1 );
+      return ( ( [ "when", "transition", "$$num", "$$max", /*"$$keys"*/ ] ).indexOf( prefix ) !== -1 );
     }
   }
 
@@ -551,7 +643,9 @@
     this.valueUsedForLastRecalculation = undefined;
     this.isTaken = undefined;
     this.attr = attr;
+
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
+    this.renderCall = findRenderCall( attr );
 
     this.calcValue = undefined;
     this.transitionCalcValue = undefined;
@@ -649,8 +743,7 @@
       var
       stateName = getStateNameOfAttrState( this.attr ),
       whenEventType = getWhenEventTypeOfAttrWhen( this.attr ),
-      transitionAttr = getTransitionAttrOfAttrTransition( this.attr )
-      ;
+      transitionProp = getTransitionPropOfAttrTransition( this.attr );
 
       this.valueUsedForLastRecalculation = this.value;
 
@@ -658,20 +751,27 @@
         takerAttrValueS.requestRecalculation();
       }
 
+      if ( this.renderCall ) {
+        this.level.$addRenderDirtyAttrValue( this );
 
-      if (
-        ( stateName !== "" ) &&
-        LAID.$arrayUtils.pushUnique( this.level.$stateS, stateName )
-      ) {
-        this.level.$updateStates();
+      } else if ( stateName !== "" ) {
+        if ( this.calcValue ) { // state
+          if ( LAID.$arrayUtils.pushUnique( this.level.$stateS, stateName ) ) {
+            this.level.$updateStates();
+          }
+        } else { // remove state
+          if ( LAID.$arrayUtils.remove( this.level.$stateS, stateName ) ) {
+            this.level.$updateStates();
+          }
+        }
 
       } else if ( whenEventType !== "" ) {
 
         this.$updateWhenEventType( whenEventType );
 
-      } else if ( transitionAttr !== "" ) {
+      } else if ( transitionProp !== "" ) {
 
-        this.$updateTransitionAttr( transitionAttr );
+        this.$updateTransitionProp( transitionProp );
 
       }
 
@@ -741,16 +841,6 @@
 
   };
 
-  // inspiration from https://github.com/koenbok/Framer/blob/master/framer/Animators/
-  function LinearAnimator () {
-
-  }
-  LinearAnimator.prototype.next = function ( delta ) {
-
-  };
-  LinearAnimator.prototype.done = function () {
-
-  };
 
 
 

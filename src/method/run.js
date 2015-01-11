@@ -1,9 +1,6 @@
 (function() {
   "use strict";
 
-
-
-
   LAID.run =  function ( rootLson, name2lson ) {
 
 
@@ -42,45 +39,91 @@
 
   function updateSize () {
 
-    //var rootPart = levelPath2Level[ '/' ];
-    rootPart.constraint2val.width =  window.innerWidth;
-    rootPart.constraint2val.height =  window.innerHeight;
+    var rootLevel = LAID.$path2level[ "/" ];
+
+    rootLevel.$attr2attrValue.width.update( window.innerWidth );
+    rootLevel.$attr2attrValue.height.update( window.innerHeight );
+
+
+    rootLevel.$attr2attrValue.width.requestRecalculation();
+    rootLevel.$attr2attrValue.height.requestRecalulation();
+
+    LAID.$solveForRecalculation();
 
   }
 
 
 
+
   function render() {
 
-    var curTimeFrame, timeFrameDiff, i, iLen, j, jLen, dirtyLevelS, dirtyLevel, dirtyAttrS, dirtyAttr, dirtyAttrValue;
 
-    curTimeFrame = Date.now();
-    timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame;
-
-    for ( i = 0, dirtyLevelS = LAID.$dirtyLevelS, iLen = dirtyLevelS.length; i < iLen; i++ ) {
-
-      dirtyLevel = dirtyLevelS[ i ];
-
-      for ( j = 0, dirtyAttrS = dirtyLevel.dirtyAttrS, jLen = dirtyAttrS.length; j < jLen; j++ ) {
-
-        dirtyAttr = dirtyAttrS[ j ];
-        dirtyAttrValue = dirtyLevel.$attr2attrValue[ dirtyAttr ];
+    var
+    curTimeFrame = Date.now(),
+    timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
+    x, xLen, y, yLen,
+    i, len,
+    renderDirtyLevelS = LAID.$renderDirtyLevelS,
+    renderDirtyLevel,
+    renderDirtyAttrValueS = LAID.$renderDirtyAttrValueS,
+    renderDirtyAttrValue,
+    renderCallS, isAttrTransitionComplete;
 
 
-        if ( dirtyAttrValue.isTransitioning ) { // if transitioning
 
-          //  change value using animator
-          //  if part and if css type then cssify
-          //  if animating done then remove
+    for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
 
+      renderDirtyLevel = renderDirtyLevelS[ x ];
+      renderDirtyAttrValueS = renderDirtyLevel.renderDirtyAttrValueS;
+      renderCallS = [];
+
+      for ( y = 0, yLen = renderDirtyAttrValueS.length; y < yLen; y++ ) {
+
+        isAttrTransitionComplete = true;
+        renderDirtyAttrValue = renderDirtyAttrValueS[ y ];
+        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrValue.renderCall );
+
+        if ( renderDirtyAttrValue.delay && renderDirtyAttrValue.delay > 0 ) {
+          renderDirtyAttrValue.delay -= timeFrameDiff;
         } else {
+          if ( renderDirtyAttrValue.transition ) { // if transitioning
 
-          //   remove
+            if ( !renderDirtyAttrValue.transition.checkIsComplete() ) {
+              isAttrTransitionComplete = false;
 
+              renderDirtyAttrValue.transitionCalcValue =
+              renderDirtyAttrValue.transition.startCalcVal +
+              ( renderDirtyAttrValue.calcVal - renderDirtyAttrValue.transition.startCalcVal ) *
+              renderDirtyAttrValue.transition.generateNext( timeFrameDiff );
+
+            } else {
+              if ( renderDirtyAttrValue.transition.done ) {
+                renderDirtyAttrValue.transition.done.call( renderDirtyLevel );
+              }
+              renderDirtyAttrValue.transition = undefined;
+            }
+          }
+
+          if ( isAttrTransitionComplete ) {
+
+            renderDirtyAttrValue.transitionCalcValue =
+            renderDirtyAttrValue.calcValue;
+            LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValueS, y );
+            y--;
+
+          }
         }
-
       }
 
+
+      for ( i = 0, len = renderCallS.length; i < len; i++ ) {
+        renderDirtyLevel.$part[ "$renderFn_" + renderCallS[ i ] ]();
+      }
+
+      if ( renderDirtyAttrValueS.length === 0 ) {
+        LAID.$arrayUtils.removeAtIndex( renderDirtyLevelS, x );
+        x--;
+      }
     }
 
     window.requestAnimationFrame( render );

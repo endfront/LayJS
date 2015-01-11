@@ -28,6 +28,15 @@
       return false;
     },
 
+    /*
+    * Remove element at index i
+    */
+    removeAtIndex: function ( elementS, i ) {
+      elementS.splice( ind, 1 );
+    },
+
+
+
     /* Clone array at a single level */
     cloneSingleLevel: function ( elementS ) {
       return elementS.slice(0);

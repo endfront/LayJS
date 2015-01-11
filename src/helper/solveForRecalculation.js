@@ -14,7 +14,7 @@
         if ( ret !== 3 ) {
           isSolveProgressed = true;
           if ( ret === 1 ) {
-            LAID.$arrayUtils.remove( recalculateDirtyLevelS, recalculateDirtyLevelS[ i ] );
+            LAID.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
             i--;
           }
         }

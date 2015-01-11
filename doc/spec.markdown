@@ -121,22 +121,35 @@ The keys within `props` are predefined
 
 ##### List of props
 
+Psuedo-Defaults:
+  Leaving aside the few essential props: "left", "top", "width", and "height";
+  every other prop which comes with a default comes with a "Psuedo-Default",
+  which is the default value for the prop just as it is for the essential
+  ( i.e "left", "top", "width", and "height" ), albeit the difference is in
+  the attribute access of the prop. A prop without an LSON value which falls
+  back on a psuedo-default will when accessed by attribute will return
+  undefined. The reason behind this is performance optimization, as there
+  exist a large number of props which need basic defaults, however will
+  unlikely be accessed as an attribute.
 
+- display
+  `boolean`
+  Psuedo-Default: 0
 
 - originX
   `number`
   in fraction (percent)
-  Default: 0.5
+  Psuedo-Default: 0.5
 
 - originY
   `number`
   in fraction (percent)
-  Default: 0.5
+  Psuedo-Default: 0.5
 
 - originZ
   `number`
   in fraction (percent)
-  Default: 0
+  Psuedo-Default: 0
 
 - perspective
   `number`
@@ -163,24 +176,20 @@ The keys within `props` are predefined
 
 - right
   `number`
-  Default: null
 
 - bottom
   `number`
-  Default: null
 
 - centerX
   `number`
-  Default: null
 
 - centerY
   `number`
-  Default: null
 
 - z
   `number`
   In pixels
-  Default: 0
+  Psuedo-Default: 0
 
 
 - width
@@ -211,11 +220,16 @@ The keys within `props` are predefined
 
 - scrollX
   `number`
-
+  Psuedo-Default: 0
 
 - scrollY
   `number`
+  Psuedo-Default: 0
 
+- scrollElastic
+  `boolean`
+  CSS `-webkit-overflow-scrolling` with value "touch"
+  Psuedo-Default: true
 
 - cursor
   `string`
@@ -225,12 +239,12 @@ The keys within `props` are predefined
 
 - background (no support for multiple backgrounds)
   {
-    color: LAID.Color (Psuedo-default: LAID.transparent()),
-    image: string,
-    attachment: string (CSS background-attachment)
-    repeat: string (CSS background-repeat),
-    size: string (CSS background-size),
-    position: string (CSS background-position)
+    color: LAID.Color (Psuedo-default: transparent),
+    image: string (Psuedo-Default: none),
+    attachment: string (CSS background-attachment) (Psuedo-Default: "scroll"),
+    repeat: string (CSS background-repeat) (Psuedo-Default: false),
+    size: string (CSS background-size) (Psuedo-Default: auto),
+    position: string (CSS background-position) (Psuedo-Default: initial)
    }
 
 
@@ -238,12 +252,12 @@ The keys within `props` are predefined
   *multiple type prop*
   [
     {
-      inset: boolean
-      x: number (in pixels),
-      y: number (in pixels),
-      blur: number,
-      spread: number,
-      color: LAID.Color
+      inset: boolean (Psuedo-Default: false)
+      x: number (in pixels) (Psuedo-Default: 0),
+      y: number (in pixels) (Psuedo-Default: 0),
+      blur: number (Psuedo-Default:0),
+      spread: number (Psuedo-Default: 0),
+      color: LAID.Color (Psuedo-Default: transparent)
     }
     ...
   ]
@@ -251,78 +265,79 @@ The keys within `props` are predefined
 - shiftX
   `number`
   Additional x translation
-  Default: 0
+  Psuedo-Default: 0
 
 
 - shiftY
   `number`
   Additional y translation
-  Default: 0
+  Psuedo-Default: 0
 
 - shiftZ
   `number`
   Additional z translation
-  Default: 0
+  Psuedo-Default: 0
 
 
 - scaleX
   `number`
   Units to scale X
-  Default: 1
+  Psuedo-Default: 1
 
 
 - scaleY
   `number`
   Units to scale Y
-  Default: 1
+  Psuedo-Default: 1
 
 - scaleZ
   `number`
   Units to scale Z
-  Default: 1
+  Psuedo-Default: 1
 
 
 - rotateX
   `number`
   In degrees
-  Default: 0
+  Psuedo-Default: 0
 
 
 - rotateY
   `number`
   In degrees
-  Default: 0
+  Psuedo-Default: 0
 
 
 - rotateZ
   `number`
   In degrees
-  Default: 0
+  Psuedo-Default: 0
 
 
 - skewX
   `number`
   In degrees
-  Default: 0
+  Psuedo-Default: 0
 
 - skewY
   `number`
   In degress
-  Default: 0
+  Psuedo-Default: 0
 
 
 
 - cornerRadius
   `number`
   Shorthand for `cornerRadiusTopLeft`, `cornerRadiusTopRight`, `cornerRadiusBottomRight`, `cornerRadiusBottomLeft`
+  Psuedo-Default: 0
 
 
 - border
   Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >
   { top/right/bottom/left/< undefined >: {
-    style: string (CSS border-style),
-    color: LAID.Color,
-    width: number
+    style: string (CSS border-style) (Psuedo-Default: 'solid'),
+    color: LAID.Color (Psuedo-Default: transparent),
+    width: number (Psuedo-Default: 0)
 
   } }
 
@@ -336,10 +351,10 @@ The keys within `props` are predefined
       brightness: number (in fraction (percent)) |
       contrast: number (in fraction (percent)) |
       dropShadow: {
-        x: number (in pixels) ,
-        y: number (in pixels) ,
-        blur: number (in pixels),
-        color: LAID.Color
+        x: number (in pixels) ( Psuedo-Default: 0),
+        y: number (in pixels) ( Psuedo-Default: 0),
+        blur: number (in pixels) (Psuedo-Default: 0),
+        color: LAID.Color (Psuedo-Default: transparent)
       } |
       grayscale: number (in fraction (percent)) |
       hueRotate: number (in degrees) |
@@ -382,10 +397,10 @@ The keys within `props` are predefined
  *multiple type prop*
   [
     {
-      x: number,
-      y: number,
-      blur: number,
-      color: LAID.Color
+      x: number (Psuedo-Default:0),
+      y: number (Psuedo-Default: 0),
+      blur: number (Psuedo-Default: 0),
+      color: LAID.Color (Psuedo-Default: transparent)
     }
     ...
   ]
@@ -415,13 +430,15 @@ The keys within `props` are predefined
 
 
 - textLetterSpacing
-  `number` / `null`
-  In pixels. null for native letter spacing.
+  `number` / `undefined`
+  In pixels. undefined for initial (native) letter spacing.
+  Psuedo-Default: undefined
 
 
 - textWordSpacing
-  `number` / `null`
-  In pixels. null for native word spacing.
+  `number` / `undefined`
+  In pixels. undefined for initial (native) word spacing.
+  Psuedo-Default: undefined
 
 
 - textOverflow
@@ -450,7 +467,7 @@ The keys within `props` are predefined
 
 - inputLabel
   `string`
-  Default: ""
+  Psuedo-Default: ""
 
 - inputRows
   `number`
@@ -459,11 +476,12 @@ The keys within `props` are predefined
 
 - inputText
   `string`
-  Default: ""
+  Psuedo-Default: ""
 
 
 - inputPlaceholder
   `string`
+  Psuedo-Default: ""
 
 - inputAutocomplete
   `boolean`
@@ -478,20 +496,16 @@ The keys within `props` are predefined
   `boolean`
   Psuedo-Default: false
 
-
-
 - linkHref
   `string`
-  Psuedo-Default: null
+
 
 - linkRel
   `string`
   HTML a[rel]
-  Psuedo-Default: ""
 
 - linkDownload
   `boolean`
-  Psuedo-Default: false
 
 - linkTarget
   `string`
@@ -515,11 +529,11 @@ The keys within `props` are predefined
   *multiple type prop*
   [
     {
-      default: boolean (default: false),
-      kind: string ( html5 < track > kind ) (default: ""),
-      label: string ( html5 < track > label ) (default: ""),
-      src: string ( html5 < track > src ) (default: ""),
-      srclang: string ( html5 < track > srclang ) (default: "")
+      default: boolean (psuedo-default: false),
+      kind: string ( html5 < track > kind ) (psuedo-default: ""),
+      label: string ( html5 < track > label ) (psuedo-default: ""),
+      src: string ( html5 < track > src ) (psuedo-default: ""),
+      srclang: string ( html5 < track > srclang ) (psuedo-default: "")
     },
     ...
   ]
@@ -931,9 +945,10 @@ becomes:
 ##### LAID inheritance rules
 
 - events within 'when' key stacks up as an array
-- the scope of `states[state]` and `many` are inherited at a further level deep
+- the scope of `states[state]` and `many` are inherited recursively iwth the same inheritance rules
 - the `many.rows` key is overwritten at the same level with clones made of each row (array) element
-- all other props are overwritten at single level, and copied data values which are objects are cloned before copying over.
+- the `transiiton` key inherits to the lowest level
+- all other props are overwritten at single level, and data values which are objects are cloned before copying over.
 
 
 example of `when` stacking up:
@@ -1167,14 +1182,14 @@ Transitions for numeric prop-typed attributes.
   {
 
     all: { duration: 100, transition: "linear", args: { tension: 100 } },
-    gpu: { transition: "spring" },
+    positional: { transition: "spring" },
     left: { duration: 200},
     top: { delay: 500 },
     opacity: { duration:2000, done: function(){ console.log("opaque") }  }
 
   }
 
-Each key in the state transition object except for "all" and "gpu" refer to a prop-typed attribute.
+Each key in the state transition object except for "positional" directly refer to a prop-typed attribute.
 The key refers to an object with 5 possible keys:
     (i) type ( type of transition )
     (ii) duration ( of the transition )
@@ -1182,9 +1197,7 @@ The key refers to an object with 5 possible keys:
     (iv) done ( function handler executed at the end of the transition )
     (v) args ( additional args )
 
-The key "all" refers to all prop-typed attributes.
-The key "gpu" refers to the following gpu related prop-typed attributes:
-  - opacity
+The key "positional" refers to the following position related prop-typed attributes:
   - left
   - centerX
   - right
@@ -1202,8 +1215,8 @@ The key "gpu" refers to the following gpu related prop-typed attributes:
   - skewX
   - skewY
 
-Using "gpu" (exclusively) for transitions is highly recommended for
-better performance via bypassing GPU uploads.
+Using "positional" alongwith "opacity" and "filters<num>..." for transitions is highly recommended for
+better performance via bypassing heavy GPU uploads.
 
 
 
