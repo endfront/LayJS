@@ -30,11 +30,12 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
           type: string,
           interface: boolean,
-          inherits: string | object,
+          inherits: [ string | object, ... ],
           data: object | array | string | number,
           props: object,
           when: object,
           transition: transitionObj,
+          observe: [ string, ... ],
           many: {
               data: object,
               props: {
@@ -131,40 +132,22 @@ Psuedo-Defaults:
   undefined. The reason behind this is performance optimization, as there
   exist a large number of props which need basic defaults, however will
   unlikely be accessed as an attribute.
+  Note: wherever "Default" or "Psuedo-Default" is not mentioned, specifying
+  the the prop is a must.
 
 - display
   `boolean`
   Psuedo-Default: 0
 
-- originX
+- width
   `number`
-  in fraction (percent)
-  Psuedo-Default: 0.5
+  Width of part (excluding scale)
+  Default: LAID.take('this', '$naturalWidth')
 
-- originY
+- height
   `number`
-  in fraction (percent)
-  Psuedo-Default: 0.5
-
-- originZ
-  `number`
-  in fraction (percent)
-  Psuedo-Default: 0
-
-- perspective
-  `number`
-  In pixels
-  Psuedo-Default: 0
-
-- perspectiveOriginX
-  `number`
-  in fraction (percent)
-  Psuedo-Default: 0.5
-
-- perspectiveOriginY
-  `number`
-  in fraction (percent)
-  Psuedo-Default: 0.5
+  Height of part (excluding scale)
+  Default: LAID.take('this', '$naturalHeight')
 
 - top
   `number`
@@ -191,82 +174,10 @@ Psuedo-Defaults:
   In pixels
   Psuedo-Default: 0
 
-
-- width
-  `number`
-  Width of part (excluding scale)
-  Default: LAID.take('this', '$naturalWidth')
-
-- height
-  `number`
-  Height of part (excluding scale)
-  Default: LAID.take('this', '$naturalHeight')
-
-- opacity
-  `number`
-  Psuedo-Default: 1
-
-
-- overflowX
-  `string`
-  CSS overflow property
-  Psuedo-Default: 'visible'
-
-- overflowY
-  `string`
-  CSS overflow property
-  Psuedo-Default: 'visible'
-
-
-- scrollX
-  `number`
-  Psuedo-Default: 0
-
-- scrollY
-  `number`
-  Psuedo-Default: 0
-
-- scrollElastic
-  `boolean`
-  CSS `-webkit-overflow-scrolling` with value "touch"
-  Psuedo-Default: true
-
-- cursor
-  `string`
-  CSS cursor property
-  Psuedo-Default: 'default'
-
-
-- background (no support for multiple backgrounds)
-  {
-    color: LAID.Color (Psuedo-default: transparent),
-    image: string (Psuedo-Default: none),
-    attachment: string (CSS background-attachment) (Psuedo-Default: "scroll"),
-    repeat: string (CSS background-repeat) (Psuedo-Default: false),
-    size: string (CSS background-size) (Psuedo-Default: auto),
-    position: string (CSS background-position) (Psuedo-Default: initial)
-   }
-
-
-- boxShadows
-  *multiple type prop*
-  [
-    {
-      inset: boolean (Psuedo-Default: false)
-      x: number (in pixels) (Psuedo-Default: 0),
-      y: number (in pixels) (Psuedo-Default: 0),
-      blur: number (Psuedo-Default:0),
-      spread: number (Psuedo-Default: 0),
-      color: LAID.Color (Psuedo-Default: transparent)
-    }
-    ...
-  ]
-
 - shiftX
   `number`
   Additional x translation
   Psuedo-Default: 0
-
 
 - shiftY
   `number`
@@ -324,6 +235,102 @@ Psuedo-Defaults:
   In degress
   Psuedo-Default: 0
 
+- originX
+  `number`
+  in fraction (percent)
+  Psuedo-Default: 0.5
+
+- originY
+  `number`
+  in fraction (percent)
+  Psuedo-Default: 0.5
+
+- originZ
+  `number`
+  in fraction (percent)
+  Psuedo-Default: 0
+
+- perspective
+  `number`
+  In pixels
+  Psuedo-Default: 0
+
+- perspectiveOriginX
+  `number`
+  in fraction (percent)
+  Psuedo-Default: 0.5
+
+- perspectiveOriginY
+  `number`
+  in fraction (percent)
+  Psuedo-Default: 0.5
+
+
+
+- opacity
+  `number`
+  Psuedo-Default: 1
+
+
+- overflowX
+  `string`
+  CSS overflow property
+  Psuedo-Default: 'hidden'
+
+- overflowY
+  `string`
+  CSS overflow property
+  Psuedo-Default: 'hidden'
+
+
+- scrollX
+  `number`
+  Psuedo-Default: 0
+
+- scrollY
+  `number`
+  Psuedo-Default: 0
+
+- scrollElastic
+  `boolean`
+  CSS `-webkit-overflow-scrolling` with value "touch"
+  Psuedo-Default: true
+
+- cursor
+  `string`
+  CSS cursor property
+  Psuedo-Default: 'auto'
+
+
+- background (no support for multiple backgrounds)
+  {
+    color: LAID.Color (Psuedo-default: transparent),
+    image: string (Psuedo-Default: none),
+    attachment: string (CSS background-attachment) (Psuedo-Default: "scroll"),
+    repeat: string (CSS background-repeat) (Psuedo-Default: false),
+    positionX: number (Psuedo-Default: 0),
+    positionY: number (Psuedo-Default: 0),
+    sizeX: number (Psuedo-Default: 0),
+    sizeY: number (Psuedo-Default: 0)
+   }
+
+
+- boxShadows
+  *multiple type prop*
+  [
+    {
+      inset: boolean (Psuedo-Default: false)
+      x: number (in pixels),
+      y: number (in pixels),
+      blur: number,
+      spread: number (Psuedo-Default: 0),
+      color: LAID.Color
+    }
+    ...
+  ]
+
+
+
 
 
 - cornerRadius
@@ -351,10 +358,10 @@ Psuedo-Defaults:
       brightness: number (in fraction (percent)) |
       contrast: number (in fraction (percent)) |
       dropShadow: {
-        x: number (in pixels) ( Psuedo-Default: 0),
-        y: number (in pixels) ( Psuedo-Default: 0),
-        blur: number (in pixels) (Psuedo-Default: 0),
-        color: LAID.Color (Psuedo-Default: transparent)
+        x: number (in pixels),
+        y: number (in pixels),
+        blur: number (in pixels),
+        color: LAID.Color
       } |
       grayscale: number (in fraction (percent)) |
       hueRotate: number (in degrees) |
@@ -397,10 +404,10 @@ Psuedo-Defaults:
  *multiple type prop*
   [
     {
-      x: number (Psuedo-Default:0),
-      y: number (Psuedo-Default: 0),
-      blur: number (Psuedo-Default: 0),
-      color: LAID.Color (Psuedo-Default: transparent)
+      x: number ,
+      y: number ,
+      blur: number ,
+      color: LAID.Color
     }
     ...
   ]
@@ -582,6 +589,111 @@ Psuedo-Defaults:
   Psuedo-Default: 0.7
 
 
+### Attributes
+
+  The below values can be directly accessed through
+  the LAID Level through `.attr(< access key >)`
+  The same access keys are used as the 2nd argument in LAID.Take
+
+  - <prop>
+
+  - data.<data>
+
+  - when.<event><num>
+
+  - transition.<attr>.<duration/delay/done/type>
+
+  - transition.<attr>.args.<arg>
+
+  - state.<state>
+  returns true if state is active
+
+  - <state>.<prop>
+
+  - <state>.when<event><num>
+
+  - <state>.transition.<attr><duration/delay/done/type>
+
+  - <state>.transition.<attr>.args.<arg>
+
+  - <state>.onlyif
+
+  - <state>.install
+
+  - <state>.uninstall
+
+
+  - read-only properties (prefix: $)
+    - $dataTravelling (`boolean`)
+
+    - $dataTravelledDelta (`number`)
+
+    - $naturalWidth (`number`)
+    Width of the part occupied by text if its a text element, image if its an image element,
+    otherwise if a view then the width occupied by the children parts.
+
+    - $naturalHeight (`number`)
+    Height of the part occupied by text if its a text element, image if its an image element,
+    otherwise if a view then the height occupied by the children parts.
+
+    - $absoluteLeft (`number`)
+    Position in pixels of the left of the element relative to the root level ( irrespective of the amount scrolled horizontally ).
+
+    - $absoluteTop (`number`)
+    Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
+
+    - $numberOfChildren (`number`)
+    Number of the direct descendant parts of the given part.
+
+    < !--
+    - $numberOfDisplayedChildren (`number`)
+    Number of the direct descendant parts of the given part which have display set to true.
+    -- >
+
+    - $focused (`boolean`)
+
+    - $clicked (`boolean`)
+
+    - $hovered (`boolean`)
+
+    - $scrolledX (`number`)
+
+    - $scrolledY (`number`)
+
+    - $cursorX (`number`)
+
+    - $cursorY ('number')
+
+    - $inputText (`string`)
+
+    - $inputChecked (`boolean`)
+
+    /*- $inputSelected (`boolean`)*/
+
+
+### LAID observe
+
+  All read-only attributes except for:
+    - $numberOfChildren
+    - $naturalWidth
+    - $naturalHeight
+    - $dataTravelling
+    - $dataTravelledDelta
+
+  such as "$hovered", "$focused", "$inputText", and
+  the others require 2 or more event listeners bound to the respective
+  DOM element. These event listeners are expensive to inculcate within
+  all Level Parts by default. Thus only if there exists a reference
+  to one of these read-only attributes within the LSON as a "take",
+  the event listeners will be activated. Albeit the issue lies when/if a
+  reference is made to one of these read-onlys using "Level.attr()",
+  since lexical parsing of internal functions is out of the question there
+  is no viable way for LAID to be aware and switch on the event listeners for
+  the corresponding read-only.
+  This is the purpose behind `observe`, `observe` takes in an array of strings,
+  where strings are references made to such read-onlys. Thus if a reference is
+  made within `observe` LAID will switch on the event listeners for the
+  read-only.
 
 ### LAID many
 
@@ -654,85 +766,6 @@ LAID.Level methods:
   data( changedData ) //changes data value
 
 
-
-### Constraints Available (Known as "attributes")
-
-The below values can be directly accessed through
-the LAID Level through `.attr(< access key >)`
-The same access keys are used as the 2nd argument in LAID.Take
-
-  - <prop>
-
-  - data.<data>
-
-  - when.<event><num>
-
-  - transition.<attr>.<duration/delay/done/type>
-
-  - transition.<attr>.args.<arg>
-
-  - state.<state>
-  returns true if state is active
-
-  - <state>.<prop>
-
-  - <state>.when<event><num>
-
-  - <state>.transition.<attr><duration/delay/done/type>
-
-  - <state>.transition.<attr>.args.<arg>
-
-  - <state>.onlyif
-
-  - <state>.install
-
-  - <state>.uninstall
-
-
-
-
-
-  - read only properties (prefix: $)
-    - $dataTravelling (`boolean`)
-
-    - $dataTravelledDelta (`number`)
-
-    - $naturalWidth (`number`)
-      Width of the part occupied by text if its a text element, image if its an image element,
-      otherwise if a view then the width occupied by the children parts.
-
-    - $naturalHeight (`number`)
-      Height of the part occupied by text if its a text element, image if its an image element,
-      otherwise if a view then the height occupied by the children parts.
-
-
-    - $numberOfChildren (`number`)
-      Number of the direct descendant parts of the given part.
-
-      < !--
-    - $numberOfDisplayedChildren (`number`)
-      Number of the direct descendant parts of the given part which have display set to true.
-      -- >
-
-    - $focused (`boolean`)
-
-    - $clicked (`boolean`)
-
-    - $hovered (`boolean`)
-
-    - $scrolledX (`number`)
-
-    - $scrolledY (`number`)
-
-    - $cursorX (`number`)
-
-    - $cursorY ('number')
-
-    - $inputText (`string`)
-
-    - $inputChecked (`boolean`)
-
-    - $inputSelected (`boolean`)
 
 
 
@@ -1209,6 +1242,7 @@ The key "positional" refers to the following position related prop-typed attribu
   - shiftY
   - scaleX
   - scaleY
+  - scaleZ
   - rotateX
   - rotateY
   - rotateZ

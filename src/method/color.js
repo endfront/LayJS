@@ -7,7 +7,7 @@
 
     var colorValue = colorName2colorValue[ colorName ];
     if ( colorValue === undefined ) {
-      console.error("LAID Error: Color name:", colorName, "not found." );
+      throw ("LAID Error: Color name: " + colorName +  " not found." );
     }
     else {
       return new LAID.Color( 'rgb', colorValue, 1 );

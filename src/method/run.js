@@ -30,7 +30,7 @@
 
     ( new LAID.Level( "/", rootLson, undefined ) ).init();
 
-    LAID.$prevTimeFrame = Date.now();
+    LAID.$prevTimeFrame = performance.now();
 
     window.requestAnimationFrame( render );
 
@@ -41,13 +41,8 @@
 
     var rootLevel = LAID.$path2level[ "/" ];
 
-    rootLevel.$attr2attrValue.width.update( window.innerWidth );
-    rootLevel.$attr2attrValue.height.update( window.innerHeight );
-
-
-    rootLevel.$attr2attrValue.width.requestRecalculation();
-    rootLevel.$attr2attrValue.height.requestRecalulation();
-
+    rootLevel.$changeAttrVal( "width", window.innerWidth );
+    rootLevel.$changeAttrVal( "height", window.innerHeight );
     LAID.$solveForRecalculation();
 
   }
@@ -59,7 +54,7 @@
 
 
     var
-    curTimeFrame = Date.now(),
+    curTimeFrame = performance.now(),
     timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
     x, xLen, y, yLen,
     i, len,

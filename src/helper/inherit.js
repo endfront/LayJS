@@ -161,24 +161,46 @@
         }
 
 
-      
+        // longhand prop overwrite stage
+        //
+        // longhand props (such as "rotateX") are
+        // meant to have higher priority over its
+        // corresponding shorthand props ("positional" in this case)
+        // Albeit we place higher priority to shorthand
+        // props if they arise from "from"LSON.
+        //
+        // Eg: "rotateX" partially/completely overwritten
+        // by "positional" where "rotateX" is present
+        // within "into"LSON and "positional" is present
+        // within "from"LSON
+
         for ( fromTransitionProp in fromTransition ) {
           longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( fromTransitionProp );
           if ( longhandPropS !== undefined ) {
             for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
               longhandProp = longhandPropS[ i ];
               if ( intoTransition[ longhandProp ] !== undefined ) {
-                inheritTransitionProp( intoTransition, fromTransition, intoTransitionProp, longhandProp );
+                inheritTransitionProp( intoTransition, fromTransition, longhandProp, fromTransitionProp );
               }
             }
           }
         }
 
+        // General inheritance of props of exact
+        // names across from and into LSON
         for ( fromTransitionProp in fromTransition ) {
           inheritTransitionProp( intoTransition, fromTransition, intoTransitionProp, longhandProp );
         }
 
         // flatten stage
+        //
+        // This is akin to a self-inheritance stafe whereby
+        // shorthand prop transition directives are stacked
+        // below existing long prop transitions
+        //
+        // Eg: a shorthand property such as "rotateX"
+        // would inherit values from "positional"
+        //
         for ( intoTransitionProp in intoTransition ) {
           longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( intoTransitionProp );
           if ( longhandPropS !== undefined ) {

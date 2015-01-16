@@ -148,21 +148,7 @@
     width: new LAID.Take( "this", "$naturalWidth" ),
     height: new LAID.Take( "this", "$naturalHeight" ),
     top: 0,
-    left: 0,
-    z: 0,
-    originX:0.5,
-    originY:0.5,
-    originZ: 0,
-    shiftX: 0,
-    shiftY: 0,
-    rotateX:0,
-    rotateY:0,
-    rotateZ:0,
-    scaleX:0,
-    scaleY:0,
-    scaleZ:0,
-    skewX:0,
-    skewY:0
+    left: 0
   };
 
 
@@ -293,7 +279,7 @@
       }
 
       for ( prop in prop2val ) {
-        longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( prop );
+        longhandPropS = LAID.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
         if ( longhandPropS !== undefined ) {
           shorthandVal = prop2val[ prop ];
           for ( i = 0, len = longhandPropS.length; i < len; i++ ) {

@@ -4,18 +4,16 @@
 
 
 Current:
-  - Add support for psuedo defaults, and add the details to the spec (handle mixed psuedo properties like perspectiveOrigin and background)
-  - Add will-observe (array-valued) prop to lson root
-  - Add $time as a read only property of root '/'
-  - render function
-  - In LAID.Part add 'div'/<other html node dependent of type> node creation. (Add Psuedo defaults to element node in LAID.Part)
-  - Add support for $scrollX, $value, $naturalWidth and other input properties, and dont forget to bind 'scrollX' to '$scrollX', etc, etc.
-  - Thinking about duplications within data which can be color
+  - `defaultCss` in Part.js (you were at `background`)
+  - In LAID.Part add 'div'/<other html node dependent of type> node creation. (Add Psuedo defaults to element node in LAID.Part) (remember
+  - move element (node) creation to requestAnimationFrame
+  - State install / uninstall and load
+    document.body node for root)
+  - $natualWidth, $naturalHeight ... other read-onlys
   - Change passing in "/" lson in LAID.run()
   - Insert CSS from entry.js
   - Add link defaults
-  - Change dateNow to performanceNow
-  - Change console.error to throws for LAID errors
+  - Cache most recently used state combinations for Many
   - LAID.level()
   - LAID.Level.attr()
   - LAID.Level.data() (change)
@@ -39,7 +37,9 @@ Tests:
 
 
 Future:
-  - Cache most recently used state combinations (further optimize for many parts)
+  - Add $time as a read only property of root '/'
+  - Canvas support
+  - Convert between transition and calc when transition add/delete
   - Introduce order number key for states
   - feature function which checks for overlapping parts
 hardware acceleration flag

@@ -44,13 +44,19 @@
 
   ];
 
+  var defaultCss = "position:absolute;display:block" +
+  "opacity:1;" +
+  "transform-origin:50% 50% 50%;-webkit-transform-origin:50% 50% 50%;-ms-transform-origin:50% 50% 50%;" +
+  "perspective:0px;-webkit-perspective:0px;-ms-perspective:0px;" +
+  "perspective-origin:50% 50%;-webkit-perspective-origin:50% 50%;-ms-perspective-origin:50% 50%;" +
+  "overflow-x:hidden;overflow-y:hidden;" +
+  "-webkit-overflow-scrolling: touch;"
+  ;
 
 
   LAID.Part = function ( level ) {
 
     this.level = level;
-
-    LAID.dirtyPartS.push( this );
 
   };
 
@@ -80,24 +86,24 @@
 
       this.node.style[ cssPrefix + "transform" ] =
       "scale3d(" +
-      attr2attrValue.scaleX.transitionCalcValue + "," +
-      attr2attrValue.scaleY.transitionCalcValue + "," +
-      attr2attrValue.scaleZ.transitionCalcValue + ") " +
+      ( attr2attrValue.scaleX !== undefined ? attr2attrValue.scaleX.transitionCalcValue : 1 ) + "," +
+      ( attr2attrValue.scaleY !== undefined ? attr2attrValue.scaleY.transitionCalcValue : 1 ) + "," +
+      ( attr2attrValue.scaleZ !== undefined ? attr2attrValue.scaleZ.transitionCalcValue : 1 ) + ") " +
       "translate3d(" +
 
-      ( ( ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) +
-      attr2attrValue.width.transitionCalcValue * attr2attrValue.originX.transitionCalcValue )  + "px ," ) +
+      ( ( ( attr2attrValue.left.transitionCalcValue + ( attr2attrValue.shiftX !== undefined ? attr2attrValue.shiftX.transitionCalcValue : 0 ) ) +
+      attr2attrValue.width.transitionCalcValue * ( attr2attrValue.originX !== undefined ? attr2attrValue.originX.transitionCalcValue : 0.5 ) )  + "px ," ) +
 
-      ( ( ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) +
-      attr2attrValue.height.transitionCalcValue * attr2attrValue.originY.transitionCalcValue )  + "px ," ) +
+      ( ( ( attr2attrValue.top.transitionCalcValue + ( attr2attrValue.shiftY !== undefined ? attr2attrValue.shiftY.transitionCalcValue : 0 ) ) +
+      attr2attrValue.height.transitionCalcValue * ( attr2attrValue.originY !== undefined ? attr2attrValue.originY.transitionCalcValue : 0.5 ) )  + "px ," ) +
 
-      ( attr2attrValue.Z.transitionCalcValue) + "px) " +
+      ( attr2attrValue.z ? attr2attrValue.z.transitionCalcValue : 0 )  + "px) " +
       "skew(" +
-      attr2attrValue.skewX.transitionCalcValue + "deg," +
-      attr2attrValue.skewY.transitionCalcValue + "deg) " +
-      "rotateX(" + attr2attrValue.rotateX.transitionCalcValue + "deg) " +
-      "rotateY(" + attr2attrValue.rotateY.transitionCalcValue + "deg) " +
-      "rotateZ(" + attr2attrValue.rotateZ.transitionCalcValue + "deg)";
+      ( attr2attrValue.skewX !== undefined ? attr2attrValue.skewX.transitionCalcValue : 0 ) + "deg," +
+      ( attr2attrValue.skewY !== undefined ? attr2attrValue.skewY.transitionCalcValue : 0 ) + "deg) " +
+      "rotateX(" + ( attr2attrValue.rotateX !== undefined ? attr2attrValue.rotateX.transitionCalcValue : 0 ) + "deg) " +
+      "rotateY(" + ( attr2attrValue.rotateY !== undefined ? attr2attrValue.rotateY.transitionCalcValue : 0 ) + "deg) " +
+      "rotateZ(" + ( attr2attrValue.rotateZ !== undefined ? attr2attrValue.rotateZ.transitionCalcValue : 0 ) + "deg)";
     };
 
     LAID.Part.prototype.$renderFn_width = function () {
@@ -125,8 +131,8 @@
 
     LAID.Part.prototype.$renderFn_positional = function () {
       var attr2attrValue = this.level.$attr2attrValue;
-      this.node.style.left = ( attr2attrValue.left.transitionCalcValue + attr2attrValue.shiftX.transitionCalcValue ) + "px";
-      this.node.style.top = ( attr2attrValue.top.transitionCalcValue + attr2attrValue.shiftY.transitionCalcValue ) + "px";
+      this.node.style.left = ( attr2attrValue.left.transitionCalcValue + ( attr2attrValue.shiftX !== undefined ? attr2attrValue.shiftX.transitionCalcValue : 0 ) ) + "px";
+      this.node.style.top = ( attr2attrValue.top.transitionCalcValue + ( attr2attrValue.shiftY !== undefined ? attr2attrValue.shiftY.transitionCalcValue : 0 ) ) + "px";
 
     };
 
@@ -137,10 +143,10 @@
 
   LAID.Part.prototype.$renderFn_origin = function () {
     var attr2attrValue = this.level.$attr2attrValue;
-    this.node.style[ cssPrefix + "origin" ] =
-    ( attr2attrValue.originX.transitionCalcValue * 100 ) + "% " +
-    ( attr2attrValue.originY.transitionCalcValue * 100 ) + "% " +
-    ( attr2attrValue.originZ.transitionCalcValue * 100 ) + "%";
+    this.node.style[ cssPrefix + "transform-origin" ] =
+    ( ( attr2attrValue.originX !== undefined ? attr2attrValue.originX.transitionCalcValue : 0.5 ) * 100 ) + "% " +
+    ( ( attr2attrValue.originY !== undefined ? attr2attrValue.originY.transitionCalcValue : 0.5 ) * 100 ) + "% " +
+    ( ( attr2attrValue.originZ !== undefined ? attr2attrValue.originZ.transitionCalcValue : 0.5 ) * 100 ) + "%";
     this.$renderFn_positional(); //apply change to transform
   };
 
@@ -159,6 +165,11 @@
 
   LAID.Part.prototype.$renderFn_opacity = function () {
     this.node.style.opacity = this.level.$attr2attrValue.opacity.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_display = function () {
+    this.node.style.display = this.level.$attr2attrValue.display ?
+    "block" : "none";
   };
 
   LAID.Part.prototype.$renderFn_scrollX = function () {
@@ -182,7 +193,7 @@
   };
 
   LAID.Part.prototype.$renderFn_backgroundColor = function () {
-    this.node.style.backgroundColor = convertColorToCss( this.level.$attr2attrValue.backgroundColor.transitionCalcValue.stringify() );
+    this.node.style.backgroundColor = this.level.$attr2attrValue.backgroundColor.transitionCalcValue.stringify();
   };
 
   LAID.Part.prototype.$renderFn_backgroundImage = function () {
@@ -198,34 +209,391 @@
   };
 
   LAID.Part.prototype.$renderFn_backgroundSize = function () {
-    this.node.style.backgroundColor = this.level.$attr2attrValue.backgroundSize.transitionCalcValue;
+    this.node.style.backgroundSize =
+    ( this.level.$attr2attrValue.backgroundSizeX !== undefined ? this.level.$attr2attrValue.backgroundSizeX.transitionCalcValue : 0 ) +
+    "px " +
+    ( this.level.$attr2attrValue.backgroundSizeY !== undefined ? this.level.$attr2attrValue.backgroundSizeY.transitionCalcValue : 0 ) +
+    "px" ;
   };
 
   LAID.Part.prototype.$renderFn_backgroundPosition = function () {
-    this.node.style.backgroundPosition = this.level.$attr2attrValue.backgroundPosition.transitionCalcValue;
+    this.node.style.backgroundPosition =
+    ( this.level.$attr2attrValue.backgroundPositionX !== undefined ? this.level.$attr2attrValue.backgroundPositionX.transitionCalcValue : 0 ) +
+    "px " +
+    ( this.level.$attr2attrValue.backgroundPositionY !== undefined ? this.level.$attr2attrValue.backgroundPositionY.transitionCalcValue : 0 ) +
+    "px" ;
   };
 
   LAID.Part.prototype.$renderFn_boxShadows = function () {
-    var boxShadow, i, numBoxShadows, attr2attrValue;
-    attr2attrValue = this.level.$attr2attrValue;
-    var s="";
-    for ( i = 1; i <= len; i++ ) {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    s = "",
+    i, len;
+    for ( i = 1, len = attr2attrValue[ "$$num.boxShadows" ].calcVal ; i <= len; i++ ) {
       s +=
-      ( attr2attrValue["boxShadow" + i + "Inset" ].transitionCalcValue ? "inset " : "" ) +
-      ( attr2attrValue["boxShadow" + i + "X" ].transitionCalcValue + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Y" ].transitionCalcValue + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Blur" ].transitionCalcValue + "px " ) +
-      ( ( attr2attrValue["boxShadow" + i + "Spread" ].transitionCalcValue || 0 ) + "px " ) +
-      ( attr2attrValue["boxShadow" + i + "Color" ].transitionCalcValue.stringify() );
-
+      ( ( attr2attrValue["boxShadows" + i + "Inset" ] !== undefined ? attr2attrValue["boxShadows" + i + "Inset" ].transitionCalcValue : false ) ? "inset " : "" ) +
+      ( attr2attrValue["boxShadows" + i + "X" ].transitionCalcValue + "px " ) +
+      ( attr2attrValue["boxShadows" + i + "Y" ].transitionCalcValue + "px " ) +
+      (  attr2attrValue["boxShadows" + i + "Blur" ].transitionCalcValue  + "px " ) +
+      ( ( attr2attrValue["boxShadows" + i + "Spread" ] !== undefined ? attr2attrValue["boxShadows" + i + "Spread" ].transitionCalcValue : 0 ) + "px " ) +
+      ( attr2attrValue["boxShadows" + i + "Color" ].transitionCalcValue.stringify() ) +
+      ",";
     }
+    this.node.style.boxShadow = s;
   };
 
-  LAID.Part.prototype.$renderFn_when = function () {
 
 
+  LAID.Part.prototype.$renderFn_filters = function () {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    s = "",
+    i, len,
+    filterType;
+    for ( i = 1, len = attr2attrValue[ "$$num.filters" ].calcVal ; i <= len; i++ ) {
+      filterType = attr2attrValue[ "filters" + i + "Type" ];
+      switch ( filterType ) {
+        case "dropShadow":
+          s +=  "dropShadow(" +
+          ( attr2attrValue["filters" + i + "X" ].transitionCalcValue + "px " ) +
+          (  attr2attrValue["filters" + i + "Y" ].transitionCalcValue  + "px " ) +
+          ( attr2attrValue["filters" + i + "Blur" ].transitionCalcValue + "px " ) +
+          ( ( attr2attrValue["filters" + i + "Spread" ] !== undefined ? attr2attrValue[ "filters" + i + "Spread" ].transitionCalcValue : 0 ) + "px " ) +
+          (  attr2attrValue["filters" + i + "Color" ].transitionCalcValue.stringify() ) +
+          ") ";
+          break;
+        case "blur":
+          s += "blur(" + attr2attrValue[ "filters" + i + "Blur" ] + ") ";
+          break;
+        case "hueRotate":
+          s += "hue-rotate(" + attr2attrValue[ "filters" + i + "HueRotate" ] + "deg) ";
+          break;
+        case "url":
+          s += "url(" + attr2attrValue[ "filters" + i + "Url" ] + ") ";
+          break;
+        default:
+          s += filterType + "(" + ( attr2attrValue[ "filters" + i + LAID.$capitalize( filterType ) ] * 100 ) + "%) ";
+
+      }
+    }
+    this.node.style.filter = s;
 
   };
+
+  LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
+    this.node.style.borderRadiusTopLeft = this.attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
+    this.node.style.borderRadiusTopRight = this.attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
+    this.node.style.borderRadiusBottomRight = this.attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
+    this.node.style.borderRadiusBottomLeft = this.attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
+  };
+
+
+
+  LAID.Part.prototype.$renderFn_borderTopStyle = function () {
+    this.node.style.borderTopStyle = this.attr2attrValue.borderTopStyle.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_borderRightStyle = function () {
+    this.node.style.borderRightStyle = this.attr2attrValue.borderRightStyle.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_borderBottomStyle = function () {
+    this.node.style.borderBottomStyle = this.attr2attrValue.borderBottomStyle.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_borderLeftStyle = function () {
+    this.node.style.borderLeftStyle = this.attr2attrValue.borderLeftStyle.transitionCalcValue;
+  };
+
+
+  LAID.Part.prototype.$renderFn_borderTopColor = function () {
+    this.node.style.borderTopColor = this.attr2attrValue.borderTopColor.transitionCalcValue.stringify();
+  };
+  LAID.Part.prototype.$renderFn_borderRightColor = function () {
+    this.node.style.borderRightColor = this.attr2attrValue.borderRightColor.transitionCalcValue.stringify();
+  };
+  LAID.Part.prototype.$renderFn_borderBottomColor = function () {
+    this.node.style.borderBottomColor = this.attr2attrValue.borderBottomColor.transitionCalcValue.stringify();
+  };
+  LAID.Part.prototype.$renderFn_borderLeftColor = function () {
+    this.node.style.borderLeftColor = this.attr2attrValue.borderLeftColor.transitionCalcValue.stringify();
+  };
+
+  LAID.Part.prototype.$renderFn_borderTopWidth = function () {
+    this.node.style.borderTopWidth = this.attr2attrValue.borderTopWidth.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_borderRightWidth = function () {
+    this.node.style.borderRightWidth = this.attr2attrValue.borderRightWidth.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_borderBottomWidth = function () {
+    this.node.style.borderBottomWidth = this.attr2attrValue.borderBottomWidth.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_borderLeftWidth = function () {
+    this.node.style.borderLeftWidth = this.attr2attrValue.borderLeftWidth.transitionCalcValue + "px";
+  };
+
+
+
+  /* Text Related */
+
+  LAID.Part.prototype.$renderFn_text = function () {
+    this.node.innerHtml = this.attr2attrValue.text.transitionCalcValue;
+  };
+
+  LAID.Part.prototype.$renderFn_textSize = function () {
+    this.node.fontSize = this.attr2attrValue.textSize.transitionCalcValue + "px";
+  };
+  LAID.Part.prototype.$renderFn_textFamily = function () {
+    this.node.fontFamily = this.attr2attrValue.textFamily.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textWeight = function () {
+    this.node.fontWeight = this.attr2attrValue.textWeight.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textColor = function () {
+    this.node.color = this.attr2attrValue.textColor.transitionCalcValue.stringify();
+  };
+
+
+  LAID.Part.prototype.$renderFn_textShadows = function () {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    s = "",
+    i, len;
+    for ( i = 1, len = attr2attrValue[ "$$num.textShadows" ].calcVal; i <= len; i++ ) {
+      s +=
+      (  attr2attrValue["textShadow" + i + "Color" ].transitionCalcValue.stringify() ) + " " +
+      ( attr2attrValue["textShadows" + i + "X" ].transitionCalcValue + "px " ) +
+      ( attr2attrValue["textShadows" + i + "Y" ].transitionCalcValue + "px " ) +
+      ( attr2attrValue["textShadows" + i + "Blur" ].transitionCalcValue  + "px" ) +
+      ",";
+    }
+    this.node.style.textShadow = s;
+  };
+
+  LAID.Part.prototype.$renderFn_textVariant = function () {
+    this.node.fontVariant = this.attr2attrValue.textVariant.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textStyle = function () {
+    this.node.fontStyle = this.attr2attrValue.textStyle.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textDecoration = function () {
+    this.node.textDecoration = this.attr2attrValue.textDecoration.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textAlign = function () {
+    this.node.textAlign = this.attr2attrValue.textAlign.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
+    this.node.letterSpacing = this.attr2attrValue.textLetterSpacing.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textWordSpacing = function () {
+    this.node.wordSpacing = this.attr2attrValue.textWordSpacing.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textOverflow = function () {
+    this.node.textOverflow = this.attr2attrValue.textOverflow.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textIndent = function () {
+    this.node.textIndent = this.attr2attrValue.textIndent.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textWhitespace = function () {
+    this.node.whitespace = this.attr2attrValue.textWhitespace.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textTopPadding = function () {
+    this.node.paddingTop = this.attr2attrValue.textTopPadding.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textRightPadding = function () {
+    this.node.paddingRight = this.attr2attrValue.textRightPadding.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textBottomPadding = function () {
+    this.node.paddingBottom = this.attr2attrValue.textBottomPadding.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_textLeftPadding = function () {
+    this.node.paddingLeft = this.attr2attrValue.textLeftPadding.transitionCalcValue;
+  };
+
+
+  /* Non <div> */
+
+  /* Input (<input/> and <textarea>) Related */
+
+  LAID.Part.prototype.$renderFn_inputLabel = function () {
+    this.node.label = this.attr2attrValue.inputLabel.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_inputRows = function () {
+    this.node.rows = this.attr2attrValue.inputRows.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_inputText = function () {
+    this.node.value = this.attr2attrValue.inputText.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_inputPlaceholder = function () {
+    this.node.placeholder = this.attr2attrValue.inputPlaceholder.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_inputAutocomplete = function () {
+    this.node.autocomplete = this.attr2attrValue.inputAutocomplete.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_inputAutocorrect = function () {
+    this.node.autocorrect = this.attr2attrValue.inputAutocorrect.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_inputDisabled = function () {
+    this.node.disabled = this.attr2attrValue.inputDisabled.transitionCalcValue;
+  };
+
+
+  /* Link (<a>) Related */
+
+  LAID.Part.prototype.$renderFn_linkHref = function () {
+    this.node.href = this.attr2attrValue.linkHref.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_linkRel = function () {
+    this.node.rel = this.attr2attrValue.linkRel.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_linkDownload = function () {
+    this.node.download = this.attr2attrValue.linkDownload.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_linkTarget = function () {
+    this.node.target = this.attr2attrValue.linkTarget.transitionCalcValue;
+  };
+
+
+  /* Image (<img>) related */
+  LAID.Part.prototype.$renderFn_imageUrl = function () {
+    this.node.src = this.attr2attrValue.imageUrl.transitionCalcValue;
+  };
+
+  /* Audio (<audio>) related */
+  LAID.Part.prototype.$renderFn_audioSources = function () {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    i, len,
+    documentFragment = document.createDocumentFragment(),
+    childNodes = this.node.childNodes,
+    childNode;
+    // first remove the current audio sources
+    for ( i = 0, len = childNodes.length; i <= len; i++ ) {
+      childNode = childNodes[ i ];
+      if ( childNode.tagName === "SOURCE" ) {
+        childNode.parentNode.removeChild( childNode );
+      }
+    }
+    for ( i = 1, len = attr2attrValue[ "$$num.audioSources" ].calcVal; i <= len; i++ ) {
+      childNode = document.createElement( "source" );
+      childNode.type = attr2attrValue["audioSources" + i + "Type" ].transitionCalcValue;
+      childNode.src = attr2attrValue["audioSources" + i + "Src" ].transitionCalcValue;
+      documentFragment.appendChild( childNode );
+    }
+    this.node.appendChild( documentFragment );
+  };
+
+  LAID.Part.prototype.$renderFn_audioTracks = function () {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    i, len,
+    documentFragment = document.createDocumentFragment(),
+    childNodes = this.node.childNodes,
+    childNode;
+    // first remove the current audio tracks
+    for ( i = 0, len = childNodes.length; i <= len; i++ ) {
+      childNode = childNodes[ i ];
+      if ( childNode.tagName === "TRACK" ) {
+        childNode.parentNode.removeChild( childNode );
+      }
+    }
+    for ( i = 1, len = attr2attrValue[ "$$num.audioTracks" ].calcVal; i <= len; i++ ) {
+      childNode = document.createElement( "track" );
+      childNode.type = attr2attrValue["audioTracks" + i + "Type" ].transitionCalcValue;
+      childNode.src = attr2attrValue["audioTracks" + i + "Src" ].transitionCalcValue;
+      documentFragment.appendChild( childNode );
+    }
+    this.node.appendChild( documentFragment );
+  };
+
+  LAID.Part.prototype.$renderFn_audioVolume = function () {
+    this.node.volume = this.attr2attrValue.audioVolume.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_audioControls = function () {
+    this.node.controls = this.attr2attrValue.audioControls.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_audioLoop = function () {
+    this.node.loop = this.attr2attrValue.audioLoop.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_audioMuted = function () {
+    this.node.muted = this.attr2attrValue.audioMuted.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_audioPreload = function () {
+    this.node.preload = this.attr2attrValue.audioPreload.transitionCalcValue;
+  };
+
+  /* Video (<video>) related */
+  LAID.Part.prototype.$renderFn_videoSources = function () {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    i, len,
+    documentFragment = document.createDocumentFragment(),
+    childNodes = this.node.childNodes,
+    childNode;
+    // first remove the current video sources
+    for ( i = 0, len = childNodes.length; i <= len; i++ ) {
+      childNode = childNodes[ i ];
+      if ( childNode.tagName === "SOURCE" ) {
+        childNode.parentNode.removeChild( childNode );
+      }
+    }
+    for ( i = 1, len = attr2attrValue[ "$$num.videoSources" ].calcVal; i <= len; i++ ) {
+      childNode = document.createElement( "source" );
+      childNode.type = attr2attrValue["videoSources" + i + "Type" ].transitionCalcValue;
+      childNode.src = attr2attrValue["videoSources" + i + "Src" ].transitionCalcValue;
+      documentFragment.appendChild( childNode );
+    }
+    this.node.appendChild( documentFragment );
+  };
+
+  LAID.Part.prototype.$renderFn_videoTracks = function () {
+    var
+    attr2attrValue = this.level.$attr2attrValue,
+    i, len,
+    documentFragment = document.createDocumentFragment(),
+    childNodes = this.node.childNodes,
+    childNode;
+    // first remove the current video tracks
+    for ( i = 0, len = childNodes.length; i <= len; i++ ) {
+      childNode = childNodes[ i ];
+      if ( childNode.tagName === "TRACK" ) {
+        childNode.parentNode.removeChild( childNode );
+      }
+    }
+    for ( i = 1, len = attr2attrValue[ "$$num.videoTracks" ].calcVal; i <= len; i++ ) {
+      childNode = document.createElement( "track" );
+      childNode.type = attr2attrValue["videoTracks" + i + "Type" ].transitionCalcValue;
+      childNode.src = attr2attrValue["videoTracks" + i + "Src" ].transitionCalcValue;
+      documentFragment.appendChild( childNode );
+    }
+    this.node.appendChild( documentFragment );
+  };
+
+  LAID.Part.prototype.$renderFn_videoAutoplay = function () {
+    this.node.autoplay = this.attr2attrValue.videoAutoplay.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_videoControls = function () {
+    this.node.controls = this.attr2attrValue.videoControls.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_videoCrossorigin = function () {
+    this.node.crossorigin = this.attr2attrValue.videoCrossorigin.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_videoLoop = function () {
+    this.node.loop = this.attr2attrValue.videoLoop.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_videoMuted = function () {
+    this.node.muted = this.attr2attrValue.videoMuted.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_videoPreload = function () {
+    this.node.preload = this.attr2attrValue.videoPreload.transitionCalcValue;
+  };
+  LAID.Part.prototype.$renderFn_videoPoster = function () {
+    this.node.poster = this.attr2attrValue.videoPoster.transitionCalcValue;
+  };
+
 
 
 })();
