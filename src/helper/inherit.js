@@ -87,6 +87,7 @@
         }
       }
     }
+    
     function checkIsMutable ( val ) {
       return ( ( typeof val === "object" ) || val instanceof Array );
     }

@@ -68,32 +68,6 @@ bottom: -0.25em;
 }
 
 
-.lson {
-
-// set antialiasing of text as well!
-border: none;
-
-position: absolute;
-
-box-sizing: border-box;
--webkit-box-sizing: border-box;
--moz-box-sizing: border-box;
-
-transform-style: preserve-3d;
--webkit-transform-style: preserve-3d;
-
-backface-visibility: visible;
--webkit-backface-visibility: visible;
-
-
--webkit-appearance: none;
--moz-appearance: none;
-appearance: none;
-
-
-
-}
-
 
 */
 
@@ -104,6 +78,9 @@ appearance: none;
 
     $path2level: {},
     $cloggedLevelS: [],
+    $newPartS: [],
+    $newlyInstalledStateLevelS: [],
+    $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
     $recalculateDirtyLevelS: [],
     $renderDirtyLevelS: [],

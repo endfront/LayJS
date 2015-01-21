@@ -3,7 +3,8 @@
 
 
 
-  var isGpuAccelerated, cssPrefix;
+  var isGpuAccelerated, cssPrefix, allStyles,
+  defaultCss, defaultTextCss, inputType2tag;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -27,40 +28,55 @@
 
   allStyles = undefined;
 
-  var type2htmlTag = {
 
-    "default": "div",
-    canvas: "canvas",
-    image: "img",
-    video: "video",
-    svg: "svg"
-
-  };
-
-  var inputWhichIsAnHtmlTagS = [
-
-  "textarea",
-  "select"
-
-  ];
-
-  var defaultCss = "position:absolute;display:block" +
-  "opacity:1;" +
-  "transform-origin:50% 50% 50%;-webkit-transform-origin:50% 50% 50%;-ms-transform-origin:50% 50% 50%;" +
-  "perspective:0px;-webkit-perspective:0px;-ms-perspective:0px;" +
-  "perspective-origin:50% 50%;-webkit-perspective-origin:50% 50%;-ms-perspective-origin:50% 50%;" +
+  defaultCss = "position:absolute;display:block;margin:0;padding:0;" +
+  "box-sizing:border-box;-moz-box-sizing:border-box;" +
+  "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
   "overflow-x:hidden;overflow-y:hidden;" +
-  "-webkit-overflow-scrolling: touch;"
-  ;
+  "-webkit-overflow-scrolling:touch;" +
+  "background-repeat:no-repeat;";
 
+  defaultTextCss = defaultCss + "font-size:13px;" +
+  "font-family:sans-serif:color:black;";
+
+  inputType2tag = {
+    button: "button",
+    multiline: "textarea",
+    optgroup: "optgroup",
+    option: "option"
+  };
 
   LAID.Part = function ( level ) {
 
     this.level = level;
+    this.node = undefined;
 
   };
 
 
+  LAID.Part.prototype.$init = function () {
+
+    var
+    levelType = level.$lson.type,
+    inputType = level.$lson.inputType,
+    inputTypeTag = inputType2tag[ inputType ];
+
+    if ( this.level.path === "/" ) {
+      this.node = document.body;
+    } else if ( levelType === "input" ) {
+      if ( inputTypeTag !== undefined ) {
+        this.node = document.createElement( inputTypeTag );
+      } else {
+        this.node = document.createElement( "input" );
+        this.node.type = inputType;
+      }
+    } else {
+      this.node = document.createElement( ( ( levelType === "none" ) || ( levelType === "text" ) ) ? "div" : ( levelType === "image" ? "img" : levelType )  );
+    }
+
+    this.node.style = ( levelType === "text" ) ? defaultTextCss : defaultCss;
+
+  };
 
   // Below we will customize prototypical functions
   // using conditionals. As per the results from
@@ -69,12 +85,6 @@
   // this will make no difference
 
   // The renderable prop can be accessed via `part.$renderFn_<prop>`
-
-
-
-
-
-
 
 
   if ( isGpuAccelerated ) {
@@ -162,6 +172,10 @@
     ( attr2attrValue.perspectiveOriginY.transitionCalcValue * 100 ) + "%";
   };
 
+  LAID.Part.prototype.$renderFn_backfaceVisibility = function () {
+    this.node.style[ cssPrefix + "backface-visibility" ] = this.level.$attr2attrValue.perspective.transitionCalcValue;
+  };
+
 
   LAID.Part.prototype.$renderFn_opacity = function () {
     this.node.style.opacity = this.level.$attr2attrValue.opacity.transitionCalcValue;
@@ -209,11 +223,13 @@
   };
 
   LAID.Part.prototype.$renderFn_backgroundSize = function () {
+    var backgroundSizeX = this.level.$attr2attrValue.backgroundSizeX,
+    backgroundSizeY = this.level.$attr2attrValue.backgroundSizeY;
+
     this.node.style.backgroundSize =
-    ( this.level.$attr2attrValue.backgroundSizeX !== undefined ? this.level.$attr2attrValue.backgroundSizeX.transitionCalcValue : 0 ) +
-    "px " +
-    ( this.level.$attr2attrValue.backgroundSizeY !== undefined ? this.level.$attr2attrValue.backgroundSizeY.transitionCalcValue : 0 ) +
-    "px" ;
+    (  ( backgroundSizeX !== undefined &&  backgroundSizeX.transitionCalcValue !== undefined ) ? backgroundSizeX.transitionCalcValue + "px " : "auto " ) +
+    (  ( backgroundSizeY !== undefined &&  backgroundSizeY.transitionCalcValue !== undefined ) ? backgroundSizeY.transitionCalcValue + "px" : "auto" );
+
   };
 
   LAID.Part.prototype.$renderFn_backgroundPosition = function () {
@@ -386,10 +402,14 @@
     this.node.textAlign = this.attr2attrValue.textAlign.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
-    this.node.letterSpacing = this.attr2attrValue.textLetterSpacing.transitionCalcValue;
+    var textLetterSpacing = this.attr2attrValue.textLetterSpacing;
+    this.node.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcValue !== undefined ?
+      textLetterSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textWordSpacing = function () {
-    this.node.wordSpacing = this.attr2attrValue.textWordSpacing.transitionCalcValue;
+    var textWordSpacing = this.attr2attrValue.textWordSpacing;
+    this.node.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcValue !== undefined ?
+    textWordSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textOverflow = function () {
     this.node.textOverflow = this.attr2attrValue.textOverflow.transitionCalcValue;
@@ -424,8 +444,8 @@
   LAID.Part.prototype.$renderFn_inputRows = function () {
     this.node.rows = this.attr2attrValue.inputRows.transitionCalcValue;
   };
-  LAID.Part.prototype.$renderFn_inputText = function () {
-    this.node.value = this.attr2attrValue.inputText.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_input = function () {
+    this.node.value = this.attr2attrValue.input.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_inputPlaceholder = function () {
     this.node.placeholder = this.attr2attrValue.inputPlaceholder.transitionCalcValue;

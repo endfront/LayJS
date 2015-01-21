@@ -90,9 +90,10 @@ LAID involves writing LSON (Layout Syntax Object Notation)
     "input:multiline"
     "input:button"
     "input:select"
+    "input:checkbox"
     "input:option"
     "input:optgroup"
-    "input:< any other valid input[type] html property i.e file, color, date, etc >"
+    "input:< any other valid input[type] html property i.e file, color, date, etc >" (coming soon: individual support)
 
 
 
@@ -192,18 +193,18 @@ Psuedo-Defaults:
 
 - scaleX
   `number`
-  Units to scale X
+  Units to scale the X dimension
   Psuedo-Default: 1
 
 
 - scaleY
   `number`
-  Units to scale Y
+  Units to scale the Y dimension
   Psuedo-Default: 1
 
 - scaleZ
   `number`
-  Units to scale Z
+  Units to scale the Z dimension
   Psuedo-Default: 1
 
 
@@ -265,6 +266,9 @@ Psuedo-Defaults:
   in fraction (percent)
   Psuedo-Default: 0.5
 
+- backfaceVisibility
+  `boolean`
+  Psuedo-Default: false
 
 
 - opacity
@@ -310,8 +314,8 @@ Psuedo-Defaults:
     repeat: string (CSS background-repeat) (Psuedo-Default: false),
     positionX: number (Psuedo-Default: 0),
     positionY: number (Psuedo-Default: 0),
-    sizeX: number (Psuedo-Default: 0),
-    sizeY: number (Psuedo-Default: 0)
+    sizeX: number (Psuedo-Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2),
+    sizeY: number (Psuedo-Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2)
    }
 
 
@@ -397,7 +401,7 @@ Psuedo-Defaults:
 
 - textColor
   `LAID.Color`
-  Psuedo-Default: LAID.color("black")
+  Psuedo-Default: "black"
 
 
 - textShadows
@@ -424,7 +428,6 @@ Psuedo-Defaults:
   CSS font-style
   Psuedo-Default: 'normal'
 
-
 - textDecoration
   `string`
   CSS text-decoration
@@ -433,25 +436,25 @@ Psuedo-Defaults:
 - textAlign
   `string`
   CSS text-align
-  Psuedo-Default: 'left'
+  Psuedo-Default: 'start'
 
 
 - textLetterSpacing
   `number` / `undefined`
   In pixels. undefined for initial (native) letter spacing.
-  Psuedo-Default: undefined
+  Psuedo-Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
 
 
 - textWordSpacing
   `number` / `undefined`
   In pixels. undefined for initial (native) word spacing.
-  Psuedo-Default: undefined
+  Psuedo-Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
 
 
 - textOverflow
   `string`
   CSS text-overflow
-  Psuedo-Default: 'normal'
+  Psuedo-Default: 'clip'
 
 
 - textIndent
@@ -481,10 +484,9 @@ Psuedo-Defaults:
   Rows for textarea
   Psuedo-Default: 2
 
-- inputText
+- input
   `string`
   Psuedo-Default: ""
-
 
 - inputPlaceholder
   `string`
@@ -502,6 +504,7 @@ Psuedo-Defaults:
 - inputDisabled
   `boolean`
   Psuedo-Default: false
+
 
 - linkHref
   `string`
@@ -642,6 +645,7 @@ Psuedo-Defaults:
     - $absoluteTop (`number`)
     Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
+
     - $numberOfChildren (`number`)
     Number of the direct descendant parts of the given part.
 
@@ -664,7 +668,7 @@ Psuedo-Defaults:
 
     - $cursorY ('number')
 
-    - $inputText (`string`)
+    - $input (`string`)
 
     - $inputChecked (`boolean`)
 
@@ -680,7 +684,7 @@ Psuedo-Defaults:
     - $dataTravelling
     - $dataTravelledDelta
 
-  such as "$hovered", "$focused", "$inputText", and
+  such as "$hovered", "$focused", "$input", and
   the others require 2 or more event listeners bound to the respective
   DOM element. These event listeners are expensive to inculcate within
   all Level Parts by default. Thus only if there exists a reference
@@ -931,7 +935,7 @@ for example:
         children: {
         LeftSide: {
           props: {
-            backgroundColor: 'blue'
+            backgroundColor: LAID.color('blue')
           }
         },
         RightSide: {
@@ -961,7 +965,7 @@ becomes:
             props: {
               width: LAID.take('parent', 'width').half(),
               height: LAID.take('parent', 'height').half(),
-              backgroundColor: 'red'
+              backgroundColor: LAID.color('red')
             }
           }
           RightSide: {
@@ -1057,8 +1061,8 @@ would essentially compile to:
               props: {
                 width:200,
                 left: 0,
-                backgroundColor: 'black',
-                textColor:'white'
+                backgroundColor: LAID.color('black'),
+                textColor:LAID.color('white')
               },
               state: ['closed'],
               states: {

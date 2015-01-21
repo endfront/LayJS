@@ -4,28 +4,19 @@
 
 
 Current:
-  - `defaultCss` in Part.js (you were at `background`)
-  - In LAID.Part add 'div'/<other html node dependent of type> node creation. (Add Psuedo defaults to element node in LAID.Part) (remember
-  - move element (node) creation to requestAnimationFrame
-  - State install / uninstall and load
-    document.body node for root)
-  - $natualWidth, $naturalHeight ... other read-onlys
+  - $absoluteLeft/Top
+  - load and State install / uninstall
   - Change passing in "/" lson in LAID.run()
   - Insert CSS from entry.js
-  - Add link defaults
-  - Cache most recently used state combinations for Many
-  - LAID.level()
-  - LAID.Level.attr()
-  - LAID.Level.data() (change)
-  - inherit after data change? should be fine because you change attr2attrval
   - dataTravel
-  - (tentative) Add/interface HTML history module support
 
 
 
 
   many:
   - LAID.Many ( + LAID.takeMany)
+  - Cache most recently used state combinations for Many
+  - lson.type
   - Add "$i" index for Many to spec
   - Refine formation spec (including for creating formations)
   - todoMVC
@@ -37,6 +28,8 @@ Tests:
 
 
 Future:
+  - Add/interface HTML history module support
+  - change 'audio/videoControl"s"' to 'audio/videoControl' to respect naming convention of props?
   - Add $time as a read only property of root '/'
   - Canvas support
   - Convert between transition and calc when transition add/delete

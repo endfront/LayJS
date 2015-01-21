@@ -38,7 +38,7 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
     } else {
 
-      for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parent ) ) {
+      for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
 
       }
 

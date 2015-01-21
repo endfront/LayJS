@@ -18,20 +18,6 @@
         this.$changeAttrVal( "$focused", false );
       }
     },
-    $inputChecked: {
-      change: function () {
-        this.$changeAttrVal( "$inputChecked", this.checked );
-      }
-    },
-    $inputText: {
-      click: function () {
-        this.$changeAttrVal( "$inputText", this.value );
-      },
-      keydown: function () {
-        this.$changeAttrVal( "$inputText", this.value );
-      }
-    },
-
     $clicked: {
       mousedown: function () {
         this.$changeAttrVal( "$clicked", true );
@@ -55,14 +41,39 @@
         this.$changeAttrVal( "$cursorY", this.offsetY );
       }
     },
+    $input: {
+      click: function () {
+        this.$changeAttrVal( "$input", this.value );
+      },
+      change: function () {
+        this.$changeAttrVal( "$input", this.value );
+      },
+      keydown: function () {
+        this.$changeAttrVal( "$input", this.value );
+      }
+    },
+
+    $inputChecked: {
+      change: function () {
+        this.$changeAttrVal( "$inputChecked", this.checked );
+      }
+    }
+
+
 
 
   };
 
   var eventReadonly2defaultVal = {
-    $hovered:false,
-    $focused: false
-
+    $hovered: false,
+    $focused: false,
+    $clicked: false,
+    scrolledX: 0,
+    scrolledY: 0,
+    cursorX: 0,
+    cursorY: 0,
+    $input: "",
+    $inputChecked: false,
   };
 
   LAID.$eventReadonlyUtils = {

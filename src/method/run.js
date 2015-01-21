@@ -3,6 +3,10 @@
 
   LAID.run =  function ( rootLson, name2lson ) {
 
+    var
+    textTestNodeCSS = "position:absolute;visibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box",
+      textWidthTestNode = document.createElement( "span" ),
+      textHeightTestNode = document.createElement( "div" ),
 
 
     if ( name2lson ) {
@@ -30,6 +34,14 @@
 
     ( new LAID.Level( "/", rootLson, undefined ) ).init();
 
+
+    textWidthTestNode.cssText = textTestNodeCSS;
+    textHeightTestNode.cssText = textTestNodeCSS;
+
+
+    document.body.appendChild( textWidthTestNode );
+    document.body.appendChild( textHeightTestNode );
+
     LAID.$prevTimeFrame = performance.now();
 
     window.requestAnimationFrame( render );
@@ -52,8 +64,8 @@
 
   function render() {
 
-
     var
+    newPartS = LAID.$newPartS, newPart, newPartLevel,
     curTimeFrame = performance.now(),
     timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
     x, xLen, y, yLen,
@@ -64,7 +76,16 @@
     renderDirtyAttrValue,
     renderCallS, isAttrTransitionComplete;
 
+    for ( i = 0, len = newPartS.length; i < len; i++ ) {
+      newPart = newPartS[ i ];
+      newPartLevel = newPart.level;
+      newPartLevel.parent.part.node.appendChild( newPart.node );
+      if ( newPartLevel.$lson.load ) {
+        newPartLevel.$lson.load.call( newPartLevel );
+      }
+    }
 
+    LAID.$newPartS = [];
 
     for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
 
