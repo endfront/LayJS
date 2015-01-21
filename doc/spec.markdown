@@ -35,6 +35,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
           props: object,
           when: object,
           transition: transitionObj,
+          load: function,
           observe: [ string, ... ],
           many: {
               data: object,
@@ -46,6 +47,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
                   ...
               },
               transition: transitionObj,
+              load: function,
               states: {
                   props: object
                   < name >: {
@@ -756,6 +758,9 @@ example with multiple callback functions specified (with the aid on array):
     })
 
 
+### LAID load
+
+Functions called upon loading of level.
 
 ### LAID.Level
 

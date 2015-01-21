@@ -87,7 +87,7 @@
         }
       }
     }
-    
+
     function checkIsMutable ( val ) {
       return ( ( typeof val === "object" ) || val instanceof Array );
     }
@@ -139,6 +139,13 @@
         inheritSingleLevelObject( intoLson, fromLson, "data" );
 
       },
+
+      load: function ( intoLson, fromLson ) {
+
+        intoLson.load = fromLson.load || intoLson.load;
+
+      },
+
 
       props: function( intoLson, fromLson ) {
 

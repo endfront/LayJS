@@ -4,7 +4,7 @@ var concat = require( 'gulp-concat' );
 
 
 
-var js_fileS = [ "./src/entry.js", "./src/obj/*.js", "./src/helper/*.js", "./src/method/*.js" ];
+var js_fileS = [ "./src/entry.js", "./src/helper/*.js", "./src/obj/*.js",  "./src/method/*.js" ];
 
 gulp.task( 'concat', function() {
 

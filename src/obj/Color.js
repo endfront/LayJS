@@ -197,7 +197,7 @@
     this.a = alpha;
   };
 
-  LAID.Color.protoype.darken = function ( fraction ) {
+  LAID.Color.prototype.darken = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.l = hsl.l - ( hsl.l * fraction );
@@ -211,7 +211,7 @@
     }
   };
 
-  LAID.Color.protoype.lighten = function ( fraction ) {
+  LAID.Color.prototype.lighten = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.l = hsl.l + ( hsl.l * fraction );
@@ -225,7 +225,7 @@
     }
   };
 
-  LAID.Color.protoype.saturate = function ( fraction ) {
+  LAID.Color.prototype.saturate = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.s = hsl.s + ( hsl.s * fraction );
@@ -239,7 +239,7 @@
     }
   };
 
-  LAID.Color.protoype.desaturate = function ( fraction ) {
+  LAID.Color.prototype.desaturate = function ( fraction ) {
 
     var hsl = this.hsl();
     hsl.s = hsl.s - ( hsl.s * fraction );

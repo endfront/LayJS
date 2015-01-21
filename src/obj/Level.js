@@ -310,7 +310,7 @@
 
   };
 
-  LSON.prototype.$commitAttr2Val = function ( attr2val ) {
+  LAID.Level.prototype.$commitAttr2Val = function ( attr2val ) {
 
     var attr;
     for ( attr in attr2val ) {
@@ -331,7 +331,7 @@
   * Return 2 if some attributes were solved
   * Return 3 if no attributes were solved
   */
-  LAID.prototype.$solveForRecalculation = function () {
+  LAID.Level.prototype.$solveForRecalculation = function () {
 
     var i, len,
     isSolveProgressed,
@@ -364,7 +364,7 @@
   Undefine all current attributes which are influencable
   by states: props, transition, when, $$num, $$keys, $$max
   */
-  LAID.Level.protoype.$undefineStateProjectedAttrs = function() {
+  LAID.Level.prototype.$undefineStateProjectedAttrs = function() {
 
     var attr;
     for ( attr in this.$attr2attrValue ) {
@@ -419,7 +419,7 @@
 
 
 
-  LAID.Level.protoype.$updateStates = function () {
+  LAID.Level.prototype.$updateStates = function () {
 
     var
     attr2val = this.getStateAttr2val(),
@@ -519,7 +519,7 @@
         // a possibility that it has receded behind another
         // child element which has a higher right position
         // than the current child level responsible for the natural width
-        } else if ( this.$attr2attrValue.$naturalWidth > childLevel.$attr2attrValue.right.calcValue  ) ) {
+        } else if ( this.$attr2attrValue.$naturalWidth > childLevel.$attr2attrValue.right.calcValue  ) {
           // Find the child with the next largest right
           // This could be the same child level
           this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right" );
@@ -528,12 +528,12 @@
         if ( childLevel.$attr2attrValue.right.calcValue >
           this.$naturalWidthLevel.$attr2attrValue.right.calcValue ) {
             this.$naturalWidthLevel = childLevel;
-          }
         }
       }
       this.$attr2attrValue.$naturalWidth.update( this.$naturalWidthLevel.$attr2attrValue.right.calcValue );
     }
   };
+
 
   LAID.Level.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
 
@@ -548,7 +548,7 @@
           // a possibility that it has receded behind another
           // child element which has a higher bottom position
           // than the current child level responsible for the natural height
-        } else if ( this.$attr2attrValue.$naturalHeight > childLevel.$attr2attrValue.bottom.calcValue  ) ) {
+        } else if ( this.$attr2attrValue.$naturalHeight > childLevel.$attr2attrValue.bottom.calcValue  ) {
           // Find the child with the next largest bottom
           // This could be the same child level
           this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom" );
@@ -559,9 +559,8 @@
             this.$naturalHeightLevel = childLevel;
           }
         }
+        this.$attr2attrValue.$naturalHeight.update( this.$naturalHeightLevel.$attr2attrValue.bottom.calcValue );
       }
-      this.$attr2attrValue.$naturalHeight.update( this.$naturalHeightLevel.$attr2attrValue.bottom.calcValue );
-    }
   };
 
   LAID.Level.prototype.$updateNaturalWidthFromText = function () {
@@ -570,7 +569,7 @@
       textWidthTestNode.innerHTML = this.$attr2attrValue.text.calcValue;
       this.$attr2attrValue.$naturalWidth.update( ( textWidthTestNode.getBoundingClientRect().width ) +
         ( this.attr2attrValue.textPaddingLeft !== undefined ? this.attr2attrValue.textPaddingLeft.calcValue : 0  ) +
-        ( this.attr2attrValue.textPaddingRight !== undefined ? this.attr2attrValue.textPaddingRight.calcValue : 0  ) +
+        ( this.attr2attrValue.textPaddingRight !== undefined ? this.attr2attrValue.textPaddingRight.calcValue : 0  )
       );
     }
   };
@@ -593,7 +592,7 @@
 
       this.$attr2attrValue.$naturalHeight.update( ( textWidthTestNode.getBoundingClientRect().height ) +
         ( this.attr2attrValue.textPaddingTop !== undefined ? this.attr2attrValue.textPaddingTop.calcValue : 0  ) +
-        ( this.attr2attrValue.textPaddingBottom !== undefined ? this.attr2attrValue.textPaddingBottom.calcValue : 0  ) +
+        ( this.attr2attrValue.textPaddingBottom !== undefined ? this.attr2attrValue.textPaddingBottom.calcValue : 0  )
       );
 
     }
@@ -826,6 +825,7 @@
     var
     isDirty = false,
     reCalc,
+    level = this.level,
     i, len;
 
     if ( this.value instanceof LAID.Take ) { // is LAID.Take
@@ -863,24 +863,35 @@
       }
 
       if ( this.renderCall ) {
-        this.level.$addRenderDirtyAttrValue( this );
+        level.$addRenderDirtyAttrValue( this );
 
         if ( ( this.attr === "text" ) ||
             ( this.attr.startsWith( "textPadding" ) )
           )  {
-          this.level.$updateNaturalWidthFromText();
-          this.level.$updateNaturalHeightFromText();
+          level.$updateNaturalWidthFromText();
+          level.$updateNaturalHeightFromText();
         }
 
       } else if ( stateName !== "" ) {
         if ( this.calcValue ) { // state
-          if ( LAID.$arrayUtils.pushUnique( this.level.$stateS, stateName ) ) {
-            this.level.$updateStates();
-            LAID.$arrayUtils.remove( this.$newlyUninstalledStateS, stateName );
+          if ( LAID.$arrayUtils.pushUnique( level.$stateS, stateName ) ) {
+            level.$updateStates();
+            // remove from the list of uninstalled states (which may/may not be present within)
+            LAID.$arrayUtils.remove( level.$newlyUninstalledStateS, stateName );
+            // add state to the list of newly installed states
+            LAID.$arrayUtils.pushUnique( level.$newlyInstalledStateS, stateName );
+            // add level to the list of levels which have newly installed states
+            LAID.$arrayUtils.pushUnique( LAID.$newlyInstalledStateLevelS, level );
           }
         } else { // remove state
-          if ( LAID.$arrayUtils.remove( this.level.$stateS, stateName ) ) {
-            this.level.$updateStates();
+          if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
+            level.$updateStates();
+            // remove from the list of installed states (which may/may not be present within)
+            LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
+            // add state to the list of newly uninstalled states
+            LAID.$arrayUtils.pushUnique( level.$newlyUninstalledStateS, stateName );
+            // add level to the list of levels which have newly uninstalled states
+            LAID.$arrayUtils.pushUnique( LAID.$newlyUninstalledStateLevelS, level );
           }
         }
       } else if ( whenEventType !== "" ) {
@@ -888,12 +899,12 @@
       } else if ( transitionProp !== "" ) {
         this.$updateTransitionProp( transitionProp );
       } else if ( attr === "right" ) {
-        if ( this.level.parentLevel !== undefined ) {
-          this.level.parentLevel.$updateNaturalWidthFromChild( this.level );
+        if ( level.parentLevel !== undefined ) {
+          level.parentLevel.$updateNaturalWidthFromChild( level );
         }
       } else if ( attr === "bottom" ) {
-        if ( this.level.parentLevel !== undefined ) {
-          this.level.parentLevel.$updateNaturalHeightFromChild( this.level );
+        if ( level.parentLevel !== undefined ) {
+          level.parentLevel.$updateNaturalHeightFromChild( level );
         }
       }
 

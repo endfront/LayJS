@@ -4,6 +4,7 @@
 
 
 Current:
+  - load within inherit and spec
   - $absoluteLeft/Top
   - load and State install / uninstall
   - Change passing in "/" lson in LAID.run()

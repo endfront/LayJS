@@ -4,9 +4,9 @@
   LAID.run =  function ( rootLson, name2lson ) {
 
     var
-    textTestNodeCSS = "position:absolute;visibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box",
+      textTestNodeCSS = "position:absolute;visibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box",
       textWidthTestNode = document.createElement( "span" ),
-      textHeightTestNode = document.createElement( "div" ),
+      textHeightTestNode = document.createElement( "div" );
 
 
     if ( name2lson ) {
@@ -58,8 +58,6 @@
     LAID.$solveForRecalculation();
 
   }
-
-
 
 
   function render() {
