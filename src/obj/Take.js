@@ -1,7 +1,6 @@
 ( function () {
   "use strict";
 
-
   LAID.Take = function ( relativePath, attr ) {
 
     var _relPath00attr_S;
@@ -591,7 +590,7 @@
 
 
 
-  LAID.Take.protoype.colorLighten = function ( val ) {
+  LAID.Take.prototype.colorLighten = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -611,7 +610,7 @@
   };
 
 
-  LAID.Take.protoype.colorDarken = function ( val ) {
+  LAID.Take.prototype.colorDarken = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -630,7 +629,7 @@
 
   };
 
-  LAID.Take.protoype.colorSaturate = function ( val ) {
+  LAID.Take.prototype.colorSaturate = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -649,7 +648,7 @@
 
   };
 
-  LAID.Take.protoype.colorDesaturate = function ( val ) {
+  LAID.Take.prototype.colorDesaturate = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -668,7 +667,7 @@
 
   };
 
-  LAID.Take.protoype.colorGrayscale = function () {
+  LAID.Take.prototype.colorGrayscale = function () {
 
     var oldExecutable = this.executable;
 
@@ -680,7 +679,7 @@
 
   };
 
-  LAID.Take.protoype.colorAlpha = function ( val ) {
+  LAID.Take.prototype.colorAlpha = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -699,7 +698,7 @@
 
   };
 
-  LAID.Take.protoype.colorRed = function ( val ) {
+  LAID.Take.prototype.colorRed = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -717,7 +716,7 @@
     return this;
   }
 
-  LAID.Take.protoype.colorGreen = function ( val ) {
+  LAID.Take.prototype.colorGreen = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -734,7 +733,7 @@
     }
     return this;
   }
-  LAID.Take.protoype.colorBlue = function ( val ) {
+  LAID.Take.prototype.colorBlue = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -751,7 +750,7 @@
     }
     return this;
   }
-  LAID.Take.protoype.colorHue = function ( val ) {
+  LAID.Take.prototype.colorHue = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -768,7 +767,7 @@
     }
     return this;
   }
-  LAID.Take.protoype.colorSaturation = function ( val ) {
+  LAID.Take.prototype.colorSaturation = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
@@ -785,7 +784,7 @@
     }
     return this;
   }
-  LAID.Take.protoype.colorLightness = function ( val ) {
+  LAID.Take.prototype.colorLightness = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {

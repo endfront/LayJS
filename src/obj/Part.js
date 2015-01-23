@@ -15,9 +15,9 @@
   )[1];
 
 
-  isGpuAccelerated = ( (cssPrefix + "transform" ) in allStyles );
-
   allStyles = document.body.style;
+
+  isGpuAccelerated = ( (cssPrefix + "transform" ) in allStyles );
 
   // check for matrix 3d support
   if ( isGpuAccelerated ) {
@@ -57,8 +57,8 @@
   LAID.Part.prototype.$init = function () {
 
     var
-    levelType = level.$lson.type,
-    inputType = level.$lson.inputType,
+    levelType = this.level.$lson.type,
+    inputType = this.level.$lson.inputType,
     inputTypeTag = inputType2tag[ inputType ];
 
     if ( this.level.path === "/" ) {
@@ -74,7 +74,7 @@
       this.node = document.createElement( ( ( levelType === "none" ) || ( levelType === "text" ) ) ? "div" : ( levelType === "image" ? "img" : levelType )  );
     }
 
-    this.node.style = ( levelType === "text" ) ? defaultTextCss : defaultCss;
+    this.node.style.cssText = ( levelType === "text" ) ? defaultTextCss : defaultCss;
 
   };
 
@@ -91,9 +91,8 @@
 
 
     LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
-    function renderPositionGpu() {
+    function () {
       var attr2attrValue = this.level.$attr2attrValue;
-
       this.node.style[ cssPrefix + "transform" ] =
       "scale3d(" +
       ( attr2attrValue.scaleX !== undefined ? attr2attrValue.scaleX.transitionCalcValue : 1 ) + "," +
@@ -101,11 +100,11 @@
       ( attr2attrValue.scaleZ !== undefined ? attr2attrValue.scaleZ.transitionCalcValue : 1 ) + ") " +
       "translate3d(" +
 
-      ( ( ( attr2attrValue.left.transitionCalcValue + ( attr2attrValue.shiftX !== undefined ? attr2attrValue.shiftX.transitionCalcValue : 0 ) ) +
-      attr2attrValue.width.transitionCalcValue * ( attr2attrValue.originX !== undefined ? attr2attrValue.originX.transitionCalcValue : 0.5 ) )  + "px ," ) +
+      ( ( attr2attrValue.left.transitionCalcValue + ( attr2attrValue.shiftX !== undefined ? attr2attrValue.shiftX.transitionCalcValue : 0 ) ) + "px, " ) +
+      //attr2attrValue.width.transitionCalcValue * ( attr2attrValue.originX !== undefined ? attr2attrValue.originX.transitionCalcValue : 0.5 ) )  + "px ," ) +
 
-      ( ( ( attr2attrValue.top.transitionCalcValue + ( attr2attrValue.shiftY !== undefined ? attr2attrValue.shiftY.transitionCalcValue : 0 ) ) +
-      attr2attrValue.height.transitionCalcValue * ( attr2attrValue.originY !== undefined ? attr2attrValue.originY.transitionCalcValue : 0.5 ) )  + "px ," ) +
+      ( ( attr2attrValue.top.transitionCalcValue + ( attr2attrValue.shiftY !== undefined ? attr2attrValue.shiftY.transitionCalcValue : 0 ) ) + "px, " ) +
+      //attr2attrValue.height.transitionCalcValue * ( attr2attrValue.originY !== undefined ? attr2attrValue.originY.transitionCalcValue : 0.5 ) )  + "px ," ) +
 
       ( attr2attrValue.z ? attr2attrValue.z.transitionCalcValue : 0 )  + "px) " +
       "skew(" +
@@ -157,7 +156,7 @@
     ( ( attr2attrValue.originX !== undefined ? attr2attrValue.originX.transitionCalcValue : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrValue.originY !== undefined ? attr2attrValue.originY.transitionCalcValue : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrValue.originZ !== undefined ? attr2attrValue.originZ.transitionCalcValue : 0.5 ) * 100 ) + "%";
-    this.$renderFn_positional(); //apply change to transform
+    //this.$renderFn_positional(); //apply change to transform
   };
 
 
@@ -297,58 +296,58 @@
   };
 
   LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
-    this.node.style.borderRadiusTopLeft = this.attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
+    this.node.style.borderRadiusTopLeft = this.level.$attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
-    this.node.style.borderRadiusTopRight = this.attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
+    this.node.style.borderRadiusTopRight = this.level.$attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
-    this.node.style.borderRadiusBottomRight = this.attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
+    this.node.style.borderRadiusBottomRight = this.level.$attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
-    this.node.style.borderRadiusBottomLeft = this.attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
+    this.node.style.borderRadiusBottomLeft = this.level.$attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
   };
 
 
 
   LAID.Part.prototype.$renderFn_borderTopStyle = function () {
-    this.node.style.borderTopStyle = this.attr2attrValue.borderTopStyle.transitionCalcValue;
+    this.node.style.borderTopStyle = this.level.$attr2attrValue.borderTopStyle.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_borderRightStyle = function () {
-    this.node.style.borderRightStyle = this.attr2attrValue.borderRightStyle.transitionCalcValue;
+    this.node.style.borderRightStyle = this.level.$attr2attrValue.borderRightStyle.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_borderBottomStyle = function () {
-    this.node.style.borderBottomStyle = this.attr2attrValue.borderBottomStyle.transitionCalcValue;
+    this.node.style.borderBottomStyle = this.level.$attr2attrValue.borderBottomStyle.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_borderLeftStyle = function () {
-    this.node.style.borderLeftStyle = this.attr2attrValue.borderLeftStyle.transitionCalcValue;
+    this.node.style.borderLeftStyle = this.level.$attr2attrValue.borderLeftStyle.transitionCalcValue;
   };
 
 
   LAID.Part.prototype.$renderFn_borderTopColor = function () {
-    this.node.style.borderTopColor = this.attr2attrValue.borderTopColor.transitionCalcValue.stringify();
+    this.node.style.borderTopColor = this.level.$attr2attrValue.borderTopColor.transitionCalcValue.stringify();
   };
   LAID.Part.prototype.$renderFn_borderRightColor = function () {
-    this.node.style.borderRightColor = this.attr2attrValue.borderRightColor.transitionCalcValue.stringify();
+    this.node.style.borderRightColor = this.level.$attr2attrValue.borderRightColor.transitionCalcValue.stringify();
   };
   LAID.Part.prototype.$renderFn_borderBottomColor = function () {
-    this.node.style.borderBottomColor = this.attr2attrValue.borderBottomColor.transitionCalcValue.stringify();
+    this.node.style.borderBottomColor = this.level.$attr2attrValue.borderBottomColor.transitionCalcValue.stringify();
   };
   LAID.Part.prototype.$renderFn_borderLeftColor = function () {
-    this.node.style.borderLeftColor = this.attr2attrValue.borderLeftColor.transitionCalcValue.stringify();
+    this.node.style.borderLeftColor = this.level.$attr2attrValue.borderLeftColor.transitionCalcValue.stringify();
   };
 
   LAID.Part.prototype.$renderFn_borderTopWidth = function () {
-    this.node.style.borderTopWidth = this.attr2attrValue.borderTopWidth.transitionCalcValue + "px";
+    this.node.style.borderTopWidth = this.level.$attr2attrValue.borderTopWidth.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_borderRightWidth = function () {
-    this.node.style.borderRightWidth = this.attr2attrValue.borderRightWidth.transitionCalcValue + "px";
+    this.node.style.borderRightWidth = this.level.$attr2attrValue.borderRightWidth.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_borderBottomWidth = function () {
-    this.node.style.borderBottomWidth = this.attr2attrValue.borderBottomWidth.transitionCalcValue + "px";
+    this.node.style.borderBottomWidth = this.level.$attr2attrValue.borderBottomWidth.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_borderLeftWidth = function () {
-    this.node.style.borderLeftWidth = this.attr2attrValue.borderLeftWidth.transitionCalcValue + "px";
+    this.node.style.borderLeftWidth = this.level.$attr2attrValue.borderLeftWidth.transitionCalcValue + "px";
   };
 
 
@@ -356,20 +355,20 @@
   /* Text Related */
 
   LAID.Part.prototype.$renderFn_text = function () {
-    this.node.innerHtml = this.attr2attrValue.text.transitionCalcValue;
+    this.node.innerHtml = this.level.$attr2attrValue.text.transitionCalcValue;
   };
 
   LAID.Part.prototype.$renderFn_textSize = function () {
-    this.node.fontSize = this.attr2attrValue.textSize.transitionCalcValue + "px";
+    this.node.fontSize = this.level.$attr2attrValue.textSize.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_textFamily = function () {
-    this.node.fontFamily = this.attr2attrValue.textFamily.transitionCalcValue;
+    this.node.fontFamily = this.level.$attr2attrValue.textFamily.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textWeight = function () {
-    this.node.fontWeight = this.attr2attrValue.textWeight.transitionCalcValue;
+    this.node.fontWeight = this.level.$attr2attrValue.textWeight.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textColor = function () {
-    this.node.color = this.attr2attrValue.textColor.transitionCalcValue.stringify();
+    this.node.color = this.level.$attr2attrValue.textColor.transitionCalcValue.stringify();
   };
 
 
@@ -390,47 +389,47 @@
   };
 
   LAID.Part.prototype.$renderFn_textVariant = function () {
-    this.node.fontVariant = this.attr2attrValue.textVariant.transitionCalcValue;
+    this.node.fontVariant = this.level.$attr2attrValue.textVariant.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textStyle = function () {
-    this.node.fontStyle = this.attr2attrValue.textStyle.transitionCalcValue;
+    this.node.fontStyle = this.level.$attr2attrValue.textStyle.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textDecoration = function () {
-    this.node.textDecoration = this.attr2attrValue.textDecoration.transitionCalcValue;
+    this.node.textDecoration = this.level.$attr2attrValue.textDecoration.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textAlign = function () {
-    this.node.textAlign = this.attr2attrValue.textAlign.transitionCalcValue;
+    this.node.textAlign = this.level.$attr2attrValue.textAlign.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
-    var textLetterSpacing = this.attr2attrValue.textLetterSpacing;
+    var textLetterSpacing = this.level.$attr2attrValue.textLetterSpacing;
     this.node.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcValue !== undefined ?
       textLetterSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textWordSpacing = function () {
-    var textWordSpacing = this.attr2attrValue.textWordSpacing;
+    var textWordSpacing = this.level.$attr2attrValue.textWordSpacing;
     this.node.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcValue !== undefined ?
     textWordSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textOverflow = function () {
-    this.node.textOverflow = this.attr2attrValue.textOverflow.transitionCalcValue;
+    this.node.textOverflow = this.level.$attr2attrValue.textOverflow.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textIndent = function () {
-    this.node.textIndent = this.attr2attrValue.textIndent.transitionCalcValue;
+    this.node.textIndent = this.level.$attr2attrValue.textIndent.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textWhitespace = function () {
-    this.node.whitespace = this.attr2attrValue.textWhitespace.transitionCalcValue;
+    this.node.whitespace = this.level.$attr2attrValue.textWhitespace.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textTopPadding = function () {
-    this.node.paddingTop = this.attr2attrValue.textTopPadding.transitionCalcValue;
+    this.node.paddingTop = this.level.$attr2attrValue.textTopPadding.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textRightPadding = function () {
-    this.node.paddingRight = this.attr2attrValue.textRightPadding.transitionCalcValue;
+    this.node.paddingRight = this.level.$attr2attrValue.textRightPadding.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textBottomPadding = function () {
-    this.node.paddingBottom = this.attr2attrValue.textBottomPadding.transitionCalcValue;
+    this.node.paddingBottom = this.level.$attr2attrValue.textBottomPadding.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textLeftPadding = function () {
-    this.node.paddingLeft = this.attr2attrValue.textLeftPadding.transitionCalcValue;
+    this.node.paddingLeft = this.level.$attr2attrValue.textLeftPadding.transitionCalcValue;
   };
 
 
@@ -439,47 +438,47 @@
   /* Input (<input/> and <textarea>) Related */
 
   LAID.Part.prototype.$renderFn_inputLabel = function () {
-    this.node.label = this.attr2attrValue.inputLabel.transitionCalcValue;
+    this.node.label = this.level.$attr2attrValue.inputLabel.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_inputRows = function () {
-    this.node.rows = this.attr2attrValue.inputRows.transitionCalcValue;
+    this.node.rows = this.level.$attr2attrValue.inputRows.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_input = function () {
-    this.node.value = this.attr2attrValue.input.transitionCalcValue;
+    this.node.value = this.level.$attr2attrValue.input.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_inputPlaceholder = function () {
-    this.node.placeholder = this.attr2attrValue.inputPlaceholder.transitionCalcValue;
+    this.node.placeholder = this.level.$attr2attrValue.inputPlaceholder.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_inputAutocomplete = function () {
-    this.node.autocomplete = this.attr2attrValue.inputAutocomplete.transitionCalcValue;
+    this.node.autocomplete = this.level.$attr2attrValue.inputAutocomplete.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_inputAutocorrect = function () {
-    this.node.autocorrect = this.attr2attrValue.inputAutocorrect.transitionCalcValue;
+    this.node.autocorrect = this.level.$attr2attrValue.inputAutocorrect.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_inputDisabled = function () {
-    this.node.disabled = this.attr2attrValue.inputDisabled.transitionCalcValue;
+    this.node.disabled = this.level.$attr2attrValue.inputDisabled.transitionCalcValue;
   };
 
 
   /* Link (<a>) Related */
 
   LAID.Part.prototype.$renderFn_linkHref = function () {
-    this.node.href = this.attr2attrValue.linkHref.transitionCalcValue;
+    this.node.href = this.level.$attr2attrValue.linkHref.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_linkRel = function () {
-    this.node.rel = this.attr2attrValue.linkRel.transitionCalcValue;
+    this.node.rel = this.level.$attr2attrValue.linkRel.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_linkDownload = function () {
-    this.node.download = this.attr2attrValue.linkDownload.transitionCalcValue;
+    this.node.download = this.level.$attr2attrValue.linkDownload.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_linkTarget = function () {
-    this.node.target = this.attr2attrValue.linkTarget.transitionCalcValue;
+    this.node.target = this.level.$attr2attrValue.linkTarget.transitionCalcValue;
   };
 
 
   /* Image (<img>) related */
   LAID.Part.prototype.$renderFn_imageUrl = function () {
-    this.node.src = this.attr2attrValue.imageUrl.transitionCalcValue;
+    this.node.src = this.level.$attr2attrValue.imageUrl.transitionCalcValue;
   };
 
   /* Audio (<audio>) related */
@@ -530,19 +529,19 @@
   };
 
   LAID.Part.prototype.$renderFn_audioVolume = function () {
-    this.node.volume = this.attr2attrValue.audioVolume.transitionCalcValue;
+    this.node.volume = this.level.$attr2attrValue.audioVolume.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_audioControls = function () {
-    this.node.controls = this.attr2attrValue.audioControls.transitionCalcValue;
+    this.node.controls = this.level.$attr2attrValue.audioControls.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_audioLoop = function () {
-    this.node.loop = this.attr2attrValue.audioLoop.transitionCalcValue;
+    this.node.loop = this.level.$attr2attrValue.audioLoop.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_audioMuted = function () {
-    this.node.muted = this.attr2attrValue.audioMuted.transitionCalcValue;
+    this.node.muted = this.level.$attr2attrValue.audioMuted.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_audioPreload = function () {
-    this.node.preload = this.attr2attrValue.audioPreload.transitionCalcValue;
+    this.node.preload = this.level.$attr2attrValue.audioPreload.transitionCalcValue;
   };
 
   /* Video (<video>) related */
@@ -593,25 +592,25 @@
   };
 
   LAID.Part.prototype.$renderFn_videoAutoplay = function () {
-    this.node.autoplay = this.attr2attrValue.videoAutoplay.transitionCalcValue;
+    this.node.autoplay = this.level.$attr2attrValue.videoAutoplay.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_videoControls = function () {
-    this.node.controls = this.attr2attrValue.videoControls.transitionCalcValue;
+    this.node.controls = this.level.$attr2attrValue.videoControls.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_videoCrossorigin = function () {
-    this.node.crossorigin = this.attr2attrValue.videoCrossorigin.transitionCalcValue;
+    this.node.crossorigin = this.level.$attr2attrValue.videoCrossorigin.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_videoLoop = function () {
-    this.node.loop = this.attr2attrValue.videoLoop.transitionCalcValue;
+    this.node.loop = this.level.$attr2attrValue.videoLoop.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_videoMuted = function () {
-    this.node.muted = this.attr2attrValue.videoMuted.transitionCalcValue;
+    this.node.muted = this.level.$attr2attrValue.videoMuted.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_videoPreload = function () {
-    this.node.preload = this.attr2attrValue.videoPreload.transitionCalcValue;
+    this.node.preload = this.level.$attr2attrValue.videoPreload.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_videoPoster = function () {
-    this.node.poster = this.attr2attrValue.videoPoster.transitionCalcValue;
+    this.node.poster = this.level.$attr2attrValue.videoPoster.transitionCalcValue;
   };
 
 

@@ -21,7 +21,7 @@
         return undefined;
       } else {
         for ( renderCall in renderCall2regex ) {
-          if ( renderCall2regex.test( prop ) ) {
+          if ( renderCall2regex[ renderCall ].test( prop ) ) {
             return renderCall;
           }
         }

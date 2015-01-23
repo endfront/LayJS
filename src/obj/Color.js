@@ -31,7 +31,7 @@
 
       if ( this.format === "hsl" ) {
         hsl = this.hsl();
-        if ( alpha === 1 ) {
+        if ( this.a === 1 ) {
           return "hsl(" + hsl.h + "," + hsl.s + "," + hsl.l + ")";
         } else {
           return "hsla(" + hsl.h + "," + hsl.s + "," + hsl.l + "," + this.a + ")";
@@ -39,7 +39,7 @@
 
       } else {
         rgb = this.rgb();
-        if ( alpha === 1 ) {
+        if ( this.a === 1 ) {
           return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
         } else {
           return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + this.a + ")";

@@ -1,46 +1,43 @@
 (function() {
   "use strict";
 
-  LAID.run =  function ( rootLson, name2lson ) {
+  LAID.run =  function ( rootLson ) {
 
     var
+      rootLevel,
       textTestNodeCSS = "position:absolute;visibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box",
       textWidthTestNode = document.createElement( "span" ),
       textHeightTestNode = document.createElement( "div" );
 
 
-    if ( name2lson ) {
 
-      name2lson = rootLson;
-      rootLson = {
-        props: {
-          width: window.innerWidth,
-          height: window.innerHeight
-        }
-      };
 
-    } else {
+    rootLson.props  = rootLson.props || {};
 
-      rootLson.props = rootLson.props || {};
+    rootLson.props.width = window.innerWidth;
+    rootLson.props.height = window.innerHeight;
 
-      rootLson.props.width = window.innerWidth;
-      rootLson.props.height = window.innerHeight;
 
-    }
 
-    rootLson.children = name2lson;
+
+    rootLevel = new LAID.Level( "/", rootLson, undefined );
+    rootLevel.$init();
+    LAID.$newLevelS = [ rootLevel ];
 
     window.onresize = updateSize;
 
-    ( new LAID.Level( "/", rootLson, undefined ) ).init();
 
+    textHeightTestNode.id = "t-height";
+    textWidthTestNode.id = "t-width";
 
-    textWidthTestNode.cssText = textTestNodeCSS;
-    textHeightTestNode.cssText = textTestNodeCSS;
+    textWidthTestNode.style.cssText = textTestNodeCSS;
+    textHeightTestNode.style.cssText = textTestNodeCSS;
 
 
     document.body.appendChild( textWidthTestNode );
     document.body.appendChild( textHeightTestNode );
+
+    LAID.$emptyAttrValue = new LAID.AttrValue( "", undefined );
 
     LAID.$prevTimeFrame = performance.now();
 
@@ -66,18 +63,20 @@
     newPartS = LAID.$newPartS, newPart, newPartLevel,
     curTimeFrame = performance.now(),
     timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
-    x, xLen, y, yLen,
+    x, y,
     i, len,
     renderDirtyLevelS = LAID.$renderDirtyLevelS,
     renderDirtyLevel,
-    renderDirtyAttrValueS = LAID.$renderDirtyAttrValueS,
+    renderDirtyAttrValueS,
     renderDirtyAttrValue,
     renderCallS, isAttrTransitionComplete;
 
     for ( i = 0, len = newPartS.length; i < len; i++ ) {
       newPart = newPartS[ i ];
       newPartLevel = newPart.level;
-      newPartLevel.parent.part.node.appendChild( newPart.node );
+      if ( newPartLevel.path !== "/" ) {
+        newPartLevel.parentLevel.part.node.appendChild( newPart.node );
+      }
       if ( newPartLevel.$lson.load ) {
         newPartLevel.$lson.load.call( newPartLevel );
       }
@@ -85,13 +84,13 @@
 
     LAID.$newPartS = [];
 
-    for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
+    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
 
       renderDirtyLevel = renderDirtyLevelS[ x ];
-      renderDirtyAttrValueS = renderDirtyLevel.renderDirtyAttrValueS;
+      renderDirtyAttrValueS = renderDirtyLevel.$renderDirtyAttrValueS;
       renderCallS = [];
 
-      for ( y = 0, yLen = renderDirtyAttrValueS.length; y < yLen; y++ ) {
+      for ( y = 0; y < renderDirtyAttrValueS.length; y++ ) {
 
         isAttrTransitionComplete = true;
         renderDirtyAttrValue = renderDirtyAttrValueS[ y ];
@@ -131,7 +130,8 @@
 
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        renderDirtyLevel.$part[ "$renderFn_" + renderCallS[ i ] ]();
+        console.log("$renderFn_" + renderCallS[ i ]);
+        renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if ( renderDirtyAttrValueS.length === 0 ) {

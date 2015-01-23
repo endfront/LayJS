@@ -46,6 +46,7 @@
     key2fnNormalize.states( lson ); // inherit states first to ensure
     // that every state projected attribute which is not present
     // within the root (lson) state is initialized
+
     key2fnNormalize.props( lson, undefined );
     key2fnNormalize.transition( lson, undefined );
     key2fnNormalize.when( lson, undefined );
@@ -112,7 +113,7 @@
         checkAndThrowErrorAttrAsTake( prefix, val );
       }
 
-      lson[ prefix ] = val;
+      obj[ prefix ] = val;
 
     }
   }
@@ -299,17 +300,18 @@
     */
     props: function( lson, rootLson ) {
 
-      if ( lson.props === undefined ) {
-
-        lson.props = {};
-
-      }
-
       var prop2val = lson.props,
       prop, val,
       longhandPropS, longhandProp, shorthandVal,
       multipleTypePropMatchDetails,curMultipleMax, lazyProp,
       i, len;
+
+
+      if ( lson.props === undefined ) {
+
+        prop2val = lson.props = {};
+
+      }
 
       checkAndThrowErrorAttrAsTake( "props", lson.props );
 
@@ -339,7 +341,7 @@
       }
 
       for ( prop in prop2val ) {
-        flattenProp( lson, prop2val, prop, prop, true );
+        flattenProp( lson, prop2val, prop, prop );
       }
 
       for ( prop in prop2val ) {
@@ -448,7 +450,7 @@ transition: function( lson, rootLson ) {
     defaulterProp, defaultedPropS, defaultedProp, i, len;
 
     if ( transition !== undefined ) {
-      checkAndThrowErrortransitionPropAsTake( "transition", lson.transition );
+      checkAndThrowErrorAttrAsTake( "transition", lson.transition );
 
       if ( transition.centerX !== undefined ) {
         transition.left =
@@ -472,13 +474,13 @@ transition: function( lson, rootLson ) {
           throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
         }
         transitionDirective = transition[ transitionProp ];
-        checkAndThrowErrortransitionPropAsTake( "transition." + transitionProp,
+        checkAndThrowErrorAttrAsTake( "transition." + transitionProp,
         transitionDirective  );
 
         transitionArgKey2val = transitionDirective.args;
         if ( transitionArgKey2val !== undefined ) {
 
-          checkAndThrowErrortransitionPropAsTake( "transition." + transitionProp + ".args",
+          checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
           transitionArgKey2val  );
 
           transitionArgKeyS = [];

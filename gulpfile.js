@@ -4,12 +4,18 @@ var concat = require( 'gulp-concat' );
 
 
 
-var js_fileS = [ "./src/entry.js", "./src/helper/*.js", "./src/obj/*.js",  "./src/method/*.js" ];
+var js_fileS = [
+	"./src/entry.js",
+	"./src/obj/*.js",
+	"./src/method/*.js",
+ 	"./src/helper/*.js",
+
+];
 
 gulp.task( 'concat', function() {
 
 	gulp.src( js_fileS )
-	.pipe( concat( "laid.js" ) )
+	.pipe( concat( "LAID.js" ) )
 	.pipe( gulp.dest( "./" ) );
 
 });

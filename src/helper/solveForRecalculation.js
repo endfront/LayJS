@@ -15,9 +15,10 @@
     newlyUninstalledStateS,
     fnNewlyUninstalledStateUninstall;
 
+    console.log("solve for recalc", recalculateDirtyLevelS);
     do {
       isSolveProgressed = false;
-      for ( i = 0, len = recalculateDirtyLevelS.length; i < len; i++ ) {
+      for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
         ret = recalculateDirtyLevelS[ i ].$solveForRecalculation();
         if ( ret !== 3 ) {
           isSolveProgressed = true;

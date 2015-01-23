@@ -7,8 +7,8 @@
     * Return true the element was added (as it did not exist previously)
     */
     pushUnique: function ( elementS, element ) {
-      if ( elementS.indexOf( element ) !== -1  ) {
-        itemS.push( element );
+      if ( elementS.indexOf( element ) === -1  ) {
+        elementS.push( element );
         return true;
       }
       return false;
@@ -31,15 +31,16 @@
     /*
     * Remove element at index i
     */
-    removeAtIndex: function ( elementS, i ) {
+    removeAtIndex: function ( elementS, ind ) {
       elementS.splice( ind, 1 );
+
     },
 
 
 
     /* Clone array at a single level */
     cloneSingleLevel: function ( elementS ) {
-      return elementS.slice(0);
+      return elementS.slice( 0 );
     }
   };
 

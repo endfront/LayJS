@@ -37,7 +37,7 @@
   // for each shorthand property
 
   centeralizedShorthandPropS = [
-  "positional", "origin", "backgroundPosition", "backgroundSize"
+    "positional", "origin", "backgroundPosition", "backgroundSize"
   ];
 
   longhandPropS = ( function () {
@@ -47,7 +47,7 @@
     i, len;
 
     for ( shorthandProp in shorthandProp2_longhandPropS_ ) {
-      longhandPropS = longhandPropS.concat( shorthandProp2_longhandPropS_ );
+      longhandPropS = longhandPropS.concat( shorthandProp2_longhandPropS_[ shorthandProp ] );
     }
     return longhandPropS;
   })();
@@ -74,8 +74,8 @@
       }
       return undefined;
     },
-    getShorhandPropCenteralized:  function ( longhandProp ) {
-      var shorthandProp = LAID.$shorthandPropsUtils.getShorthandPropgetShorthandProp;
+    getShorthandPropCenteralized:  function ( longhandProp ) {
+      var shorthandProp = LAID.$shorthandPropsUtils.getShorthandProp( longhandProp );
       if ( shorthandProp !== undefined && centeralizedShorthandPropS.indexOf( shorthandProp ) !== -1 ) {
         return shorthandProp;
       } else {

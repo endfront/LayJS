@@ -4,6 +4,7 @@
 
 
 Current:
+  - "root.centerX" needed? and if so should it point to "left" or "root.left"?
   - load within inherit and spec
   - $absoluteLeft/Top
   - load and State install / uninstall
@@ -17,6 +18,7 @@ Current:
   many:
   - LAID.Many ( + LAID.takeMany)
   - Cache most recently used state combinations for Many
+  - removeLevel
   - lson.type
   - Add "$i" index for Many to spec
   - Refine formation spec (including for creating formations)
@@ -25,7 +27,7 @@ Current:
 
 Tests:
   - For illegal take references to expander props or expander props mentioned as takes
-
+  - LAID.Level.getComputedStyle type tests
 
 
 Future:

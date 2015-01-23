@@ -11,12 +11,12 @@
 
     do {
       isSolveProgressed = false;
-      for ( i = 0, len = newLevelS.length; i < len; i++ ) {
+      for ( i = 0; i < newLevelS.length; i++ ) {
         if ( newLevelS[ i ].$inheritAndReproduce() ) {
           isSolveProgressed = true;
           solvedLevelS.push( newLevelS[ i ] );
-            LAID.$arrayUtils.removeAtIndex( newLevelS, i );
-            i--;
+          LAID.$arrayUtils.removeAtIndex( newLevelS, i );
+          i--;
         }
       }
       // The reason we will not use `len` to check the length below is

@@ -95,13 +95,13 @@
     function inheritSingleLevelObject( intoObject, fromObject, key, isDuplicateOn ) {
 
       var fromKey2value, intoKey2value, fromKey, fromKeyValue;
-      fromKey2value = fromObject.key;
-      intoKey2value = intoObject.key;
+      fromKey2value = fromObject[ key ];
+      intoKey2value = intoObject[ key ];
 
 
       if ( intoKey2value === undefined ) {
 
-        intoObject.key = {};
+        intoKey2value = intoObject[ key ] = {};
 
       }
 
@@ -109,9 +109,10 @@
 
         fromKeyValue = fromKey2value[ fromKey ];
 
-        intoObject[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
+        intoKey2value[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
         LAID.$clone( fromKeyValue ) :
         fromKeyValue;
+
 
       }
     }
@@ -150,6 +151,7 @@
       props: function( intoLson, fromLson ) {
 
         inheritSingleLevelObject( intoLson, fromLson, "props" );
+
       },
 
 

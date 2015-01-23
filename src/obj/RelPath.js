@@ -16,10 +16,11 @@
         this.absolutePath = relativePath;
       } else {
         this.absolute = false;
-      this.numberOfParentTraversals = relativePath.match(/^(..\/)*/)[0].length / 3;
-      // strip off the "../"s
-      this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
-    }
+        console.log( relativePath );
+        this.numberOfParentTraversals = ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
+        // strip off the "../"s
+        this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
+      }
   }
 
 };
