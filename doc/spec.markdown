@@ -1,4 +1,3 @@
-< <  Warning: This is the specification which is not to be read as a tutorial for LAID > >
 
 
 ### LAID
@@ -313,7 +312,7 @@ Psuedo-Defaults:
     color: LAID.Color (Psuedo-default: transparent),
     image: string (Psuedo-Default: none),
     attachment: string (CSS background-attachment) (Psuedo-Default: "scroll"),
-    repeat: string (CSS background-repeat) (Psuedo-Default: false),
+    repeat: string (CSS background-repeat) (Psuedo-Default: true),
     positionX: number (Psuedo-Default: 0),
     positionY: number (Psuedo-Default: 0),
     sizeX: number (Psuedo-Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2),
@@ -610,8 +609,10 @@ Psuedo-Defaults:
 
   - transition.<attr>.args.<arg>
 
-  - state.<state>
-  returns true if state is active
+  <!-- - state.<state>
+  returns true if state is active -->
+
+  - load
 
   - <state>.<prop>
 
@@ -720,7 +721,7 @@ children levels
 
 contains events as keys, and values as a callback function or
 arrays of callback functions (order respected)
-The context of the handler function will be the corresponding Level.
+The context of the handler function will be the corresponding `Level`.
 
 example with a single callback function specified:
 
@@ -731,7 +732,7 @@ example with a single callback function specified:
           },
           when: {
             click: function() {
-                console.log( "Hello \n World!" );
+                console.log( "Hello World!" );
               }
           }
         }
@@ -760,7 +761,7 @@ example with multiple callback functions specified (with the aid on array):
 
 ### LAID load
 
-Functions called upon loading of level.
+Functions called upon loading of level, with the context of the level.
 
 ### LAID.Level
 

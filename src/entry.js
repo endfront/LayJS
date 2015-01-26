@@ -74,6 +74,24 @@ bottom: -0.25em;
 (function () {
   "use strict";
 
+  /*
+  var
+    textTestNodeCSS = "position:absolute;isibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box;font-family:sans-serif:font-size:13px;",
+    textWidthTestNode = document.createElement( "span" ),
+    textHeightTestNode = document.createElement( "div" );
+
+  textHeightTestNode.id = "t-height";
+  textWidthTestNode.id = "t-width";
+
+  textWidthTestNode.style.cssText = textTestNodeCSS;
+  textHeightTestNode.style.cssText = textTestNodeCSS;
+
+
+  document.body.appendChild( textWidthTestNode );
+  document.body.appendChild( textHeightTestNode );
+
+*/
+
   window.laid = window.LAID = {
 
     $path2level: {},
@@ -86,7 +104,8 @@ bottom: -0.25em;
     $renderDirtyLevelS: [],
     $prevFrameTime: 0,
     $isClogged:false,
-    $isSolvingNewLevels: false
+    $isSolvingNewLevels: false,
+    $isRequestedForAnimationFrame: false
   };
 
 })();

@@ -43,7 +43,6 @@
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-
       this._relPath00attr_S.push( _relPath00attr_S[ i ] );
 
     }
@@ -809,11 +808,12 @@
   LAID.Take.prototype.fn = function ( ) {
 
     var fnExecutable = this.executable;
-
+    //console.log(fnExecutable.call(this));
+    //console.log(fnExecutable, arguments, arguments.length);
     if ( arguments.length === 0 ) {
 
       this.executable = function () {
-        return fnExecutable.execute( this ).call( this );
+        return fnExecutable.call( this ).call( this );
       };
 
     } else if ( arguments.length === 1 ) {
@@ -826,12 +826,12 @@
 
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg.execute( this ) );
+          return fnExecutable.call( this ).call( this, arg.execute( this ) );
         };
       } else {
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg );
+          return fnExecutable.call( this ).call( this, arg );
         };
       }
 
@@ -849,14 +849,13 @@
           this.$mergePathAndProps( arg2 );
 
           this.executable = function () {
-
-            return fnExecutable.execute( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
+            return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
           };
 
         } else {
           this.executable = function () {
 
-            return fnExecutable.execute( this ).call( this, arg1.execute( this ), arg2 );
+            return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2 );
           };
         }
 
@@ -865,7 +864,7 @@
         this.$mergePathAndProps( arg2 );
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg1, arg2.execute( this ) );
+          return fnExecutable.call( this ).call( this, arg1, arg2.execute( this ) );
         };
 
 
@@ -873,7 +872,7 @@
 
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg1, arg2 );
+          return fnExecutable.call( this ).call( this, arg1, arg2 );
         };
       }
     } else {
@@ -904,7 +903,7 @@
 
         }
 
-        return fnExecutable.execute( this ).apply( this, executedArgS );
+        return fnExecutable.call( this ).apply( this, executedArgS );
 
       };
     }

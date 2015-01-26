@@ -132,8 +132,8 @@
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
 
-          level = ( new LAID.Path( ref ) ).resolve( this );
-          if ( level === undefined || !level.$isStarted ) {
+          level = ( new LAID.RelPath( ref ) ).resolve( this );
+          if ( level === undefined ) {
 
             return false;
 
@@ -145,7 +145,7 @@
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
 
-          level = ( new LAID.Path( ref ) ).resolve( this );
+          level = ( new LAID.RelPath( ref ) ).resolve( this );
           inheritedAndNormalizedLson = level.$lson;
 
         } else { // object reference
@@ -157,8 +157,10 @@
 
       LAID.$inherit( lson, this.$lson, false, false );
       this.$lson = lson;
+      //console.log("inherited lson", this.$lson);
     }
 
+    LAID.$defaultizeLsonRootProps( this.$lson );
 
     if ( this.$lson.children !== undefined ) {
       this.addChildren( this.$lson.children );
@@ -173,7 +175,6 @@
     } else {
       this.many = new LAID.Many( this );
     }
-
     return true;
 
   };
@@ -193,8 +194,8 @@
 
     var i, len;
 
-    for ( i = 0, len = attrS.length ; i < len; i++ ) {
-      attr2val[ attrPrefix + i ] = elementS[ i ];
+    for ( i = 0, len = elementS.length ; i < len; i++ ) {
+      attr2val[ attrPrefix + ( i + 1 ) ] = elementS[ i ];
     }
   }
 
@@ -206,13 +207,13 @@
     transitionPropPrefix,
     eventType, fnCallbackS,
     prop2val = slson.props,
-    eventType2fnCallbackS = slson.when,
-    transitionProp2directive = slson.transition,
+    when = slson.when,
+    transition = slson.transition,
     i, len;
 
     initAttrsObj( statePrefix, slson.props, attr2val );
 
-    for ( transitionProp in transitionProp2directive ) {
+    for ( transitionProp in transition ) {
       transitionDirective = transition[ transitionProp ];
       transitionPropPrefix = statePrefix + "transition." + transitionProp + ".";
       if ( transitionDirective.type !== undefined ) {
@@ -232,8 +233,8 @@
       }
     }
 
-    for ( eventType in eventType2fnCallbackS ) {
-      fnCallbackS = eventType2fnCallbackS[ eventType ];
+    for ( eventType in when ) {
+      fnCallbackS = when[ eventType ];
       initAttrsArray( statePrefix + "when." + eventType, fnCallbackS, attr2val );
     }
 
@@ -289,13 +290,17 @@
 
     var i, key, val, stateName, state,
 
-    states = this.$lson.$stateS, when = this.$lson.when,
+    states = this.$lson.states, when = this.$lson.when,
     transition = this.$lson.transition,
     attr2val = {};
 
 
 
     initAttrsObj( "data.", this.$lson.data, attr2val );
+
+    if ( this.$lson.load !== undefined ) {
+      attr2val.load = this.$lson.load;
+    }
 
     convertSLSONtoAttr2Val( this.$lson, attr2val, "root.", true );
 
@@ -349,7 +354,6 @@
 
     } while ( ( recalculateDirtyAttrValueS.length !== 0 ) && isSolveProgressed );
 
-    console.log( "solvation", this.path, this.$attr2attrValue);
     return recalculateDirtyAttrValueS.length === 0 ? 1 : ( isSolveProgressedOnce ? 2 : 3 );
 
   };
@@ -386,7 +390,7 @@
         convertSLSONtoAttr2Val( this.generateSLSON(), attr2val, "", true );
         this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ] = attr2val;
       }
-      return attr2val;
+      return this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
     }
 
   };
@@ -408,7 +412,7 @@
     LAID.$inherit( slson, this.$lson, true, true );
 
     for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
-      LAID.$inherit( slson, this.$lson.$statesS[ this.$stateS[ i ] ] , true, true );
+      LAID.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ] , true, true );
     }
 
 
@@ -452,6 +456,8 @@
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( attr2val );
 
+    console.log("NEW STATE", this.path, this.$stateS );
+
   };
 
 
@@ -494,7 +500,7 @@
        childLevel, childLevelAttrValue;
     for ( i = 0, len = childLevelS.length; i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      childLevelAttrValue = childLevel.attr2attrValue[ attr ];
+      childLevelAttrValue = childLevel.$attr2attrValue[ attr ];
       if ( curMaxLevel === undefined ) {
         curMaxLevel = childLevel;
         curMaxVal = childLevelAttrValue
@@ -511,7 +517,9 @@
 
     if ( this.$attr2attrValue.$naturalWidth.takerAttrValueS.length ) {
 
-      if ( this.$naturalWidthLevel === childLevel ) {
+      if ( this.$naturalWidthLevel === undefined ) {
+        this.$naturalWidthLevel = childLevel;
+      } else if ( this.$naturalWidthLevel === childLevel ) {
         if ( ( this.$attr2attrValue.$naturalWidth === undefined ) ) {
           this.$naturalWidthLevel = childLevel;
         // Check If the current child level responsible for the stretch
@@ -540,7 +548,9 @@
 
     if ( this.$attr2attrValue.$naturalHeight.takerAttrValueS.length ) {
 
-      if ( this.$naturalHeightLevel === childLevel ) {
+      if ( this.$naturalHeightLevel === undefined ) {
+        this.$naturalHeightLevel = childLevel;
+      } else if ( this.$naturalHeightLevel === childLevel ) {
         if ( ( this.$attr2attrValue.$naturalHeight === undefined ) ) {
           this.$naturalHeightLevel = childLevel;
           // Check If the current child level responsible for the stretch
@@ -566,16 +576,44 @@
 
   LAID.Level.prototype.$updateNaturalWidthFromText = function () {
     if ( this.$attr2attrValue.$naturalWidth.takerAttrValueS.length ) {
-      var textWidthTestNode = document.getElementById("t-width");
-      textWidthTestNode.innerHTML = this.$attr2attrValue.text.calcValue;
-      this.$attr2attrValue.$naturalWidth.update( ( textWidthTestNode.getBoundingClientRect().width ) +
-        ( this.attr2attrValue.textPaddingLeft !== undefined ? this.attr2attrValue.textPaddingLeft.calcValue : 0  ) +
-        ( this.attr2attrValue.textPaddingRight !== undefined ? this.attr2attrValue.textPaddingRight.calcValue : 0  )
-      );
+        this.part.$naturalWidthTextMode = true;
+        this.$addRenderDirtyAttrValue( this.$attr2attrValue.text );
     }
   };
 
+  LAID.Level.prototype.$updateNaturalHeightFromText = function () {
 
+    if ( this.$attr2attrValue.$naturalHeight.takerAttrValueS.length ) {
+      this.part.$naturalHeightTextMode = true;
+      this.$addRenderDirtyAttrValue( this.$attr2attrValue.text );
+    }
+  };
+  /*LAID.Level.prototype.$updateNaturalWidthFromText = function () {
+    if ( this.$attr2attrValue.$naturalWidth.takerAttrValueS.length ) {
+      var textWidthTestNode = document.getElementById("t-width");
+      var textProps = {
+        textSize: "fontSize",
+        textFamily: "fontFamily",
+        textLetterSpacing: "letterSpacing",
+        textWordSpacing: "wordSpacing",
+        textWordVariant: "wordSpacing"
+
+
+      };
+      textHeightTestNode.style.fontSize = this.$attr2attrValue.textSize &&
+                                          this.$attr2attrValue.textSize.calcValue;
+      textHeightTestNode.style.fontFamily = this.$attr2attrValue.textFamily &&
+                                          this.$attr2attrValue.textFamily.calcValue;
+
+      textWidthTestNode.innerHTML = this.$attr2attrValue.text.calcValue;
+      this.$attr2attrValue.$naturalWidth.update( ( textWidthTestNode.getBoundingClientRect().width ) +
+        ( this.$attr2attrValue.textPaddingLeft !== undefined ? this.$attr2attrValue.textPaddingLeft.calcValue : 0  ) +
+        ( this.$attr2attrValue.textPaddingRight !== undefined ? this.$attr2attrValue.textPaddingRight.calcValue : 0  )
+      );
+    }
+  };*/
+
+/*
 
   LAID.Level.prototype.$updateNaturalHeightFromText = function () {
 
@@ -592,36 +630,36 @@
       }
 
       this.$attr2attrValue.$naturalHeight.update( ( textWidthTestNode.getBoundingClientRect().height ) +
-        ( this.attr2attrValue.textPaddingTop !== undefined ? this.attr2attrValue.textPaddingTop.calcValue : 0  ) +
-        ( this.attr2attrValue.textPaddingBottom !== undefined ? this.attr2attrValue.textPaddingBottom.calcValue : 0  )
+        ( this.$attr2attrValue.textPaddingTop !== undefined ? this.$attr2attrValue.textPaddingTop.calcValue : 0  ) +
+        ( this.$attr2attrValue.textPaddingBottom !== undefined ? this.$attr2attrValue.textPaddingBottom.calcValue : 0  )
       );
 
     }
   };
 
-
+*/
   LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
 
     var
-    numFnHandlersForEventType = this.$attr2attrValue[ "$$num." + eventType ],
+    numFnHandlersForEventType = this.$attr2attrValue[ "$$num.when." + eventType ].value,
     fnMainHandler,
     thisLevel = this;
 
     if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
-      LAID.$eventUtils.remove( this.$part.node, eventType, prevWrapperEventHandlerS[ i ] );
+      LAID.$eventUtils.remove( this.part.node, eventType, this.$whenEventType2fnMainHandler[ eventType ] );
     }
 
-    if ( numFnHandlers !== 0 ) {
+    if ( numFnHandlersForEventType !== 0 ) {
       fnMainHandler = function ( e ) {
         var i, len, attrValueForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
-          attrValueForFnHandler = thisLevel.attr2attrValue[ "when." + eventType + ( i + 1 ) ];
+          attrValueForFnHandler = thisLevel.$attr2attrValue[ "when." + eventType + ( i + 1 ) ];
           if ( attrValueForFnHandler !== undefined ) {
             attrValueForFnHandler.calcValue.call( thisLevel, e );
           }
         }
       };
-      LAID.$eventUtils.add( this.$part.node, eventType, fnMainHandler );
+      LAID.$eventUtils.add( this.part.node, eventType, fnMainHandler );
       this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
@@ -631,24 +669,25 @@
   };
 
   LAID.Level.prototype.$checkIsPropInTransition = function ( prop ) {
-    return this.$attr2attrValue[ "transition." + transitionProp  + ".type" ] ===
+    return this.$attr2attrValue[ "transition." + prop  + ".type" ] !==
     undefined;
   };
 
   LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
 
     var
-    origTransitionProp,
-    transitionPrefix,
-    transitionType, transitionDuration, transitionDelay,
-    transitionArgS, transitionArg2val = {},
-    transitionObj,
-    i, len,
-    longhandPropS,
-    affectedPropS,
-    affectedProp,
-    affectedPropAttrValue;
-
+      origTransitionProp,
+      transitionPrefix,
+      transitionType, transitionDuration, transitionDelay, transitionDone,
+      transitionArgS, transitionArg2val = {},
+      transitionObj,
+      i, len,
+      longhandPropS,
+      affectedPropS,
+      affectedProp,
+      longhandAffectedProp, // (eg: when `top` changes but transition
+      //is provided by `positional`)
+      affectedPropAttrValue;
 
     if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( transitionProp ) !== -1  ) {
       return;
@@ -658,52 +697,83 @@
       origTransitionProp = transitionProp;
       transitionProp = LAID.$shorthandPropsUtils.getShorthandProp( transitionProp );
       if ( transitionProp !== undefined ) {
-        if ( this.$checkIsPropInTransition( transitionProp ) ) {
+        if ( !this.$checkIsPropInTransition( transitionProp ) ) {
+          if ( this.$attr2attrValue[ transitionProp ] ) {
+            this.$attr2attrValue[ transitionProp ].transition = undefined;
+          }
           return;
         } else {
-          affectedProp = origTransitionProp;
+          longhandAffectedProp = origTransitionProp;
+
         }
+      } else {
+        return;
       }
     }
 
+
     transitionPrefix = "transition." + transitionProp + ".";
+
     transitionType = this.$attr2attrValue[ transitionPrefix + "type" ].calcValue;
     transitionDuration =
-    ( this.$attr2attrValue[ transitionPrefix + "duration" ] ?
-    this.$attr2attrValue[ transitionPrefix + "duration" ].calcValue :
-    0 );
-    transitionDelay = ( this.$attr2attrValue[ transitionPrefix + "delay" ] ?
-    this.$attr2attrValue[ transitionPrefix + "delay" ].calcValue :
-    0 );
+      ( this.$attr2attrValue[ transitionPrefix + "duration" ] ?
+      this.$attr2attrValue[ transitionPrefix + "duration" ].calcValue :
+      0 );
+    transitionDelay =
+      ( this.$attr2attrValue[ transitionPrefix + "delay" ] ?
+      this.$attr2attrValue[ transitionPrefix + "delay" ].calcValue :
+      0 );
+    transitionDone =
+      ( this.$attr2attrValue[ transitionPrefix + "done" ] ?
+      this.$attr2attrValue[ transitionPrefix + "done" ].calcValue :
+      undefined );
     transitionArgS = LAID.$transitionType2args[ transitionType ];
 
+    if ( ( !transitionType || ( transitionDuration === undefined ) ||
+      ( transitionDelay === undefined ) ) ) {
+        return
+    }
     for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
-      transitionArg2val[ transitionArgS[ i ] ] = ( this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ]  ] ?
-      this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ].calcValue : [] );
+      transitionArg2val[ transitionArgS[ i ] ] = (
+         this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ] ?
+         this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ].calcValue :
+          [] );
     }
 
     longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( transitionProp );
 
-    if ( longhandPropS !== undefined ) {
+    if ( !longhandAffectedProp && longhandPropS !== undefined ) {
       affectedPropS = longhandPropS;
       for ( i = 0, len = affectedPropS.length; i < len; i++ ) {
         affectedProp = affectedPropS[ i ];
         if ( !this.$checkIsPropInTransition ) {
           affectedPropAttrValue = this.$attr2attrValue[ affectedProp ];
-
-          if ( affectedPropAttrValue !== undefined && affectedPropAttrValue.transitionCalcValue && affectedPropAttrValue.calcValue ) {
-            affectedPropAttrValue.transition = LAID.$transitionType2object[ transitionType ] ( affectedPropAttrValue.transitionCalcValue, transitionDuration, transitionDelay, transitionDone, transitionArg2val );
-            LAID.$arrayUtils.pushUnique( this.transitionDirtyAttrValueS, propAttrValue );
+          if ( affectedPropAttrValue !== undefined &&
+              ( affectedPropAttrValue.transitionCalcValue !== undefined ) &&
+              ( affectedPropAttrValue.calcValue !== undefined ) ) {
+            affectedPropAttrValue.transition = new LAID.Transition (
+                transitionType,
+                affectedPropAttrValue.transitionCalcValue,
+                transitionDelay ,
+                transitionDuration, transitionArg2val,
+                transitionDone );
           }
         }
-
       }
     } else {
 
-      affectedPropAttrValue = this.$attr2attrValue[ affectedProp || transitionProp ];
-      if ( affectedPropAttrValue !== undefined && affectedPropAttrValue.transitionCalcValue && affectedPropAttrValue.calcValue ) {
-        affectedPropAttrValue.transition = LAID.$transitionType2object[ transitionType ] ( affectedPropAttrValue.transitionCalcValue, transitionDuration, transitionDelay, transitionDone, transitionArg2val );
-        LAID.$arrayUtils.pushUnique( this.transitionDirtyAttrValueS, propAttrValue );
+      affectedPropAttrValue = this.$attr2attrValue[ longhandAffectedProp || transitionProp ];
+      console.log("swars",affectedPropAttrValue);
+      if ( affectedPropAttrValue !== undefined &&
+         ( affectedPropAttrValue.transitionCalcValue !== undefined ) &&
+         ( affectedPropAttrValue.calcValue !== undefined )
+      ) {
+        affectedPropAttrValue.transition = new LAID.Transition (
+          transitionType,
+          affectedPropAttrValue.transitionCalcValue,
+          transitionDelay ,
+          transitionDuration, transitionArg2val,
+          transitionDone );
       }
 
     }

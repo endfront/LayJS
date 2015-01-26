@@ -16,7 +16,6 @@
         this.absolutePath = relativePath;
       } else {
         this.absolute = false;
-        console.log( relativePath );
         this.numberOfParentTraversals = ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
         // strip off the "../"s
         this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
@@ -43,7 +42,8 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
       }
 
-      return LAID.$path2level[ referenceLevel.path + this.childPath ];
+      return LAID.$path2level[ referenceLevel.path +
+       ( this.childPath !== "" ? "/" : "" ) + this.childPath ];
     }
 
   }

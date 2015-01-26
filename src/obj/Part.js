@@ -33,11 +33,10 @@
   "box-sizing:border-box;-moz-box-sizing:border-box;" +
   "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
   "overflow-x:hidden;overflow-y:hidden;" +
-  "-webkit-overflow-scrolling:touch;" +
-  "background-repeat:no-repeat;";
+  "-webkit-overflow-scrolling:touch;";
 
-  defaultTextCss = defaultCss + "font-size:13px;" +
-  "font-family:sans-serif:color:black;";
+  defaultTextCss = defaultCss + "font-size:16px;" +
+  "font-family:sans-serif;color:black;";
 
   inputType2tag = {
     button: "button",
@@ -50,6 +49,9 @@
 
     this.level = level;
     this.node = undefined;
+
+    this.$naturalWidthTextMode = false;
+    this.$naturalHeightTextMode = false;
 
   };
 
@@ -117,12 +119,13 @@
 
     LAID.Part.prototype.$renderFn_width = function () {
       this.node.style.width = this.level.$attr2attrValue.width.transitionCalcValue + "px";
-      this.$renderFn_positional(); //apply change to transform
+      //this.$renderFn_positional(); //apply change to transform
     };
 
     LAID.Part.prototype.$renderFn_height = function () {
+      console.log(this.level.$attr2attrValue.height.transitionCalcValue);
       this.node.style.height = this.level.$attr2attrValue.height.transitionCalcValue + "px";
-      this.$renderFn_positional(); //apply change to transform
+      //this.$renderFn_positional(); //apply change to transform
     };
 
 
@@ -244,6 +247,8 @@
     attr2attrValue = this.level.$attr2attrValue,
     s = "",
     i, len;
+    console.log(attr2attrValue);
+
     for ( i = 1, len = attr2attrValue[ "$$num.boxShadows" ].calcVal ; i <= len; i++ ) {
       s +=
       ( ( attr2attrValue["boxShadows" + i + "Inset" ] !== undefined ? attr2attrValue["boxShadows" + i + "Inset" ].transitionCalcValue : false ) ? "inset " : "" ) +
@@ -296,16 +301,16 @@
   };
 
   LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
-    this.node.style.borderRadiusTopLeft = this.level.$attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
+    this.node.style.borderTopLeftRadius = this.level.$attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
-    this.node.style.borderRadiusTopRight = this.level.$attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
+    this.node.style.borderTopRightRadius = this.level.$attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
-    this.node.style.borderRadiusBottomRight = this.level.$attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
+    this.node.style.borderBottomRightRadius = this.level.$attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
-    this.node.style.borderRadiusBottomLeft = this.level.$attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
+    this.node.style.borderBottomLeftRadius = this.level.$attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
   };
 
 
@@ -355,20 +360,38 @@
   /* Text Related */
 
   LAID.Part.prototype.$renderFn_text = function () {
-    this.node.innerHtml = this.level.$attr2attrValue.text.transitionCalcValue;
+
+    if ( this.$naturalWidthTextMode ) {
+      this.node.style.display = "inline";
+      this.node.style.width = "auto";
+      this.node.innerHTML = this.level.$attr2attrValue.text.transitionCalcValue;
+      this.level.$changeAttrVal( "$naturalWidth", this.node.getBoundingClientRect().width );
+      this.node.style.display = "block";
+      this.$naturalWidthTextMode = false;
+    }
+    if ( this.$naturalHeightTextMode ) {
+      this.node.style.height = "auto";
+      this.node.innerHTML = this.level.$attr2attrValue.text.transitionCalcValue;
+      this.level.$changeAttrVal( "$naturalHeight", this.node.getBoundingClientRect().height );
+      this.$naturalHeightTextMode = false;
+    }
+
+    this.node.innerHTML = this.level.$attr2attrValue.text.transitionCalcValue;
+
   };
 
   LAID.Part.prototype.$renderFn_textSize = function () {
-    this.node.fontSize = this.level.$attr2attrValue.textSize.transitionCalcValue + "px";
+    this.node.style.fontSize = this.level.$attr2attrValue.textSize.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_textFamily = function () {
-    this.node.fontFamily = this.level.$attr2attrValue.textFamily.transitionCalcValue;
+    this.node.style.fontFamily = this.level.$attr2attrValue.textFamily.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textWeight = function () {
-    this.node.fontWeight = this.level.$attr2attrValue.textWeight.transitionCalcValue;
+
+    this.node.style.fontWeight = this.level.$attr2attrValue.textWeight.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textColor = function () {
-    this.node.color = this.level.$attr2attrValue.textColor.transitionCalcValue.stringify();
+    this.node.style.color = this.level.$attr2attrValue.textColor.transitionCalcValue.stringify();
   };
 
 
@@ -389,47 +412,47 @@
   };
 
   LAID.Part.prototype.$renderFn_textVariant = function () {
-    this.node.fontVariant = this.level.$attr2attrValue.textVariant.transitionCalcValue;
+    this.node.style.fontVariant = this.level.$attr2attrValue.textVariant.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textStyle = function () {
-    this.node.fontStyle = this.level.$attr2attrValue.textStyle.transitionCalcValue;
+    this.node.style.fontStyle = this.level.$attr2attrValue.textStyle.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textDecoration = function () {
-    this.node.textDecoration = this.level.$attr2attrValue.textDecoration.transitionCalcValue;
+    this.node.style.textDecoration = this.level.$attr2attrValue.textDecoration.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textAlign = function () {
-    this.node.textAlign = this.level.$attr2attrValue.textAlign.transitionCalcValue;
+    this.node.style.textAlign = this.level.$attr2attrValue.textAlign.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
     var textLetterSpacing = this.level.$attr2attrValue.textLetterSpacing;
-    this.node.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcValue !== undefined ?
+    this.node.style.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcValue !== undefined ?
       textLetterSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textWordSpacing = function () {
     var textWordSpacing = this.level.$attr2attrValue.textWordSpacing;
-    this.node.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcValue !== undefined ?
+    this.node.style.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcValue !== undefined ?
     textWordSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textOverflow = function () {
-    this.node.textOverflow = this.level.$attr2attrValue.textOverflow.transitionCalcValue;
+    this.node.style.textOverflow = this.level.$attr2attrValue.textOverflow.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textIndent = function () {
-    this.node.textIndent = this.level.$attr2attrValue.textIndent.transitionCalcValue;
+    this.node.style.textIndent = this.level.$attr2attrValue.textIndent.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_textWhitespace = function () {
-    this.node.whitespace = this.level.$attr2attrValue.textWhitespace.transitionCalcValue;
+    this.node.style.whitespace = this.level.$attr2attrValue.textWhitespace.transitionCalcValue;
   };
-  LAID.Part.prototype.$renderFn_textTopPadding = function () {
-    this.node.paddingTop = this.level.$attr2attrValue.textTopPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingTop = function () {
+    this.node.style.paddingTop = this.level.$attr2attrValue.textPaddingTop.transitionCalcValue + "px";
   };
-  LAID.Part.prototype.$renderFn_textRightPadding = function () {
-    this.node.paddingRight = this.level.$attr2attrValue.textRightPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingRight = function () {
+    this.node.style.paddingRight = this.level.$attr2attrValue.textPaddingRight.transitionCalcValue + "px";
   };
-  LAID.Part.prototype.$renderFn_textBottomPadding = function () {
-    this.node.paddingBottom = this.level.$attr2attrValue.textBottomPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingBottom = function () {
+    this.node.style.paddingBottom = this.level.$attr2attrValue.textPaddingBottom.transitionCalcValue + "px";
   };
-  LAID.Part.prototype.$renderFn_textLeftPadding = function () {
-    this.node.paddingLeft = this.level.$attr2attrValue.textLeftPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingLeft = function () {
+    this.node.style.paddingLeft = this.level.$attr2attrValue.textPaddingLeft.transitionCalcValue + "px";
   };
 
 

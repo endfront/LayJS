@@ -27,7 +27,7 @@
     borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
     borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
     borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
-    textPadding: [ "textTopPadding", "textRightPadding", "textBottomPadding", "textLeftPadding" ],
+    textPadding: [ "textPaddingTop", "textPaddingRight", "textPaddingBottom", "textPaddingLeft" ],
     cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ]
 
   };
@@ -58,7 +58,7 @@
     },
     getLonghandPropsDecenteralized: function ( shorthandProp ) {
       if ( centeralizedShorthandPropS.indexOf( shorthandProp ) === -1 ) {
-        return LAID.$shorthandPropsUtils.getLonghandProps[ shorthandProp ];
+        return shorthandProp2_longhandPropS_[ shorthandProp ];
       } else {
         return undefined;
       }
@@ -85,7 +85,7 @@
 
     checkIsDecentralizedShorthandProp: function ( shorthandProp ) {
       return shorthandProp2_longhandPropS_[ shorthandProp ] !== undefined &&
-        centeralizedShorthandPropS.indexOf( shorthand ) === -1;
+        centeralizedShorthandPropS.indexOf( shorthandProp ) === -1;
     }
 
   };

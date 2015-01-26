@@ -74,6 +74,24 @@ bottom: -0.25em;
 (function () {
   "use strict";
 
+  /*
+  var
+    textTestNodeCSS = "position:absolute;isibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box;font-family:sans-serif:font-size:13px;",
+    textWidthTestNode = document.createElement( "span" ),
+    textHeightTestNode = document.createElement( "div" );
+
+  textHeightTestNode.id = "t-height";
+  textWidthTestNode.id = "t-width";
+
+  textWidthTestNode.style.cssText = textTestNodeCSS;
+  textHeightTestNode.style.cssText = textTestNodeCSS;
+
+
+  document.body.appendChild( textWidthTestNode );
+  document.body.appendChild( textHeightTestNode );
+
+*/
+
   window.laid = window.LAID = {
 
     $path2level: {},
@@ -86,7 +104,8 @@ bottom: -0.25em;
     $renderDirtyLevelS: [],
     $prevFrameTime: 0,
     $isClogged:false,
-    $isSolvingNewLevels: false
+    $isSolvingNewLevels: false,
+    $isRequestedForAnimationFrame: false
   };
 
 })();
@@ -98,7 +117,7 @@ bottom: -0.25em;
   // attr -> string attr name
   // attrValue -> class AttrValue
 
-  LAID.AttrValue = function AttrValue ( attr, level ) {
+  LAID.AttrValue = function ( attr, level ) {
 
     // undefined initializations:
     // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
@@ -129,10 +148,11 @@ bottom: -0.25em;
   * Return the name component.
   * Else return the empty string.
   */
-  function getStateNameOfAttrState ( attr ) {
+  function getStateNameOfOnlyIf ( attr ) {
+    var match = attr.match( /^([\w\-]+).onlyif$/ );
 
-    return attr.startsWith( "state." ) ?
-    attr.slice( 6 ) : "";
+    return ( match !== null && match[ 1 ] !== "data" ) ?
+    match[ 1 ] : "";
 
   }
 
@@ -153,20 +173,19 @@ bottom: -0.25em;
       return  attr.startsWith( "transition." ) ?
         attr.slice( 11, attr.indexOf(".", 11 ) ) : "";
 
-
   }
 
 
   function checkIsStateProjectedAttr( attr ) {
     var i = attr.indexOf( "." );
-    if ( i === -1 ) {
+    if ( ( i === -1 ) && ( attr[ 0 ] !== "$" ) ) {
       return true;
     } else {
       var prefix = attr.slice( 0, i );
-      return ( ( [ "when", "transition", "$$num", "$$max", /*"$$keys"*/ ] ).indexOf( prefix ) !== -1 );
+      return ( ( [ "when", "transition", "$$num", "$$max" ] ).indexOf(
+         prefix ) !== -1 );
     }
   }
-
 
 
   /* TODO: update this doc below along with its slash-asterisk
@@ -218,10 +237,10 @@ bottom: -0.25em;
   LAID.AttrValue.prototype.recalculate = function () {
 
     var
-    isDirty = false,
-    reCalc,
-    level = this.level,
-    i, len;
+      isDirty = false,
+      reCalc,
+      level = this.level,
+      i, len;
 
     if ( this.value instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
@@ -231,9 +250,8 @@ bottom: -0.25em;
       }
       this.isTaken = true;
 
-      reCalc = this.value.execute( this );
+      reCalc = this.value.execute( this.level );
       if ( reCalc !== this.calcValue ) {
-
         isDirty = true;
         this.calcValue = reCalc;
       }
@@ -246,10 +264,14 @@ bottom: -0.25em;
 
     if ( isDirty ) {
       var
-      attr = this.attr,
-      stateName = getStateNameOfAttrState( attr ),
-      whenEventType = getWhenEventTypeOfAttrWhen( attr ),
-      transitionProp = getTransitionPropOfAttrTransition( attr );
+        attr = this.attr,
+        stateName = getStateNameOfOnlyIf( attr ),
+        whenEventType = getWhenEventTypeOfAttrWhen( attr ),
+        transitionProp = getTransitionPropOfAttrTransition( attr );
+
+      /*if ( !this.transitionCalcValue && ( this.transitionCalcValue !== 0 ) ) {
+        this.transitionCalcValue = this.calcValue;
+      }*/
 
       this.valueUsedForLastRecalculation = this.value;
 
@@ -259,13 +281,17 @@ bottom: -0.25em;
 
       if ( this.renderCall ) {
         level.$addRenderDirtyAttrValue( this );
-
-        if ( ( this.attr === "text" ) ||
-          ( this.attr.startsWith( "textPadding" ) )
+        if ( ( attr === "text" ) ||
+          ( attr.startsWith( "textPadding" ) )
         )  {
+
           level.$updateNaturalWidthFromText();
           level.$updateNaturalHeightFromText();
         }
+
+        // In case there exists a transition
+        // for the given prop then update it
+        level.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcValue ) { // state
@@ -280,6 +306,7 @@ bottom: -0.25em;
           }
         } else { // remove state
           if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
+
             level.$updateStates();
             // remove from the list of installed states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
@@ -290,9 +317,9 @@ bottom: -0.25em;
           }
         }
       } else if ( whenEventType !== "" ) {
-        this.$updateWhenEventType( whenEventType );
+        level.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        this.$updateTransitionProp( transitionProp );
+        level.$updateTransitionProp( transitionProp );
       } else if ( attr === "right" ) {
         if ( level.parentLevel !== undefined ) {
           level.parentLevel.$updateNaturalWidthFromChild( level );
@@ -300,6 +327,10 @@ bottom: -0.25em;
       } else if ( attr === "bottom" ) {
         if ( level.parentLevel !== undefined ) {
           level.parentLevel.$updateNaturalHeightFromChild( level );
+        }
+      } else if ( attr === "width" ) {
+        if ( level.$attr2attrValue.text !== undefined ) {
+          level.$updateNaturalHeightFromText();
         }
       }
     }
@@ -315,7 +346,12 @@ bottom: -0.25em;
         fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = eventType2fnHandler[ eventType ].bind( this );
-          LAID.$eventUtils.add( this.$part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
+          //TODO: remove below
+          LAID.$eventUtils.add( this.level.part.node, "click", function(){
+            console.log("hlel oworl");
+          } );
+
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = fnBoundHandler;
         }
       }
@@ -331,7 +367,7 @@ bottom: -0.25em;
         fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAID.$eventUtils.remove( this.$part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = undefined;
         }
       }
@@ -376,6 +412,7 @@ bottom: -0.25em;
 
       }
     }
+    return true;
 
   };
 
@@ -885,8 +922,8 @@ bottom: -0.25em;
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
 
-          level = ( new LAID.Path( ref ) ).resolve( this );
-          if ( level === undefined || !level.$isStarted ) {
+          level = ( new LAID.RelPath( ref ) ).resolve( this );
+          if ( level === undefined ) {
 
             return false;
 
@@ -898,7 +935,7 @@ bottom: -0.25em;
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
 
-          level = ( new LAID.Path( ref ) ).resolve( this );
+          level = ( new LAID.RelPath( ref ) ).resolve( this );
           inheritedAndNormalizedLson = level.$lson;
 
         } else { // object reference
@@ -910,8 +947,10 @@ bottom: -0.25em;
 
       LAID.$inherit( lson, this.$lson, false, false );
       this.$lson = lson;
+      //console.log("inherited lson", this.$lson);
     }
 
+    LAID.$defaultizeLsonRootProps( this.$lson );
 
     if ( this.$lson.children !== undefined ) {
       this.addChildren( this.$lson.children );
@@ -926,7 +965,6 @@ bottom: -0.25em;
     } else {
       this.many = new LAID.Many( this );
     }
-
     return true;
 
   };
@@ -946,8 +984,8 @@ bottom: -0.25em;
 
     var i, len;
 
-    for ( i = 0, len = attrS.length ; i < len; i++ ) {
-      attr2val[ attrPrefix + i ] = elementS[ i ];
+    for ( i = 0, len = elementS.length ; i < len; i++ ) {
+      attr2val[ attrPrefix + ( i + 1 ) ] = elementS[ i ];
     }
   }
 
@@ -959,13 +997,13 @@ bottom: -0.25em;
     transitionPropPrefix,
     eventType, fnCallbackS,
     prop2val = slson.props,
-    eventType2fnCallbackS = slson.when,
-    transitionProp2directive = slson.transition,
+    when = slson.when,
+    transition = slson.transition,
     i, len;
 
     initAttrsObj( statePrefix, slson.props, attr2val );
 
-    for ( transitionProp in transitionProp2directive ) {
+    for ( transitionProp in transition ) {
       transitionDirective = transition[ transitionProp ];
       transitionPropPrefix = statePrefix + "transition." + transitionProp + ".";
       if ( transitionDirective.type !== undefined ) {
@@ -985,8 +1023,8 @@ bottom: -0.25em;
       }
     }
 
-    for ( eventType in eventType2fnCallbackS ) {
-      fnCallbackS = eventType2fnCallbackS[ eventType ];
+    for ( eventType in when ) {
+      fnCallbackS = when[ eventType ];
       initAttrsArray( statePrefix + "when." + eventType, fnCallbackS, attr2val );
     }
 
@@ -1042,13 +1080,17 @@ bottom: -0.25em;
 
     var i, key, val, stateName, state,
 
-    states = this.$lson.$stateS, when = this.$lson.when,
+    states = this.$lson.states, when = this.$lson.when,
     transition = this.$lson.transition,
     attr2val = {};
 
 
 
     initAttrsObj( "data.", this.$lson.data, attr2val );
+
+    if ( this.$lson.load !== undefined ) {
+      attr2val.load = this.$lson.load;
+    }
 
     convertSLSONtoAttr2Val( this.$lson, attr2val, "root.", true );
 
@@ -1102,7 +1144,6 @@ bottom: -0.25em;
 
     } while ( ( recalculateDirtyAttrValueS.length !== 0 ) && isSolveProgressed );
 
-    console.log( "solvation", this.path, this.$attr2attrValue);
     return recalculateDirtyAttrValueS.length === 0 ? 1 : ( isSolveProgressedOnce ? 2 : 3 );
 
   };
@@ -1139,7 +1180,7 @@ bottom: -0.25em;
         convertSLSONtoAttr2Val( this.generateSLSON(), attr2val, "", true );
         this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ] = attr2val;
       }
-      return attr2val;
+      return this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
     }
 
   };
@@ -1161,7 +1202,7 @@ bottom: -0.25em;
     LAID.$inherit( slson, this.$lson, true, true );
 
     for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
-      LAID.$inherit( slson, this.$lson.$statesS[ this.$stateS[ i ] ] , true, true );
+      LAID.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ] , true, true );
     }
 
 
@@ -1205,6 +1246,8 @@ bottom: -0.25em;
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( attr2val );
 
+    console.log("NEW STATE", this.path, this.$stateS );
+
   };
 
 
@@ -1247,7 +1290,7 @@ bottom: -0.25em;
        childLevel, childLevelAttrValue;
     for ( i = 0, len = childLevelS.length; i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      childLevelAttrValue = childLevel.attr2attrValue[ attr ];
+      childLevelAttrValue = childLevel.$attr2attrValue[ attr ];
       if ( curMaxLevel === undefined ) {
         curMaxLevel = childLevel;
         curMaxVal = childLevelAttrValue
@@ -1264,7 +1307,9 @@ bottom: -0.25em;
 
     if ( this.$attr2attrValue.$naturalWidth.takerAttrValueS.length ) {
 
-      if ( this.$naturalWidthLevel === childLevel ) {
+      if ( this.$naturalWidthLevel === undefined ) {
+        this.$naturalWidthLevel = childLevel;
+      } else if ( this.$naturalWidthLevel === childLevel ) {
         if ( ( this.$attr2attrValue.$naturalWidth === undefined ) ) {
           this.$naturalWidthLevel = childLevel;
         // Check If the current child level responsible for the stretch
@@ -1293,7 +1338,9 @@ bottom: -0.25em;
 
     if ( this.$attr2attrValue.$naturalHeight.takerAttrValueS.length ) {
 
-      if ( this.$naturalHeightLevel === childLevel ) {
+      if ( this.$naturalHeightLevel === undefined ) {
+        this.$naturalHeightLevel = childLevel;
+      } else if ( this.$naturalHeightLevel === childLevel ) {
         if ( ( this.$attr2attrValue.$naturalHeight === undefined ) ) {
           this.$naturalHeightLevel = childLevel;
           // Check If the current child level responsible for the stretch
@@ -1319,16 +1366,44 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$updateNaturalWidthFromText = function () {
     if ( this.$attr2attrValue.$naturalWidth.takerAttrValueS.length ) {
-      var textWidthTestNode = document.getElementById("t-width");
-      textWidthTestNode.innerHTML = this.$attr2attrValue.text.calcValue;
-      this.$attr2attrValue.$naturalWidth.update( ( textWidthTestNode.getBoundingClientRect().width ) +
-        ( this.attr2attrValue.textPaddingLeft !== undefined ? this.attr2attrValue.textPaddingLeft.calcValue : 0  ) +
-        ( this.attr2attrValue.textPaddingRight !== undefined ? this.attr2attrValue.textPaddingRight.calcValue : 0  )
-      );
+        this.part.$naturalWidthTextMode = true;
+        this.$addRenderDirtyAttrValue( this.$attr2attrValue.text );
     }
   };
 
+  LAID.Level.prototype.$updateNaturalHeightFromText = function () {
 
+    if ( this.$attr2attrValue.$naturalHeight.takerAttrValueS.length ) {
+      this.part.$naturalHeightTextMode = true;
+      this.$addRenderDirtyAttrValue( this.$attr2attrValue.text );
+    }
+  };
+  /*LAID.Level.prototype.$updateNaturalWidthFromText = function () {
+    if ( this.$attr2attrValue.$naturalWidth.takerAttrValueS.length ) {
+      var textWidthTestNode = document.getElementById("t-width");
+      var textProps = {
+        textSize: "fontSize",
+        textFamily: "fontFamily",
+        textLetterSpacing: "letterSpacing",
+        textWordSpacing: "wordSpacing",
+        textWordVariant: "wordSpacing"
+
+
+      };
+      textHeightTestNode.style.fontSize = this.$attr2attrValue.textSize &&
+                                          this.$attr2attrValue.textSize.calcValue;
+      textHeightTestNode.style.fontFamily = this.$attr2attrValue.textFamily &&
+                                          this.$attr2attrValue.textFamily.calcValue;
+
+      textWidthTestNode.innerHTML = this.$attr2attrValue.text.calcValue;
+      this.$attr2attrValue.$naturalWidth.update( ( textWidthTestNode.getBoundingClientRect().width ) +
+        ( this.$attr2attrValue.textPaddingLeft !== undefined ? this.$attr2attrValue.textPaddingLeft.calcValue : 0  ) +
+        ( this.$attr2attrValue.textPaddingRight !== undefined ? this.$attr2attrValue.textPaddingRight.calcValue : 0  )
+      );
+    }
+  };*/
+
+/*
 
   LAID.Level.prototype.$updateNaturalHeightFromText = function () {
 
@@ -1345,36 +1420,36 @@ bottom: -0.25em;
       }
 
       this.$attr2attrValue.$naturalHeight.update( ( textWidthTestNode.getBoundingClientRect().height ) +
-        ( this.attr2attrValue.textPaddingTop !== undefined ? this.attr2attrValue.textPaddingTop.calcValue : 0  ) +
-        ( this.attr2attrValue.textPaddingBottom !== undefined ? this.attr2attrValue.textPaddingBottom.calcValue : 0  )
+        ( this.$attr2attrValue.textPaddingTop !== undefined ? this.$attr2attrValue.textPaddingTop.calcValue : 0  ) +
+        ( this.$attr2attrValue.textPaddingBottom !== undefined ? this.$attr2attrValue.textPaddingBottom.calcValue : 0  )
       );
 
     }
   };
 
-
+*/
   LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
 
     var
-    numFnHandlersForEventType = this.$attr2attrValue[ "$$num." + eventType ],
+    numFnHandlersForEventType = this.$attr2attrValue[ "$$num.when." + eventType ].value,
     fnMainHandler,
     thisLevel = this;
 
     if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
-      LAID.$eventUtils.remove( this.$part.node, eventType, prevWrapperEventHandlerS[ i ] );
+      LAID.$eventUtils.remove( this.part.node, eventType, this.$whenEventType2fnMainHandler[ eventType ] );
     }
 
-    if ( numFnHandlers !== 0 ) {
+    if ( numFnHandlersForEventType !== 0 ) {
       fnMainHandler = function ( e ) {
         var i, len, attrValueForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
-          attrValueForFnHandler = thisLevel.attr2attrValue[ "when." + eventType + ( i + 1 ) ];
+          attrValueForFnHandler = thisLevel.$attr2attrValue[ "when." + eventType + ( i + 1 ) ];
           if ( attrValueForFnHandler !== undefined ) {
             attrValueForFnHandler.calcValue.call( thisLevel, e );
           }
         }
       };
-      LAID.$eventUtils.add( this.$part.node, eventType, fnMainHandler );
+      LAID.$eventUtils.add( this.part.node, eventType, fnMainHandler );
       this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
@@ -1384,24 +1459,25 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.$checkIsPropInTransition = function ( prop ) {
-    return this.$attr2attrValue[ "transition." + transitionProp  + ".type" ] ===
+    return this.$attr2attrValue[ "transition." + prop  + ".type" ] !==
     undefined;
   };
 
   LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
 
     var
-    origTransitionProp,
-    transitionPrefix,
-    transitionType, transitionDuration, transitionDelay,
-    transitionArgS, transitionArg2val = {},
-    transitionObj,
-    i, len,
-    longhandPropS,
-    affectedPropS,
-    affectedProp,
-    affectedPropAttrValue;
-
+      origTransitionProp,
+      transitionPrefix,
+      transitionType, transitionDuration, transitionDelay, transitionDone,
+      transitionArgS, transitionArg2val = {},
+      transitionObj,
+      i, len,
+      longhandPropS,
+      affectedPropS,
+      affectedProp,
+      longhandAffectedProp, // (eg: when `top` changes but transition
+      //is provided by `positional`)
+      affectedPropAttrValue;
 
     if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( transitionProp ) !== -1  ) {
       return;
@@ -1411,52 +1487,83 @@ bottom: -0.25em;
       origTransitionProp = transitionProp;
       transitionProp = LAID.$shorthandPropsUtils.getShorthandProp( transitionProp );
       if ( transitionProp !== undefined ) {
-        if ( this.$checkIsPropInTransition( transitionProp ) ) {
+        if ( !this.$checkIsPropInTransition( transitionProp ) ) {
+          if ( this.$attr2attrValue[ transitionProp ] ) {
+            this.$attr2attrValue[ transitionProp ].transition = undefined;
+          }
           return;
         } else {
-          affectedProp = origTransitionProp;
+          longhandAffectedProp = origTransitionProp;
+
         }
+      } else {
+        return;
       }
     }
 
+
     transitionPrefix = "transition." + transitionProp + ".";
+
     transitionType = this.$attr2attrValue[ transitionPrefix + "type" ].calcValue;
     transitionDuration =
-    ( this.$attr2attrValue[ transitionPrefix + "duration" ] ?
-    this.$attr2attrValue[ transitionPrefix + "duration" ].calcValue :
-    0 );
-    transitionDelay = ( this.$attr2attrValue[ transitionPrefix + "delay" ] ?
-    this.$attr2attrValue[ transitionPrefix + "delay" ].calcValue :
-    0 );
+      ( this.$attr2attrValue[ transitionPrefix + "duration" ] ?
+      this.$attr2attrValue[ transitionPrefix + "duration" ].calcValue :
+      0 );
+    transitionDelay =
+      ( this.$attr2attrValue[ transitionPrefix + "delay" ] ?
+      this.$attr2attrValue[ transitionPrefix + "delay" ].calcValue :
+      0 );
+    transitionDone =
+      ( this.$attr2attrValue[ transitionPrefix + "done" ] ?
+      this.$attr2attrValue[ transitionPrefix + "done" ].calcValue :
+      undefined );
     transitionArgS = LAID.$transitionType2args[ transitionType ];
 
+    if ( ( !transitionType || ( transitionDuration === undefined ) ||
+      ( transitionDelay === undefined ) ) ) {
+        return
+    }
     for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
-      transitionArg2val[ transitionArgS[ i ] ] = ( this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ]  ] ?
-      this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ].calcValue : [] );
+      transitionArg2val[ transitionArgS[ i ] ] = (
+         this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ] ?
+         this.$attr2attrValue[ transitionPrefix + "arg." + transitionArgS[ i ] ].calcValue :
+          [] );
     }
 
     longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( transitionProp );
 
-    if ( longhandPropS !== undefined ) {
+    if ( !longhandAffectedProp && longhandPropS !== undefined ) {
       affectedPropS = longhandPropS;
       for ( i = 0, len = affectedPropS.length; i < len; i++ ) {
         affectedProp = affectedPropS[ i ];
         if ( !this.$checkIsPropInTransition ) {
           affectedPropAttrValue = this.$attr2attrValue[ affectedProp ];
-
-          if ( affectedPropAttrValue !== undefined && affectedPropAttrValue.transitionCalcValue && affectedPropAttrValue.calcValue ) {
-            affectedPropAttrValue.transition = LAID.$transitionType2object[ transitionType ] ( affectedPropAttrValue.transitionCalcValue, transitionDuration, transitionDelay, transitionDone, transitionArg2val );
-            LAID.$arrayUtils.pushUnique( this.transitionDirtyAttrValueS, propAttrValue );
+          if ( affectedPropAttrValue !== undefined &&
+              ( affectedPropAttrValue.transitionCalcValue !== undefined ) &&
+              ( affectedPropAttrValue.calcValue !== undefined ) ) {
+            affectedPropAttrValue.transition = new LAID.Transition (
+                transitionType,
+                affectedPropAttrValue.transitionCalcValue,
+                transitionDelay ,
+                transitionDuration, transitionArg2val,
+                transitionDone );
           }
         }
-
       }
     } else {
 
-      affectedPropAttrValue = this.$attr2attrValue[ affectedProp || transitionProp ];
-      if ( affectedPropAttrValue !== undefined && affectedPropAttrValue.transitionCalcValue && affectedPropAttrValue.calcValue ) {
-        affectedPropAttrValue.transition = LAID.$transitionType2object[ transitionType ] ( affectedPropAttrValue.transitionCalcValue, transitionDuration, transitionDelay, transitionDone, transitionArg2val );
-        LAID.$arrayUtils.pushUnique( this.transitionDirtyAttrValueS, propAttrValue );
+      affectedPropAttrValue = this.$attr2attrValue[ longhandAffectedProp || transitionProp ];
+      console.log("swars",affectedPropAttrValue);
+      if ( affectedPropAttrValue !== undefined &&
+         ( affectedPropAttrValue.transitionCalcValue !== undefined ) &&
+         ( affectedPropAttrValue.calcValue !== undefined )
+      ) {
+        affectedPropAttrValue.transition = new LAID.Transition (
+          transitionType,
+          affectedPropAttrValue.transitionCalcValue,
+          transitionDelay ,
+          transitionDuration, transitionArg2val,
+          transitionDone );
       }
 
     }
@@ -1518,11 +1625,10 @@ bottom: -0.25em;
   "box-sizing:border-box;-moz-box-sizing:border-box;" +
   "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
   "overflow-x:hidden;overflow-y:hidden;" +
-  "-webkit-overflow-scrolling:touch;" +
-  "background-repeat:no-repeat;";
+  "-webkit-overflow-scrolling:touch;";
 
-  defaultTextCss = defaultCss + "font-size:13px;" +
-  "font-family:sans-serif:color:black;";
+  defaultTextCss = defaultCss + "font-size:16px;" +
+  "font-family:sans-serif;color:black;";
 
   inputType2tag = {
     button: "button",
@@ -1535,6 +1641,9 @@ bottom: -0.25em;
 
     this.level = level;
     this.node = undefined;
+
+    this.$naturalWidthTextMode = false;
+    this.$naturalHeightTextMode = false;
 
   };
 
@@ -1602,12 +1711,13 @@ bottom: -0.25em;
 
     LAID.Part.prototype.$renderFn_width = function () {
       this.node.style.width = this.level.$attr2attrValue.width.transitionCalcValue + "px";
-      this.$renderFn_positional(); //apply change to transform
+      //this.$renderFn_positional(); //apply change to transform
     };
 
     LAID.Part.prototype.$renderFn_height = function () {
+      console.log(this.level.$attr2attrValue.height.transitionCalcValue);
       this.node.style.height = this.level.$attr2attrValue.height.transitionCalcValue + "px";
-      this.$renderFn_positional(); //apply change to transform
+      //this.$renderFn_positional(); //apply change to transform
     };
 
 
@@ -1729,6 +1839,8 @@ bottom: -0.25em;
     attr2attrValue = this.level.$attr2attrValue,
     s = "",
     i, len;
+    console.log(attr2attrValue);
+
     for ( i = 1, len = attr2attrValue[ "$$num.boxShadows" ].calcVal ; i <= len; i++ ) {
       s +=
       ( ( attr2attrValue["boxShadows" + i + "Inset" ] !== undefined ? attr2attrValue["boxShadows" + i + "Inset" ].transitionCalcValue : false ) ? "inset " : "" ) +
@@ -1781,16 +1893,16 @@ bottom: -0.25em;
   };
 
   LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
-    this.node.style.borderRadiusTopLeft = this.level.$attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
+    this.node.style.borderTopLeftRadius = this.level.$attr2attrValue.cornerRadiusTopLeft.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
-    this.node.style.borderRadiusTopRight = this.level.$attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
+    this.node.style.borderTopRightRadius = this.level.$attr2attrValue.cornerRadiusTopRight.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
-    this.node.style.borderRadiusBottomRight = this.level.$attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
+    this.node.style.borderBottomRightRadius = this.level.$attr2attrValue.cornerRadiusBottomRight.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
-    this.node.style.borderRadiusBottomLeft = this.level.$attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
+    this.node.style.borderBottomLeftRadius = this.level.$attr2attrValue.cornerRadiusBottomLeft.transitionCalcValue + "px";
   };
 
 
@@ -1840,20 +1952,38 @@ bottom: -0.25em;
   /* Text Related */
 
   LAID.Part.prototype.$renderFn_text = function () {
-    this.node.innerHtml = this.level.$attr2attrValue.text.transitionCalcValue;
+
+    if ( this.$naturalWidthTextMode ) {
+      this.node.style.display = "inline";
+      this.node.style.width = "auto";
+      this.node.innerHTML = this.level.$attr2attrValue.text.transitionCalcValue;
+      this.level.$changeAttrVal( "$naturalWidth", this.node.getBoundingClientRect().width );
+      this.node.style.display = "block";
+      this.$naturalWidthTextMode = false;
+    }
+    if ( this.$naturalHeightTextMode ) {
+      this.node.style.height = "auto";
+      this.node.innerHTML = this.level.$attr2attrValue.text.transitionCalcValue;
+      this.level.$changeAttrVal( "$naturalHeight", this.node.getBoundingClientRect().height );
+      this.$naturalHeightTextMode = false;
+    }
+
+    this.node.innerHTML = this.level.$attr2attrValue.text.transitionCalcValue;
+
   };
 
   LAID.Part.prototype.$renderFn_textSize = function () {
-    this.node.fontSize = this.level.$attr2attrValue.textSize.transitionCalcValue + "px";
+    this.node.style.fontSize = this.level.$attr2attrValue.textSize.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_textFamily = function () {
-    this.node.fontFamily = this.level.$attr2attrValue.textFamily.transitionCalcValue;
+    this.node.style.fontFamily = this.level.$attr2attrValue.textFamily.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textWeight = function () {
-    this.node.fontWeight = this.level.$attr2attrValue.textWeight.transitionCalcValue;
+
+    this.node.style.fontWeight = this.level.$attr2attrValue.textWeight.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textColor = function () {
-    this.node.color = this.level.$attr2attrValue.textColor.transitionCalcValue.stringify();
+    this.node.style.color = this.level.$attr2attrValue.textColor.transitionCalcValue.stringify();
   };
 
 
@@ -1874,47 +2004,47 @@ bottom: -0.25em;
   };
 
   LAID.Part.prototype.$renderFn_textVariant = function () {
-    this.node.fontVariant = this.level.$attr2attrValue.textVariant.transitionCalcValue;
+    this.node.style.fontVariant = this.level.$attr2attrValue.textVariant.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textStyle = function () {
-    this.node.fontStyle = this.level.$attr2attrValue.textStyle.transitionCalcValue;
+    this.node.style.fontStyle = this.level.$attr2attrValue.textStyle.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textDecoration = function () {
-    this.node.textDecoration = this.level.$attr2attrValue.textDecoration.transitionCalcValue;
+    this.node.style.textDecoration = this.level.$attr2attrValue.textDecoration.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textAlign = function () {
-    this.node.textAlign = this.level.$attr2attrValue.textAlign.transitionCalcValue;
+    this.node.style.textAlign = this.level.$attr2attrValue.textAlign.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
     var textLetterSpacing = this.level.$attr2attrValue.textLetterSpacing;
-    this.node.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcValue !== undefined ?
+    this.node.style.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcValue !== undefined ?
       textLetterSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textWordSpacing = function () {
     var textWordSpacing = this.level.$attr2attrValue.textWordSpacing;
-    this.node.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcValue !== undefined ?
+    this.node.style.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcValue !== undefined ?
     textWordSpacing.transitionCalcValue + "px" : "normal";
   };
   LAID.Part.prototype.$renderFn_textOverflow = function () {
-    this.node.textOverflow = this.level.$attr2attrValue.textOverflow.transitionCalcValue;
+    this.node.style.textOverflow = this.level.$attr2attrValue.textOverflow.transitionCalcValue;
   };
   LAID.Part.prototype.$renderFn_textIndent = function () {
-    this.node.textIndent = this.level.$attr2attrValue.textIndent.transitionCalcValue;
+    this.node.style.textIndent = this.level.$attr2attrValue.textIndent.transitionCalcValue + "px";
   };
   LAID.Part.prototype.$renderFn_textWhitespace = function () {
-    this.node.whitespace = this.level.$attr2attrValue.textWhitespace.transitionCalcValue;
+    this.node.style.whitespace = this.level.$attr2attrValue.textWhitespace.transitionCalcValue;
   };
-  LAID.Part.prototype.$renderFn_textTopPadding = function () {
-    this.node.paddingTop = this.level.$attr2attrValue.textTopPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingTop = function () {
+    this.node.style.paddingTop = this.level.$attr2attrValue.textPaddingTop.transitionCalcValue + "px";
   };
-  LAID.Part.prototype.$renderFn_textRightPadding = function () {
-    this.node.paddingRight = this.level.$attr2attrValue.textRightPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingRight = function () {
+    this.node.style.paddingRight = this.level.$attr2attrValue.textPaddingRight.transitionCalcValue + "px";
   };
-  LAID.Part.prototype.$renderFn_textBottomPadding = function () {
-    this.node.paddingBottom = this.level.$attr2attrValue.textBottomPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingBottom = function () {
+    this.node.style.paddingBottom = this.level.$attr2attrValue.textPaddingBottom.transitionCalcValue + "px";
   };
-  LAID.Part.prototype.$renderFn_textLeftPadding = function () {
-    this.node.paddingLeft = this.level.$attr2attrValue.textLeftPadding.transitionCalcValue;
+  LAID.Part.prototype.$renderFn_textPaddingLeft = function () {
+    this.node.style.paddingLeft = this.level.$attr2attrValue.textPaddingLeft.transitionCalcValue + "px";
   };
 
 
@@ -2120,7 +2250,6 @@ bottom: -0.25em;
         this.absolutePath = relativePath;
       } else {
         this.absolute = false;
-        console.log( relativePath );
         this.numberOfParentTraversals = ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
         // strip off the "../"s
         this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
@@ -2147,7 +2276,8 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
       }
 
-      return LAID.$path2level[ referenceLevel.path + this.childPath ];
+      return LAID.$path2level[ referenceLevel.path +
+       ( this.childPath !== "" ? "/" : "" ) + this.childPath ];
     }
 
   }
@@ -2203,7 +2333,6 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-
       this._relPath00attr_S.push( _relPath00attr_S[ i ] );
 
     }
@@ -2969,11 +3098,12 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
   LAID.Take.prototype.fn = function ( ) {
 
     var fnExecutable = this.executable;
-
+    //console.log(fnExecutable.call(this));
+    //console.log(fnExecutable, arguments, arguments.length);
     if ( arguments.length === 0 ) {
 
       this.executable = function () {
-        return fnExecutable.execute( this ).call( this );
+        return fnExecutable.call( this ).call( this );
       };
 
     } else if ( arguments.length === 1 ) {
@@ -2986,12 +3116,12 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg.execute( this ) );
+          return fnExecutable.call( this ).call( this, arg.execute( this ) );
         };
       } else {
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg );
+          return fnExecutable.call( this ).call( this, arg );
         };
       }
 
@@ -3009,14 +3139,13 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
           this.$mergePathAndProps( arg2 );
 
           this.executable = function () {
-
-            return fnExecutable.execute( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
+            return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
           };
 
         } else {
           this.executable = function () {
 
-            return fnExecutable.execute( this ).call( this, arg1.execute( this ), arg2 );
+            return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2 );
           };
         }
 
@@ -3025,7 +3154,7 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
         this.$mergePathAndProps( arg2 );
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg1, arg2.execute( this ) );
+          return fnExecutable.call( this ).call( this, arg1, arg2.execute( this ) );
         };
 
 
@@ -3033,7 +3162,7 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
         this.executable = function () {
 
-          return fnExecutable.execute( this ).call( this, arg1, arg2 );
+          return fnExecutable.call( this ).call( this, arg1, arg2 );
         };
       }
     } else {
@@ -3064,7 +3193,7 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
         }
 
-        return fnExecutable.execute( this ).apply( this, executedArgS );
+        return fnExecutable.call( this ).apply( this, executedArgS );
 
       };
     }
@@ -3218,6 +3347,100 @@ return this;
 };
 
 }());
+
+( function () {
+  "use strict";
+
+  var transitionType2fn;
+
+  LAID.Transition = function ( type, startCalcValue, delay, duration, args, done ) {
+    this.startCalcValue = startCalcValue;
+    this.done = done;
+    this.delay = delay;
+    this.isStarted = false;
+    this.transition = new ( transitionType2fn[ type ] )( duration, args );
+
+  }
+
+
+  LAID.Transition.prototype.generateNext = function ( delta ) {
+    return this.transition.generateNext( delta );
+  };
+
+  LAID.Transition.prototype.checkIsComplete = function () {
+    return this.transition.checkIsComplete();
+  };
+
+  function LinearTransition ( duration, args ) {
+
+    this.curTime = 0;
+    this.duration = duration;
+
+  }
+
+  LinearTransition.prototype.generateNext = function ( delta ) {
+    return ( ( this.curTime += delta ) / this.duration );
+  };
+
+  LinearTransition.prototype.checkIsComplete = function () {
+    return this.curTime >= this.duration;
+  };
+
+  /*
+  function CubicBezierTransition ( startCalcVal, duration, delay, done, args ) {
+
+  this.startCalcVal = startCalcVal;
+  this.curTime = 0;
+  this.duration = duration;
+  this.done = done;
+  this.args = args;
+
+}
+
+// TODO: complete the cubic bezier implementation
+CubicBezierTransition.prototype.generateNext = function ( delta ) {
+return ( this.duration / ( this.curTime += delta ) );
+};
+
+CubicBezierTransition.prototype.checkIsComplete = function () {
+return this.curTime >= this.duration;
+};
+*/
+  transitionType2fn = {
+    linear: function ( startCalcVal, duration, delay, done, args ) {
+      return new LinearTransition( startCalcVal, duration, delay, done, args );
+    },
+  /*  "cubic-bezier": function ( startCalcVal, duration, delay, done, args ) {
+      return new CubicBezierTransition( startCalcVal, duration, delay, done, args );
+    },
+    ease: function ( startCalcVal, duration, delay, done, args ) {
+      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
+        a: 0.25, b: 0.1, c: 0.25, d: 1
+      });
+    },
+    "ease-in": function ( startCalcVal, duration, delay, done, args ) {
+      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
+        a: 0.42, b: 0, c: 1, d: 1
+      });
+    },
+    "ease-out": function ( startCalcVal, duration, delay, done, args ) {
+      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
+        a: 0, b: 0, c: 0.58, d: 1
+      });
+    },
+    "ease-in-out": function ( startCalcVal, duration, delay, done, args ) {
+      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
+        a: 0.42, b: 0, c: 0.58, d: 1
+      });
+    }*/
+  };
+
+
+
+
+
+
+})();
 
 ( function () {
   "use strict";
@@ -3502,21 +3725,12 @@ return this;
   LAID.run =  function ( rootLson ) {
 
     var
-      rootLevel,
-      textTestNodeCSS = "position:absolute;visibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box",
-      textWidthTestNode = document.createElement( "span" ),
-      textHeightTestNode = document.createElement( "div" );
-
-
-
+      rootLevel;
 
     rootLson.props  = rootLson.props || {};
 
     rootLson.props.width = window.innerWidth;
     rootLson.props.height = window.innerHeight;
-
-
-
 
     rootLevel = new LAID.Level( "/", rootLson, undefined );
     rootLevel.$init();
@@ -3525,21 +3739,7 @@ return this;
     window.onresize = updateSize;
 
 
-    textHeightTestNode.id = "t-height";
-    textWidthTestNode.id = "t-width";
-
-    textWidthTestNode.style.cssText = textTestNodeCSS;
-    textHeightTestNode.style.cssText = textTestNodeCSS;
-
-
-    document.body.appendChild( textWidthTestNode );
-    document.body.appendChild( textHeightTestNode );
-
     LAID.$emptyAttrValue = new LAID.AttrValue( "", undefined );
-
-    LAID.$prevTimeFrame = performance.now();
-
-    window.requestAnimationFrame( render );
 
   };
 
@@ -3555,92 +3755,7 @@ return this;
   }
 
 
-  function render() {
 
-    var
-    newPartS = LAID.$newPartS, newPart, newPartLevel,
-    curTimeFrame = performance.now(),
-    timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
-    x, y,
-    i, len,
-    renderDirtyLevelS = LAID.$renderDirtyLevelS,
-    renderDirtyLevel,
-    renderDirtyAttrValueS,
-    renderDirtyAttrValue,
-    renderCallS, isAttrTransitionComplete;
-
-    for ( i = 0, len = newPartS.length; i < len; i++ ) {
-      newPart = newPartS[ i ];
-      newPartLevel = newPart.level;
-      if ( newPartLevel.path !== "/" ) {
-        newPartLevel.parentLevel.part.node.appendChild( newPart.node );
-      }
-      if ( newPartLevel.$lson.load ) {
-        newPartLevel.$lson.load.call( newPartLevel );
-      }
-    }
-
-    LAID.$newPartS = [];
-
-    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
-
-      renderDirtyLevel = renderDirtyLevelS[ x ];
-      renderDirtyAttrValueS = renderDirtyLevel.$renderDirtyAttrValueS;
-      renderCallS = [];
-
-      for ( y = 0; y < renderDirtyAttrValueS.length; y++ ) {
-
-        isAttrTransitionComplete = true;
-        renderDirtyAttrValue = renderDirtyAttrValueS[ y ];
-        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrValue.renderCall );
-
-        if ( renderDirtyAttrValue.delay && renderDirtyAttrValue.delay > 0 ) {
-          renderDirtyAttrValue.delay -= timeFrameDiff;
-        } else {
-          if ( renderDirtyAttrValue.transition ) { // if transitioning
-
-            if ( !renderDirtyAttrValue.transition.checkIsComplete() ) {
-              isAttrTransitionComplete = false;
-
-              renderDirtyAttrValue.transitionCalcValue =
-              renderDirtyAttrValue.transition.startCalcVal +
-              ( renderDirtyAttrValue.calcVal - renderDirtyAttrValue.transition.startCalcVal ) *
-              renderDirtyAttrValue.transition.generateNext( timeFrameDiff );
-
-            } else {
-              if ( renderDirtyAttrValue.transition.done ) {
-                renderDirtyAttrValue.transition.done.call( renderDirtyLevel );
-              }
-              renderDirtyAttrValue.transition = undefined;
-            }
-          }
-
-          if ( isAttrTransitionComplete ) {
-
-            renderDirtyAttrValue.transitionCalcValue =
-            renderDirtyAttrValue.calcValue;
-            LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValueS, y );
-            y--;
-
-          }
-        }
-      }
-
-
-      for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        console.log("$renderFn_" + renderCallS[ i ]);
-        renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
-      }
-
-      if ( renderDirtyAttrValueS.length === 0 ) {
-        LAID.$arrayUtils.removeAtIndex( renderDirtyLevelS, x );
-        x--;
-      }
-    }
-
-    window.requestAnimationFrame( render );
-
-  }
 
 })();
 
@@ -3960,6 +4075,184 @@ return this;
 
 
         })();
+
+( function () {
+  "use strict";
+
+  var
+    essentialProp2defaultValue,
+    lazyProp2defaultValue;
+
+  LAID.$defaultizeLsonRootProps = function ( lson ) {
+    var
+      essentialProp,
+      props = lson.props,
+      states = lson.states,
+      stateName, state,
+      prop,
+      multipleTypePropMatchDetails,
+      when, transition,
+      eventType, transitionProp;
+
+    /* Filling in the defaults here for root lson */
+    for ( essentialProp in essentialProp2defaultValue ) {
+      if ( props[ essentialProp ] === undefined ) {
+        props[ essentialProp ] = essentialProp2defaultValue[ essentialProp ];
+      }
+    }
+
+    if ( states ) {
+      for ( stateName in states ) {
+        state = states[ stateName ];
+        props = state.props;
+        when = state.when;
+        transition = state.transition;
+
+        for ( prop in props ) {
+
+          multipleTypePropMatchDetails =
+          LAID.$multipleTypePropUtils.findMultipleTypePropMatchDetails( prop );
+          if ( multipleTypePropMatchDetails !== null ) {
+            prop = multipleTypePropMatchDetails[ 1 ];
+          }
+          if ( ( lson.props[ prop ] === undefined ) &&
+              ( lazyProp2defaultValue[ prop ] !== undefined )
+            ) {
+            lson.props[ prop ] = lazyProp2defaultValue[ prop ];
+          }
+        }
+      }
+
+      for ( eventType in when ) {
+        if ( !lson.when[ eventType ] ) {
+          lson.when[ eventType ] = [];
+        }
+      }
+
+      for ( transitionProp in transition ) {
+        if ( !lson.transition[ transitionProp ] )  {
+          lson.transition[ transitionProp ] = {};
+        }
+      }
+    }
+  };
+
+  essentialProp2defaultValue = {
+    width:  new LAID.Take( "this", "$naturalWidth" ),
+    height:  new LAID.Take( "this", "$naturalHeight" ),
+    top: 0,
+    left: 0
+  };
+
+  // These match the psuedo defaults for non expander props
+  lazyProp2defaultValue = {
+    display: true,
+    z: 0,
+    shiftX: 0,
+    shiftY: 0,
+    rotateX: 0,
+    rotateY: 0,
+    rotateZ: 0,
+    scaleX: 1,
+    scaleY: 1,
+    scaleZ:1,
+    skewX: 0,
+    skewY: 0,
+    originX: 0.5,
+    originY: 0.5,
+    originZ: 0.5,
+    perspective:0,
+    perspectiveOriginX: 0.5,
+    perspectiveOriginY: 0.5,
+    backfaceVisibility: false,
+    opacity:1.0,
+    overflowX: "hidden",
+    overflowY: "hidden",
+    scrollX: 0,
+    scrollY: 0,
+    scrollElastic: true,
+    cursor: "auto",
+    backgroundColor: LAID.transparent(),
+    backgroundImage: "none",
+    backgroundAttachmented: "scroll",
+    backgroundRepeat: true,
+    backgroundPositionX: 0,
+    backgroundPositionY: 0,
+    backgroundSizeX: undefined,
+    backgroundSizeY: undefined,
+
+    boxShadows: [],
+
+    cornerRadiusTopLeft: 0,
+    cornerRadiusTopRight: 0,
+    cornerRadiusBottomLeft: 0,
+    cornerRadiusBottomRight: 0,
+
+    borderTopStyle: "solid",
+    borderBottomStyle: "solid",
+    borderRightStyle: "solid",
+    borderLeftStyle: "solid",
+
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    borderRightWidth: 0,
+    borderLeftWidth: 0,
+
+
+    borderTopColor: LAID.transparent(),
+    borderBottomColor: LAID.transparent(),
+    borderRightColor: LAID.transparent(),
+    borderLeftColor: LAID.transparent(),
+
+    text: "",
+    textSize: 16,
+    textFamily: "sans-serif",
+    textWeight: "normal",
+    textcolor: LAID.color("black"),
+    textShadows: [],
+    textVariant: "normal",
+    textStyle: "normal",
+    textDecoration: "none",
+    textAlign: "start",
+    textLetterSpacing: undefined,
+    textWordSpacing: undefined,
+    textOverflow: "clip",
+    textIndent: 0,
+    textWhitespace: "normal",
+
+    textPaddingTop: 0,
+    textPaddingRight: 0,
+    textPaddingBottom: 0,
+    textPaddingLeft: 0,
+
+    input: "",
+    inputLabel: "",
+    inputRows: 2,
+    inputPlaceholder: "",
+    inputAutocomplete: false,
+    inputAutocorrect: true,
+    inputDisabled: false,
+
+    videoSources: [],
+    videoTracks: [],
+    videoAutoplay: false,
+    videoControls: true,
+    videoCrossorigin: "anonymous",
+    videoLoop: false,
+    videoMuted: false,
+    videoPreload: "auto",
+    videoPoster: null,
+
+    audioSources: [],
+    audioTracks: [],
+    audioControls: true,
+    audioLoop: false,
+    audioMuted: false,
+    audioPreload: "auto",
+    audioVolume: 0.7
+
+  };
+})();
 
 ( function(){
   "use strict";
@@ -4419,7 +4712,7 @@ function fix_stopPropagation() {
     if ( !isState ) {
       for ( var key in from ) {
 
-        if ( from[ key ] !== undefined ) {
+        if ( from[ key ] && ( key2fnInherit[ key ] ) ) {
           key2fnInherit[ key ]( into, from );
         }
       }
@@ -4444,7 +4737,8 @@ function fix_stopPropagation() {
   };
 
   function inheritTransitionProp ( intoTransition, fromTransition,
-    intoAttr, fromAttr ) {
+    intoTransitionProp, fromTransitionProp ) {
+
 
       var fromTransitionDirective, intoTransitionDirective,
       fromTransitionArgKey2val,  intoTransitionArgKey2val,
@@ -4453,40 +4747,42 @@ function fix_stopPropagation() {
       fromTransitionDirective = fromTransition[ fromTransitionProp ];
       intoTransitionDirective = intoTransition[ intoTransitionProp ];
 
+      if ( fromTransitionDirective !== undefined ) {
 
-      if ( intoTransitionDirective === undefined ) {
-        intoTransitionDirective =
-        intoTransition[ intoTransitionProp ] = {};
-      }
-
-      intoTransitionDirective.type = fromTransitionDirective.type ||
-      intoTransitionDirective.type;
-
-      intoTransitionDirective.duration = fromTransitionDirective.duration ||
-      intoTransitionDirective.duration;
-
-      intoTransitionDirective.delay = fromTransitionDirective.delay ||
-      intoTransitionDirective.delay;
-
-      intoTransitionDirective.done = fromTransitionDirective.done ||
-      intoTransitionDirective.done;
-
-      fromTransitionArgKey2val = fromTransitionDirective.args;
-      intoTransitionArgKey2val = intoTransitionDirective.args;
-
-
-      if ( fromTransitionArgKey2val !== undefined ) {
-
-        if ( intoTransitionArgKey2val === undefined ) {
-          intoTransitionArgKey2val =
-          intoTransitionDirective.args = {};
+        if ( intoTransitionDirective === undefined ) {
+          intoTransitionDirective =
+            intoTransition[ intoTransitionProp ] = {};
         }
 
-        for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
+        intoTransitionDirective.type = fromTransitionDirective.type ||
+          intoTransitionDirective.type;
 
-          intoTransitionArgKey2val[ fromTransitionArgKey ] =
-          fromTransitionArgKey2val[ fromTransitionArgKey ] ||
-          intoTransitionArgKey2val[ fromTransitionArgKey ];
+        intoTransitionDirective.duration = fromTransitionDirective.duration ||
+          intoTransitionDirective.duration;
+
+        intoTransitionDirective.delay = fromTransitionDirective.delay ||
+          intoTransitionDirective.delay;
+
+        intoTransitionDirective.done = fromTransitionDirective.done ||
+          intoTransitionDirective.done;
+
+        fromTransitionArgKey2val = fromTransitionDirective.args;
+        intoTransitionArgKey2val = intoTransitionDirective.args;
+
+
+        if ( fromTransitionArgKey2val !== undefined ) {
+
+          if ( intoTransitionArgKey2val === undefined ) {
+            intoTransitionArgKey2val =
+            intoTransitionDirective.args = {};
+          }
+
+          for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
+
+            intoTransitionArgKey2val[ fromTransitionArgKey ] =
+              fromTransitionArgKey2val[ fromTransitionArgKey ] ||
+              intoTransitionArgKey2val[ fromTransitionArgKey ];
+          }
         }
       }
     }
@@ -4511,10 +4807,9 @@ function fix_stopPropagation() {
       for ( fromKey in fromKey2value ) {
 
         fromKeyValue = fromKey2value[ fromKey ];
-
         intoKey2value[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
-        LAID.$clone( fromKeyValue ) :
-        fromKeyValue;
+          LAID.$clone( fromKeyValue ) :
+          fromKeyValue;
 
 
       }
@@ -4561,12 +4856,13 @@ function fix_stopPropagation() {
       transition: function ( intoLson, fromLson ) {
 
         var
-        fromTransition = fromLson.transition,
-        intoTransition = intoLson.transition,
-        fromTransitionProp,
-        intoTransitionProp,
-        longhandPropS, longhandProp,
-        tmpTransition = {};
+          fromTransition = fromLson.transition,
+          intoTransition = intoLson.transition,
+          fromTransitionProp,
+          intoTransitionProp,
+          i, len,
+          longhandPropS, longhandProp,
+          tmpTransition = {};
 
 
         if ( ( intoTransition === undefined ) ) {
@@ -4602,7 +4898,8 @@ function fix_stopPropagation() {
         // General inheritance of props of exact
         // names across from and into LSON
         for ( fromTransitionProp in fromTransition ) {
-          inheritTransitionProp( intoTransition, fromTransition, intoTransitionProp, longhandProp );
+          inheritTransitionProp( intoTransition, fromTransition,
+             fromTransitionProp, fromTransitionProp );
         }
 
         // flatten stage
@@ -4737,7 +5034,7 @@ function fix_stopPropagation() {
             intoEventType2_fnEventHandlerS_[ fromEventType ] = fnIntoEventHandlerS.concat( fnFromEventHandlerS );
           }
 
-          LAID.$meta.set( intoLson, "$$num", "when." + fromEventType,
+          LAID.$meta.set( intoLson, "num", "when." + fromEventType,
           ( intoEventType2_fnEventHandlerS_[ fromEventType ] ).length );
 
 
@@ -4767,16 +5064,17 @@ function fix_stopPropagation() {
 
     set: function ( lson, metaDomain, attr, val  ) {
 
-      fullMetaDomain = "$$" + metaDomain;
+      var fullMetaDomain = "$$" + metaDomain;
       if ( lson[ fullMetaDomain ] === undefined ) {
         lson[ fullMetaDomain ] = {};
       }
       lson[ fullMetaDomain ][ attr ] = val;
+
     },
 
     get: function ( lson, metaDomain, attr  ) {
 
-      fullMetaDomain = "$$" + metaDomain;
+      var fullMetaDomain = "$$" + metaDomain;
       if ( lson[ fullMetaDomain ] === undefined ) {
         return undefined;
       } else {
@@ -4818,9 +5116,9 @@ function fix_stopPropagation() {
       $$max: function ( intoLson, fromLson ) {
 
         var
-        fromAttr2max = fromLson.$$max,
-        intoAttr2max = intoLson.$$max,
-        fromAttr;
+          fromAttr2max = fromLson.$$max,
+          intoAttr2max = intoLson.$$max,
+          fromAttr;
 
 
 
@@ -4895,7 +5193,6 @@ function fix_stopPropagation() {
       }
 
     } else {
-
       _normalize( lson, false );
 
     }
@@ -4907,7 +5204,7 @@ function fix_stopPropagation() {
     multipleTypeProp, multipleTypePropNumName;
 
     lson.when = lson.when || {};
-    lson.transition = lson.when || {};
+    lson.transition = lson.transition || {};
 
     key2fnNormalize.inherits( lson );
     key2fnNormalize.many( lson );
@@ -4915,9 +5212,9 @@ function fix_stopPropagation() {
     // that every state projected attribute which is not present
     // within the root (lson) state is initialized
 
-    key2fnNormalize.props( lson, undefined );
-    key2fnNormalize.transition( lson, undefined );
-    key2fnNormalize.when( lson, undefined );
+    key2fnNormalize.props( lson );
+    key2fnNormalize.transition( lson );
+    key2fnNormalize.when( lson );
     key2fnNormalize.type( lson );
 
     rootProp2val = lson.props;
@@ -4958,7 +5255,6 @@ function fix_stopPropagation() {
     type = LAID.type( val );
 
     if ( type === "Array" ) {
-
       for ( var i = 0, len = val.length; i < length; i++ ) {
         flattenedAttr = prefix + i;
         flattenProp( lson,  val[ i ], flattenedAttr );
@@ -4989,127 +5285,23 @@ function fix_stopPropagation() {
 
 
 
-  var essentialProp2defaultValue = {
-    width:  new LAID.Take( "$naturalWidth" ),
-    height:  new LAID.Take( "$naturalHeight" ),
-    top: 0,
-    left: 0
+
+
+
+  var fnCenterToPos = function( center, dim ) {
+    return center - ( dim / 2 );
   };
 
-  // These match the psuedo defaults for non expander props
-  var lazyProp2defaultValue = {
-    display: true,
-    originX: 0.5,
-    originY: 0.5,
-    originZ: 0.5,
-    perspective:0,
-    perspectiveOriginX: 0.5,
-    perspectiveOriginY: 0.5,
-    backfaceVisibility: false,
-    opacity:1.0,
-    overflowX: "hidden",
-    overflowY: "hidden",
-    scrollX: 0,
-    scrollY: 0,
-    scrollElastic: true,
-    cursor: "auto",
-    backgroundColor: LAID.transparent(),
-    backgroundImage: "none",
-    backgroundAttachmented: "scroll",
-    backgroundRepeat: false,
-    backgroundPositionX: 0,
-    backgroundPositionY: 0,
-    backgroundSizeX: undefined,
-    backgroundSizeY: undefined,
-
-    boxShadows: [],
-
-    cornerRadiusTopLeft: 0,
-    cornerRadiusTopRight: 0,
-    cornerRadiusBottomLeft: 0,
-    cornerRadiusBottomRight: 0,
-
-    borderTopStyle: "solid",
-    borderBottomStyle: "solid",
-    borderRightStyle: "solid",
-    borderLeftStyle: "solid",
-
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    borderRightWidth: 0,
-    borderLeftWidth: 0,
-
-
-    borderTopColor: LAID.transparent(),
-    borderBottomColor: LAID.transparent(),
-    borderRightColor: LAID.transparent(),
-    borderLeftColor: LAID.transparent(),
-
-    text: "",
-    textSize: 13,
-    textFamily: "sans-serif",
-    textWeight: "normal",
-    textcolor: LAID.color("black"),
-    textShadows: [],
-    textVariant: "normal",
-    textStyle: "normal",
-    textDecoration: "none",
-    textAlign: "start",
-    textLetterSpacing: undefined,
-    textWordSpacing: undefined,
-    textOverflow: "clip",
-    textIndent: 0,
-    textWhitespace: "normal",
-
-    textPaddingTop: 0,
-    textPaddingRight: 0,
-    textPaddingBottom: 0,
-    textPaddingLeft: 0,
-
-    input: "",
-    inputLabel: "",
-    inputRows: 2,
-    inputPlaceholder: "",
-    inputAutocomplete: false,
-    inputAutocorrect: true,
-    inputDisabled: false,
-
-    videoSources: [],
-    videoTracks: [],
-    videoAutoplay: false,
-    videoControls: true,
-    videoCrossorigin: "anonymous",
-    videoLoop: false,
-    videoMuted: false,
-    videoPreload: "auto",
-    videoPoster: null,
-
-    audioSources: [],
-    audioTracks: [],
-    audioControls: true,
-    audioLoop: false,
-    audioMuted: false,
-    audioPreload: "auto",
-    audioVolume: 0.7
-
+  var fnEdgeToPos = function( edge, dim ) {
+    return edge - ( dim );
   };
 
-
-
-  var fnCenterToPos = function( center, width ) {
-    return center - ( width / 2 );
+  var fnPosToCenter = function( pos, dim ) {
+    return pos + ( dim / 2 );
   };
 
-  var fnEdgeToPos = function( edge, width ) {
-    return center - ( width );
-  };
-
-  var fnPosToCenter = function( pos, width ) {
-    return pos + ( width / 2 );
-  };
-
-  var fnPosToEdge = function( pos, width ) {
-    return pos + ( width );
+  var fnPosToEdge = function( pos, dim ) {
+    return pos + ( dim );
   };
 
 
@@ -5166,12 +5358,12 @@ function fix_stopPropagation() {
     /*
     * normalize the `lson`
     */
-    props: function( lson, rootLson ) {
+    props: function( lson ) {
 
       var prop2val = lson.props,
       prop, val,
       longhandPropS, longhandProp, shorthandVal,
-      multipleTypePropMatchDetails,curMultipleMax, lazyProp,
+      multipleTypePropMatchDetails,curMultipleMax,
       i, len;
 
 
@@ -5185,27 +5377,19 @@ function fix_stopPropagation() {
 
 
       if ( prop2val.centerX ) {
-
         prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerX, takeWidth );
-
       }
 
       if ( prop2val.right ) {
-
         prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.right, takeWidth );
-
       }
 
       if ( prop2val.centerY ) {
-
         prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerY, takeHeight );
-
       }
 
       if ( prop2val.bottom ) {
-
         prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.bottom, takeHeight );
-
       }
 
       for ( prop in prop2val ) {
@@ -5225,72 +5409,35 @@ function fix_stopPropagation() {
         }
       }
 
-
-
-
-      /* Filling in the defaults here */
-      var essentialProp;
-
-      for ( essentialProp in essentialProp2defaultValue ) {
-        if ( prop2val[ essentialProp ] === undefined ) {
-          prop2val[ essentialProp ] = essentialProp2defaultValue[ essentialProp ];
-        }
-      }
-
-
-
       for ( prop in prop2val ) {
         multipleTypePropMatchDetails = LAID.$multipleTypePropUtils.findMultipleTypePropMatchDetails( prop );
         if ( multipleTypePropMatchDetails !== null ) {
-
-          lazyProp = multipleTypePropMatchDetails[ 1 ];
           curMultipleMax = LAID.$meta.get( lson, "max", multipleTypePropMatchDetails[ 1 ] );
+
           if ( ( curMultipleMax !== undefined ) &&  ( curMultipleMax > parseInt( multipleTypePropMatchDetails[ 2 ] )  ) ) {
             LAID.$meta.set( lson, "max", parseInt( multipleTypePropMatchDetails[ 2 ] ) );
           }
-
-        } else {
-          lazyProp = prop;
-        }
-        if ( ( rootLson !== undefined ) && ( rootLson.props[ lazyProp ] === undefined ) && ( lazyProp2defaultValue[ lazyProp ] !== undefined ) ) {
-          rootLson[ lazyProp ] = lazyProp2defaultValue[ lazyProp ];
         }
       }
+    },
 
-      /*
-      typeProp2defaultValue = type2_typeProp2defaultValue_[ lson.type ];
-      if ( typeProp2defaultValue !== undefined ) {
-      for ( typeProp in typeProp2defaultValue ) {
-      if ( ( prop2val[ typeProp ] === undefined ) ) {
-      prop2val[ typeProp ] = typeProp2defaultValue[ typeProp ];
+  when: function ( lson ) {
+
+    if ( lson.when !== undefined ) {
+
+      checkAndThrowErrorAttrAsTake( "when", lson.when );
+
+      var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
+
+
+      for ( eventType in eventType2_fnCallbackS_ ) {
+        fnCallbackS = eventType2_fnCallbackS_[ eventType ];
+        checkAndThrowErrorAttrAsTake( "when." + eventType,
+        fnCallbackS );
+        //LAID.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
+      }
     }
-  }
-}*/
-
-},
-
-when: function ( lson, rootLson ) {
-
-  if ( lson.when !== undefined ) {
-
-    checkAndThrowErrorAttrAsTake( "when", lson.when );
-
-    var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
-
-
-    for ( eventType in eventType2_fnCallbackS_ ) {
-      fnCallbackS = eventType2_fnCallbackS_[ eventType ];
-      checkAndThrowErrorAttrAsTake( "when." + eventType,
-      fnCallbackS );
-      LAID.$meta.set( lson, "$$num", "when." + eventType, fnCallbackS.length );
-    }
-
-    if ( ( rootLson !== undefined ) && ( rootLson.when[ eventType ] === undefined ) ) {
-      rootLson.when[ eventType ] = [];
-    }
-
-  }
-},
+  },
 /*
 data: function ( lson ) {
 // normalize color here
@@ -5308,118 +5455,116 @@ if ()
 },
 */
 
-transition: function( lson, rootLson ) {
+  transition: function( lson ) {
 
-  if ( lson.transition !== undefined ) {
 
-    var transitionProp, transitionDirective,
-    transitionArgKey2val, transitionArgKey, transitionArgKeyS,
-    transition = lson.transition,
-    defaulterProp, defaultedPropS, defaultedProp, i, len;
+    if ( lson.transition !== undefined ) {
+      var transitionProp, transitionDirective,
+      transitionArgKey2val, transitionArgKey, transitionArgKeyS,
+      transition = lson.transition,
+      defaulterProp, defaultedPropS, defaultedProp, i, len;
 
-    if ( transition !== undefined ) {
-      checkAndThrowErrorAttrAsTake( "transition", lson.transition );
+      if ( transition !== undefined ) {
+        checkAndThrowErrorAttrAsTake( "transition", lson.transition );
 
-      if ( transition.centerX !== undefined ) {
-        transition.left =
-        transition.centerX;
-      }
-      if ( transition.right !== undefined ) {
-        transition.left =
-        transition.right;
-      }
-      if ( transition.centerY !== undefined ) {
-        transition.top =
-        transition.centerY;
-      }
-      if ( transition.bottom !== undefined ) {
-        transition.top =
-        transition.bottom;
-      }
-
-      for ( transitionProp in transition ) {
-        if ( LAID.$checkIsExpanderAttr( transitionProp ) ) {
-          throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
+        if ( transition.centerX !== undefined ) {
+          transition.left =
+          transition.centerX;
         }
-        transitionDirective = transition[ transitionProp ];
-        checkAndThrowErrorAttrAsTake( "transition." + transitionProp,
-        transitionDirective  );
+        if ( transition.right !== undefined ) {
+          transition.left =
+          transition.right;
+        }
+        if ( transition.centerY !== undefined ) {
+          transition.top =
+          transition.centerY;
+        }
+        if ( transition.bottom !== undefined ) {
+          transition.top =
+          transition.bottom;
+        }
 
-        transitionArgKey2val = transitionDirective.args;
-        if ( transitionArgKey2val !== undefined ) {
-
-          checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
-          transitionArgKey2val  );
-
-          transitionArgKeyS = [];
-          for ( transitionArgKey in transitionArgKey2val ) {
-            transitionArgKeyS.push( transitionArgKey );
+        for ( transitionProp in transition ) {
+          if ( LAID.$checkIsExpanderAttr( transitionProp ) ) {
+            throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
           }
-          LAID.$meta.set( lson, "keys", "transition." + transitionProp, transitionArgKeyS );
-        }
-        if ( ( rootLson !== undefined ) && ( rootLson.transition[ transitionProp ] === undefined ) ) {
-          rootLson.transition[ transitionProp ] = {};
+          transitionDirective = transition[ transitionProp ];
+          checkAndThrowErrorAttrAsTake( "transition." + transitionProp,
+          transitionDirective  );
+
+          transitionArgKey2val = transitionDirective.args;
+          if ( transitionArgKey2val !== undefined ) {
+
+            checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
+            transitionArgKey2val  );
+
+            transitionArgKeyS = [];
+            for ( transitionArgKey in transitionArgKey2val ) {
+              transitionArgKeyS.push( transitionArgKey );
+            }
+            //LAID.$meta.set( lson, "keys", "transition." + transitionProp, transitionArgKeyS );
+          }
+
         }
       }
     }
-  }
-},
+  },
 
-many: function ( lson ) {
+  many: function ( lson ) {
 
-  if ( lson.many !== undefined ) {
-    var many = lson.many;
-    checkAndThrowErrorAttrAsTake( "many", many );
+    if ( lson.many !== undefined ) {
+      var many = lson.many;
+      checkAndThrowErrorAttrAsTake( "many", many );
 
-    key2fnNormalize.inherits( many );
-    key2fnNormalize.props( many );
-    key2fnNormalize.transition( many );
-    key2fnNormalize.states( many );
+      key2fnNormalize.inherits( many );
+      key2fnNormalize.props( many );
+      key2fnNormalize.transition( many );
+      key2fnNormalize.states( many );
 
-  }
-},
+    }
+  },
 
-states: function( lson ) {
+  states: function( lson ) {
 
-  if ( lson.states !== undefined ) {
+    if ( lson.states !== undefined ) {
 
 
-    var stateName2state = lson.states, state;
-    checkAndThrowErrorAttrAsTake( "states",  stateName2state );
+      var stateName2state = lson.states, state;
+      checkAndThrowErrorAttrAsTake( "states",  stateName2state );
 
-    for ( var stateName in stateName2state ) {
+      for ( var stateName in stateName2state ) {
 
-      if ( !checkIsValidStateName( stateName ) ) {
-        throw ( "LAID Error: Invalid state name: " + stateName );
+        if ( !checkIsValidStateName( stateName ) ) {
+          throw ( "LAID Error: Invalid state name: " + stateName );
+        }
+
+        state = stateName2state[ stateName ];
+
+        checkAndThrowErrorAttrAsTake( "states." + stateName, state );
+
+        key2fnNormalize.props( state );
+        key2fnNormalize.when( state );
+        key2fnNormalize.transition( state );
+
       }
+    }
+  },
 
-      state = stateName2state[ stateName ];
 
-      checkAndThrowErrorAttrAsTake( "states." + stateName, state );
+  children: function( lson ) {
 
-      key2fnNormalize.props( state, lson );
-      key2fnNormalize.when( state, lson );
-      key2fnNormalize.transition( state, lson );
+    if ( lson.children !== undefined ) {
 
+
+      var childName2childLson = lson.children;
+
+      for ( var childName in childName2childLson ) {
+
+        _normalize( childName2childLson[ childName ], true );
+
+      }
     }
   }
-},
-
-
-children: function( lson ) {
-
-  if ( lson.children !== undefined ) {
-
-
-    var childName2childLson = lson.children;
-
-    for ( var childName in childName2childLson ) {
-
-      _normalize( childName2childLson[ childName ], true );
-
-    }
-  }
-}
 };
 
 }());
@@ -5617,6 +5762,129 @@ if (!Array.prototype.indexOf) {
 ( function () {
   "use strict";
 
+
+  /*
+  * Optional argument of `timeNow`
+  * which represent the previous time frame
+  */
+  LAID.$render = function ( timeNow ) {
+    if ( !LAID.$isRequestedForAnimationFrame && ( LAID.$renderDirtyLevelS.length !== 0 ) ) {
+      LAID.$prevTimeFrame = timeNow || performance.now();
+      window.requestAnimationFrame( render );
+    }
+  }
+
+  function render() {
+
+    var
+      newPartS = LAID.$newPartS, newPart, newPartLevel,
+      curTimeFrame = performance.now(),
+      timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
+      x, y,
+      i, len,
+      renderDirtyLevelS = LAID.$renderDirtyLevelS,
+      renderDirtyLevel,
+      renderDirtyAttrValueS,
+      renderDirtyAttrValue,
+      renderDirtyTransition,
+      renderCallS, isAttrTransitionComplete;
+
+    console.log( "render" );
+
+    for ( i = 0, len = newPartS.length; i < len; i++ ) {
+      newPart = newPartS[ i ];
+      newPartLevel = newPart.level;
+      if ( newPartLevel.path !== "/" ) {
+        newPartLevel.parentLevel.part.node.appendChild( newPart.node );
+      }
+      if ( newPartLevel.$lson.load ) {
+        newPartLevel.$lson.load.call( newPartLevel );
+      }
+    }
+
+    LAID.$newPartS = [];
+
+    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+
+      renderDirtyLevel = renderDirtyLevelS[ x ];
+      renderDirtyAttrValueS = renderDirtyLevel.$renderDirtyAttrValueS;
+      renderCallS = [];
+
+      for ( y = 0; y < renderDirtyAttrValueS.length; y++ ) {
+
+        isAttrTransitionComplete = true;
+        renderDirtyAttrValue = renderDirtyAttrValueS[ y ];
+        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrValue.renderCall );
+        renderDirtyTransition = renderDirtyAttrValue.transition;
+
+        if ( renderDirtyTransition !== undefined ) { // if transitioning
+
+          if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
+            renderDirtyTransition.delay -= timeFrameDiff ;
+          } else {
+            if ( !renderDirtyTransition.checkIsComplete() ) {
+              isAttrTransitionComplete = false;
+              renderDirtyAttrValue.transitionCalcValue =
+                renderDirtyTransition.startCalcValue +
+                ( renderDirtyTransition.generateNext( timeFrameDiff ) *
+                  ( renderDirtyAttrValue.calcValue -
+                     renderDirtyTransition.startCalcValue )
+                );
+
+            } else {
+              if ( renderDirtyTransition.done !== undefined ) {
+                renderDirtyTransition.done.call( renderDirtyLevel );
+              }
+              renderDirtyAttrValue.transition = undefined;
+            }
+          }
+
+        }
+
+        if ( isAttrTransitionComplete ) {
+
+          renderDirtyAttrValue.transitionCalcValue =
+            renderDirtyAttrValue.calcValue;
+          LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValueS, y );
+          y--;
+
+        }
+
+      }
+
+      // If "text" is to be rendered, it must be
+      // rendered last to be able to bear knowledge
+      // of the most recent (render) changes to text props
+      // such as text padding, text size, and other text props
+      // which can affect the dimensions of the part
+      if ( LAID.$arrayUtils.remove( renderCallS, "text" ) ) {
+        renderCallS.push( "text" );
+      }
+
+      for ( i = 0, len = renderCallS.length; i < len; i++ ) {
+        //console.log("$renderFn_" + renderCallS[ i ]);
+        renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
+      }
+
+      if ( renderDirtyAttrValueS.length === 0 ) {
+        LAID.$arrayUtils.removeAtIndex( renderDirtyLevelS, x );
+        x--;
+      }
+    }
+
+    LAID.$isRequestedForAnimationFrame = false;
+
+    LAID.$render( curTimeFrame );
+
+
+  }
+
+
+})();
+
+( function () {
+  "use strict";
+
   var
   shorthandProp2_longhandPropS_,
   longhandPropS,
@@ -5643,7 +5911,7 @@ if (!Array.prototype.indexOf) {
     borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
     borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
     borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
-    textPadding: [ "textTopPadding", "textRightPadding", "textBottomPadding", "textLeftPadding" ],
+    textPadding: [ "textPaddingTop", "textPaddingRight", "textPaddingBottom", "textPaddingLeft" ],
     cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ]
 
   };
@@ -5674,7 +5942,7 @@ if (!Array.prototype.indexOf) {
     },
     getLonghandPropsDecenteralized: function ( shorthandProp ) {
       if ( centeralizedShorthandPropS.indexOf( shorthandProp ) === -1 ) {
-        return LAID.$shorthandPropsUtils.getLonghandProps[ shorthandProp ];
+        return shorthandProp2_longhandPropS_[ shorthandProp ];
       } else {
         return undefined;
       }
@@ -5701,7 +5969,7 @@ if (!Array.prototype.indexOf) {
 
     checkIsDecentralizedShorthandProp: function ( shorthandProp ) {
       return shorthandProp2_longhandPropS_[ shorthandProp ] !== undefined &&
-        centeralizedShorthandPropS.indexOf( shorthand ) === -1;
+        centeralizedShorthandPropS.indexOf( shorthandProp ) === -1;
     }
 
   };
@@ -5768,7 +6036,7 @@ if (!Array.prototype.indexOf) {
     newlyUninstalledStateS,
     fnNewlyUninstalledStateUninstall;
 
-    console.log("solve for recalc", recalculateDirtyLevelS);
+    console.log("recalculate");
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
@@ -5795,8 +6063,10 @@ if (!Array.prototype.indexOf) {
       newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
         fnNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.$lson.states[ newlyInstalledStateS[ j ] ].install;
-        fnNewlyInstalledStateInstall && fnNewlyInstalledStateInstall.call( this );
+          newlyInstalledStateLevel.$attr2attrValue[ newlyInstalledStateS[ j ] + ".install" ];
+        fnNewlyInstalledStateInstall &&
+         ( LAID.type(fnNewlyInstalledStateInstall.transitionCalcValue) === "function") &&
+          fnNewlyInstalledStateInstall.transitionCalcValue.call( this );
       }
       // empty the list
       newlyInstalledStateLevel.$newlyInstalledStateS = [];
@@ -5808,13 +6078,17 @@ if (!Array.prototype.indexOf) {
       newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
         fnNewlyUninstalledStateUninstall =
-        newlyUninstalledStateLevel.$lson.states[ newlyUninstalledStateS[ j ] ].uninstall;
-        fnNewlyUninstalledStateUninstall && fnNewlyUninstalledStateUninstall.call( this );
+        newlyUninstalledStateLevel.$attr2attrValue[ newlyUninstalledStateS[ j ] + ".uninstall" ];
+        fnNewlyUninstalledStateUninstall &&
+        ( LAID.type( fnNewlyUninstalledStateUninstall.transitionCalcValue) === "function") &&
+         fnNewlyUninstalledStateUninstall.transitionCalcValue.call( this );
       }
       // empty the list
       newlyUninstalledStateLevel.$newlyUninstalledStateS = [];
     }
     LAID.$newlyUninstalledStateLevelS = [];
+
+    LAID.$render();
 
   };
 
@@ -5826,84 +6100,10 @@ if (!Array.prototype.indexOf) {
 
 
   LAID.$transitionType2args = {
+    "linear": [],
     "cubic-bezier": [ "a", "b", "c", "d" ],
-    
+
   };
-
-
-
-
-})();
-
-( function () {
-  "use strict";
-  function LinearTransition ( startCalcVal, duration, delay, done, args ) {
-
-    this.startCalcVal = startCalcVal;
-    this.curTime = 0;
-    this.duration = duration;
-    this.done = done;
-
-  }
-
-  LinearTransition.prototype.generateNext = function ( delta ) {
-    return ( this.duration / ( this.curTime += delta ) );
-  };
-
-  LinearTransition.prototype.checkIsComplete = function () {
-    return this.curTime >= this.duration;
-  };
-
-
-  function CubicBezierTransition ( startCalcVal, duration, delay, done, args ) {
-
-    this.startCalcVal = startCalcVal;
-    this.curTime = 0;
-    this.duration = duration;
-    this.done = done;
-    this.args = args;
-
-  }
-
-  // TODO: complete the cubic bezier implementation
-  CubicBezierTransition.prototype.generateNext = function ( delta ) {
-    return ( this.duration / ( this.curTime += delta ) );
-  };
-
-  CubicBezierTransition.prototype.checkIsComplete = function () {
-    return this.curTime >= this.duration;
-  };
-
-  LAID.$transitionType2fn = {
-    linear: function ( startCalcVal, duration, delay, done, args ) {
-      return new LinearTransition( startCalcVal, duration, delay, done, args );
-    },
-    "cubic-bezier": function ( startCalcVal, duration, delay, done, args ) {
-      return new CubicBezierTransition( startCalcVal, duration, delay, done, args );
-    },
-    ease: function ( startCalcVal, duration, delay, done, args ) {
-      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
-         a: 0.25, b: 0.1, c: 0.25, d: 1
-      });
-    },
-    "ease-in": function ( startCalcVal, duration, delay, done, args ) {
-      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
-        a: 0.42, b: 0, c: 1, d: 1
-      });
-    },
-    "ease-out": function ( startCalcVal, duration, delay, done, args ) {
-      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
-        a: 0, b: 0, c: 0.58, d: 1
-      });
-    },
-    "ease-in-out": function ( startCalcVal, duration, delay, done, args ) {
-      return new CubicBezierTransition( startCalcVal, duration, delay, done, {
-        a: 0.42, b: 0, c: 0.58, d: 1
-      });
-    }
-  };
-
-
 
 
 

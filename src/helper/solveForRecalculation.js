@@ -15,7 +15,7 @@
     newlyUninstalledStateS,
     fnNewlyUninstalledStateUninstall;
 
-    console.log("solve for recalc", recalculateDirtyLevelS);
+    console.log("recalculate");
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
@@ -42,8 +42,10 @@
       newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
         fnNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.$lson.states[ newlyInstalledStateS[ j ] ].install;
-        fnNewlyInstalledStateInstall && fnNewlyInstalledStateInstall.call( this );
+          newlyInstalledStateLevel.$attr2attrValue[ newlyInstalledStateS[ j ] + ".install" ];
+        fnNewlyInstalledStateInstall &&
+         ( LAID.type(fnNewlyInstalledStateInstall.transitionCalcValue) === "function") &&
+          fnNewlyInstalledStateInstall.transitionCalcValue.call( this );
       }
       // empty the list
       newlyInstalledStateLevel.$newlyInstalledStateS = [];
@@ -55,13 +57,17 @@
       newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
         fnNewlyUninstalledStateUninstall =
-        newlyUninstalledStateLevel.$lson.states[ newlyUninstalledStateS[ j ] ].uninstall;
-        fnNewlyUninstalledStateUninstall && fnNewlyUninstalledStateUninstall.call( this );
+        newlyUninstalledStateLevel.$attr2attrValue[ newlyUninstalledStateS[ j ] + ".uninstall" ];
+        fnNewlyUninstalledStateUninstall &&
+        ( LAID.type( fnNewlyUninstalledStateUninstall.transitionCalcValue) === "function") &&
+         fnNewlyUninstalledStateUninstall.transitionCalcValue.call( this );
       }
       // empty the list
       newlyUninstalledStateLevel.$newlyUninstalledStateS = [];
     }
     LAID.$newlyUninstalledStateLevelS = [];
+
+    LAID.$render();
 
   };
 

@@ -16,7 +16,7 @@
     if ( !isState ) {
       for ( var key in from ) {
 
-        if ( from[ key ] !== undefined ) {
+        if ( from[ key ] && ( key2fnInherit[ key ] ) ) {
           key2fnInherit[ key ]( into, from );
         }
       }
@@ -41,7 +41,8 @@
   };
 
   function inheritTransitionProp ( intoTransition, fromTransition,
-    intoAttr, fromAttr ) {
+    intoTransitionProp, fromTransitionProp ) {
+
 
       var fromTransitionDirective, intoTransitionDirective,
       fromTransitionArgKey2val,  intoTransitionArgKey2val,
@@ -50,40 +51,42 @@
       fromTransitionDirective = fromTransition[ fromTransitionProp ];
       intoTransitionDirective = intoTransition[ intoTransitionProp ];
 
+      if ( fromTransitionDirective !== undefined ) {
 
-      if ( intoTransitionDirective === undefined ) {
-        intoTransitionDirective =
-        intoTransition[ intoTransitionProp ] = {};
-      }
-
-      intoTransitionDirective.type = fromTransitionDirective.type ||
-      intoTransitionDirective.type;
-
-      intoTransitionDirective.duration = fromTransitionDirective.duration ||
-      intoTransitionDirective.duration;
-
-      intoTransitionDirective.delay = fromTransitionDirective.delay ||
-      intoTransitionDirective.delay;
-
-      intoTransitionDirective.done = fromTransitionDirective.done ||
-      intoTransitionDirective.done;
-
-      fromTransitionArgKey2val = fromTransitionDirective.args;
-      intoTransitionArgKey2val = intoTransitionDirective.args;
-
-
-      if ( fromTransitionArgKey2val !== undefined ) {
-
-        if ( intoTransitionArgKey2val === undefined ) {
-          intoTransitionArgKey2val =
-          intoTransitionDirective.args = {};
+        if ( intoTransitionDirective === undefined ) {
+          intoTransitionDirective =
+            intoTransition[ intoTransitionProp ] = {};
         }
 
-        for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
+        intoTransitionDirective.type = fromTransitionDirective.type ||
+          intoTransitionDirective.type;
 
-          intoTransitionArgKey2val[ fromTransitionArgKey ] =
-          fromTransitionArgKey2val[ fromTransitionArgKey ] ||
-          intoTransitionArgKey2val[ fromTransitionArgKey ];
+        intoTransitionDirective.duration = fromTransitionDirective.duration ||
+          intoTransitionDirective.duration;
+
+        intoTransitionDirective.delay = fromTransitionDirective.delay ||
+          intoTransitionDirective.delay;
+
+        intoTransitionDirective.done = fromTransitionDirective.done ||
+          intoTransitionDirective.done;
+
+        fromTransitionArgKey2val = fromTransitionDirective.args;
+        intoTransitionArgKey2val = intoTransitionDirective.args;
+
+
+        if ( fromTransitionArgKey2val !== undefined ) {
+
+          if ( intoTransitionArgKey2val === undefined ) {
+            intoTransitionArgKey2val =
+            intoTransitionDirective.args = {};
+          }
+
+          for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
+
+            intoTransitionArgKey2val[ fromTransitionArgKey ] =
+              fromTransitionArgKey2val[ fromTransitionArgKey ] ||
+              intoTransitionArgKey2val[ fromTransitionArgKey ];
+          }
         }
       }
     }
@@ -108,10 +111,9 @@
       for ( fromKey in fromKey2value ) {
 
         fromKeyValue = fromKey2value[ fromKey ];
-
         intoKey2value[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
-        LAID.$clone( fromKeyValue ) :
-        fromKeyValue;
+          LAID.$clone( fromKeyValue ) :
+          fromKeyValue;
 
 
       }
@@ -158,12 +160,13 @@
       transition: function ( intoLson, fromLson ) {
 
         var
-        fromTransition = fromLson.transition,
-        intoTransition = intoLson.transition,
-        fromTransitionProp,
-        intoTransitionProp,
-        longhandPropS, longhandProp,
-        tmpTransition = {};
+          fromTransition = fromLson.transition,
+          intoTransition = intoLson.transition,
+          fromTransitionProp,
+          intoTransitionProp,
+          i, len,
+          longhandPropS, longhandProp,
+          tmpTransition = {};
 
 
         if ( ( intoTransition === undefined ) ) {
@@ -199,7 +202,8 @@
         // General inheritance of props of exact
         // names across from and into LSON
         for ( fromTransitionProp in fromTransition ) {
-          inheritTransitionProp( intoTransition, fromTransition, intoTransitionProp, longhandProp );
+          inheritTransitionProp( intoTransition, fromTransition,
+             fromTransitionProp, fromTransitionProp );
         }
 
         // flatten stage
@@ -334,7 +338,7 @@
             intoEventType2_fnEventHandlerS_[ fromEventType ] = fnIntoEventHandlerS.concat( fnFromEventHandlerS );
           }
 
-          LAID.$meta.set( intoLson, "$$num", "when." + fromEventType,
+          LAID.$meta.set( intoLson, "num", "when." + fromEventType,
           ( intoEventType2_fnEventHandlerS_[ fromEventType ] ).length );
 
 

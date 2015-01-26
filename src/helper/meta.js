@@ -7,16 +7,17 @@
 
     set: function ( lson, metaDomain, attr, val  ) {
 
-      fullMetaDomain = "$$" + metaDomain;
+      var fullMetaDomain = "$$" + metaDomain;
       if ( lson[ fullMetaDomain ] === undefined ) {
         lson[ fullMetaDomain ] = {};
       }
       lson[ fullMetaDomain ][ attr ] = val;
+
     },
 
     get: function ( lson, metaDomain, attr  ) {
 
-      fullMetaDomain = "$$" + metaDomain;
+      var fullMetaDomain = "$$" + metaDomain;
       if ( lson[ fullMetaDomain ] === undefined ) {
         return undefined;
       } else {
@@ -58,9 +59,9 @@
       $$max: function ( intoLson, fromLson ) {
 
         var
-        fromAttr2max = fromLson.$$max,
-        intoAttr2max = intoLson.$$max,
-        fromAttr;
+          fromAttr2max = fromLson.$$max,
+          intoAttr2max = intoLson.$$max,
+          fromAttr;
 
 
 

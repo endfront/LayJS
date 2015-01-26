@@ -4,14 +4,15 @@
 
 
 Current:
-  - "root.centerX" needed? and if so should it point to "left" or "root.left"?
-  - load within inherit and spec
+  - where? line 238 in AttrValue.js
+  - check misspelling in event read only (eg $hoverd instead of $hovered)
+    also add test case for it
+  - check if inherit is an array
+  - remove "$$num.when.undefined"
+  - test transition and state
   - $absoluteLeft/Top
-  - load and State install / uninstall
-  - Change passing in "/" lson in LAID.run()
   - Insert CSS from entry.js
   - dataTravel
-
 
 
 
@@ -26,11 +27,57 @@ Current:
   - Upload to github (with new .git object)
 
 Tests:
+  - valid level name
   - For illegal take references to expander props or expander props mentioned as takes
-  - LAID.Level.getComputedStyle type tests
+    - transition.attr
+    - transition
+    - when
+    - when.eventType
+    - inherits
+    - props
+    - filters
+    - border
+  - Inherit
+      - one and two inherit (from external)
+      - one (one from child, one from neighbour) and two inherit (from within)
+      - two inherit (from external and within)
+  - Normalize
+      - lazy prop
+      - border decompression (check $$num)
+      - multiple type (boxShadows) decompression (check $$max)
+      - multiple type (boxShadows) decompression (existing within
+        root and state where state number exceeds)(check $$max)
+      - multiple type (boxShadows) decompression (existing within
+          states and not root)(check $$max)
+
+  - when
+    - check clicked
+
+  - SLSON (state inherit)
+    - check if alphabetical order is maintained
+    - check state hashed cache working
+
+  - Take
+    check divide, multiply, add.... all others
+
+  - state
+    - valid state name
+    - check state changes on onlyif invoke (and check install works)
+    - check state changes on onlyif uninvoke (and checkk uninstall works)
+
+  - load
+    - check load works
+
+  - render
+    - check basic render properly like height from node
+
+
+
 
 
 Future:
+  - Temporarily skip recalculate if there are no takers (think LAID observe key)
+  - move `eventReadonlyEventType2boundFnHandler` outside of AttrValue (move to Level) to save space
   - Add/interface HTML history module support
   - change 'audio/videoControl"s"' to 'audio/videoControl' to respect naming convention of props?
   - Add $time as a read only property of root '/'

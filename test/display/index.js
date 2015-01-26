@@ -2,20 +2,60 @@ LAID.run( {
   children: {
     "Header": {
       props: {
-        left: 0,
-        centerY: LAID.take('/', 'centerY'),
-        width: 300,
-        height: LAID.take('/', 'height').divide(2),
-        backgroundColor: LAID.color( "gainsboro")
+        width: LAID.take( '/', 'width'),
+        backgroundColor: LAID.color( "black" )
       },
 
+
+
+
       children: {
-        "One": {
+        "MenuInvoke": {
           props: {
-            left: 0,
-            top: 0,
-            height:100,
-            text:"Hello Waldo"
+            left: 30,
+            width:20,
+            centerY: LAID.take( "../", "height").divide(2),
+          },
+          states: {
+            hovered: {
+              onlyif: LAID.take("this", "$hovered"),
+              props: {
+                opacity:0.8
+              }
+            }
+          },
+          children: {
+            "TopBar": {
+                props: {
+                  width:LAID.take("../", "width"),
+                  height:3,
+                  backgroundColor:LAID.color("white"),
+                }
+            },
+            "MiddleBar": {
+              inherits: ["../TopBar"],
+              props: {
+                top:6
+              }
+            },
+            "BottomBar": {
+              inherits: ["../TopBar"],
+              props: {
+                top: 12
+              }
+            }
+
+          }
+        },
+        "Title": {
+          props: {
+            width: LAID.take( "../", "width"),
+            text: "WALMART",
+            textAlign: "center",
+            textColor: LAID.color( "white"),
+            textPadding:20,
+            textSize: 30,
+            textLetterSpacing:1
           }
         }
       },

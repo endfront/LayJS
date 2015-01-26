@@ -4,8 +4,9 @@
 
 
   LAID.$transitionType2args = {
+    "linear": [],
     "cubic-bezier": [ "a", "b", "c", "d" ],
-    
+
   };
 
 

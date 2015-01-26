@@ -8,8 +8,7 @@ var js_fileS = [
 	"./src/entry.js",
 	"./src/obj/*.js",
 	"./src/method/*.js",
- 	"./src/helper/*.js",
-
+	"./src/helper/*.js"
 ];
 
 gulp.task( 'concat', function() {
