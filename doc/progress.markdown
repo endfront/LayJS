@@ -4,9 +4,8 @@
 
 
 Current:
-  - where? line 238 in AttrValue.js
-  - check misspelling in event read only (eg $hoverd instead of $hovered)
-    also add test case for it
+  - transition of color
+  - remove kickback priority
   - check if inherit is an array
   - remove "$$num.when.undefined"
   - test transition and state
@@ -17,6 +16,7 @@ Current:
 
 
   many:
+  - Check misspelling in event read only (eg $hoverd instead of $hovered)
   - LAID.Many ( + LAID.takeMany)
   - Cache most recently used state combinations for Many
   - removeLevel
@@ -71,13 +71,17 @@ Tests:
   - render
     - check basic render properly like height from node
 
+  - lazy attributes
+    - state based
+    - readonly based
+
 
 
 
 
 Future:
   - Temporarily skip recalculate if there are no takers (think LAID observe key)
-  - move `eventReadonlyEventType2boundFnHandler` outside of AttrValue (move to Level) to save space
+  - move `eventReadonlyEventType2boundFnHandler` outside of AttrVal (move to Level) to save space
   - Add/interface HTML history module support
   - change 'audio/videoControl"s"' to 'audio/videoControl' to respect naming convention of props?
   - Add $time as a read only property of root '/'

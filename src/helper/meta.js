@@ -16,7 +16,7 @@
     },
 
     get: function ( lson, metaDomain, attr  ) {
-
+    
       var fullMetaDomain = "$$" + metaDomain;
       if ( lson[ fullMetaDomain ] === undefined ) {
         return undefined;

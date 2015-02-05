@@ -37,6 +37,9 @@
       if ( from.transition !== undefined ) {
         key2fnInherit.transition( into, from );
       }
+      if ( from.$$max !== undefined ) {
+        key2fnInherit.$$max( into, from );
+      }
     }
   };
 
@@ -126,17 +129,11 @@
 
       type: function( intoLson, fromLson ) {
 
-        if ( fromLson.type !== "none" ) {
-          intoLson.type =  fromLson.type;
-        }
+        intoLson.type = fromLson.type || intoLson.type;
+
 
       },
 
-      inputType : function ( intoLson, fromLson ) {
-
-        intoLson.inputType = fromLson.inputType || intoLson.inputType;
-
-      },
       data: function( intoLson, fromLson ) {
 
         inheritSingleLevelObject( intoLson, fromLson, "data" );
@@ -341,7 +338,6 @@
           LAID.$meta.set( intoLson, "num", "when." + fromEventType,
           ( intoEventType2_fnEventHandlerS_[ fromEventType ] ).length );
 
-
         }
       },
 
@@ -351,7 +347,6 @@
       },*/
 
       $$max: function ( intoLson, fromLson ) {
-
         LAID.$meta.inherit.$$max( intoLson, fromLson );
       },
 

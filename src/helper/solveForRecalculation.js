@@ -42,10 +42,10 @@
       newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
         fnNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.$attr2attrValue[ newlyInstalledStateS[ j ] + ".install" ];
+          newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] + ".install" ];
         fnNewlyInstalledStateInstall &&
-         ( LAID.type(fnNewlyInstalledStateInstall.transitionCalcValue) === "function") &&
-          fnNewlyInstalledStateInstall.transitionCalcValue.call( this );
+         ( LAID.type(fnNewlyInstalledStateInstall.transitionCalcVal) === "function") &&
+          fnNewlyInstalledStateInstall.transitionCalcVal.call( this );
       }
       // empty the list
       newlyInstalledStateLevel.$newlyInstalledStateS = [];
@@ -57,10 +57,10 @@
       newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
         fnNewlyUninstalledStateUninstall =
-        newlyUninstalledStateLevel.$attr2attrValue[ newlyUninstalledStateS[ j ] + ".uninstall" ];
+        newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] + ".uninstall" ];
         fnNewlyUninstalledStateUninstall &&
-        ( LAID.type( fnNewlyUninstalledStateUninstall.transitionCalcValue) === "function") &&
-         fnNewlyUninstalledStateUninstall.transitionCalcValue.call( this );
+        ( LAID.type( fnNewlyUninstalledStateUninstall.transitionCalcVal) === "function") &&
+         fnNewlyUninstalledStateUninstall.transitionCalcVal.call( this );
       }
       // empty the list
       newlyUninstalledStateLevel.$newlyUninstalledStateS = [];

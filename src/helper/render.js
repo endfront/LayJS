@@ -23,8 +23,8 @@
       i, len,
       renderDirtyLevelS = LAID.$renderDirtyLevelS,
       renderDirtyLevel,
-      renderDirtyAttrValueS,
-      renderDirtyAttrValue,
+      renderDirtyAttrValS,
+      renderDirtyAttrVal,
       renderDirtyTransition,
       renderCallS, isAttrTransitionComplete;
 
@@ -46,15 +46,15 @@
     for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
 
       renderDirtyLevel = renderDirtyLevelS[ x ];
-      renderDirtyAttrValueS = renderDirtyLevel.$renderDirtyAttrValueS;
+      renderDirtyAttrValS = renderDirtyLevel.$renderDirtyAttrValS;
       renderCallS = [];
 
-      for ( y = 0; y < renderDirtyAttrValueS.length; y++ ) {
+      for ( y = 0; y < renderDirtyAttrValS.length; y++ ) {
 
         isAttrTransitionComplete = true;
-        renderDirtyAttrValue = renderDirtyAttrValueS[ y ];
-        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrValue.renderCall );
-        renderDirtyTransition = renderDirtyAttrValue.transition;
+        renderDirtyAttrVal = renderDirtyAttrValS[ y ];
+        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrVal.renderCall );
+        renderDirtyTransition = renderDirtyAttrVal.transition;
 
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
@@ -63,18 +63,25 @@
           } else {
             if ( !renderDirtyTransition.checkIsComplete() ) {
               isAttrTransitionComplete = false;
-              renderDirtyAttrValue.transitionCalcValue =
+              if ( renderDirtyAttrVal.calcVal instanceof LAID.Color ) {
+                renderDirtyAttrVal.transitionCalcVal =
+                  LAID.$generateColorMix( renderDirtyTransition.startCalcValue,
+                    renderDirtyAttrVal.calcVal,
+                    renderDirtyTransition.generateNext( timeFrameDiff ) );
+              } else {
+              renderDirtyAttrVal.transitionCalcVal =
                 renderDirtyTransition.startCalcValue +
                 ( renderDirtyTransition.generateNext( timeFrameDiff ) *
-                  ( renderDirtyAttrValue.calcValue -
+                  ( renderDirtyAttrVal.calcVal -
                      renderDirtyTransition.startCalcValue )
                 );
+              }
 
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
                 renderDirtyTransition.done.call( renderDirtyLevel );
               }
-              renderDirtyAttrValue.transition = undefined;
+              renderDirtyAttrVal.transition = undefined;
             }
           }
 
@@ -82,9 +89,9 @@
 
         if ( isAttrTransitionComplete ) {
 
-          renderDirtyAttrValue.transitionCalcValue =
-            renderDirtyAttrValue.calcValue;
-          LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValueS, y );
+          renderDirtyAttrVal.transitionCalcVal =
+            renderDirtyAttrVal.calcVal;
+          LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValS, y );
           y--;
 
         }
@@ -100,12 +107,20 @@
         renderCallS.push( "text" );
       }
 
+      // And scroll positions must be affected later
+      if ( LAID.$arrayUtils.remove( renderCallS, "scrollX" ) ) {
+        renderCallS.push( "scrollX" );
+      }
+      if ( LAID.$arrayUtils.remove( renderCallS, "scrollY" ) ) {
+        renderCallS.push( "scrollY" );
+      }
+
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
         //console.log("$renderFn_" + renderCallS[ i ]);
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
-      if ( renderDirtyAttrValueS.length === 0 ) {
+      if ( renderDirtyAttrValS.length === 0 ) {
         LAID.$arrayUtils.removeAtIndex( renderDirtyLevelS, x );
         x--;
       }

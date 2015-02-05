@@ -18,7 +18,7 @@
     window.onresize = updateSize;
 
 
-    LAID.$emptyAttrValue = new LAID.AttrValue( "", undefined );
+    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
   };
 

@@ -5,12 +5,10 @@
 
   var regexDetails = /^([a-zA-Z]+)(\d+)/;
 
-  LAID.$multipleTypePropUtils = {
-    findMultipleTypePropMatchDetails: function ( prop ) {
+  LAID.$findMultipleTypePropMatchDetails = function ( prop ) {
       return prop.match( regexDetails );
-    
-    }
-
   };
+
+
 
 })();

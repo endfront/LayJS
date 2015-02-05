@@ -1,6 +1,6 @@
 (function(){
   "use strict";
-  var renderCall2regex = {
+  /*var renderCall2regex = {
     filters: /^filters/,
     boxShadows: /^boxShadows/,
     textShadows: /^textShadows/,
@@ -8,23 +8,27 @@
     videoSources: /^videoSources/,
     audioTracks: /^audioTracks/,
     videoTracks: /^videotracks/
-  };
+  };*/
 
 
   LAID.$findRenderCall = function( prop ) {
 
-    var renderCall;
+    var
+      renderCall,
+      multipleTypePropMatchDetails;
 
     if ( !LAID.$checkIsPropAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
       LAID.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {
         return undefined;
       } else {
-        for ( renderCall in renderCall2regex ) {
-          if ( renderCall2regex[ renderCall ].test( prop ) ) {
-            return renderCall;
-          }
+        multipleTypePropMatchDetails = LAID.$findMultipleTypePropMatchDetails(
+        prop );
+
+        if ( multipleTypePropMatchDetails ) {
+          return multipleTypePropMatchDetails[ 1 ];
         }
+
         renderCall = LAID.$shorthandPropsUtils.getShorthandPropCenteralized( prop );
         if ( renderCall !== undefined ) {
           return renderCall;

@@ -12,8 +12,7 @@
       states = lson.states,
       stateName, state,
       prop,
-      multipleTypePropMatchDetails,
-      when, transition,
+      when, transition, metaMax, maxProp,
       eventType, transitionProp;
 
     /* Filling in the defaults here for root lson */
@@ -23,25 +22,31 @@
       }
     }
 
+
     if ( states ) {
       for ( stateName in states ) {
         state = states[ stateName ];
         props = state.props;
         when = state.when;
         transition = state.transition;
+        metaMax = state.$$max;
 
         for ( prop in props ) {
 
-          multipleTypePropMatchDetails =
-          LAID.$multipleTypePropUtils.findMultipleTypePropMatchDetails( prop );
-          if ( multipleTypePropMatchDetails !== null ) {
-            prop = multipleTypePropMatchDetails[ 1 ];
-          }
           if ( ( lson.props[ prop ] === undefined ) &&
               ( lazyProp2defaultValue[ prop ] !== undefined )
             ) {
-            lson.props[ prop ] = lazyProp2defaultValue[ prop ];
+
+              lson.props[ prop ] = lazyProp2defaultValue[ prop ];
           }
+        }
+      }
+
+      for ( maxProp in metaMax ) {
+        lson.$$max = lson.$$max || {};
+
+        if ( !lson.$$max[ maxProp ] ) {
+          lson.$$max[ metaMax ] = metaMax[ maxProp ];
         }
       }
 
@@ -57,6 +62,16 @@
         }
       }
     }
+
+    if ( lson.props.text !== undefined ) {
+      lson.type = "text";
+    } else if ( lson.type === undefined ) {
+      lson.type = "none";
+    } else if ( lson.type.startsWith( "input:" ) ) {
+      lson.inputType = lson.type.slice( ( "input:").length );
+    }
+
+
   };
 
   essentialProp2defaultValue = {
@@ -103,7 +118,6 @@
     backgroundSizeX: undefined,
     backgroundSizeY: undefined,
 
-    boxShadows: [],
 
     cornerRadiusTopLeft: 0,
     cornerRadiusTopRight: 0,
@@ -131,7 +145,6 @@
     textFamily: "sans-serif",
     textWeight: "normal",
     textcolor: LAID.color("black"),
-    textShadows: [],
     textVariant: "normal",
     textStyle: "normal",
     textDecoration: "none",
@@ -155,8 +168,6 @@
     inputAutocorrect: true,
     inputDisabled: false,
 
-    videoSources: [],
-    videoTracks: [],
     videoAutoplay: false,
     videoControls: true,
     videoCrossorigin: "anonymous",
@@ -165,8 +176,7 @@
     videoPreload: "auto",
     videoPoster: null,
 
-    audioSources: [],
-    audioTracks: [],
+
     audioControls: true,
     audioLoop: false,
     audioMuted: false,

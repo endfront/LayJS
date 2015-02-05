@@ -11,7 +11,7 @@
 
       this.executable = function () {
 
-        return path.resolve( this ).$getAttrValue( attr ).calcValue;
+        return path.resolve( this ).$getAttrVal( attr ).calcVal;
 
       };
     } else { // direct value provided

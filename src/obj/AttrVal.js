@@ -3,29 +3,29 @@
 
   // The naming convention:
   // attr -> string attr name
-  // attrValue -> class AttrValue
+  // attrVal -> class AttrVal
 
-  LAID.AttrValue = function ( attr, level ) {
+  LAID.AttrVal = function ( attr, level ) {
 
     // undefined initializations:
     // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
     // (2) readability
 
     this.level = level;
-    this.value = undefined;
-    this.valueUsedForLastRecalculation = undefined;
+    this.val = undefined;
+    this.valUsedForLastRecalculation = undefined;
     this.isTaken = undefined;
     this.attr = attr;
 
-    this.calcValue = undefined;
-    this.transitionCalcValue = undefined;
+    this.calcVal = undefined;
+    this.transitionCalcVal = undefined;
     this.transition = undefined;
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall = level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
 
-    this.takerAttrValueS = [];
+    this.takerAttrValS = [];
 
     this.eventReadonlyEventType2boundFnHandler = {};
 
@@ -76,22 +76,26 @@
   }
 
 
+
+
   /* TODO: update this doc below along with its slash-asterisk
   formatting
 
   Returns true if the value is different,
   false otherwise */
-  LAID.AttrValue.prototype.update = function ( value ) {
+  LAID.AttrVal.prototype.update = function ( val ) {
 
-    this.value = value;
+    this.val = val;
 
-    if ( value !== this.valueUsedForLastRecalculation ) {
+    if ( ( val !== this.valUsedForLastRecalculation ) &&
+      !( LAID.$checkIsNan( val ) &&
+       LAID.$checkIsNan( this.valUsedForLastRecalculation ) )
+      ) {
 
-      if ( this.value instanceof LAID.Take ) {
+      if ( this.val instanceof LAID.Take ) {
         this.takeNot();
       }
 
-      this.value = value;
       this.isTaken = false;
       this.requestRecalculation();
 
@@ -102,11 +106,11 @@
   };
 
   /*
-  * Request the level corresponding to the given AttrValue
-  * to recalculate this AttrValue.
+  * Request the level corresponding to the given AttrVal
+  * to recalculate this AttrVal.
   */
-  LAID.AttrValue.prototype.requestRecalculation = function () {
-    this.level.$addRecalculateDirtyAttrValue( this );
+  LAID.AttrVal.prototype.requestRecalculation = function () {
+    this.level.$addRecalculateDirtyAttrVal( this );
   };
 
 
@@ -122,7 +126,7 @@
   * Return true if calculation successful, false if
   * a circular reference rendered it unsuccessful
   */
-  LAID.AttrValue.prototype.recalculate = function () {
+  LAID.AttrVal.prototype.recalculate = function () {
 
     var
       isDirty = false,
@@ -130,7 +134,7 @@
       level = this.level,
       i, len;
 
-    if ( this.value instanceof LAID.Take ) { // is LAID.Take
+    if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
         if ( !this.take() ) {
           return false;
@@ -138,14 +142,14 @@
       }
       this.isTaken = true;
 
-      reCalc = this.value.execute( this.level );
-      if ( reCalc !== this.calcValue ) {
+      reCalc = this.val.execute( this.level );
+      if ( reCalc !== this.calcVal ) {
         isDirty = true;
-        this.calcValue = reCalc;
+        this.calcVal = reCalc;
       }
     } else {
-      if ( this.value !== this.calcValue ) {
-        this.calcValue = this.value;
+      if ( this.val !== this.calcVal ) {
+        this.calcVal = this.val;
         isDirty = true;
       }
     }
@@ -157,18 +161,18 @@
         whenEventType = getWhenEventTypeOfAttrWhen( attr ),
         transitionProp = getTransitionPropOfAttrTransition( attr );
 
-      /*if ( !this.transitionCalcValue && ( this.transitionCalcValue !== 0 ) ) {
-        this.transitionCalcValue = this.calcValue;
+      /*if ( !this.transitionCalcVal && ( this.transitionCalcVal !== 0 ) ) {
+        this.transitionCalcVal = this.calcVal;
       }*/
 
-      this.valueUsedForLastRecalculation = this.value;
+      this.valUsedForLastRecalculation = this.val;
 
-      for ( i = 0, len = this.takerAttrValueS.length; i < len; i++ ) {
-        this.takerAttrValueS[ i ].requestRecalculation();
+      for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
+        this.takerAttrValS[ i ].requestRecalculation();
       }
 
       if ( this.renderCall ) {
-        level.$addRenderDirtyAttrValue( this );
+        level.$addRenderDirtyAttrVal( this, false );
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
         )  {
@@ -182,7 +186,7 @@
         level.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
-        if ( this.calcValue ) { // state
+        if ( this.calcVal ) { // state
           if ( LAID.$arrayUtils.pushUnique( level.$stateS, stateName ) ) {
             level.$updateStates();
             // remove from the list of uninstalled states (which may/may not be present within)
@@ -217,15 +221,17 @@
           level.parentLevel.$updateNaturalHeightFromChild( level );
         }
       } else if ( attr === "width" ) {
-        if ( level.$attr2attrValue.text !== undefined ) {
+        if ( level.$attr2attrVal.text !== undefined ) {
           level.$updateNaturalHeightFromText();
         }
       }
     }
+    return true;
   };
 
-  LAID.AttrValue.prototype.give = function ( attrValue ) {
-    if ( LAID.$arrayUtils.pushUnique( this.takerAttrValueS, attrValue ) && this.takerAttrValueS.length === 1 ) {
+  LAID.AttrVal.prototype.give = function ( attrVal ) {
+    if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
+     this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
         // Given that a reference exists, add event listeners
         var
@@ -233,26 +239,24 @@
         eventType,
         fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
-          fnBoundHandler = eventType2fnHandler[ eventType ].bind( this );
+          fnBoundHandler =
+           eventType2fnHandler[ eventType ].bind( this.level );
           LAID.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
-          //TODO: remove below
-          LAID.$eventUtils.add( this.level.part.node, "click", function(){
-            console.log("hlel oworl");
-          } );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = fnBoundHandler;
         }
       }
     }
   };
-  LAID.AttrValue.prototype.giveNot = function ( attrValue ) {
-    if ( LAID.$arrayUtils.remove( this.takerAttrValueS, attrValue ) && this.takerAttrValueS.length === 0 ) {
+  LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
+    if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
         // Given that no reference exists, remove event listeners
         var
-        eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
-        eventType,
-        fnBoundHandler;
+         eventType2fnHandler =
+         LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
+         eventType,
+         fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = eventReadonlyEventType2boundFnHandler[ eventType ];
           LAID.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
@@ -263,31 +267,26 @@
   };
 
 
-  LAID.AttrValue.prototype.take = function () {
+  LAID.AttrVal.prototype.take = function () {
 
-    if ( this.value instanceof LAID.Take ) {
+    if ( this.val instanceof LAID.Take ) {
       var _relPath00attr_S, relPath, level, attr,
       i, len;
       // value is of type `LAID.Take`
-      _relPath00attr_S = this.value._relPath00attr_S;
+      _relPath00attr_S = this.val._relPath00attr_S;
 
       for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
         relPath = _relPath00attr_S[ i ][ 0 ];
         attr = _relPath00attr_S[ i ][ 1 ];
-
         level = relPath.resolve( this.level );
+
         if ( level === undefined ) {
           return false;
         }
-        if ( level.$attr2attrValue[ attr ] === undefined )  {
-          if ( eventReadonly2_eventType2fnHandler_[ attr  ] !== undefined ) {
-            level.$referenceEventReadonlyAttr( attr );
-
-          }
-          if ( !LAID.$checkIsReadonlyAttr( attr ) ) {
-            return false;
-          }
+        if ( ( level.$attr2attrVal[ attr ] === undefined ) &&
+          ( !level.$createLazyAttr( attr ) ) )  {
+          return false
         }
       }
 
@@ -296,7 +295,7 @@
         relPath = _relPath00attr_S[ i ][ 0 ];
         attr = _relPath00attr_S[ i ][ 1 ];
 
-        relPath.resolve( this.level ).$getAttrValue( attr ).give( this );
+        relPath.resolve( this.level ).$getAttrVal( attr ).give( this );
 
       }
     }
@@ -304,11 +303,11 @@
 
   };
 
-  LAID.AttrValue.prototype.takeNot = function ( attrValue ) {
+  LAID.AttrVal.prototype.takeNot = function ( attrVal ) {
 
-    if ( this.value instanceof LAID.Take ) {
+    if ( this.val instanceof LAID.Take ) {
       var _relPath00attr_S, relPath, level, attr;
-      _relPath00attr_S = this.value._relPath00attr_S;
+      _relPath00attr_S = this.val._relPath00attr_S;
 
       for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
@@ -316,8 +315,8 @@
         attr = _relPath00attr_S[ i ][ 1 ];
 
         level = relPath.resolve( this.level );
-        if ( ( level === undefined ) && ( level.$getAttrValue( attr ) !== undefined ) ) {
-          level.$getAttrValue( attr ).giveNot( this );
+        if ( ( level !== undefined ) && ( level.$getAttrVal( attr ) !== undefined ) ) {
+          level.$getAttrVal( attr ).giveNot( this );
         }
       }
     }

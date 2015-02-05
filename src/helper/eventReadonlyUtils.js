@@ -22,34 +22,40 @@
       mousedown: function () {
         this.$changeAttrVal( "$clicked", true );
       },
+      touchdown: function () {
+        this.$changeAttrVal( "$clicked", true );
+      },
       mouseup: function () {
         this.$changeAttrVal( "$clicked", false );
-      }
+      },
+      touchup: function () {
+        this.$changeAttrVal( "$clicked", false );
+      },
     },
     $scrolledX: {
       scroll: function () {
-        this.$changeAttrVal( "$scrolledX", this.scrollTop );
+        this.$changeAttrVal( "$scrolledX", this.part.node.scrollTop );
       }
     },
     $cursorX: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorX", this.offsetX );
+        this.$changeAttrVal( "$cursorX", this.part.node.offsetX );
       }
     },
     $cursorY: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorY", this.offsetY );
+        this.$changeAttrVal( "$cursorY", this.part.node.offsetY );
       }
     },
     $input: {
       click: function () {
-        this.$changeAttrVal( "$input", this.value );
+        this.$changeAttrVal( "$input", this.part.node.value );
       },
       change: function () {
-        this.$changeAttrVal( "$input", this.value );
+        this.$changeAttrVal( "$input", this.part.node.value );
       },
       keydown: function () {
-        this.$changeAttrVal( "$input", this.value );
+        this.$changeAttrVal( "$input", this.part.node.value );
       }
     },
 
@@ -58,23 +64,8 @@
         this.$changeAttrVal( "$inputChecked", this.checked );
       }
     }
-
-
-
-
   };
 
-  var eventReadonly2defaultVal = {
-    $hovered: false,
-    $focused: false,
-    $clicked: false,
-    scrolledX: 0,
-    scrolledY: 0,
-    cursorX: 0,
-    cursorY: 0,
-    $input: "",
-    $inputChecked: false,
-  };
 
   LAID.$eventReadonlyUtils = {
     checkIsEventReadonlyAttr: function ( attr ) {
@@ -83,10 +74,6 @@
     getEventType2fnHandler: function ( attr ) {
       return eventReadonly2_eventType2fnHandler_[ attr ];
     },
-
-    getEventReadonly2defaultVal: function () {
-      return eventReadonly2defaultVal;
-    }
 
   };
 

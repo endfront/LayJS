@@ -16,9 +16,14 @@
         this.absolutePath = relativePath;
       } else {
         this.absolute = false;
-        this.numberOfParentTraversals = ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
+        this.numberOfParentTraversals =
+         ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
         // strip off the "../"s
-        this.childPath = this.numberOfParentTraversals === 0 ? relativePath : relativePath.substring( this.numberOfParentTraversals * 3 );
+        // eg: "../../Body" should become "Body"
+        this.childPath = this.numberOfParentTraversals === 0 ? relativePath :
+         relativePath.substring( (
+           (this.numberOfParentTraversals) * 3 ) );
+
       }
   }
 
@@ -42,8 +47,12 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
       }
 
-      return LAID.$path2level[ referenceLevel.path +
-       ( this.childPath !== "" ? "/" : "" ) + this.childPath ];
+
+      
+        return ( this.childPath === "" ) ? referenceLevel :
+            LAID.$path2level[ referenceLevel.path +
+            ( ( referenceLevel.path === "/" ) ? "" : "/" )+
+            this.childPath ];
     }
 
   }
