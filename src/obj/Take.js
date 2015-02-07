@@ -524,12 +524,16 @@
     return this;
   };
 
+
+
   LAID.Take.prototype.format = function () {
 
-    var argS = Array.prototype.slice.call( arguments );
+    var argS = Array.prototype.slice.call( arguments ),
+      takeFormat = new LAID.Take( LAID.$format );
 
+    argS.unshift( this );
 
-    return new LAID.Take(LAID.$format).fn.apply( this, argS);
+    return takeFormat.fn.apply( takeFormat, argS );
 
     // Add the `format` function
     //argS.push(LAID.$format);
@@ -542,11 +546,14 @@
 
   LAID.Take.prototype.i18nFormat = function () {
 
-    this._relPath00attr_S.push( [ '/', 'data.lang' ] );
+    this._relPath00attr_S.push( [ new LAID.RelPath( '/' ), 'data.lang' ] );
 
-    var argS = Array.prototype.slice.call(arguments);
+    var argS = Array.prototype.slice.call(arguments),
+      takeFormat = new LAID.Take( fnWrapperI18nFormat );
 
-    return new LAID.Take(i18nFormat).fn.apply( this, argS);
+    argS.unshift( this );
+
+    return takeFormat.fn.apply( takeFormat, argS);
 
     // Add the `i18nFormat` function
     //argS.push(i18nFormat);
@@ -554,11 +561,14 @@
 
   };
 
-  function i18nFormat () {
+  function fnWrapperI18nFormat () {
 
     var argS = Array.prototype.slice.call( arguments );
-
     argS[ 0 ] = ( argS[ 0 ] )[ LAID.level( '/' ).attr( 'data.lang' ) ];
+
+    if ( argS[ 0 ] === undefined ) {
+      throw "LAID Error: No language defined for i18nFormat";
+    }
 
     return LAID.$format.apply( undefined, argS );
 
@@ -624,6 +634,29 @@
         return oldExecutable.call( this ).copy().darken( val );
       };
     }
+    return this;
+
+  };
+
+
+  LAID.Take.prototype.colorStringify = function ( ) {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().stringify( );
+    };
+
+    return this;
+
+  };
+
+  LAID.Take.prototype.colorInvert = function ( ) {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().invert();
+    };
+
     return this;
 
   };
@@ -823,7 +856,6 @@
       if ( arg instanceof LAID.Take ) {
 
         this.$mergePathAndProps( arg );
-
         this.executable = function () {
 
           return fnExecutable.call( this ).call( this, arg.execute( this ) );

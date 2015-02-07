@@ -103,6 +103,7 @@ bottom: -0.25em;
     $recalculateDirtyLevelS: [],
     $renderDirtyLevelS: [],
     $prevFrameTime: 0,
+    //$uninitialized: {},
     $isClogged:false,
     $isSolvingNewLevels: false,
     $isRequestedForAnimationFrame: false

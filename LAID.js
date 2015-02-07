@@ -103,6 +103,7 @@ bottom: -0.25em;
     $recalculateDirtyLevelS: [],
     $renderDirtyLevelS: [],
     $prevFrameTime: 0,
+    //$uninitialized: {},
     $isClogged:false,
     $isSolvingNewLevels: false,
     $isRequestedForAnimationFrame: false
@@ -128,6 +129,7 @@ bottom: -0.25em;
     this.valUsedForLastRecalculation = undefined;
     this.isTaken = undefined;
     this.attr = attr;
+    this.isRecalculateRequired = true;
 
     this.calcVal = undefined;
     this.transitionCalcVal = undefined;
@@ -222,6 +224,7 @@ bottom: -0.25em;
   * to recalculate this AttrVal.
   */
   LAID.AttrVal.prototype.requestRecalculation = function () {
+    this.isRecalculateRequired = true;
     this.level.$addRecalculateDirtyAttrVal( this );
   };
 
@@ -248,11 +251,16 @@ bottom: -0.25em;
 
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
-        if ( !this.take() ) {
-          return false;
-        }
+        this.isTaken = this.take();
+        // if the attrval has not been taken
+        // as yet then there is chance that
+        // the giver attrval has not been
+        // initialized as yet. Thus we
+        // skip a round of solving to
+        // let the other attrvals complete calculation
+        return false;
+
       }
-      this.isTaken = true;
 
       reCalc = this.val.execute( this.level );
       if ( reCalc !== this.calcVal ) {
@@ -338,6 +346,7 @@ bottom: -0.25em;
         }
       }
     }
+    this.isRecalculateRequired = false;
     return true;
   };
 
@@ -396,9 +405,14 @@ bottom: -0.25em;
         if ( level === undefined ) {
           return false;
         }
-        if ( ( level.$attr2attrVal[ attr ] === undefined ) &&
-          ( !level.$createLazyAttr( attr ) ) )  {
-          return false
+
+        if ( ( level.$attr2attrVal[ attr ] === undefined ) )  {
+          level.$createLazyAttr( attr );
+          return false;
+        }
+
+        if ( level.$attr2attrVal[ attr ].isRecalculateRequired ) {
+          return false;
         }
       }
 
@@ -483,7 +497,7 @@ bottom: -0.25em;
         if ( this.a === 1 ) {
           return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
         } else {
-          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + this.a + ")";
+          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," + this.a + ")";
         }
       }
 
@@ -502,8 +516,8 @@ bottom: -0.25em;
   LAID.Color.prototype.copy = function () {
 
     return this.format === "rgb" ?
-    new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
-    new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
+      new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
+      new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
 
   };
 
@@ -565,6 +579,7 @@ bottom: -0.25em;
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
   LAID.Color.prototype.green = function ( val ) {
@@ -578,6 +593,7 @@ bottom: -0.25em;
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
   LAID.Color.prototype.blue = function ( val ) {
@@ -591,6 +607,7 @@ bottom: -0.25em;
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
   LAID.Color.prototype.hue = function ( val ) {
@@ -604,6 +621,7 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.saturation = function ( val ) {
@@ -617,6 +635,7 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.lightness = function ( val ) {
@@ -630,12 +649,14 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
 
   /* Sets alpha */
   LAID.Color.prototype.alpha = function ( alpha ) {
     this.a = alpha;
+    return this;
   };
 
   LAID.Color.prototype.darken = function ( fraction ) {
@@ -650,6 +671,7 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.lighten = function ( fraction ) {
@@ -664,6 +686,7 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.saturate = function ( fraction ) {
@@ -678,6 +701,7 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.desaturate = function ( fraction ) {
@@ -692,11 +716,13 @@ bottom: -0.25em;
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.grayscale = function ( ) {
 
     this.desaturate( 1 );
+    return this;
 
   };
 
@@ -719,6 +745,7 @@ bottom: -0.25em;
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
 
@@ -778,11 +805,6 @@ bottom: -0.25em;
     return p;
   }
 
-
-
-
-
-  ///more! check spec for supported colors (including transparent)
 
 
 })();
@@ -1128,7 +1150,7 @@ bottom: -0.25em;
     var
      readonlyDefaultVal = LAID.$getReadonlyAttrDefaultVal( attr ),
      splitAttrLsonComponentS, attrLsonComponentObj, i, len;
-     console.log("create laz", attr);
+
     if ( readonlyDefaultVal !== undefined ) {
 
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
@@ -1141,13 +1163,22 @@ bottom: -0.25em;
             this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
               break;
           case "$naturalWidth":
+            // temporarily (for current recalculate) cycle
+            // set the value to 0. This is only
+            // relevant for text based natural widths
+            // as a render cycle is required for learning
+            // the natural width
+            this.$attr2attrVal[ attr ].update( 0 );
             this.$updateNaturalWidth();
             break;
           case "$naturalHeight":
+            // read the above comment for natural width
+            this.$attr2attrVal[ attr ].update( 0 );
             this.$updateNaturalHeight();
             break;
         }
       } else {
+
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
 
       }
@@ -1161,18 +1192,30 @@ bottom: -0.25em;
           this.$attr2attrVal[ attr ].update( undefined );
         } else {
           splitAttrLsonComponentS = attr.split( "." );
+
           if ( this.$lson.states === undefined ) {
             return false;
           } else {
+
             if ( attr.startsWith("root.") ) {  // "root." state
               attrLsonComponentObj = this.$lson;
-              splitAttrLsonComponentS.shift();
+
             } else { // non root state
-              attrLsonComponentObj = this.$lson.states;
+              attrLsonComponentObj = this.$lson.states[
+               splitAttrLsonComponentS[ 0 ] ];
             }
+            // rempve the state part of the attr components
+            splitAttrLsonComponentS.shift();
+            if ( (["when", "transition", "$$num", "$$max", "type",
+                "inherits", "data", "observe", "interface", "many"]).
+              indexOf( splitAttrLsonComponentS[ 0 ] ) === -1 ) {
+                attrLsonComponentObj = attrLsonComponentObj.props;
+              }
+
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
                attrLsonComponentObj[ splitAttrLsonComponentS[ i ] ];
+
               if ( attrLsonComponentObj === undefined ) {
                 break;
               }
@@ -1210,8 +1253,8 @@ bottom: -0.25em;
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-        console.log( "\trecalculate", this.path, isSolveProgressed,
-          recalculateDirtyAttrValS[ i ]);
+        //console.log( "\trecalculate", this.path, isSolveProgressed,
+        //  recalculateDirtyAttrValS[ i ]);
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -1325,7 +1368,8 @@ bottom: -0.25em;
 
 
   LAID.Level.prototype.attr = function ( attr ) {
-    return this.$attr2attrVal[ attr ].calcVal;
+    return this.$attr2attrVal[ attr ] ?
+      this.$attr2attrVal[ attr ].calcVal : undefined;
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -1409,7 +1453,6 @@ bottom: -0.25em;
       this.$updateNaturalHeightFromText();
     } else {
       this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom" );
-      console.log("\t\tPh", this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal);
 
       this.$attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
@@ -1583,7 +1626,7 @@ bottom: -0.25em;
   LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
 
     var
-    numFnHandlersForEventType = this.$attr2attrVal[ "$$num.when." + eventType ].value,
+    numFnHandlersForEventType = this.$attr2attrVal[ "$$num.when." + eventType ].val,
     fnMainHandler,
     thisLevel = this;
 
@@ -1592,6 +1635,7 @@ bottom: -0.25em;
     }
 
     if ( numFnHandlersForEventType !== 0 ) {
+
       fnMainHandler = function ( e ) {
         var i, len, attrValForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
@@ -1724,7 +1768,8 @@ bottom: -0.25em;
           transitionDelay ,
           transitionDuration, transitionArg2val,
           transitionDone );
-    } else { // else delete the transition
+    } else if ( attrVal !== undefined ) { // else delete the transition
+
       attrVal.transition = undefined;
     }
   }
@@ -2039,14 +2084,14 @@ bottom: -0.25em;
     i, len,
     filterType;
     for ( i = 1, len = attr2attrVal[ "$$max.filters" ].calcVal ; i <= len; i++ ) {
-      filterType = attr2attrVal[ "filters" + i + "Type" ];
+      filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;
       switch ( filterType ) {
         case "dropShadow":
-          s +=  "dropShadow(" +
+          s +=  "drop-shadow(" +
           ( attr2attrVal["filters" + i + "X" ].transitionCalcVal + "px " ) +
           (  attr2attrVal["filters" + i + "Y" ].transitionCalcVal  + "px " ) +
           ( attr2attrVal["filters" + i + "Blur" ].transitionCalcVal + "px " ) +
-          ( ( attr2attrVal["filters" + i + "Spread" ] !== undefined ? attr2attrVal[ "filters" + i + "Spread" ].transitionCalcVal : 0 ) + "px " ) +
+    //      ( ( attr2attrVal["filters" + i + "Spread" ] !== undefined ? attr2attrVal[ "filters" + i + "Spread" ].transitionCalcVal : 0 ) + "px " ) +
           (  attr2attrVal["filters" + i + "Color" ].transitionCalcVal.stringify() ) +
           ") ";
           break;
@@ -2064,7 +2109,7 @@ bottom: -0.25em;
 
       }
     }
-    this.node.style.filter = s;
+    this.node.style[ cssPrefix + "filter" ] = s;
 
   };
 
@@ -2132,8 +2177,6 @@ bottom: -0.25em;
       this.node.style.display = "inline";
       this.node.style.width = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      console.log(this.level, "WTXT",
-        this.node.getBoundingClientRect());
 
       this.level.$changeAttrVal( "$naturalWidth", this.node.getBoundingClientRect().width );
       this.node.style.display = "block";
@@ -2142,8 +2185,6 @@ bottom: -0.25em;
     if ( this.$naturalHeightTextMode ) {
       this.node.style.height = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      console.log(this.level, "HTXT",
-        this.node.getBoundingClientRect());
 
       this.level.$changeAttrVal( "$naturalHeight", this.node.getBoundingClientRect().height );
       this.$naturalHeightTextMode = false;
@@ -3008,12 +3049,16 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
     return this;
   };
 
+
+
   LAID.Take.prototype.format = function () {
 
-    var argS = Array.prototype.slice.call( arguments );
+    var argS = Array.prototype.slice.call( arguments ),
+      takeFormat = new LAID.Take( LAID.$format );
 
+    argS.unshift( this );
 
-    return new LAID.Take(LAID.$format).fn.apply( this, argS);
+    return takeFormat.fn.apply( takeFormat, argS );
 
     // Add the `format` function
     //argS.push(LAID.$format);
@@ -3026,11 +3071,14 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
   LAID.Take.prototype.i18nFormat = function () {
 
-    this._relPath00attr_S.push( [ '/', 'data.lang' ] );
+    this._relPath00attr_S.push( [ new LAID.RelPath( '/' ), 'data.lang' ] );
 
-    var argS = Array.prototype.slice.call(arguments);
+    var argS = Array.prototype.slice.call(arguments),
+      takeFormat = new LAID.Take( fnWrapperI18nFormat );
 
-    return new LAID.Take(i18nFormat).fn.apply( this, argS);
+    argS.unshift( this );
+
+    return takeFormat.fn.apply( takeFormat, argS);
 
     // Add the `i18nFormat` function
     //argS.push(i18nFormat);
@@ -3038,11 +3086,14 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
 
   };
 
-  function i18nFormat () {
+  function fnWrapperI18nFormat () {
 
     var argS = Array.prototype.slice.call( arguments );
-
     argS[ 0 ] = ( argS[ 0 ] )[ LAID.level( '/' ).attr( 'data.lang' ) ];
+
+    if ( argS[ 0 ] === undefined ) {
+      throw "LAID Error: No language defined for i18nFormat";
+    }
 
     return LAID.$format.apply( undefined, argS );
 
@@ -3108,6 +3159,29 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
         return oldExecutable.call( this ).copy().darken( val );
       };
     }
+    return this;
+
+  };
+
+
+  LAID.Take.prototype.colorStringify = function ( ) {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().stringify( );
+    };
+
+    return this;
+
+  };
+
+  LAID.Take.prototype.colorInvert = function ( ) {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().invert();
+    };
+
     return this;
 
   };
@@ -3307,7 +3381,6 @@ LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
       if ( arg instanceof LAID.Take ) {
 
         this.$mergePathAndProps( arg );
-
         this.executable = function () {
 
           return fnExecutable.call( this ).call( this, arg.execute( this ) );
@@ -3878,7 +3951,7 @@ return this.curTime >= this.duration;
 
   LAID.rgb = function ( r, g, b ) {
 
-    return LAID.rgb( r, g, b, 1 );
+    return LAID.rgba( r, g, b, 1 );
 
   };
 
@@ -4905,8 +4978,7 @@ function fix_stopPropagation() {
 
         // result contians the formattable string
         result = argS[ 0 ];
-
-        for ( i = 0; i < argSLength; i++ ) {
+        for ( i = 1; i < argSLength; i++ ) {
           if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
             result = new Formatter(RegExp.$1).format(result, argS[ i ] );
           }
@@ -4928,7 +5000,7 @@ function fix_stopPropagation() {
         midColor;
 
 
-      var x = new LAID.Color( "rgb", {
+      return new LAID.Color( "rgb", {
         r: Math.round( startColorRgbaDict.r +
           fraction * ( endColorRgbaDict.r - startColorRgbaDict.r )
         ),
@@ -4942,8 +5014,6 @@ function fix_stopPropagation() {
         fraction * ( endColorRgbaDict.a - startColorRgbaDict.a )
       ) );
 
-      console.log(x);
-      return x;
 
   };
 
@@ -5444,7 +5514,10 @@ function fix_stopPropagation() {
   */
   function checkIsValidStateName( stateName ) {
 
-    return ( ( /^[\w\-]+$/ ).test( stateName ) ) && ( ( [ "root", "transition", "data", "when", "state" ] ).indexOf( stateName ) === -1 );
+    return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
+    ( ( [ "root", "transition", "data", "when", "state",
+     "inherits", "observe", "interface", "many" ] ).
+    indexOf( stateName ) === -1 );
   }
 
   LAID.$normalize = function( lson, isExternal ) {

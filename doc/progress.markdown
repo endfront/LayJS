@@ -4,7 +4,8 @@
 
 
 Current:
-  - transition of color
+  - check initialized of attrval
+  - test format and i18nformat
   - remove kickback priority
   - check if inherit is an array
   - remove "$$num.when.undefined"

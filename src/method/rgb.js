@@ -4,7 +4,7 @@
 
   LAID.rgb = function ( r, g, b ) {
 
-    return LAID.rgb( r, g, b, 1 );
+    return LAID.rgba( r, g, b, 1 );
 
   };
 

@@ -11,7 +11,10 @@
   */
   function checkIsValidStateName( stateName ) {
 
-    return ( ( /^[\w\-]+$/ ).test( stateName ) ) && ( ( [ "root", "transition", "data", "when", "state" ] ).indexOf( stateName ) === -1 );
+    return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
+    ( ( [ "root", "transition", "data", "when", "state",
+     "inherits", "observe", "interface", "many" ] ).
+    indexOf( stateName ) === -1 );
   }
 
   LAID.$normalize = function( lson, isExternal ) {

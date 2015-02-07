@@ -366,6 +366,8 @@ Psuedo-Defaults:
         x: number (in pixels),
         y: number (in pixels),
         blur: number (in pixels),
+        spread: number (in pixel) [ currently disabled due
+        to lack of browser support],
         color: LAID.Color
       } |
       grayscale: number (in fraction (percent)) |

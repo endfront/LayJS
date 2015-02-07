@@ -9,7 +9,7 @@
         midColor;
 
 
-      var x = new LAID.Color( "rgb", {
+      return new LAID.Color( "rgb", {
         r: Math.round( startColorRgbaDict.r +
           fraction * ( endColorRgbaDict.r - startColorRgbaDict.r )
         ),
@@ -23,8 +23,6 @@
         fraction * ( endColorRgbaDict.a - startColorRgbaDict.a )
       ) );
 
-      console.log(x);
-      return x;
 
   };
 

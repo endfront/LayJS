@@ -16,6 +16,7 @@
     this.valUsedForLastRecalculation = undefined;
     this.isTaken = undefined;
     this.attr = attr;
+    this.isRecalculateRequired = true;
 
     this.calcVal = undefined;
     this.transitionCalcVal = undefined;
@@ -110,6 +111,7 @@
   * to recalculate this AttrVal.
   */
   LAID.AttrVal.prototype.requestRecalculation = function () {
+    this.isRecalculateRequired = true;
     this.level.$addRecalculateDirtyAttrVal( this );
   };
 
@@ -136,11 +138,16 @@
 
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
-        if ( !this.take() ) {
-          return false;
-        }
+        this.isTaken = this.take();
+        // if the attrval has not been taken
+        // as yet then there is chance that
+        // the giver attrval has not been
+        // initialized as yet. Thus we
+        // skip a round of solving to
+        // let the other attrvals complete calculation
+        return false;
+
       }
-      this.isTaken = true;
 
       reCalc = this.val.execute( this.level );
       if ( reCalc !== this.calcVal ) {
@@ -226,6 +233,7 @@
         }
       }
     }
+    this.isRecalculateRequired = false;
     return true;
   };
 
@@ -284,9 +292,14 @@
         if ( level === undefined ) {
           return false;
         }
-        if ( ( level.$attr2attrVal[ attr ] === undefined ) &&
-          ( !level.$createLazyAttr( attr ) ) )  {
-          return false
+
+        if ( ( level.$attr2attrVal[ attr ] === undefined ) )  {
+          level.$createLazyAttr( attr );
+          return false;
+        }
+
+        if ( level.$attr2attrVal[ attr ].isRecalculateRequired ) {
+          return false;
         }
       }
 

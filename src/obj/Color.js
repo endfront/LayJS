@@ -42,7 +42,7 @@
         if ( this.a === 1 ) {
           return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
         } else {
-          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + this.a + ")";
+          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," + this.a + ")";
         }
       }
 
@@ -61,8 +61,8 @@
   LAID.Color.prototype.copy = function () {
 
     return this.format === "rgb" ?
-    new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
-    new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
+      new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
+      new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
 
   };
 
@@ -124,6 +124,7 @@
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
   LAID.Color.prototype.green = function ( val ) {
@@ -137,6 +138,7 @@
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
   LAID.Color.prototype.blue = function ( val ) {
@@ -150,6 +152,7 @@
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
   LAID.Color.prototype.hue = function ( val ) {
@@ -163,6 +166,7 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.saturation = function ( val ) {
@@ -176,6 +180,7 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.lightness = function ( val ) {
@@ -189,12 +194,14 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
 
   /* Sets alpha */
   LAID.Color.prototype.alpha = function ( alpha ) {
     this.a = alpha;
+    return this;
   };
 
   LAID.Color.prototype.darken = function ( fraction ) {
@@ -209,6 +216,7 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.lighten = function ( fraction ) {
@@ -223,6 +231,7 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.saturate = function ( fraction ) {
@@ -237,6 +246,7 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.desaturate = function ( fraction ) {
@@ -251,11 +261,13 @@
       this.g = rgb.g;
       this.b = rgb.b;
     }
+    return this;
   };
 
   LAID.Color.prototype.grayscale = function ( ) {
 
     this.desaturate( 1 );
+    return this;
 
   };
 
@@ -278,6 +290,7 @@
       this.s = hsl.s;
       this.l = hsl.l;
     }
+    return this;
   };
 
 
@@ -337,11 +350,6 @@
     return p;
   }
 
-
-
-
-
-  ///more! check spec for supported colors (including transparent)
 
 
 })();

@@ -1,4 +1,7 @@
 LAID.run( {
+  data: {
+    lang: "en"
+  },
   children: {
     "Header": {
       props: {
@@ -12,22 +15,13 @@ LAID.run( {
             left: 30,
             width:20,
             centerY: LAID.take( "../", "height").divide(2),
-            filters: [
-              {type:"dropShadow",
-              x: 10, y:10, blur:10, color:LAID.color("red")}
-
-            ]
-
           },
           states: {
             hovered: {
               onlyif: LAID.take("this", "$hovered"),
               props: {
                 opacity:1,
-                boxShadows: [
-                  { x:10,y:10,blur:5, color:LAID.color("blue") },
-                  //{ x:1,y:10,blur:5, color:LAID.color("blue") }
-                ]
+
 
               },
               transition: {
@@ -89,40 +83,34 @@ LAID.run( {
             textPadding:20,
             textSize: 30,
             textLetterSpacing:1
-          },
-          when: {
-              click: [
-                function () {
-                  console.log("fuck");
-                }
-              ]
-          },
+          }
         }
       },
     },
     "Body": {
       props: {
-        width: LAID.take("../", 'width').divide(2),
+        width: LAID.take("../", 'width'),
         top: LAID.take("../Header", "bottom"),
         right:LAID.take("../", "width"),
         height: LAID.take("../Header", "height").multiply(3),
         backgroundColor: LAID.color("gainsboro"),
         overflowY: "auto",
-        scrollY: 100
+        scrollY: 0
 
       },
       states: {
         bottom: {
-          onlyif: LAID.take("this", "$clicked"),
+        //  onlyif: LAID.take("this", "$clicked"),
           props: {
-            //scrollY: 0
+            scrollY: LAID.take("this", "bottom")
           }
         }
       },
       children: {
         "Option1": {
           props: {
-            width:100,
+            width:LAID.take("../", 'width').subtract(20),
+            centerX: LAID.take("../","width").divide(2),
             height:150,
             backgroundColor:LAID.color("blue")
           }
@@ -131,8 +119,34 @@ LAID.run( {
           inherits: ["../Option1"],
           props: {
             top: LAID.take("../Option1", "height").add(10),
-            backgroundColor:LAID.color("red"),
-            text: LAID.take("../", "$scrolledX")
+            backgroundColor:LAID.take("this", "textColor").colorInvert(),
+            textColor:LAID.color("blue").green(100),
+            text: LAID.take({
+              "en": "number: %s",
+              "zh": "li: %s"
+            }).i18nFormat(LAID.take("this", "backgroundColor").colorStringify())
+          },
+          states: {
+            angry: {
+            //  onlyif:LAID.take(true),
+              props: {
+
+                background: {
+                  color: LAID.rgb(255,100,200)
+                }
+              }
+            }
+          },
+          when: {
+            click: [
+              function () {
+                if (LAID.level("/").attr("data.lang") === "en") {
+                  LAID.level("/").data("lang", "zh");
+                } else {
+                  LAID.level("/").data("lang", "en");
+                }
+              }
+            ]
           }
         }
       }

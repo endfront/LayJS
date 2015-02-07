@@ -339,7 +339,7 @@
     var
      readonlyDefaultVal = LAID.$getReadonlyAttrDefaultVal( attr ),
      splitAttrLsonComponentS, attrLsonComponentObj, i, len;
-     console.log("create laz", attr);
+
     if ( readonlyDefaultVal !== undefined ) {
 
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
@@ -352,13 +352,22 @@
             this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
               break;
           case "$naturalWidth":
+            // temporarily (for current recalculate) cycle
+            // set the value to 0. This is only
+            // relevant for text based natural widths
+            // as a render cycle is required for learning
+            // the natural width
+            this.$attr2attrVal[ attr ].update( 0 );
             this.$updateNaturalWidth();
             break;
           case "$naturalHeight":
+            // read the above comment for natural width
+            this.$attr2attrVal[ attr ].update( 0 );
             this.$updateNaturalHeight();
             break;
         }
       } else {
+
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
 
       }
@@ -372,18 +381,30 @@
           this.$attr2attrVal[ attr ].update( undefined );
         } else {
           splitAttrLsonComponentS = attr.split( "." );
+
           if ( this.$lson.states === undefined ) {
             return false;
           } else {
+
             if ( attr.startsWith("root.") ) {  // "root." state
               attrLsonComponentObj = this.$lson;
-              splitAttrLsonComponentS.shift();
+
             } else { // non root state
-              attrLsonComponentObj = this.$lson.states;
+              attrLsonComponentObj = this.$lson.states[
+               splitAttrLsonComponentS[ 0 ] ];
             }
+            // rempve the state part of the attr components
+            splitAttrLsonComponentS.shift();
+            if ( (["when", "transition", "$$num", "$$max", "type",
+                "inherits", "data", "observe", "interface", "many"]).
+              indexOf( splitAttrLsonComponentS[ 0 ] ) === -1 ) {
+                attrLsonComponentObj = attrLsonComponentObj.props;
+              }
+
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
                attrLsonComponentObj[ splitAttrLsonComponentS[ i ] ];
+
               if ( attrLsonComponentObj === undefined ) {
                 break;
               }
@@ -421,8 +442,8 @@
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-        console.log( "\trecalculate", this.path, isSolveProgressed,
-          recalculateDirtyAttrValS[ i ]);
+        //console.log( "\trecalculate", this.path, isSolveProgressed,
+        //  recalculateDirtyAttrValS[ i ]);
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -536,7 +557,8 @@
 
 
   LAID.Level.prototype.attr = function ( attr ) {
-    return this.$attr2attrVal[ attr ].calcVal;
+    return this.$attr2attrVal[ attr ] ?
+      this.$attr2attrVal[ attr ].calcVal : undefined;
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -620,7 +642,6 @@
       this.$updateNaturalHeightFromText();
     } else {
       this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom" );
-      console.log("\t\tPh", this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal);
 
       this.$attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
@@ -794,7 +815,7 @@
   LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
 
     var
-    numFnHandlersForEventType = this.$attr2attrVal[ "$$num.when." + eventType ].value,
+    numFnHandlersForEventType = this.$attr2attrVal[ "$$num.when." + eventType ].val,
     fnMainHandler,
     thisLevel = this;
 
@@ -803,6 +824,7 @@
     }
 
     if ( numFnHandlersForEventType !== 0 ) {
+
       fnMainHandler = function ( e ) {
         var i, len, attrValForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
@@ -935,7 +957,8 @@
           transitionDelay ,
           transitionDuration, transitionArg2val,
           transitionDone );
-    } else { // else delete the transition
+    } else if ( attrVal !== undefined ) { // else delete the transition
+
       attrVal.transition = undefined;
     }
   }

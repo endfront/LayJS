@@ -285,14 +285,14 @@
     i, len,
     filterType;
     for ( i = 1, len = attr2attrVal[ "$$max.filters" ].calcVal ; i <= len; i++ ) {
-      filterType = attr2attrVal[ "filters" + i + "Type" ];
+      filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;
       switch ( filterType ) {
         case "dropShadow":
-          s +=  "dropShadow(" +
+          s +=  "drop-shadow(" +
           ( attr2attrVal["filters" + i + "X" ].transitionCalcVal + "px " ) +
           (  attr2attrVal["filters" + i + "Y" ].transitionCalcVal  + "px " ) +
           ( attr2attrVal["filters" + i + "Blur" ].transitionCalcVal + "px " ) +
-          ( ( attr2attrVal["filters" + i + "Spread" ] !== undefined ? attr2attrVal[ "filters" + i + "Spread" ].transitionCalcVal : 0 ) + "px " ) +
+    //      ( ( attr2attrVal["filters" + i + "Spread" ] !== undefined ? attr2attrVal[ "filters" + i + "Spread" ].transitionCalcVal : 0 ) + "px " ) +
           (  attr2attrVal["filters" + i + "Color" ].transitionCalcVal.stringify() ) +
           ") ";
           break;
@@ -310,7 +310,7 @@
 
       }
     }
-    this.node.style.filter = s;
+    this.node.style[ cssPrefix + "filter" ] = s;
 
   };
 
@@ -378,8 +378,6 @@
       this.node.style.display = "inline";
       this.node.style.width = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      console.log(this.level, "WTXT",
-        this.node.getBoundingClientRect());
 
       this.level.$changeAttrVal( "$naturalWidth", this.node.getBoundingClientRect().width );
       this.node.style.display = "block";
@@ -388,8 +386,6 @@
     if ( this.$naturalHeightTextMode ) {
       this.node.style.height = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      console.log(this.level, "HTXT",
-        this.node.getBoundingClientRect());
 
       this.level.$changeAttrVal( "$naturalHeight", this.node.getBoundingClientRect().height );
       this.$naturalHeightTextMode = false;
