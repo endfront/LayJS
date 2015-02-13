@@ -103,6 +103,7 @@
     perspectiveOriginY: 0.5,
     backfaceVisibility: false,
     opacity:1.0,
+    zIndex: "auto",
     overflowX: "hidden",
     overflowY: "hidden",
     scrollX: 0,

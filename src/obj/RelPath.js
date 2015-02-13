@@ -25,39 +25,29 @@
            (this.numberOfParentTraversals) * 3 ) );
 
       }
-  }
-
-};
-
-LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
-
-  if ( this.me ) {
-
-    return referenceLevel;
-
-  } else {
-
-    if ( this.absolute ) {
-
-        return LAID.$path2level[ this.absolutePath ];
-
-    } else {
-
-      for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
-
-      }
-
-
-      
-        return ( this.childPath === "" ) ? referenceLevel :
-            LAID.$path2level[ referenceLevel.path +
-            ( ( referenceLevel.path === "/" ) ? "" : "/" )+
-            this.childPath ];
     }
 
-  }
+  };
 
-};
+
+  LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
+
+    if ( this.me ) {
+      return referenceLevel;
+    } else {
+      if ( this.absolute ) {
+          return LAID.$path2level[ this.absolutePath ];
+      } else {
+        for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        }
+
+          return ( this.childPath === "" ) ? referenceLevel :
+              LAID.$path2level[ referenceLevel.path +
+              ( ( referenceLevel.path === "/" ) ? "" : "/" )+
+              this.childPath ];
+      }
+    }
+  };
 
 
 

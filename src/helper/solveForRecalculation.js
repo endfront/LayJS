@@ -2,6 +2,7 @@
   "use strict";
   LAID.$solveForRecalculation = function () {
 
+
     var i, j, len, jLen,
     isSolveProgressed,
     ret,

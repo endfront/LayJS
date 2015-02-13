@@ -40,6 +40,7 @@
     var rootProp2val, stateProp2val, stateName2state, stateName,
     multipleTypeProp, multipleTypePropNumName;
 
+
     //key2fnNormalize.type( lson );
     key2fnNormalize.inherits( lson );
     key2fnNormalize.many( lson );
@@ -177,6 +178,10 @@
     inherits: function ( lson ) {
 
       checkAndThrowErrorAttrAsTake( "inherits", lson.inherits );
+      if ( ( lson.inherits !== undefined ) &&
+        LAID.type( lson.inherits ) !== "array" ) {
+          lson.inherits = [ lson.inherits ];
+        }
 
     },
 
@@ -258,8 +263,9 @@
 
   when: function ( lson ) {
 
-    if ( lson.when !== undefined ) {
-
+    if ( lson.when === undefined ) {
+      lson.when = {};
+    } else {
       checkAndThrowErrorAttrAsTake( "when", lson.when );
 
       var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
@@ -293,7 +299,9 @@ if ()
   transition: function( lson ) {
 
 
-    if ( lson.transition !== undefined ) {
+    if ( lson.transition === undefined ) {
+      lson.transition = {};
+    } else {
       var transitionProp, transitionDirective,
       transitionArgKey2val, transitionArgKey, transitionArgKeyS,
       transition = lson.transition,

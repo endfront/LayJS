@@ -4,13 +4,12 @@
   var
   shorthandProp2_longhandPropS_,
   longhandPropS,
-  centeralizedShorthandPropS
-  ;
+  centeralizedShorthandPropS;
 
   shorthandProp2_longhandPropS_ = {
-    positional: [
-    "left", /*"centerX", "right",*/
-    "top", /*"centerY", "bottom",*/
+
+    positional: [ "left",
+    "top",
     "z",
     "shiftX", "shiftY",
     "scaleX", "scaleY", "scaleZ",
@@ -20,8 +19,6 @@
     origin: [ "originX", "originY" ],
     backgroundPosition: [ "backgroundPositionX", "backgroundPositionY" ],
     backgroundSize: [ "backgroundSizeX", "backgroundSizeY" ],
-
-
 
 
     borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],

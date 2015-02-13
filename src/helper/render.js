@@ -59,7 +59,8 @@
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
           if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
-            renderDirtyTransition.delay -= timeFrameDiff ;
+            renderDirtyTransition.delay -= timeFrameDiff;
+            isAttrTransitionComplete = false;
           } else {
             if ( !renderDirtyTransition.checkIsComplete() ) {
               isAttrTransitionComplete = false;
@@ -84,7 +85,6 @@
               renderDirtyAttrVal.transition = undefined;
             }
           }
-
         }
 
         if ( isAttrTransitionComplete ) {
@@ -116,7 +116,7 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("$renderFn_" + renderCallS[ i ]);
+        //console.log("render call: ", renderCallS[ i ] );
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 

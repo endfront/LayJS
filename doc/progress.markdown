@@ -4,15 +4,17 @@
 
 
 Current:
-  - check initialized of attrval
-  - test format and i18nformat
-  - remove kickback priority
-  - check if inherit is an array
-  - remove "$$num.when.undefined"
-  - test transition and state
+  - rotate not wokring
+  - check if transition is actually completed in a delay onyl transition such as zindex
+  - transition of TEXT when app has started!
+  - update spec about  "gpu" and "all",
+      and possibly remove "filters" and "positional"
+  - update spec to have quotes around state names
+  - transition spring
   - $absoluteLeft/Top
-  - Insert CSS from entry.js
   - dataTravel
+  - change name of 'valUsedForLastRecalculation' to 'prevVal'
+  - introduce "all" transition and "all_minus_color"
 
 
 
@@ -81,7 +83,7 @@ Tests:
 
 
 Future:
-  - Temporarily skip recalculate if there are no takers (think LAID observe key)
+  - Insert CSS from entry.js (normalize.css CSS)
   - move `eventReadonlyEventType2boundFnHandler` outside of AttrVal (move to Level) to save space
   - Add/interface HTML history module support
   - change 'audio/videoControl"s"' to 'audio/videoControl' to respect naming convention of props?

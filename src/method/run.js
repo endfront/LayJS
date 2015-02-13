@@ -6,17 +6,16 @@
     var
       rootLevel;
 
-    rootLson.props  = rootLson.props || {};
 
-    rootLson.props.width = window.innerWidth;
-    rootLson.props.height = window.innerHeight;
+
+    //rootLson.props.width = window.innerWidth;
+    //rootLson.props.height = window.innerHeight;
 
     rootLevel = new LAID.Level( "/", rootLson, undefined );
     rootLevel.$init();
     LAID.$newLevelS = [ rootLevel ];
 
     window.onresize = updateSize;
-
 
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
@@ -27,8 +26,8 @@
 
     var rootLevel = LAID.$path2level[ "/" ];
 
-    rootLevel.$changeAttrVal( "width", window.innerWidth );
-    rootLevel.$changeAttrVal( "height", window.innerHeight );
+    rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
+    rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
     LAID.$solveForRecalculation();
 
   }

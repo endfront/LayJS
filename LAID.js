@@ -292,7 +292,7 @@ bottom: -0.25em;
       }
 
       if ( this.renderCall ) {
-        level.$addRenderDirtyAttrVal( this, false );
+        level.$addRenderDirtyAttrVal( this );
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
         )  {
@@ -447,6 +447,35 @@ bottom: -0.25em;
       }
     }
 
+  };
+
+  LAID.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
+
+
+
+    if ( !attrVal ) {
+      return false;
+    } else if ( attrVal === this ) {
+      return true;
+    } else {
+
+      var _relPath00attr_S, i, len, level;
+
+      if ( !( this.val instanceof LAID.Take ) ) {
+        return false;
+      } else {
+        _relPath00attr_S = this.val._relPath00attr_S;
+        for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+          level = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
+          if ( level &&
+             ( level.$getAttrVal( _relPath00attr_S[ i ][ 1 ] ).checkIsDependentOnAttrVal( attrVal ) ) ) {
+               return true;
+             }
+        }
+
+        return false;
+      }
+    }
   };
 
 
@@ -1041,7 +1070,7 @@ bottom: -0.25em;
         attr2val[ transitionPropPrefix + "done" ] = transitionDirective.done;
       }
       if ( transitionDirective.args !== undefined ) {
-        initAttrsObj( transitionPropPrefix, transitionDirective.args, attr2val );
+        initAttrsObj( transitionPropPrefix + "args.", transitionDirective.args, attr2val );
       }
     }
 
@@ -1150,7 +1179,6 @@ bottom: -0.25em;
     var
      readonlyDefaultVal = LAID.$getReadonlyAttrDefaultVal( attr ),
      splitAttrLsonComponentS, attrLsonComponentObj, i, len;
-
     if ( readonlyDefaultVal !== undefined ) {
 
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
@@ -1163,17 +1191,12 @@ bottom: -0.25em;
             this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
               break;
           case "$naturalWidth":
-            // temporarily (for current recalculate) cycle
-            // set the value to 0. This is only
-            // relevant for text based natural widths
-            // as a render cycle is required for learning
-            // the natural width
-            this.$attr2attrVal[ attr ].update( 0 );
+
+
             this.$updateNaturalWidth();
             break;
           case "$naturalHeight":
-            // read the above comment for natural width
-            this.$attr2attrVal[ attr ].update( 0 );
+
             this.$updateNaturalHeight();
             break;
         }
@@ -1393,53 +1416,65 @@ bottom: -0.25em;
 
   };
 
-  /*
-  * `isKickedBack` represents putting the level at the end
-  * of the current lsit of render dirty levels.
-  * This is useful for having properites such as "scrollX/Y"
-  * execute after the corresponding child levels complete
-  * all render chaneges.
-  */
-  LAID.Level.prototype.$addRenderDirtyAttrVal = function ( attrVal,
-      isKickedBack ) {
+  LAID.Level.prototype.$addRenderDirtyAttrVal = function ( attrVal ) {
 
     LAID.$arrayUtils.pushUnique( this.$renderDirtyAttrValS, attrVal );
-    if ( isKickedBack ) {
-      LAID.$arrayUtils.remove( LAID.$renderDirtyLevelS, this );
-    }
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
 
   };
 
 
-  LAID.Level.prototype.$findChildWithMaxOfAttr = function ( attr ) {
+  /*
+  * Additional constraint of not being dependent upon
+  * parent for the attr
+  */
+  LAID.Level.prototype.$findChildWithMaxOfAttr = function ( attr, attrValIndependentOf ) {
     var
       i, len, curMaxVal, curMaxLevel,
        childLevelS = this.$childLevelS,
        childLevel, childLevelAttrVal;
     for ( i = 0, len = childLevelS.length; i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
-      if ( ( curMaxLevel === undefined ) &&
-        ( childLevelAttrVal !== undefined ) &&
-        ( ! LAID.$checkIsNan( childLevelAttrVal.calcVal ) ) ) {
-        curMaxLevel = childLevel;
-        curMaxVal = childLevelAttrVal.calcVal;
-      } else if ( ( childLevelAttrVal !== undefined ) &&
-      // no need to check for nan because a number
-      // comparisor with NaN will always result in false
-       ( childLevelAttrVal.calcVal > curMaxVal ) ) {
-        curMaxLevel = childLevel;
+        childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
+        if (
+          ( childLevelAttrVal !== undefined ) &&
+          ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
+          ! ( childLevelAttrVal.checkIsDependentOnAttrVal( attrValIndependentOf ) ) ) {
+
+          if ( curMaxLevel === undefined ) {
+            curMaxLevel = childLevel;
+            curMaxVal = childLevelAttrVal.calcVal;
+          } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
+            curMaxLevel = childLevel;
+          }
       }
     }
     return curMaxLevel;
   };
 
+  /*
+  * Example: if a child level's "height" is its parent's "height", then
+  * it is dependent upon its parent for the attr "height"
+  */
+  /*LAID.Level.prototype.$checkIsDependentOnParentForAttr = function ( attr ) {
+    //return false;
+    var attrVal = this.$attr2attrVal[ attr ];
+
+    if ( !attrVal ) {
+      return false;
+    } else {
+      return attrVal.checkIsDependentOnAttrVal( this.parentLevel.$getAttrVal( attr ) )
+    }
+  }*/
+
   LAID.Level.prototype.$updateNaturalWidth = function () {
-    if ( this.$lson.type === "text" ) {
+    if ( this.path === "/" ) {
+      this.$attr2attrVal.$naturalWidth.update( window.innerWidth );
+    } else if ( this.$lson.type === "text" ) {
       this.$updateNaturalWidthFromText();
     } else {
-      this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right" );
+      this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
+      this.$attr2attrVal.$naturalWidth);
       this.$attr2attrVal.$naturalWidth.update(
           this.$naturalWidthLevel ?
          ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
@@ -1449,10 +1484,13 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.$updateNaturalHeight = function () {
-    if ( this.$lson.type === "text" ) {
+    if ( this.path === "/" ) {
+      this.$attr2attrVal.$naturalHeight.update( window.innerHeight );
+    } else if ( this.$lson.type === "text" ) {
       this.$updateNaturalHeightFromText();
     } else {
-      this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom" );
+      this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
+      this.$attr2attrVal.$naturalHeight);
 
       this.$attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
@@ -1479,7 +1517,11 @@ bottom: -0.25em;
   LAID.Level.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
 
     if ( this.$attr2attrVal.$naturalWidth &&
-      ! LAID.$checkIsNan( childLevel.$attr2attrVal.right.calcVal ) ) {
+      ( this.path !== "/" ) &&
+      ! LAID.$checkIsNan( childLevel.$attr2attrVal.right.calcVal ) &&
+      ! childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
+        this.$attr2attrVal.$naturalWidth)
+      ) {
 
       if ( this.$naturalWidthLevel === undefined ) {
         this.$naturalWidthLevel = childLevel;
@@ -1495,7 +1537,8 @@ bottom: -0.25em;
            childLevel.$attr2attrVal.right.calcVal  ) {
           // Find the child with the next largest right
           // This could be the same child level
-          this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right" );
+          this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
+          this.$attr2attrVal.$naturalWidth);
         }
       } else {
         if ( childLevel.$attr2attrVal.right.calcVal >
@@ -1516,7 +1559,11 @@ bottom: -0.25em;
   LAID.Level.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
 
     if ( this.$attr2attrVal.$naturalHeight &&
-       !LAID.$checkIsNan( childLevel.$attr2attrVal.bottom.calcVal ) ) {
+        ( this.path !== "/" ) &&
+       !LAID.$checkIsNan( childLevel.$attr2attrVal.bottom.calcVal ) &&
+       !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
+         this.$attr2attrVal.$naturalHeight) )
+       ) {
 
       if ( this.$naturalHeightLevel === undefined ) {
         this.$naturalHeightLevel = childLevel;
@@ -1531,7 +1578,8 @@ bottom: -0.25em;
            childLevel.$attr2attrVal.bottom.calcVal  ) {
           // Find the child with the next largest bottom
           // This could be the same child level
-          this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom" );
+          this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
+          this.$attr2attrVal.$naturalHeight);
         }
       } else {
         if ( childLevel.$attr2attrVal.bottom.calcVal >
@@ -1539,7 +1587,6 @@ bottom: -0.25em;
             this.$naturalHeightLevel = childLevel;
           }
         }
-
 
 
       this.$attr2attrVal.$naturalHeight.update(
@@ -1553,23 +1600,36 @@ bottom: -0.25em;
   LAID.Level.prototype.$updateNaturalWidthFromText = function () {
 
     if ( this.$attr2attrVal.$naturalWidth ) {
+
         this.part.$naturalWidthTextMode = true;
-        this.$addRenderDirtyAttrVal( this.$attr2attrVal.text, false );
+        this.$addRenderDirtyAttrVal( this.$attr2attrVal.text );
 
         if ( this.$attr2attrVal.scrollX !== undefined ) {
-          this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
+          this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
         }
+        // temporarily (for current recalculate) cycle
+        // set the value to 0. This is only
+        // as a render cycle is required for learning
+        // the natural width
+        this.$attr2attrVal.$naturalWidth.update( 0 );
+
     }
   };
 
   LAID.Level.prototype.$updateNaturalHeightFromText = function () {
     if ( this.$attr2attrVal.$naturalHeight) {
       this.part.$naturalHeightTextMode = true;
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.text, false );
+      this.$addRenderDirtyAttrVal( this.$attr2attrVal.text );
 
       if ( this.$attr2attrVal.scrollY !== undefined ) {
-        this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
+        this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
       }
+      // temporarily (for current recalculate) cycle
+      // set the value to 0. This is only
+      // as a render cycle is required for learning
+      // the natural height
+      this.$attr2attrVal.$naturalHeight.update( 0 );
+
     }
   };
 
@@ -1655,44 +1715,36 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.$checkIsPropInTransition = function ( prop ) {
-    return this.$attr2attrVal[ "transition." + prop  + ".type" ] !==
-      undefined;
+    return ( this.$attr2attrVal[ "transition." + prop  + ".type" ] !==
+      undefined )  ||
+      ( this.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
+        undefined );
   };
 
   LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
 
     var
-      origTransitionProp,
+      attr2attrVal = this.$attr2attrVal,
+      attr, attrVal,
       transitionPrefix,
       transitionType, transitionDuration, transitionDelay, transitionDone,
       transitionArgS, transitionArg2val = {},
       transitionObj,
       i, len,
-      longhandPropS,
-      affectedPropS,
-      affectedProp,
-      longhandAffectedProp, // (eg: when `top` changes but transition
+      allAffectedProp, // (eg: when `top` changes but transition
       //is provided by `positional`)
       affectedPropAttrVal;
 
-    if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( transitionProp ) !== -1  ) {
+    // TODO: change the below to a helper function
+    if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf(
+       transitionProp ) !== -1  ) {
       return;
     }
 
-
     if ( !this.$checkIsPropInTransition( transitionProp ) ) {
-      origTransitionProp = transitionProp;
-      transitionProp = LAID.$shorthandPropsUtils.getShorthandProp( transitionProp );
-      if ( transitionProp !== undefined ) {
-        if ( !this.$checkIsPropInTransition( transitionProp ) ) {
-          if ( this.$attr2attrVal[ transitionProp ] ) {
-            this.$attr2attrVal[ transitionProp ].transition = undefined;
-          }
-          return;
-        } else {
-          longhandAffectedProp = origTransitionProp;
-
-        }
+      if ( this.$checkIsPropInTransition( "all" ) ) {
+        allAffectedProp = transitionProp;
+        transitionProp = "all";
       } else {
         return;
       }
@@ -1701,39 +1753,49 @@ bottom: -0.25em;
 
     transitionPrefix = "transition." + transitionProp + ".";
 
-    transitionType = this.$attr2attrVal[ transitionPrefix + "type" ].calcVal;
+    transitionType =
+      attr2attrVal[ transitionPrefix + "type" ] ?
+      attr2attrVal[ transitionPrefix + "type" ].calcVal :
+      "linear";
+
     transitionDuration =
-      ( this.$attr2attrVal[ transitionPrefix + "duration" ] ?
-      this.$attr2attrVal[ transitionPrefix + "duration" ].calcVal :
+      ( attr2attrVal[ transitionPrefix + "duration" ] ?
+      attr2attrVal[ transitionPrefix + "duration" ].calcVal :
       0 );
     transitionDelay =
-      ( this.$attr2attrVal[ transitionPrefix + "delay" ] ?
-      this.$attr2attrVal[ transitionPrefix + "delay" ].calcVal :
+      ( attr2attrVal[ transitionPrefix + "delay" ] ?
+      attr2attrVal[ transitionPrefix + "delay" ].calcVal :
       0 );
     transitionDone =
-      ( this.$attr2attrVal[ transitionPrefix + "done" ] ?
-      this.$attr2attrVal[ transitionPrefix + "done" ].calcVal :
+      ( attr2attrVal[ transitionPrefix + "done" ] ?
+      attr2attrVal[ transitionPrefix + "done" ].calcVal :
       undefined );
-    transitionArgS = transitionType ?
+    transitionArgS = LAID.$transitionType2args[ transitionType ] ?
       LAID.$transitionType2args[ transitionType ] : [];
 
 
     for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
+
       transitionArg2val[ transitionArgS[ i ] ] = (
-         this.$attr2attrVal[ transitionPrefix + "arg." + transitionArgS[ i ] ] ?
-         this.$attr2attrVal[ transitionPrefix + "arg." + transitionArgS[ i ] ].calcVal :
-          [] );
+         attr2attrVal[ transitionPrefix + "args." + transitionArgS[ i ] ] ?
+         attr2attrVal[ transitionPrefix + "args." + transitionArgS[ i ] ].calcVal :
+          undefined );
     }
 
-    longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( transitionProp );
+    if ( !allAffectedProp && ( transitionProp === "all" ) ) {
 
-    if ( !longhandAffectedProp && longhandPropS !== undefined ) {
-      affectedPropS = longhandPropS;
-      for ( i = 0, len = affectedPropS.length; i < len; i++ ) {
-        affectedProp = affectedPropS[ i ];
-        if ( !this.$checkIsPropInTransition ) {
+      for ( attr in attr2attrVal ) {
+        attrVal = attr2attrVal[ attr ];
+        // Only invoke a transition if:
+        // (1) The prop is renderable (i.e has a render call)
+        // (2) The prop doesn't have a transition of its
+        //     own. For instance if "left" already has
+        //     a transition then we will not want to override
+        //     its transition with the lower priority "all" transition
+        if ( attrVal.renderCall &&
+            !this.$checkIsPropInTransition( attrVal.attr ) ) {
           this.$updateTransitionAttrVal(
-            this.$attr2attrVal[ affectedProp ],
+            attrVal,
              transitionType, transitionDelay, transitionDuration,
              transitionArg2val, transitionDone
            );
@@ -1741,8 +1803,9 @@ bottom: -0.25em;
         }
       }
     } else {
+
       this.$updateTransitionAttrVal(
-         this.$attr2attrVal[ longhandAffectedProp || transitionProp ],
+         attr2attrVal[ allAffectedProp || transitionProp ],
          transitionType, transitionDelay, transitionDuration,
          transitionArg2val, transitionDone
        );
@@ -1762,6 +1825,7 @@ bottom: -0.25em;
         ( attrVal !== undefined ) &&
         ( attrVal.transitionCalcVal !== undefined ) &&
         ( attrVal.calcVal !== undefined ) ) {
+
       attrVal.transition = new LAID.Transition (
           transitionType,
           attrVal.transitionCalcVal,
@@ -1987,6 +2051,13 @@ bottom: -0.25em;
     this.node.style.display = this.level.$attr2attrVal.display ?
     "block" : "none";
   };
+
+  LAID.Part.prototype.$renderFn_zIndex = function () {
+
+    this.node.style.zIndex =
+      this.level.$attr2attrVal.zIndex.transitionCalcVal || "auto";
+  };
+
 
   LAID.Part.prototype.$renderFn_scrollX = function () {
     this.node.scrollLeft = this.level.$attr2attrVal.scrollX.transitionCalcVal;
@@ -2485,39 +2556,29 @@ bottom: -0.25em;
            (this.numberOfParentTraversals) * 3 ) );
 
       }
-  }
-
-};
-
-LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
-
-  if ( this.me ) {
-
-    return referenceLevel;
-
-  } else {
-
-    if ( this.absolute ) {
-
-        return LAID.$path2level[ this.absolutePath ];
-
-    } else {
-
-      for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
-
-      }
-
-
-      
-        return ( this.childPath === "" ) ? referenceLevel :
-            LAID.$path2level[ referenceLevel.path +
-            ( ( referenceLevel.path === "/" ) ? "" : "/" )+
-            this.childPath ];
     }
 
-  }
+  };
 
-};
+
+  LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
+
+    if ( this.me ) {
+      return referenceLevel;
+    } else {
+      if ( this.absolute ) {
+          return LAID.$path2level[ this.absolutePath ];
+      } else {
+        for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        }
+
+          return ( this.childPath === "" ) ? referenceLevel :
+              LAID.$path2level[ referenceLevel.path +
+              ( ( referenceLevel.path === "/" ) ? "" : "/" )+
+              this.childPath ];
+      }
+    }
+  };
 
 
 
@@ -3618,14 +3679,14 @@ return this;
 ( function () {
   "use strict";
 
-  var transitionType2fn;
+  var transitionType2fn,
+    epsilon = 1e-6;
 
   LAID.Transition = function ( type, startCalcValue, delay, duration, args, done ) {
     this.startCalcValue = startCalcValue;
     this.done = done;
     this.delay = delay;
-    this.isStarted = false;
-    this.transition = new ( transitionType2fn[ type ] )( duration, args );
+    this.transition = ( transitionType2fn[ type ] )( duration, args );
 
   }
 
@@ -3653,33 +3714,118 @@ return this;
     return this.curTime >= this.duration;
   };
 
-  /*
-  function CubicBezierTransition ( startCalcVal, duration, delay, done, args ) {
+  function CubicBezierTransition ( duration, args ) {
 
-  this.startCalcVal = startCalcVal;
-  this.curTime = 0;
-  this.duration = duration;
-  this.done = done;
-  this.args = args;
+    this.curTime = 0;
+    this.duration = duration;
 
-}
+    this.cx = 3.0 * args.a;
+    this.bx = 3.0 * (args.c - args.a) - this.cx
+    this.ax = 1.0 - this.cx - this.bx
+    this.cy = 3.0 * args.b;
+    this.by = 3.0 * (args.d - args.b) - this.cy
+    this.ay = 1.0 - this.cy - this.by
 
-// TODO: complete the cubic bezier implementation
-CubicBezierTransition.prototype.generateNext = function ( delta ) {
-return ( this.duration / ( this.curTime += delta ) );
-};
+  }
 
-CubicBezierTransition.prototype.checkIsComplete = function () {
-return this.curTime >= this.duration;
-};
-*/
+
+  // source of cubic bezier code below:
+  // facebook pop framework & framer.js
+  CubicBezierTransition.prototype.generateNext = function ( delta ) {
+
+    return this.sampleCurveY( this.solveCurveX(
+       (this.curTime += delta) / this.duration
+    ) );
+
+  }
+
+  CubicBezierTransition.prototype.checkIsComplete = function () {
+    return this.curTime >= this.duration;
+  };
+
+
+  CubicBezierTransition.prototype.sampleCurveX = function ( t ) {
+    // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
+    return ((this.ax * t + this.bx) * t + this.cx) * t;
+  };
+
+  CubicBezierTransition.prototype.sampleCurveY = function ( t ) {
+    return ((this.ay * t + this.by) * t + this.cy) * t;
+  };
+
+  CubicBezierTransition.prototype.sampleCurveDerivativeX = function( t ) {
+    return (3.0 * this.ax * t + 2.0 * this.bx) * t + this.cx;
+  };
+
+  CubicBezierTransition.prototype.solveCurveX = function( x ) {
+      var t0, t1, t2, x2, d2, i;
+
+      // First try a few iterations of Newton's method -- normally very fast.
+      for ( t2 = x, i = 0; i < 8; i++ ) {
+        x2 = this.sampleCurveX( t2 ) - x;
+        if ( Math.abs( x2 ) < epsilon )
+          return t2;
+        d2 = this.sampleCurveDerivativeX( t2 );
+        if ( Math.abs( d2 ) < 1e-6 )
+          break;
+        t2 = t2 - x2 / d2;
+      }
+
+      // Fall back to the bisection method for reliability.
+      t0 = 0.0;
+      t1 = 1.0;
+      t2 = x;
+
+      if ( t2 < t0 )
+        return t0;
+      if ( t2 > t1 )
+        return t1;
+
+      while ( t0 < t1 ) {
+        x2 = this.sampleCurveX( t2 );
+        if ( Math.abs( x2 - x ) < epsilon )
+          return t2;
+        if ( x > x2 )
+          t0 = t2;
+        else
+          t1 = t2;
+        t2 = ( t1 - t0 ) * .5 + t0;
+      }
+
+      // Failure.
+      return t2;
+  };
+
+
+
   transitionType2fn = {
-    linear: function ( startCalcVal, duration, delay, done, args ) {
-      return new LinearTransition( startCalcVal, duration, delay, done, args );
+    linear: function ( duration, args ) {
+      return new LinearTransition( duration, args );
     },
-  /*  "cubic-bezier": function ( startCalcVal, duration, delay, done, args ) {
-      return new CubicBezierTransition( startCalcVal, duration, delay, done, args );
+    "cubic-bezier": function ( duration, args ) {
+      return new CubicBezierTransition( duration, args );
     },
+    ease: function ( duration, args ) {
+      return new CubicBezierTransition( duration, {
+        a: 0.25, b: 0.1, c: 0.25, d: 1
+      });
+    },
+    "ease-in": function ( duration, args ) {
+      return new CubicBezierTransition( duration, {
+        a: 0.42, b: 0, c: 1, d: 1
+      });
+    },
+    "ease-out": function ( duration, args ) {
+      return new CubicBezierTransition( duration, {
+        a: 0, b: 0, c: 0.58, d: 1
+      });
+    },
+    "ease-in-out": function ( duration, args ) {
+      return new CubicBezierTransition( duration, {
+        a: 0.42, b: 0, c: 0.58, d: 1
+      });
+    },
+    /*
     ease: function ( startCalcVal, duration, delay, done, args ) {
       return new CubicBezierTransition( startCalcVal, duration, delay, done, {
         a: 0.25, b: 0.1, c: 0.25, d: 1
@@ -3994,17 +4140,16 @@ return this.curTime >= this.duration;
     var
       rootLevel;
 
-    rootLson.props  = rootLson.props || {};
 
-    rootLson.props.width = window.innerWidth;
-    rootLson.props.height = window.innerHeight;
+
+    //rootLson.props.width = window.innerWidth;
+    //rootLson.props.height = window.innerHeight;
 
     rootLevel = new LAID.Level( "/", rootLson, undefined );
     rootLevel.$init();
     LAID.$newLevelS = [ rootLevel ];
 
     window.onresize = updateSize;
-
 
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
@@ -4015,8 +4160,8 @@ return this.curTime >= this.duration;
 
     var rootLevel = LAID.$path2level[ "/" ];
 
-    rootLevel.$changeAttrVal( "width", window.innerWidth );
-    rootLevel.$changeAttrVal( "height", window.innerHeight );
+    rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
+    rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
     LAID.$solveForRecalculation();
 
   }
@@ -4461,6 +4606,7 @@ return this.curTime >= this.duration;
     perspectiveOriginY: 0.5,
     backfaceVisibility: false,
     opacity:1.0,
+    zIndex: "auto",
     overflowX: "hidden",
     overflowY: "hidden",
     scrollX: 0,
@@ -4572,6 +4718,9 @@ return this.curTime >= this.duration;
         this.$changeAttrVal( "$clicked", true );
       },
       mouseup: function () {
+        this.$changeAttrVal( "$clicked", false );
+      },
+      mouseleave: function () {
         this.$changeAttrVal( "$clicked", false );
       },
       touchup: function () {
@@ -5142,8 +5291,7 @@ function fix_stopPropagation() {
           for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
 
             intoTransitionArgKey2val[ fromTransitionArgKey ] =
-              fromTransitionArgKey2val[ fromTransitionArgKey ] ||
-              intoTransitionArgKey2val[ fromTransitionArgKey ];
+              fromTransitionArgKey2val[ fromTransitionArgKey ];
           }
         }
       }
@@ -5217,7 +5365,6 @@ function fix_stopPropagation() {
           fromTransitionProp,
           intoTransitionProp,
           i, len,
-          longhandPropS, longhandProp,
           tmpTransition = {};
 
 
@@ -5226,27 +5373,18 @@ function fix_stopPropagation() {
         }
 
 
-        // longhand prop overwrite stage
-        //
-        // longhand props (such as "rotateX") are
-        // meant to have higher priority over its
-        // corresponding shorthand props ("positional" in this case)
-        // Albeit we place higher priority to shorthand
-        // props if they arise from "from"LSON.
+        // "all" prop overwrite stage
         //
         // Eg: "rotateX" partially/completely overwritten
-        // by "positional" where "rotateX" is present
-        // within "into"LSON and "positional" is present
+        // by "all" where "rotateX" is present
+        // within "into"LSON and "all" is present
         // within "from"LSON
 
-        for ( fromTransitionProp in fromTransition ) {
-          longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( fromTransitionProp );
-          if ( longhandPropS !== undefined ) {
-            for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
-              longhandProp = longhandPropS[ i ];
-              if ( intoTransition[ longhandProp ] !== undefined ) {
-                inheritTransitionProp( intoTransition, fromTransition, longhandProp, fromTransitionProp );
-              }
+        if ( fromTransition.all ) {
+          for ( intoTransitionProp in intoTransition ) {
+            if ( intoTransition !== "all" ) {
+              inheritTransitionProp( intoTransition, fromTransition,
+                 intoTransitionProp, "all" );
             }
           }
         }
@@ -5261,24 +5399,25 @@ function fix_stopPropagation() {
         // flatten stage
         //
         // This is akin to a self-inheritance stafe whereby
-        // shorthand prop transition directives are stacked
-        // below existing long prop transitions
+        // prop transition directives are stacked
+        // below the "all" transition direction
         //
         // Eg: a shorthand property such as "rotateX"
-        // would inherit values from "positional"
+        // would inherit values from "all"
         //
-        for ( intoTransitionProp in intoTransition ) {
-          longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( intoTransitionProp );
-          if ( longhandPropS !== undefined ) {
-            for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
-              longhandProp = longhandPropS[ i ];
+        if ( intoTransition.all ) {
+          for ( intoTransitionProp in intoTransition ) {
 
-              if ( intoTransition[ longhandProp ] !== undefined ) {
-                tmpTransition[ longhandProp ] = {};
-                inheritTransitionProp( tmpTransition, intoTransition, longhandProp, intoTransitionProp );
-                inheritTransitionProp( tmpTransition, intoTransition, longhandProp, longhandProp );
-                intoTransition[ longhandProp ] = tmp[ longhand ];
-              }
+            if ( intoTransitionProp !== "all" ) {
+              tmpTransition[ intoTransitionProp ] = {};
+              inheritTransitionProp(
+                tmpTransition, intoTransition,
+                intoTransitionProp, "all" );
+              inheritTransitionProp(
+                tmpTransition, intoTransition,
+                intoTransitionProp, intoTransitionProp );
+              intoTransition[ intoTransitionProp ] =
+                tmpTransition[ intoTransitionProp ];
             }
           }
         }
@@ -5543,6 +5682,7 @@ function fix_stopPropagation() {
     var rootProp2val, stateProp2val, stateName2state, stateName,
     multipleTypeProp, multipleTypePropNumName;
 
+
     //key2fnNormalize.type( lson );
     key2fnNormalize.inherits( lson );
     key2fnNormalize.many( lson );
@@ -5680,6 +5820,10 @@ function fix_stopPropagation() {
     inherits: function ( lson ) {
 
       checkAndThrowErrorAttrAsTake( "inherits", lson.inherits );
+      if ( ( lson.inherits !== undefined ) &&
+        LAID.type( lson.inherits ) !== "array" ) {
+          lson.inherits = [ lson.inherits ];
+        }
 
     },
 
@@ -5761,8 +5905,9 @@ function fix_stopPropagation() {
 
   when: function ( lson ) {
 
-    if ( lson.when !== undefined ) {
-
+    if ( lson.when === undefined ) {
+      lson.when = {};
+    } else {
       checkAndThrowErrorAttrAsTake( "when", lson.when );
 
       var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
@@ -5796,7 +5941,9 @@ if ()
   transition: function( lson ) {
 
 
-    if ( lson.transition !== undefined ) {
+    if ( lson.transition === undefined ) {
+      lson.transition = {};
+    } else {
       var transitionProp, transitionDirective,
       transitionArgKey2val, transitionArgKey, transitionArgKeyS,
       transition = lson.transition,
@@ -6158,7 +6305,8 @@ if (!Array.prototype.indexOf) {
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
           if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
-            renderDirtyTransition.delay -= timeFrameDiff ;
+            renderDirtyTransition.delay -= timeFrameDiff;
+            isAttrTransitionComplete = false;
           } else {
             if ( !renderDirtyTransition.checkIsComplete() ) {
               isAttrTransitionComplete = false;
@@ -6183,7 +6331,6 @@ if (!Array.prototype.indexOf) {
               renderDirtyAttrVal.transition = undefined;
             }
           }
-
         }
 
         if ( isAttrTransitionComplete ) {
@@ -6215,7 +6362,7 @@ if (!Array.prototype.indexOf) {
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("$renderFn_" + renderCallS[ i ]);
+        //console.log("render call: ", renderCallS[ i ] );
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
@@ -6241,13 +6388,12 @@ if (!Array.prototype.indexOf) {
   var
   shorthandProp2_longhandPropS_,
   longhandPropS,
-  centeralizedShorthandPropS
-  ;
+  centeralizedShorthandPropS;
 
   shorthandProp2_longhandPropS_ = {
-    positional: [
-    "left", /*"centerX", "right",*/
-    "top", /*"centerY", "bottom",*/
+
+    positional: [ "left",
+    "top",
     "z",
     "shiftX", "shiftY",
     "scaleX", "scaleY", "scaleZ",
@@ -6257,8 +6403,6 @@ if (!Array.prototype.indexOf) {
     origin: [ "originX", "originY" ],
     backgroundPosition: [ "backgroundPositionX", "backgroundPositionY" ],
     backgroundSize: [ "backgroundSizeX", "backgroundSizeY" ],
-
-
 
 
     borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
@@ -6375,6 +6519,7 @@ if (!Array.prototype.indexOf) {
 ( function () {
   "use strict";
   LAID.$solveForRecalculation = function () {
+
 
     var i, j, len, jLen,
     isSolveProgressed,

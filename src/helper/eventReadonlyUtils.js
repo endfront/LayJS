@@ -28,6 +28,9 @@
       mouseup: function () {
         this.$changeAttrVal( "$clicked", false );
       },
+      mouseleave: function () {
+        this.$changeAttrVal( "$clicked", false );
+      },
       touchup: function () {
         this.$changeAttrVal( "$clicked", false );
       },

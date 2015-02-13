@@ -87,8 +87,7 @@
           for ( fromTransitionArgKey in fromTransitionArgKey2val ) {
 
             intoTransitionArgKey2val[ fromTransitionArgKey ] =
-              fromTransitionArgKey2val[ fromTransitionArgKey ] ||
-              intoTransitionArgKey2val[ fromTransitionArgKey ];
+              fromTransitionArgKey2val[ fromTransitionArgKey ];
           }
         }
       }
@@ -162,7 +161,6 @@
           fromTransitionProp,
           intoTransitionProp,
           i, len,
-          longhandPropS, longhandProp,
           tmpTransition = {};
 
 
@@ -171,27 +169,18 @@
         }
 
 
-        // longhand prop overwrite stage
-        //
-        // longhand props (such as "rotateX") are
-        // meant to have higher priority over its
-        // corresponding shorthand props ("positional" in this case)
-        // Albeit we place higher priority to shorthand
-        // props if they arise from "from"LSON.
+        // "all" prop overwrite stage
         //
         // Eg: "rotateX" partially/completely overwritten
-        // by "positional" where "rotateX" is present
-        // within "into"LSON and "positional" is present
+        // by "all" where "rotateX" is present
+        // within "into"LSON and "all" is present
         // within "from"LSON
 
-        for ( fromTransitionProp in fromTransition ) {
-          longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( fromTransitionProp );
-          if ( longhandPropS !== undefined ) {
-            for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
-              longhandProp = longhandPropS[ i ];
-              if ( intoTransition[ longhandProp ] !== undefined ) {
-                inheritTransitionProp( intoTransition, fromTransition, longhandProp, fromTransitionProp );
-              }
+        if ( fromTransition.all ) {
+          for ( intoTransitionProp in intoTransition ) {
+            if ( intoTransition !== "all" ) {
+              inheritTransitionProp( intoTransition, fromTransition,
+                 intoTransitionProp, "all" );
             }
           }
         }
@@ -206,24 +195,25 @@
         // flatten stage
         //
         // This is akin to a self-inheritance stafe whereby
-        // shorthand prop transition directives are stacked
-        // below existing long prop transitions
+        // prop transition directives are stacked
+        // below the "all" transition direction
         //
         // Eg: a shorthand property such as "rotateX"
-        // would inherit values from "positional"
+        // would inherit values from "all"
         //
-        for ( intoTransitionProp in intoTransition ) {
-          longhandPropS = LAID.$shorthandPropsUtils.getLonghandProps( intoTransitionProp );
-          if ( longhandPropS !== undefined ) {
-            for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
-              longhandProp = longhandPropS[ i ];
+        if ( intoTransition.all ) {
+          for ( intoTransitionProp in intoTransition ) {
 
-              if ( intoTransition[ longhandProp ] !== undefined ) {
-                tmpTransition[ longhandProp ] = {};
-                inheritTransitionProp( tmpTransition, intoTransition, longhandProp, intoTransitionProp );
-                inheritTransitionProp( tmpTransition, intoTransition, longhandProp, longhandProp );
-                intoTransition[ longhandProp ] = tmp[ longhand ];
-              }
+            if ( intoTransitionProp !== "all" ) {
+              tmpTransition[ intoTransitionProp ] = {};
+              inheritTransitionProp(
+                tmpTransition, intoTransition,
+                intoTransitionProp, "all" );
+              inheritTransitionProp(
+                tmpTransition, intoTransition,
+                intoTransitionProp, intoTransitionProp );
+              intoTransition[ intoTransitionProp ] =
+                tmpTransition[ intoTransitionProp ];
             }
           }
         }

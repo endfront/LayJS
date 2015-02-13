@@ -189,6 +189,13 @@
     "block" : "none";
   };
 
+  LAID.Part.prototype.$renderFn_zIndex = function () {
+
+    this.node.style.zIndex =
+      this.level.$attr2attrVal.zIndex.transitionCalcVal || "auto";
+  };
+
+
   LAID.Part.prototype.$renderFn_scrollX = function () {
     this.node.scrollLeft = this.level.$attr2attrVal.scrollX.transitionCalcVal;
   };

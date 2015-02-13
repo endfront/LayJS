@@ -179,7 +179,7 @@
       }
 
       if ( this.renderCall ) {
-        level.$addRenderDirtyAttrVal( this, false );
+        level.$addRenderDirtyAttrVal( this );
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
         )  {
@@ -334,6 +334,35 @@
       }
     }
 
+  };
+
+  LAID.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
+
+
+
+    if ( !attrVal ) {
+      return false;
+    } else if ( attrVal === this ) {
+      return true;
+    } else {
+
+      var _relPath00attr_S, i, len, level;
+
+      if ( !( this.val instanceof LAID.Take ) ) {
+        return false;
+      } else {
+        _relPath00attr_S = this.val._relPath00attr_S;
+        for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
+          level = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
+          if ( level &&
+             ( level.$getAttrVal( _relPath00attr_S[ i ][ 1 ] ).checkIsDependentOnAttrVal( attrVal ) ) ) {
+               return true;
+             }
+        }
+
+        return false;
+      }
+    }
   };
 
 
