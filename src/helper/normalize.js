@@ -13,7 +13,7 @@
 
     return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
     ( ( [ "root", "transition", "data", "when", "state",
-     "inherits", "observe", "interface", "many" ] ).
+     "inherit", "observe", "interface", "many", "this" ] ).
     indexOf( stateName ) === -1 );
   }
 
@@ -42,7 +42,7 @@
 
 
     //key2fnNormalize.type( lson );
-    key2fnNormalize.inherits( lson );
+    key2fnNormalize.inherit( lson );
     key2fnNormalize.many( lson );
 
     key2fnNormalize.props( lson );
@@ -143,6 +143,7 @@
   var takeHeight = new LAID.Take( "this", "height" );
 
 
+
   var takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
   var takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
   var takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
@@ -175,12 +176,12 @@
 
     },*/
 
-    inherits: function ( lson ) {
+    inherit: function ( lson ) {
 
-      checkAndThrowErrorAttrAsTake( "inherits", lson.inherits );
-      if ( ( lson.inherits !== undefined ) &&
-        LAID.type( lson.inherits ) !== "array" ) {
-          lson.inherits = [ lson.inherits ];
+      checkAndThrowErrorAttrAsTake( "inherit", lson.inherit );
+      if ( ( lson.inherit !== undefined ) &&
+        LAID.type( lson.inherit ) !== "array" ) {
+          lson.inherit = [ lson.inherit ];
         }
 
     },
@@ -359,7 +360,7 @@ if ()
       var many = lson.many;
       checkAndThrowErrorAttrAsTake( "many", many );
 
-      key2fnNormalize.inherits( many );
+      key2fnNormalize.inherit( many );
       key2fnNormalize.props( many );
       key2fnNormalize.transition( many );
       key2fnNormalize.states( many );

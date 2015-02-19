@@ -15,9 +15,12 @@
 
     if ( !isState ) {
       for ( var key in from ) {
-
-        if ( from[ key ] && ( key2fnInherit[ key ] ) ) {
-          key2fnInherit[ key ]( into, from );
+        if ( from[ key ] ) {
+          if ( key2fnInherit[ key ] ) {
+            key2fnInherit[ key ]( into, from );
+          } else {
+            into[ key ] = from[ key ];
+          }
         }
       }
     } else {
@@ -269,7 +272,8 @@
             intoChildName2lson[ name ] = {};
 
           }
-          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], false, false );
+          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
+             false, false );
 
         }
       },

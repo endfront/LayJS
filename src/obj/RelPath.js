@@ -4,7 +4,7 @@
   LAID.RelPath = function ( relativePath ) {
 
 
-    if ( relativePath === "this" ) {
+    if ( ( relativePath === "this" ) || ( relativePath === "" ) ) {
 
       this.me = true;
 
@@ -17,7 +17,7 @@
       } else {
         this.absolute = false;
         this.numberOfParentTraversals =
-         ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
+         ( relativePath.match( /^(..\/)*/ )[ 0 ].length ) / 3;
         // strip off the "../"s
         // eg: "../../Body" should become "Body"
         this.childPath = this.numberOfParentTraversals === 0 ? relativePath :

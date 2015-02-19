@@ -10,11 +10,11 @@
     newlyInstalledStateLevelS = LAID.$newlyInstalledStateLevelS,
     newlyInstalledStateLevel,
     newlyInstalledStateS,
-    fnNewlyInstalledStateInstall,
+    attrValNewlyInstalledStateInstall,
     newlyUninstalledStateLevelS = LAID.$newlyUninstalledStateLevelS,
     newlyUninstalledStateLevel,
     newlyUninstalledStateS,
-    fnNewlyUninstalledStateUninstall;
+    attrValNewlyUninstalledStateUninstall;
 
     console.log("recalculate");
     do {
@@ -42,11 +42,11 @@
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
       newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
-        fnNewlyInstalledStateInstall =
+        attrValNewlyInstalledStateInstall =
           newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] + ".install" ];
-        fnNewlyInstalledStateInstall &&
-         ( LAID.type(fnNewlyInstalledStateInstall.transitionCalcVal) === "function") &&
-          fnNewlyInstalledStateInstall.transitionCalcVal.call( this );
+        attrValNewlyInstalledStateInstall &&
+         ( LAID.type(attrValNewlyInstalledStateInstall.calcVal) === "function") &&
+          attrValNewlyInstalledStateInstall.calcVal.call( newlyInstalledStateLevel );
       }
       // empty the list
       newlyInstalledStateLevel.$newlyInstalledStateS = [];
@@ -57,11 +57,11 @@
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
       newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
-        fnNewlyUninstalledStateUninstall =
+        attrValNewlyUninstalledStateUninstall =
         newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] + ".uninstall" ];
-        fnNewlyUninstalledStateUninstall &&
-        ( LAID.type( fnNewlyUninstalledStateUninstall.transitionCalcVal) === "function") &&
-         fnNewlyUninstalledStateUninstall.transitionCalcVal.call( this );
+        attrValNewlyUninstalledStateUninstall &&
+        ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) === "function") &&
+         attrValNewlyUninstalledStateUninstall.calcVal.call( newlyUninstalledStateLevel );
       }
       // empty the list
       newlyUninstalledStateLevel.$newlyUninstalledStateS = [];

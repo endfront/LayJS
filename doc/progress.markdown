@@ -4,17 +4,12 @@
 
 
 Current:
-  - rotate not wokring
-  - check if transition is actually completed in a delay onyl transition such as zindex
+  - type interface
+  - install, uninstall state
   - transition of TEXT when app has started!
-  - update spec about  "gpu" and "all",
-      and possibly remove "filters" and "positional"
   - update spec to have quotes around state names
-  - transition spring
   - $absoluteLeft/Top
   - dataTravel
-  - change name of 'valUsedForLastRecalculation' to 'prevVal'
-  - introduce "all" transition and "all_minus_color"
 
 
 
@@ -30,13 +25,18 @@ Current:
   - Upload to github (with new .git object)
 
 Tests:
+  - run()
+  - level.addChildren()
+  - level.remove()
+    - when it is responsibly for natural width/height for parent node
+    - when it has child nodes as well (which might be reponsibly for other constraints)
   - valid level name
   - For illegal take references to expander props or expander props mentioned as takes
     - transition.attr
     - transition
     - when
     - when.eventType
-    - inherits
+    - inherit
     - props
     - filters
     - border
@@ -83,6 +83,7 @@ Tests:
 
 
 Future:
+  - natural width and height dependent upon the rotation of Z axis of children.
   - Insert CSS from entry.js (normalize.css CSS)
   - move `eventReadonlyEventType2boundFnHandler` outside of AttrVal (move to Level) to save space
   - Add/interface HTML history module support

@@ -156,10 +156,14 @@
 
   LAID.Part.prototype.$renderFn_origin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
+
+      console.log("origin!", ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
+      ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
+      ( ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0.5 ) * 100 ) + "%");
     this.node.style[ cssPrefix + "transform-origin" ] =
     ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
-    ( ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0.5 ) * 100 ) + "%";
+    ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0  ) + "px";
     //this.$renderFn_positional(); //apply change to transform
   };
 

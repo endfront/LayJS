@@ -29,7 +29,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
           type: string,
           interface: boolean,
-          inherits: [ string | object, ... ],
+          inherit: [ string | object, ... ],
           data: object | array | string | number,
           props: object,
           when: object,
@@ -103,7 +103,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
   If set to true, the level will not render.
   Primary usage for such a level exists during inheritance.
 
-### inherits
+### inherit
 
 Type: `String` | `Array of Strings`
 Constant: *Yes*
@@ -249,7 +249,7 @@ Psuedo-Defaults:
 
 - originZ
   `number`
-  in fraction (percent)
+  in pixels
   Psuedo-Default: 0
 
 - perspective
@@ -874,11 +874,11 @@ eg of take with color:
 Scale -> Position -> Skew -> Rotate
 
 
-### LAID inherits
+### LAID inherit
 
     LAID.run({
       "BigBox": {
-        inherits: < level string >
+        inherit: < level string >
       }
     })
 
@@ -886,7 +886,7 @@ or
 
     LAID.run({
       "BigBox": {
-        inherits: < object reference >
+        inherit: < object reference >
       }
     })
 
@@ -895,7 +895,7 @@ also together using an array (the order of the array is respected from left to r
 
   LAID.run({
     "BigBox": {
-      inherits: [ < object reference > | < level string >, ... ]
+      inherit: [ < object reference > | < level string >, ... ]
     }
   })
 
@@ -904,7 +904,7 @@ looks like:
 
   LAID.run({
     "BigBox": {
-      inherits: [ '../Box', someBoxObject ]
+      inherit: [ '../Box', someBoxObject ]
     }
   })
 
@@ -935,7 +935,7 @@ for example:
 
     LAID.run({
       "BigBox": {
-        inherits: [ box ],
+        inherit: [ box ],
         props: {
           width: 300,
           height: 300
@@ -1007,7 +1007,7 @@ example of `when` stacking up:
         }
       },
       "OtherBox": {
-        inherits: ["Box"],
+        inherit: ["Box"],
         when: {
           "click": function() {
             console.log("OtherBox clicked");
@@ -1089,7 +1089,7 @@ would essentially compile to:
 
 
 States are unordered.
-The inheritance mechanism governing states matches that mentioned for the `inherits` key.
+The inheritance mechanism governing states matches that mentioned for the `inherit` key.
 onlyif is the condition for which a state needs to be activated.
 Takes across states and root lson takes place by prefixing "<state name>." to the corresponding "props", "when", and "transition" keys:
 
@@ -1226,43 +1226,20 @@ Transitions for numeric prop-typed attributes.
 
   {
 
-    all: { duration: 100, transition: "linear", args: { tension: 100 } },
-    positional: { transition: "spring" },
+    all: { duration: 100, transition: "spring", args: { tension: 100 } },
     left: { duration: 200},
     top: { delay: 500 },
     opacity: { duration:2000, done: function(){ console.log("opaque") }  }
 
   }
 
-Each key in the state transition object except for "positional" directly refer to a prop-typed attribute.
+Each key in the state transition object except for "all" directly refer to a prop-typed attribute.
 The key refers to an object with 5 possible keys:
     (i) type ( type of transition )
     (ii) duration ( of the transition )
     (iii) delay ( till the start of the transition )
     (iv) done ( function handler executed at the end of the transition )
     (v) args ( additional args )
-
-The key "positional" refers to the following position related prop-typed attributes:
-  - left
-  - centerX
-  - right
-  - top
-  - centerY
-  - bottom
-  - z
-  - shiftX
-  - shiftY
-  - scaleX
-  - scaleY
-  - scaleZ
-  - rotateX
-  - rotateY
-  - rotateZ
-  - skewX
-  - skewY
-
-Using "positional" alongwith "opacity" and "filters<num>..." for transitions is highly recommended for
-better performance via bypassing heavy GPU uploads.
 
 
 

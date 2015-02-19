@@ -3,7 +3,11 @@
 
   var
     essentialProp2defaultValue,
-    lazyProp2defaultValue;
+    lazyProp2defaultValue,
+    takeActualRightWithRotateZ,
+    takeActualBottomWithRotateZ,
+    takeActualRightWithoutRotateZ,
+    takeActualBottomWithoutRotateZ;
 
   LAID.$defaultizeLsonRootProps = function ( lson ) {
     var
@@ -68,11 +72,36 @@
     } else if ( lson.type === undefined ) {
       lson.type = "none";
     } else if ( lson.type.startsWith( "input:" ) ) {
-      lson.inputType = lson.type.slice( ( "input:").length );
+      lson.inputType = lson.type.slice( ( "input:" ).length );
     }
 
 
   };
+/*
+  takeActualBottomWithRotateZ = new LAID.Take(function( top, height, width,
+     rotateZ, originX, originY ){
+
+    var
+      rotateZradians = ( Math.PI / 180) * rotateZ,
+      leftSegmentLength = width * ( 1 - originX ),
+      rightSegmentLength = width * ( originX );
+
+    return top + ( ( 1 - originY ) * height ) +
+    Math.abs( Math.cos( rotateZradians ) * ( height / 2 ) ) +
+      Math.max(
+        Math.sin( rotateZradians ) * leftSegmentLength,
+        Math.sin( -rotateZradians ) * rightSegmentLength
+      );
+
+    }).fn( LAID.take("this", "top"),
+        LAID.take("this", "height"),
+        LAID.take("this", "width"),
+        LAID.take("this", "rotateZ"),
+        LAID.take("this", "originX"),
+        LAID.take("this", "originY")
+        );
+
+*/
 
   essentialProp2defaultValue = {
     width:  new LAID.Take( "this", "$naturalWidth" ),

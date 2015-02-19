@@ -13,7 +13,7 @@
 
     this.level = level;
     this.val = undefined;
-    this.valUsedForLastRecalculation = undefined;
+    this.prevVal = undefined;
     this.isTaken = undefined;
     this.attr = attr;
     this.isRecalculateRequired = true;
@@ -88,9 +88,9 @@
 
     this.val = val;
 
-    if ( ( val !== this.valUsedForLastRecalculation ) &&
+    if ( ( val !== this.prevVal ) &&
       !( LAID.$checkIsNan( val ) &&
-       LAID.$checkIsNan( this.valUsedForLastRecalculation ) )
+       LAID.$checkIsNan( this.prevVal ) )
       ) {
 
       if ( this.val instanceof LAID.Take ) {
@@ -161,6 +161,24 @@
       }
     }
 
+
+    if ( !isDirty ) {
+      switch ( this.attr ) {
+        case "input":
+          this.transitionCalcVal = this.level.part.node.value;
+
+      }
+    }
+
+    switch ( this.attr ) {
+      case "scrollX":
+        this.transitionCalcVal = this.level.part.node.scrollLeft;
+        isDirty = true;
+      case "scrollY":
+        this.transitionCalcVal = this.level.part.node.scrollTop;
+        isDirty = true;
+    }
+
     if ( isDirty ) {
       var
         attr = this.attr,
@@ -172,7 +190,7 @@
         this.transitionCalcVal = this.calcVal;
       }*/
 
-      this.valUsedForLastRecalculation = this.val;
+      this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
         this.takerAttrValS[ i ].requestRecalculation();

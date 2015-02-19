@@ -106,7 +106,8 @@ bottom: -0.25em;
     //$uninitialized: {},
     $isClogged:false,
     $isSolvingNewLevels: false,
-    $isRequestedForAnimationFrame: false
+    $isRequestedForAnimationFrame: false,
+    $isRecalculateRequiredOnRenderFinish: false
   };
 
 })();
@@ -126,7 +127,7 @@ bottom: -0.25em;
 
     this.level = level;
     this.val = undefined;
-    this.valUsedForLastRecalculation = undefined;
+    this.prevVal = undefined;
     this.isTaken = undefined;
     this.attr = attr;
     this.isRecalculateRequired = true;
@@ -201,9 +202,9 @@ bottom: -0.25em;
 
     this.val = val;
 
-    if ( ( val !== this.valUsedForLastRecalculation ) &&
+    if ( ( val !== this.prevVal ) &&
       !( LAID.$checkIsNan( val ) &&
-       LAID.$checkIsNan( this.valUsedForLastRecalculation ) )
+       LAID.$checkIsNan( this.prevVal ) )
       ) {
 
       if ( this.val instanceof LAID.Take ) {
@@ -274,6 +275,24 @@ bottom: -0.25em;
       }
     }
 
+
+    if ( !isDirty ) {
+      switch ( this.attr ) {
+        case "input":
+          this.transitionCalcVal = this.level.part.node.value;
+
+      }
+    }
+
+    switch ( this.attr ) {
+      case "scrollX":
+        this.transitionCalcVal = this.level.part.node.scrollLeft;
+        isDirty = true;
+      case "scrollY":
+        this.transitionCalcVal = this.level.part.node.scrollTop;
+        isDirty = true;
+    }
+
     if ( isDirty ) {
       var
         attr = this.attr,
@@ -285,7 +304,7 @@ bottom: -0.25em;
         this.transitionCalcVal = this.calcVal;
       }*/
 
-      this.valUsedForLastRecalculation = this.val;
+      this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
         this.takerAttrValS[ i ].requestRecalculation();
@@ -875,6 +894,8 @@ bottom: -0.25em;
     this.derivedMany = undefined;
 
     this.$lson = lson;
+    this.$isInherited = false;
+    this.$isInitiallyRendered = false;
 
     this.$attr2attrVal = {};
     this.$recalculateDirtyAttrValS = [];
@@ -960,24 +981,22 @@ bottom: -0.25em;
   * Else add the level's children to the tree and return true
   */
   LAID.Level.prototype.$inheritAndReproduce = function () {
-
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
 
     LAID.$normalize( this.$lson, false );
-    if ( this.$lson.inherits !== undefined ) { // does not contain anything to inherit from
+
+    if ( this.$lson.inherit !== undefined ) { // does not contain anything to inherit from
 
       lson = { type: "none" };
-      refS = this.$lson.inherits;
+      refS = this.$lson.inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
 
           level = ( new LAID.RelPath( ref ) ).resolve( this );
-          if ( level === undefined ) {
-
+          if ( ( level === undefined ) || !level.$isInherited ) {
             return false;
-
           }
         }
       }
@@ -990,13 +1009,15 @@ bottom: -0.25em;
           inheritedAndNormalizedLson = level.$lson;
 
         } else { // object reference
-          inheritedAndNormalizedLson = LAID.$normalize( ref, true );
+           LAID.$normalize( ref, true );
+           inheritedAndNormalizedLson = ref;
         }
 
         LAID.$inherit( lson, inheritedAndNormalizedLson, false, false );
       }
 
       LAID.$inherit( lson, this.$lson, false, false );
+
       this.$lson = lson;
     }
 
@@ -1015,6 +1036,7 @@ bottom: -0.25em;
     } else {
       this.many = new LAID.Many( this );
     }
+    this.$isInherited = true;
     return true;
 
   };
@@ -1095,10 +1117,8 @@ bottom: -0.25em;
   LAID.Level.prototype.$initAllAttrs = function () {
 
     var
-    //eventReadonly2defaultVal = LAID.$eventReadonlyUtils.getEventReadonly2defaultVal(),
-    //eventReadonly,
-    observableEventReadonlyS = this.$lson.observe,
-    observableEventReadonly, i, len;
+      observableEventReadonlyS = this.$lson.observe,
+      observableEventReadonly, i, len;
 
     if ( this.isPart ) {
       //this.$initNecessaryAttrs();
@@ -1230,7 +1250,7 @@ bottom: -0.25em;
             // rempve the state part of the attr components
             splitAttrLsonComponentS.shift();
             if ( (["when", "transition", "$$num", "$$max", "type",
-                "inherits", "data", "observe", "interface", "many"]).
+                "inherit", "data", "observe", "interface", "many"]).
               indexOf( splitAttrLsonComponentS[ 0 ] ) === -1 ) {
                 attrLsonComponentObj = attrLsonComponentObj.props;
               }
@@ -1277,7 +1297,7 @@ bottom: -0.25em;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
         //console.log( "\trecalculate", this.path, isSolveProgressed,
-        //  recalculateDirtyAttrValS[ i ]);
+          //recalculateDirtyAttrValS[ i ] );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -1406,7 +1426,11 @@ bottom: -0.25em;
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
     this.$attr2attrVal[ attr ].update( val );
-    LAID.$solveForRecalculation();
+    if ( !LAID.$isRendering ) {
+      LAID.$solveForRecalculation();
+    } else {
+      LAID.$isRecalculateRequiredOnRenderFinish = true;
+    }
   };
 
   LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {
@@ -1469,7 +1493,10 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$updateNaturalWidth = function () {
     if ( this.path === "/" ) {
+      console.log("bf",this.$renderDirtyAttrValS);
       this.$attr2attrVal.$naturalWidth.update( window.innerWidth );
+      console.log("af",this.$renderDirtyAttrValS.length,this.$attr2attrVal.$naturalWidth);
+
     } else if ( this.$lson.type === "text" ) {
       this.$updateNaturalWidthFromText();
     } else {
@@ -1723,93 +1750,96 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
 
-    var
-      attr2attrVal = this.$attr2attrVal,
-      attr, attrVal,
-      transitionPrefix,
-      transitionType, transitionDuration, transitionDelay, transitionDone,
-      transitionArgS, transitionArg2val = {},
-      transitionObj,
-      i, len,
-      allAffectedProp, // (eg: when `top` changes but transition
-      //is provided by `positional`)
-      affectedPropAttrVal;
+    if ( this.$isInitiallyRendered ) {
 
-    // TODO: change the below to a helper function
-    if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf(
-       transitionProp ) !== -1  ) {
-      return;
-    }
+      var
+        attr2attrVal = this.$attr2attrVal,
+        attr, attrVal,
+        transitionPrefix,
+        transitionType, transitionDuration, transitionDelay, transitionDone,
+        transitionArgS, transitionArg2val = {},
+        transitionObj,
+        i, len,
+        allAffectedProp, // (eg: when `top` changes but transition
+        //is provided by `positional`)
+        affectedPropAttrVal;
 
-    if ( !this.$checkIsPropInTransition( transitionProp ) ) {
-      if ( this.$checkIsPropInTransition( "all" ) ) {
-        allAffectedProp = transitionProp;
-        transitionProp = "all";
-      } else {
+      // TODO: change the below to a helper function
+      if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf(
+         transitionProp ) !== -1  ) {
         return;
       }
-    }
 
-
-    transitionPrefix = "transition." + transitionProp + ".";
-
-    transitionType =
-      attr2attrVal[ transitionPrefix + "type" ] ?
-      attr2attrVal[ transitionPrefix + "type" ].calcVal :
-      "linear";
-
-    transitionDuration =
-      ( attr2attrVal[ transitionPrefix + "duration" ] ?
-      attr2attrVal[ transitionPrefix + "duration" ].calcVal :
-      0 );
-    transitionDelay =
-      ( attr2attrVal[ transitionPrefix + "delay" ] ?
-      attr2attrVal[ transitionPrefix + "delay" ].calcVal :
-      0 );
-    transitionDone =
-      ( attr2attrVal[ transitionPrefix + "done" ] ?
-      attr2attrVal[ transitionPrefix + "done" ].calcVal :
-      undefined );
-    transitionArgS = LAID.$transitionType2args[ transitionType ] ?
-      LAID.$transitionType2args[ transitionType ] : [];
-
-
-    for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
-
-      transitionArg2val[ transitionArgS[ i ] ] = (
-         attr2attrVal[ transitionPrefix + "args." + transitionArgS[ i ] ] ?
-         attr2attrVal[ transitionPrefix + "args." + transitionArgS[ i ] ].calcVal :
-          undefined );
-    }
-
-    if ( !allAffectedProp && ( transitionProp === "all" ) ) {
-
-      for ( attr in attr2attrVal ) {
-        attrVal = attr2attrVal[ attr ];
-        // Only invoke a transition if:
-        // (1) The prop is renderable (i.e has a render call)
-        // (2) The prop doesn't have a transition of its
-        //     own. For instance if "left" already has
-        //     a transition then we will not want to override
-        //     its transition with the lower priority "all" transition
-        if ( attrVal.renderCall &&
-            !this.$checkIsPropInTransition( attrVal.attr ) ) {
-          this.$updateTransitionAttrVal(
-            attrVal,
-             transitionType, transitionDelay, transitionDuration,
-             transitionArg2val, transitionDone
-           );
-
+      if ( !this.$checkIsPropInTransition( transitionProp ) ) {
+        if ( this.$checkIsPropInTransition( "all" ) ) {
+          allAffectedProp = transitionProp;
+          transitionProp = "all";
+        } else {
+          return;
         }
       }
-    } else {
 
-      this.$updateTransitionAttrVal(
-         attr2attrVal[ allAffectedProp || transitionProp ],
-         transitionType, transitionDelay, transitionDuration,
-         transitionArg2val, transitionDone
-       );
 
+      transitionPrefix = "transition." + transitionProp + ".";
+
+      transitionType =
+        attr2attrVal[ transitionPrefix + "type" ] ?
+        attr2attrVal[ transitionPrefix + "type" ].calcVal :
+        "linear";
+
+      transitionDuration =
+        ( attr2attrVal[ transitionPrefix + "duration" ] ?
+        attr2attrVal[ transitionPrefix + "duration" ].calcVal :
+        0 );
+      transitionDelay =
+        ( attr2attrVal[ transitionPrefix + "delay" ] ?
+        attr2attrVal[ transitionPrefix + "delay" ].calcVal :
+        0 );
+      transitionDone =
+        ( attr2attrVal[ transitionPrefix + "done" ] ?
+        attr2attrVal[ transitionPrefix + "done" ].calcVal :
+        undefined );
+      transitionArgS = LAID.$transitionType2args[ transitionType ] ?
+        LAID.$transitionType2args[ transitionType ] : [];
+
+
+      for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
+
+        transitionArg2val[ transitionArgS[ i ] ] = (
+           attr2attrVal[ transitionPrefix + "args." + transitionArgS[ i ] ] ?
+           attr2attrVal[ transitionPrefix + "args." + transitionArgS[ i ] ].calcVal :
+            undefined );
+      }
+
+      if ( !allAffectedProp && ( transitionProp === "all" ) ) {
+
+        for ( attr in attr2attrVal ) {
+          attrVal = attr2attrVal[ attr ];
+          // Only invoke a transition if:
+          // (1) The prop is renderable (i.e has a render call)
+          // (2) The prop doesn't have a transition of its
+          //     own. For instance if "left" already has
+          //     a transition then we will not want to override
+          //     its transition with the lower priority "all" transition
+          if ( attrVal.renderCall &&
+              !this.$checkIsPropInTransition( attrVal.attr ) ) {
+            this.$updateTransitionAttrVal(
+              attrVal,
+               transitionType, transitionDelay, transitionDuration,
+               transitionArg2val, transitionDone
+             );
+
+          }
+        }
+      } else {
+
+        this.$updateTransitionAttrVal(
+           attr2attrVal[ allAffectedProp || transitionProp ],
+           transitionType, transitionDelay, transitionDuration,
+           transitionArg2val, transitionDone
+         );
+
+      }
     }
   };
 
@@ -1824,7 +1854,10 @@ bottom: -0.25em;
         ( transitionDelay !== undefined ) &&
         ( attrVal !== undefined ) &&
         ( attrVal.transitionCalcVal !== undefined ) &&
-        ( attrVal.calcVal !== undefined ) ) {
+        ( attrVal.calcVal !== undefined ) &&
+        ( attrVal.transitionCalcVal !== attrVal.calcVal )
+        ) {
+
 
       attrVal.transition = new LAID.Transition (
           transitionType,
@@ -2019,10 +2052,14 @@ bottom: -0.25em;
 
   LAID.Part.prototype.$renderFn_origin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
+
+      console.log("origin!", ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
+      ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
+      ( ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0.5 ) * 100 ) + "%");
     this.node.style[ cssPrefix + "transform-origin" ] =
     ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
-    ( ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0.5 ) * 100 ) + "%";
+    ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0  ) + "px";
     //this.$renderFn_positional(); //apply change to transform
   };
 
@@ -2535,7 +2572,7 @@ bottom: -0.25em;
   LAID.RelPath = function ( relativePath ) {
 
 
-    if ( relativePath === "this" ) {
+    if ( ( relativePath === "this" ) || ( relativePath === "" ) ) {
 
       this.me = true;
 
@@ -2548,7 +2585,7 @@ bottom: -0.25em;
       } else {
         this.absolute = false;
         this.numberOfParentTraversals =
-         ( relativePath.match(/^(..\/)*/)[0].length ) / 3;
+         ( relativePath.match( /^(..\/)*/ )[ 0 ].length ) / 3;
         // strip off the "../"s
         // eg: "../../Body" should become "Body"
         this.childPath = this.numberOfParentTraversals === 0 ? relativePath :
@@ -3802,6 +3839,9 @@ return this;
     linear: function ( duration, args ) {
       return new LinearTransition( duration, args );
     },
+    "spring": function ( duration, args ) {
+      return new LAID.$SpringTransition( duration, args );
+    },
     "cubic-bezier": function ( duration, args ) {
       return new CubicBezierTransition( duration, args );
     },
@@ -4317,7 +4357,7 @@ return this;
   var expanderAttrS = [
   "border", "background", "boxShadows", "textShadows", "videoSources", "audioSources", "videoTracks", "audioTracks", "filters",
    "borderTop", "borderRight", "borderBottom", "borderLeft",
-    "data", "when", "transition", "state", "type", "inherits", "states"
+    "data", "when", "transition", "state", "type", "inherit", "states", "observe"
      ];
   var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
   var nonStateAttrPrefixS = [ "data", "when", "transition", "state" ];
@@ -4506,7 +4546,11 @@ return this;
 
   var
     essentialProp2defaultValue,
-    lazyProp2defaultValue;
+    lazyProp2defaultValue,
+    takeActualRightWithRotateZ,
+    takeActualBottomWithRotateZ,
+    takeActualRightWithoutRotateZ,
+    takeActualBottomWithoutRotateZ;
 
   LAID.$defaultizeLsonRootProps = function ( lson ) {
     var
@@ -4571,11 +4615,36 @@ return this;
     } else if ( lson.type === undefined ) {
       lson.type = "none";
     } else if ( lson.type.startsWith( "input:" ) ) {
-      lson.inputType = lson.type.slice( ( "input:").length );
+      lson.inputType = lson.type.slice( ( "input:" ).length );
     }
 
 
   };
+/*
+  takeActualBottomWithRotateZ = new LAID.Take(function( top, height, width,
+     rotateZ, originX, originY ){
+
+    var
+      rotateZradians = ( Math.PI / 180) * rotateZ,
+      leftSegmentLength = width * ( 1 - originX ),
+      rightSegmentLength = width * ( originX );
+
+    return top + ( ( 1 - originY ) * height ) +
+    Math.abs( Math.cos( rotateZradians ) * ( height / 2 ) ) +
+      Math.max(
+        Math.sin( rotateZradians ) * leftSegmentLength,
+        Math.sin( -rotateZradians ) * rightSegmentLength
+      );
+
+    }).fn( LAID.take("this", "top"),
+        LAID.take("this", "height"),
+        LAID.take("this", "width"),
+        LAID.take("this", "rotateZ"),
+        LAID.take("this", "originX"),
+        LAID.take("this", "originY")
+        );
+
+*/
 
   essentialProp2defaultValue = {
     width:  new LAID.Take( "this", "$naturalWidth" ),
@@ -5219,9 +5288,12 @@ function fix_stopPropagation() {
 
     if ( !isState ) {
       for ( var key in from ) {
-
-        if ( from[ key ] && ( key2fnInherit[ key ] ) ) {
-          key2fnInherit[ key ]( into, from );
+        if ( from[ key ] ) {
+          if ( key2fnInherit[ key ] ) {
+            key2fnInherit[ key ]( into, from );
+          } else {
+            into[ key ] = from[ key ];
+          }
         }
       }
     } else {
@@ -5473,7 +5545,8 @@ function fix_stopPropagation() {
             intoChildName2lson[ name ] = {};
 
           }
-          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ], false, false );
+          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
+             false, false );
 
         }
       },
@@ -5655,7 +5728,7 @@ function fix_stopPropagation() {
 
     return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
     ( ( [ "root", "transition", "data", "when", "state",
-     "inherits", "observe", "interface", "many" ] ).
+     "inherit", "observe", "interface", "many", "this" ] ).
     indexOf( stateName ) === -1 );
   }
 
@@ -5684,7 +5757,7 @@ function fix_stopPropagation() {
 
 
     //key2fnNormalize.type( lson );
-    key2fnNormalize.inherits( lson );
+    key2fnNormalize.inherit( lson );
     key2fnNormalize.many( lson );
 
     key2fnNormalize.props( lson );
@@ -5785,6 +5858,7 @@ function fix_stopPropagation() {
   var takeHeight = new LAID.Take( "this", "height" );
 
 
+
   var takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
   var takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
   var takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
@@ -5817,12 +5891,12 @@ function fix_stopPropagation() {
 
     },*/
 
-    inherits: function ( lson ) {
+    inherit: function ( lson ) {
 
-      checkAndThrowErrorAttrAsTake( "inherits", lson.inherits );
-      if ( ( lson.inherits !== undefined ) &&
-        LAID.type( lson.inherits ) !== "array" ) {
-          lson.inherits = [ lson.inherits ];
+      checkAndThrowErrorAttrAsTake( "inherit", lson.inherit );
+      if ( ( lson.inherit !== undefined ) &&
+        LAID.type( lson.inherit ) !== "array" ) {
+          lson.inherit = [ lson.inherit ];
         }
 
     },
@@ -6001,7 +6075,7 @@ if ()
       var many = lson.many;
       checkAndThrowErrorAttrAsTake( "many", many );
 
-      key2fnNormalize.inherits( many );
+      key2fnNormalize.inherit( many );
       key2fnNormalize.props( many );
       key2fnNormalize.transition( many );
       key2fnNormalize.states( many );
@@ -6253,7 +6327,8 @@ if (!Array.prototype.indexOf) {
   * which represent the previous time frame
   */
   LAID.$render = function ( timeNow ) {
-    if ( !LAID.$isRequestedForAnimationFrame && ( LAID.$renderDirtyLevelS.length !== 0 ) ) {
+    if ( !LAID.$isRequestedForAnimationFrame &&
+       ( LAID.$renderDirtyLevelS.length !== 0 ) ) {
       LAID.$prevTimeFrame = timeNow || performance.now();
       window.requestAnimationFrame( render );
     }
@@ -6266,8 +6341,10 @@ if (!Array.prototype.indexOf) {
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
       x, y,
+      xLen, yLen,
       i, len,
       renderDirtyLevelS = LAID.$renderDirtyLevelS,
+      renderCleanedLevelS = [],
       renderDirtyLevel,
       renderDirtyAttrValS,
       renderDirtyAttrVal,
@@ -6289,13 +6366,14 @@ if (!Array.prototype.indexOf) {
 
     LAID.$newPartS = [];
 
-    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+    for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
 
       renderDirtyLevel = renderDirtyLevelS[ x ];
       renderDirtyAttrValS = renderDirtyLevel.$renderDirtyAttrValS;
       renderCallS = [];
+      console.log( renderDirtyLevel.path );
 
-      for ( y = 0; y < renderDirtyAttrValS.length; y++ ) {
+      for ( y = 0, yLen = renderDirtyAttrValS.length; y < yLen; y++ ) {
 
         isAttrTransitionComplete = true;
         renderDirtyAttrVal = renderDirtyAttrValS[ y ];
@@ -6362,17 +6440,29 @@ if (!Array.prototype.indexOf) {
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ] );
+        console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if ( renderDirtyAttrValS.length === 0 ) {
-        LAID.$arrayUtils.removeAtIndex( renderDirtyLevelS, x );
+        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
         x--;
       }
+      renderCleanedLevelS.push( renderDirtyLevel );
+
+    }
+
+
+    for ( i = 0, len = renderCleanedLevelS.length; i < len; i++ ) {
+      renderCleanedLevelS[ i ].$isInitiallyRendered = true;
     }
 
     LAID.$isRequestedForAnimationFrame = false;
+
+    if ( LAID.$isRecalculateRequiredOnRenderFinish ) {
+      LAID.$solveForRecalculation();
+      LAID.$isRecalculateRequiredOnRenderFinish = false;
+    }
 
     LAID.$render( curTimeFrame );
 
@@ -6528,11 +6618,11 @@ if (!Array.prototype.indexOf) {
     newlyInstalledStateLevelS = LAID.$newlyInstalledStateLevelS,
     newlyInstalledStateLevel,
     newlyInstalledStateS,
-    fnNewlyInstalledStateInstall,
+    attrValNewlyInstalledStateInstall,
     newlyUninstalledStateLevelS = LAID.$newlyUninstalledStateLevelS,
     newlyUninstalledStateLevel,
     newlyUninstalledStateS,
-    fnNewlyUninstalledStateUninstall;
+    attrValNewlyUninstalledStateUninstall;
 
     console.log("recalculate");
     do {
@@ -6560,11 +6650,11 @@ if (!Array.prototype.indexOf) {
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
       newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
-        fnNewlyInstalledStateInstall =
+        attrValNewlyInstalledStateInstall =
           newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] + ".install" ];
-        fnNewlyInstalledStateInstall &&
-         ( LAID.type(fnNewlyInstalledStateInstall.transitionCalcVal) === "function") &&
-          fnNewlyInstalledStateInstall.transitionCalcVal.call( this );
+        attrValNewlyInstalledStateInstall &&
+         ( LAID.type(attrValNewlyInstalledStateInstall.calcVal) === "function") &&
+          attrValNewlyInstalledStateInstall.calcVal.call( newlyInstalledStateLevel );
       }
       // empty the list
       newlyInstalledStateLevel.$newlyInstalledStateS = [];
@@ -6575,11 +6665,11 @@ if (!Array.prototype.indexOf) {
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
       newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
-        fnNewlyUninstalledStateUninstall =
+        attrValNewlyUninstalledStateUninstall =
         newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] + ".uninstall" ];
-        fnNewlyUninstalledStateUninstall &&
-        ( LAID.type( fnNewlyUninstalledStateUninstall.transitionCalcVal) === "function") &&
-         fnNewlyUninstalledStateUninstall.transitionCalcVal.call( this );
+        attrValNewlyUninstalledStateUninstall &&
+        ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) === "function") &&
+         attrValNewlyUninstalledStateUninstall.calcVal.call( newlyUninstalledStateLevel );
       }
       // empty the list
       newlyUninstalledStateLevel.$newlyUninstalledStateS = [];
@@ -6592,6 +6682,317 @@ if (!Array.prototype.indexOf) {
 
 })();
 
+
+// source of spring code below:
+// facebook pop framework & framer.js
+// ---
+// generated by coffee-script 1.9.0
+
+( function() {
+  "use strict";
+
+
+  LAID.$SpringTransition = function( duration, args ) {
+
+    this.curTime = 0;
+    this.value = 0;
+    this.velocity = parseFloat( args.velocity );
+    this.tension = parseFloat( args.tension );
+    this.friction = parseFloat( args.friction );
+    this.threshold = parseFloat( args.threshold || ( 1 / 1000 ) );
+    this.isComplete = false;
+  };
+
+  LAID.$SpringTransition.prototype.generateNext = function ( delta ) {
+    var
+      finalVelocity, net1DVelocity, netFloat,
+       netValueIsLow, netVelocityIsLow, stateAfter, stateBefore;
+
+
+    delta = delta / 1000;
+
+    this.curTime += delta;
+    stateBefore = {};
+    stateAfter = {};
+    stateBefore.x = this.value - 1;
+    stateBefore.v = this.velocity;
+    stateBefore.tension = this.tension;
+    stateBefore.friction = this.friction;
+    stateAfter = springIntegrateState( stateBefore, delta );
+
+    this.value = 1 + stateAfter.x;
+    finalVelocity = stateAfter.v;
+    netFloat = stateAfter.x;
+    net1DVelocity = stateAfter.v;
+    netValueIsLow = Math.abs( netFloat ) < this.threshold;
+    netVelocityIsLow = Math.abs( net1DVelocity ) < this.threshold;
+    this.isComplete = netValueIsLow && netVelocityIsLow;
+    this.velocity = finalVelocity;
+    return this.value;
+  };
+
+  LAID.$SpringTransition.prototype.checkIsComplete = function() {
+    return this.isComplete;
+  };
+
+
+  function springAccelerationForState ( state ) {
+    return ( - state.tension * state.x ) - ( state.friction * state.v );
+  };
+
+  function springEvaluateState ( initialState ) {
+    var output;
+    output = {};
+    output.dx = initialState.v;
+    output.dv = springAccelerationForState( initialState );
+    return output;
+  };
+
+  function springEvaluateStateWithDerivative( initialState, dt, derivative ) {
+    var output, state;
+    state = {};
+    state.x = initialState.x + derivative.dx * dt;
+    state.v = initialState.v + derivative.dv * dt;
+    state.tension = initialState.tension;
+    state.friction = initialState.friction;
+    output = {};
+    output.dx = state.v;
+    output.dv = springAccelerationForState(state);
+    return output;
+  };
+
+  function springIntegrateState ( state, speed ) {
+    var a, b, c, d, dvdt, dxdt;
+    a = springEvaluateState(state);
+    b = springEvaluateStateWithDerivative(state, speed * 0.5, a);
+    c = springEvaluateStateWithDerivative(state, speed * 0.5, b);
+    d = springEvaluateStateWithDerivative(state, speed, c);
+
+
+    dxdt = 1.0 / 6.0 * (a.dx + 2.0 * (b.dx + c.dx) + d.dx);
+    dvdt = 1.0 / 6.0 * (a.dv + 2.0 * (b.dv + c.dv) + d.dv);
+    state.x = state.x + dxdt * speed;
+    state.v = state.v + dvdt * speed;
+    return state;
+  }
+
+})();
+
+/*( function () {
+  "use strict";
+
+
+  var
+    SOLVER_DT = 0.001,
+    MAX_SOLVER_DT = 30.0;
+
+  LAID.$SpringTransition = function ( duration, args ) {
+      this.tension = args.tension; // tension
+      this.friction = args.friction; // friction
+      this.mass = args.mass; // mass
+
+      this.threshold = args.threshold / 2; //default threshold is 1.0
+      this.thresholdVelocity = args.threshold * 25.0;
+      this.thresholdAcceleration = Math.pow( args.threshold, 2 ) * 625.0;
+
+      this.curTime = 0;
+
+      this.prevPv = { p: 0, v: 0 };
+      this.prevDv = 0;
+  };
+
+  LAID.$SpringTransition.prototype.computeAcceleration = function ( pv, t ) {
+
+    return pv.p * ( -this.tension / this.mass) -
+      pv.v * ( this.friction / this.mass );
+  };
+
+  LAID.$SpringTransition.prototype.evaluateDerivative = function ( initialPv, t ) {
+
+    return {
+      dp: initialPv.v,
+      dv: this.computeAcceleration( initialPv, t )
+    };
+  };
+
+  LAID.$SpringTransition.prototype.evaluateDerivativeWithDerivative =
+    function (initialPv, t, dt, derivative) {
+
+    var pv = {
+      p: initialPv.p + ( derivative.dp * dt  ),
+      v: initialPv.v + ( derivative.dv * dt  )
+    };
+    return {
+      dp: pv.v,
+      dv: this.computeAcceleration( pv, t + dt )
+    };
+  };
+
+  LAID.$SpringTransition.prototype.integrate =
+  function ( pv, t, dt ) {
+
+    var
+      a = this.evaluateDerivative( pv, t ),
+      b = this.evaluateDerivativeWithDerivative( pv, t, dt * 0.5, a ),
+      c = this.evaluateDerivativeWithDerivative( pv, t, dt * 0.5, b ),
+      d = this.evaluateDerivativeWithDerivative( pv, t, dt, c ),
+
+      dpdt = ( a.dp + ( b.dp + c.dp ) * 2.0 + d.dp ) * ( 1.0 / 6.0 ),
+      dvdt = ( a.dv + ( b.dv + c.dv ) * 2.0 + d.dv ) * ( 1.0 / 6.0 );
+
+
+    pv.p = pv.p + ( dpdt * dt );
+    pv.v = pv.v + ( dvdt * dt );
+
+    this.prevDv = dvdt;
+  };
+
+  LAID.$SpringTransition.prototype.interpolate =
+    function ( prevPv, currentPv, alpha) {
+    return {
+      p: ( currentPv.p * alpha  ) + (
+          prevPv.p * ( 1 - alpha ) ),
+      v: ( currentPv.v * alpha  ) + (
+          prevPv.v * ( 1 - alpha ) )
+    };
+  };
+
+
+  LAID.$SpringTransition.prototype.advance =
+    function ( statePv, t, dt ) {
+
+    var prevPv, currentPv, alpha;
+
+    if ( dt > MAX_SOLVER_DT ) {
+      // excessive time step, force shut down
+      this.prevPv.p = 0;
+      this.prevPv.v = 0;
+      this.prevDv = 0;
+
+    } else {
+      curTime += dt;
+
+      prevPv = statePv;
+      currentState = statePv;
+      while ( this.curTime >= SOLVER_DT ) {
+        prevState = currentState;
+        this.integrate( currentPv, t, SOLVER_DT );
+        t += SOLVER_DT;
+        this.curTime -= SOLVER_DT;
+      }
+      this.prevPv = statePv = this.interpolate(prevPv, currentPv, alpha );
+      alpha = this.curTime / SOLVER_DT;
+    }
+  };
+
+  LAID.$SpringTransition.prototype.checkIsComplete = function () {
+
+    var i;
+
+    if ( Math.abs( this.prevPv.p ) >= this.threshold ) {
+      return false;
+    }
+
+
+    return ( Math.pow( this.prevPv.v, 2 ) < this.thresholdVelocity ) &&
+      ( Math.pow( this.prevDv, 2) < this.thresholdAcceleration );
+  };
+
+
+  LAID.$SpringTransition.prototype.generateNext = function ( time, delta ) {
+    var localTime, value, toValue, velocity, statePv = {};
+
+
+    //TODO: change
+    //if ( this.curVal === null ) {
+    //  return false;
+    //}
+
+    localTime = time - startTime;
+
+    value =  this.curVal;
+    toValue = this.toVal;
+    velocity = this.storedVelocity;
+
+    statePv.p = toValue - value;
+
+    // the solver assumes a spring of size zero
+    // flip the velocity from user perspective to solver perspective
+    statePv.v = velocity * -1;
+
+    this.advance( statePv, localTime, delta );
+    value = toValue - state.p;
+
+    // flip velocity back to user perspective
+    velocity = state.v * -1;
+
+    this.curVal = value;
+
+    if ( this.storedVelocity ) {
+     this.storedVelocity = velocity;
+    }
+  };
+  function Vector4 () {
+    this.x = 0;
+    this.y = 0;
+    this.z = 0;
+    this.w = 0;
+  };
+
+  Vector4.prototype.updateValues = function ( x, y, z, w ) {
+
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.w = w;
+
+  };
+
+  Vector4.prototype.scalarMultiply = function ( mag ) {
+    var newVector = new Vector4();
+    newVector.updateValues(
+      this.x * mag,
+      this.y * mag,
+      this.z * mag,
+      this.w * mag,
+    );
+    return newVector;
+  };
+
+  Vector4.prototype.vectorAdd = function ( otherVector ) {
+    var newVector = new Vector4();
+    newVector.updateValues(
+      this.x + otherVector.x,
+      this.y + otherVector.y,
+      this.z + otherVector.z,
+      this.w + otherVector.w,
+    );
+    return newVector;
+  };
+
+
+  Vector4.prototype.squaredNorm = function ( vec ) {
+    return (
+      ( this.x * this.x ) +
+      ( this.y * this.y ) +
+      ( this.z * this.z ) +
+      ( this.w * this.w );
+    );
+  };
+  Vector4.prototype.index = function ( i ) {
+    return ([
+       this.x,
+       this.y,
+       this.z,
+       this.w
+     ])[ i ];
+  };
+
+})();
+
+
+*/
+
 ( function () {
   "use strict";
 
@@ -6600,6 +7001,7 @@ if (!Array.prototype.indexOf) {
   LAID.$transitionType2args = {
     "linear": [],
     "cubic-bezier": [ "a", "b", "c", "d" ],
+    "spring": [ "velocity", "tension", "friction", "threshold" ]
 
   };
 

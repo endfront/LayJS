@@ -5,7 +5,7 @@
   var expanderAttrS = [
   "border", "background", "boxShadows", "textShadows", "videoSources", "audioSources", "videoTracks", "audioTracks", "filters",
    "borderTop", "borderRight", "borderBottom", "borderLeft",
-    "data", "when", "transition", "state", "type", "inherits", "states"
+    "data", "when", "transition", "state", "type", "inherit", "states", "observe"
      ];
   var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
   var nonStateAttrPrefixS = [ "data", "when", "transition", "state" ];

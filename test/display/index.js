@@ -1,3 +1,5 @@
+
+
 LAID.run( {
   data: {
     lang: "en",
@@ -9,19 +11,28 @@ LAID.run( {
     }
   },
   children: {
+    "_SpringTransition": {
+      //type:"interface",
+      transition: {
+        all: {
+          type:"spring",
+          args: {
+            tension: 100.0,
+            friction: 10.0,
+            velocity:0.0,
+          }
+        }
+      }
+    },
     "Menu": {
+      inherit: [ "/_SpringTransition" ],
       props: {
         height:LAID.take("../", "height"),
         width:300,
         backgroundColor:LAID.color("gainsboro"),
         zIndex:1
       },
-      transition: {
-        left: {
-          duration:200,
-          type:"ease"
-        }
-      },
+
       states: {
         "hidden": {
           onlyif: LAID.take("/", "data.menu").not(),
@@ -39,23 +50,12 @@ LAID.run( {
     },
 
     "Content": {
+      inherit: [ "/_SpringTransition" ],
       props: {
         width:LAID.take("../", "width"),
         height:LAID.take("../", "height")
       },
 
-      transition: {
-        all:{
-          type:"ease",
-          duration:200,
-          args: {
-            a: .86,
-            b: -0.06,
-            c: .54,
-            d: 1.56
-          }
-        }
-      },
       states: {
         "hidden": {
           onlyif:LAID.take("/", "data.menu"),
@@ -75,8 +75,11 @@ LAID.run( {
             "MenuInvoke": {
               props: {
                 left: 30,
-                width:20,
                 centerY: LAID.take( "../", "height").divide(2),
+                width:LAID.take("Wrapper", "width").add(20),
+                height:LAID.take("Wrapper", "height").add(20),
+                cornerRadius:100
+
               },
               states: {
                 "hidden": {
@@ -101,25 +104,6 @@ LAID.run( {
                 },
 
 
-
-
-                "hovered": {
-                  onlyif: LAID.take("this", "$hovered"),
-                  props: {
-                    opacity:1,
-
-                  },
-                  transition: {
-                    boxShadows1Color: {
-                      type: "ease",
-                      duration:1000
-                    },
-                    opacity: {
-                      type:"ease",
-                      duration: 200
-                    },
-                  }
-                },
                 "clicked": {
                   onlyif: LAID.take("this", "$clicked"),
                   props: {
@@ -129,61 +113,78 @@ LAID.run( {
                 }
               },
 
-              transition: {
-                boxShadows1Color: {
-                  type: "ease",
-                  duration:10000
-                }
-              },
               children: {
-                "TopBar": {
+                "Wrapper": {
                     props: {
-                      width:LAID.take("../", "width"),
-                      height:3,
-                      backgroundColor:LAID.color("white"),
-                      rotateX: 30
+                      centerX: LAID.take("../", "width").divide(2),
+                      centerY: LAID.take("../", "height").divide(2),
+                      width: LAID.take("this", "$naturalWidth").max( LAID.take("this", "$naturalHeight") ),
+                      height: LAID.take("this", "width")
                     },
-                    transition: {
-                      all: {
-                        type:"ease",
-                        duration: 200
-                      }
-                    },
-                    states: {
-                      "cross": {
-                        onlyif: LAID.take("/", "data.menu"),
+                    children: {
+                      "TopBar": {
+                        inherit: [ "/_SpringTransition" ],
+                          data: {
+                            barDistance:LAID.take(function ( width, height, numBars) {
+                              return (width - (numBars * height))/2;
+                            }).fn(LAID.take("this", "width"),LAID.take("this", "height"),
+                                  LAID.take("../", "$numberOfChildren"))
+                          },
+                          props: {
+                            width:18,
+                            height:3,
+                            backgroundColor:LAID.color("white"),
+                            cornerRadius:10
+                          },
+                          states: {
+                            "cross": {
+                              onlyif: LAID.take("/", "data.menu"),
+                              props: {
+                                rotateZ: 45,
+                                width: LAID.take("this", "root.width").multiply(1.5),
+                                top: LAID.take("../MiddleBar", "root.top")
+                                //width: LAID.take("this", "root.width").divide(Math.sin(45))
+                              }
+                            }
+                          }
+                      },
+                      "MiddleBar": {
+                        inherit: ["../TopBar"],
                         props: {
-                          rotateX: 30
+                          top:LAID.take("this", "data.barDistance").add(LAID.take("this","height"))
+                        },
+                        states: {
+                          "cross": {
+                            onlyif: LAID.take("/", "data.menu"),
+                            props: {
+                              rotateZ: 0,
+                              opacity: 0
+                            }
+                          }
                         }
-                      }
+                      },
+                      "BottomBar": {
+                        inherit: ["../TopBar"],
+                        props: {
+                          top:LAID.take("../MiddleBar", "top").multiply(2)
+                        },
+                        states: {
+                          "cross": {
+                            props: {
+                              rotateZ: -45
+                            }
+                          }
+
+                        }
+
                     }
-                },
-                "MiddleBar": {
-                  inherits: ["../TopBar"],
-                  props: {
-                    top:6
-                  },
-                  states: {
-                    "hidden": {
-                      onlyif: LAID.take("/", "data.menu"),
-                      props: {
-                        opacity: 0
-                      }
-                    }
-                  }
-                },
-                "BottomBar": {
-                  inherits: ["../TopBar"],
-                  props: {
-                    top: 12
                   }
                 }
-
               }
             },
             "Title": {
+              inherit: ["/_SpringTransition"],
               props: {
-                //width: LAID.take( "../", "width"),
                 centerX: LAID.take("../", "width").divide(2),
                 text: "WOLPART",
                 textAlign: "center",
@@ -196,21 +197,34 @@ LAID.run( {
           },
         },
         "Body": {
+          inherit:[ "/_SpringTransition" ],
+          data: {
+            gotop: false
+          },
           props: {
             width: LAID.take("../", 'width'),
             top: LAID.take("../Header", "bottom"),
-            //height:300,
             height: LAID.take("../", "height").subtract(LAID.take("../Header", "height")),
             backgroundColor: LAID.color("gainsboro"),
             overflowY: "auto",
-
+          },
+          states: {
+            gotop: {
+              onlyif: LAID.take("this", "data.gotop"),
+              props: {
+                scrollY: 0
+              },
+              install: function () {
+                LAID.level("", this ).data( "gotop", false );
+              }
+            }
           },
           children: {
             "Option1": {
               props: {
                 width:LAID.take("../", 'width').subtract(20),
                 centerX: LAID.take("../","width").divide(2),
-                height:150,
+                height:450,
                 backgroundColor:LAID.color("blue"),
                 text: "Hello Mars",
                 textPadding:10,
@@ -218,7 +232,7 @@ LAID.run( {
               }
             },
             "Option2": {
-              inherits: ["../Option1"],
+              inherit: ["../Option1"],
               props: {
                 top: LAID.take("../Option1", "height").add(10),
                 backgroundColor:LAID.take("../Option1", "backgroundColor").colorInvert(),
@@ -227,27 +241,29 @@ LAID.run( {
                   "zh": "li: %s"
                 }).i18nFormat(LAID.take("this", "backgroundColor").colorStringify())
               },
+              when: {
+                click: [
+                  function () {
+                    LAID.level( "../", this).data("gotop", true );
+                  }
+                ]
+              }
 
             }
           }
-        }
-        ,"BodyOverlay": {
+        },
+        "BodyOverlay": {
+          inherit: [ "/_SpringTransition" ],
           props: {
             top: LAID.take("../Body", "top"),
             width:LAID.take("../Body", "width"),
             height:LAID.take("../Body", "height"),
             backgroundColor:LAID.color("black"),
           },
-          transition: {
-            opacity:{
-              duration:200,
-              type:"ease"
-            }
-
-          },
           states: {
             "hidden": {
               onlyif: LAID.take("/", "data.menu").not(),
+
               props: {
                 opacity:0,
                 zIndex:-1

@@ -124,6 +124,9 @@
     linear: function ( duration, args ) {
       return new LinearTransition( duration, args );
     },
+    "spring": function ( duration, args ) {
+      return new LAID.$SpringTransition( duration, args );
+    },
     "cubic-bezier": function ( duration, args ) {
       return new CubicBezierTransition( duration, args );
     },

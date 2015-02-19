@@ -106,7 +106,8 @@ bottom: -0.25em;
     //$uninitialized: {},
     $isClogged:false,
     $isSolvingNewLevels: false,
-    $isRequestedForAnimationFrame: false
+    $isRequestedForAnimationFrame: false,
+    $isRecalculateRequiredOnRenderFinish: false
   };
 
 })();

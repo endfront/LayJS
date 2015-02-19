@@ -7,7 +7,8 @@
   * which represent the previous time frame
   */
   LAID.$render = function ( timeNow ) {
-    if ( !LAID.$isRequestedForAnimationFrame && ( LAID.$renderDirtyLevelS.length !== 0 ) ) {
+    if ( !LAID.$isRequestedForAnimationFrame &&
+       ( LAID.$renderDirtyLevelS.length !== 0 ) ) {
       LAID.$prevTimeFrame = timeNow || performance.now();
       window.requestAnimationFrame( render );
     }
@@ -20,8 +21,10 @@
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
       x, y,
+      xLen, yLen,
       i, len,
       renderDirtyLevelS = LAID.$renderDirtyLevelS,
+      renderCleanedLevelS = [],
       renderDirtyLevel,
       renderDirtyAttrValS,
       renderDirtyAttrVal,
@@ -43,13 +46,14 @@
 
     LAID.$newPartS = [];
 
-    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+    for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
 
       renderDirtyLevel = renderDirtyLevelS[ x ];
       renderDirtyAttrValS = renderDirtyLevel.$renderDirtyAttrValS;
       renderCallS = [];
+      console.log( renderDirtyLevel.path );
 
-      for ( y = 0; y < renderDirtyAttrValS.length; y++ ) {
+      for ( y = 0, yLen = renderDirtyAttrValS.length; y < yLen; y++ ) {
 
         isAttrTransitionComplete = true;
         renderDirtyAttrVal = renderDirtyAttrValS[ y ];
@@ -116,17 +120,29 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ] );
+        console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if ( renderDirtyAttrValS.length === 0 ) {
-        LAID.$arrayUtils.removeAtIndex( renderDirtyLevelS, x );
+        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
         x--;
       }
+      renderCleanedLevelS.push( renderDirtyLevel );
+
+    }
+
+
+    for ( i = 0, len = renderCleanedLevelS.length; i < len; i++ ) {
+      renderCleanedLevelS[ i ].$isInitiallyRendered = true;
     }
 
     LAID.$isRequestedForAnimationFrame = false;
+
+    if ( LAID.$isRecalculateRequiredOnRenderFinish ) {
+      LAID.$solveForRecalculation();
+      LAID.$isRecalculateRequiredOnRenderFinish = false;
+    }
 
     LAID.$render( curTimeFrame );
 
