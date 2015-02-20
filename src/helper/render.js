@@ -14,6 +14,8 @@
     }
   }
 
+
+
   function render() {
 
     var
@@ -21,15 +23,20 @@
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
       x, y,
-      xLen, yLen,
       i, len,
+      isDataTravelling = LAID.isDataTravelling,
+      dataTravellingDelta = LAID.dataTravellingDelta,
       renderDirtyLevelS = LAID.$renderDirtyLevelS,
       renderCleanedLevelS = [],
+      renderCleanedLevel,
       renderDirtyLevel,
-      renderDirtyAttrValS,
-      renderDirtyAttrVal,
+      travelRenderDirtyAttrValS,
+      travelRenderDirtyAttrVal,
+      normalRenderDirtyAttrValS,
+      normalRenderDirtyAttrVal,
       renderDirtyTransition,
-      renderCallS, isAttrTransitionComplete;
+      renderCallS, isLevelNormalTransitionComplete,
+      isAllNormalTransitionComplete = true;
 
     console.log( "render" );
 
@@ -39,63 +46,76 @@
       if ( newPartLevel.path !== "/" ) {
         newPartLevel.parentLevel.part.node.appendChild( newPart.node );
       }
-      if ( newPartLevel.$lson.load ) {
-        newPartLevel.$lson.load.call( newPartLevel );
-      }
     }
+
 
     LAID.$newPartS = [];
 
-    for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
+    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
 
       renderDirtyLevel = renderDirtyLevelS[ x ];
-      renderDirtyAttrValS = renderDirtyLevel.$renderDirtyAttrValS;
+      travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
+      normalRenderDirtyAttrValS = renderDirtyLevel.$normalRenderDirtyAttrValS;
       renderCallS = [];
-      console.log( renderDirtyLevel.path );
 
-      for ( y = 0, yLen = renderDirtyAttrValS.length; y < yLen; y++ ) {
+      for ( y = 0; y < travelRenderDirtyAttrValS.length; y++ ) {
 
-        isAttrTransitionComplete = true;
-        renderDirtyAttrVal = renderDirtyAttrValS[ y ];
-        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrVal.renderCall );
-        renderDirtyTransition = renderDirtyAttrVal.transition;
+        travelRenderDirtyAttrVal = travelRenderDirtyAttrValS[ y ];
+        transitionAttrVal( travelRenderDirtyAttrVal, dataTravellingDelta );
+          LAID.$arrayUtils.pushUnique(
+             renderCallS, travelRenderDirtyAttrVal.renderCall );
 
+
+
+      }
+
+      for ( y = 0; y < normalRenderDirtyAttrValS.length; y++ ) {
+
+        normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
+        isLevelNormalTransitionComplete = true;
+        LAID.$arrayUtils.pushUnique( renderCallS, normalRenderDirtyAttrVal.renderCall );
+        renderDirtyTransition = normalRenderDirtyAttrVal.transition;
+
+        //console.log( normalRenderDirtyAttrVal, dataTravellingAffectedAttrValS);
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
           if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
-            isAttrTransitionComplete = false;
+            isLevelNormalTransitionComplete = false;
           } else {
             if ( !renderDirtyTransition.checkIsComplete() ) {
-              isAttrTransitionComplete = false;
-              if ( renderDirtyAttrVal.calcVal instanceof LAID.Color ) {
-                renderDirtyAttrVal.transitionCalcVal =
-                  LAID.$generateColorMix( renderDirtyTransition.startCalcValue,
-                    renderDirtyAttrVal.calcVal,
+              isAllNormalTransitionComplete = false;
+              isLevelNormalTransitionComplete = false;
+              transitionAttrVal( normalRenderDirtyAttrVal,
+                 renderDirtyTransition.generateNext( timeFrameDiff ) );
+              /*if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
+                normalRenderDirtyAttrVal.transitionCalcVal =
+                  LAID.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
+                    normalRenderDirtyAttrVal.calcVal,
                     renderDirtyTransition.generateNext( timeFrameDiff ) );
               } else {
-              renderDirtyAttrVal.transitionCalcVal =
-                renderDirtyTransition.startCalcValue +
-                ( renderDirtyTransition.generateNext( timeFrameDiff ) *
-                  ( renderDirtyAttrVal.calcVal -
-                     renderDirtyTransition.startCalcValue )
-                );
-              }
+                normalRenderDirtyAttrVal.transitionCalcVal =
+                  normalRenderDirtyAttrVal.startCalcVal +
+                  ( renderDirtyTransition.generateNext( timeFrameDiff ) *
+                    ( normalRenderDirtyAttrVal.calcVal -
+                      normalRenderDirtyAttrVal.startCalcVal )
+                    );
+              }*/
 
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
                 renderDirtyTransition.done.call( renderDirtyLevel );
               }
-              renderDirtyAttrVal.transition = undefined;
+              normalRenderDirtyAttrVal.transition = undefined;
             }
           }
         }
 
-        if ( isAttrTransitionComplete ) {
+        if ( isLevelNormalTransitionComplete ) {
 
-          renderDirtyAttrVal.transitionCalcVal =
-            renderDirtyAttrVal.calcVal;
-          LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValS, y );
+          normalRenderDirtyAttrVal.transitionCalcVal =
+            normalRenderDirtyAttrVal.calcVal;
+          LAID.$arrayUtils.removeAtIndex( normalRenderDirtyAttrValS, y );
           y--;
 
         }
@@ -120,11 +140,11 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
+        //console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
-      if ( renderDirtyAttrValS.length === 0 ) {
+      if ( normalRenderDirtyAttrValS.length === 0 ) {
         LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
         x--;
       }
@@ -133,21 +153,43 @@
     }
 
 
+
     for ( i = 0, len = renderCleanedLevelS.length; i < len; i++ ) {
-      renderCleanedLevelS[ i ].$isInitiallyRendered = true;
+      renderCleanedLevel = renderCleanedLevelS[ i ];
+      if ( !renderCleanedLevel.$isInitiallyRendered ) {
+        renderCleanedLevel.$isInitiallyRendered = true;
+        if ( ( renderCleanedLevel.$lson.load ) &&
+          (typeof renderCleanedLevel.$lson.load === "function" ) ) {
+            renderCleanedLevel.$lson.load.call( renderCleanedLevel );
+        }
+      }
     }
 
     LAID.$isRequestedForAnimationFrame = false;
 
     if ( LAID.$isRecalculateRequiredOnRenderFinish ) {
-      LAID.$solveForRecalculation();
       LAID.$isRecalculateRequiredOnRenderFinish = false;
+      LAID.$solveForRecalculation();
+    } else if ( !isAllNormalTransitionComplete ) {
+      LAID.$render( curTimeFrame );
     }
-
-    LAID.$render( curTimeFrame );
-
-
   }
 
+
+  function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
+    if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
+      normalRenderDirtyAttrVal.transitionCalcVal =
+        LAID.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
+          normalRenderDirtyAttrVal.calcVal,
+          delta );
+    } else {
+      normalRenderDirtyAttrVal.transitionCalcVal =
+        normalRenderDirtyAttrVal.startCalcVal +
+        ( delta *
+          ( normalRenderDirtyAttrVal.calcVal -
+            normalRenderDirtyAttrVal.startCalcVal )
+          );
+    }
+  }
 
 })();

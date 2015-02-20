@@ -4,12 +4,11 @@
 
 
 Current:
-  - type interface
-  - install, uninstall state
-  - transition of TEXT when app has started!
-  - update spec to have quotes around state names
-  - $absoluteLeft/Top
   - dataTravel
+  - undo isDataTravelling on all affected attrValues once done travelling
+  - dataTravel $readOnlys
+  - input
+  - $absoluteLeft/Top
 
 
 
@@ -83,6 +82,7 @@ Tests:
 
 
 Future:
+  - update spec to have quotes around state names
   - natural width and height dependent upon the rotation of Z axis of children.
   - Insert CSS from entry.js (normalize.css CSS)
   - move `eventReadonlyEventType2boundFnHandler` outside of AttrVal (move to Level) to save space

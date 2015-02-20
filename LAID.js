@@ -107,7 +107,16 @@ bottom: -0.25em;
     $isClogged:false,
     $isSolvingNewLevels: false,
     $isRequestedForAnimationFrame: false,
-    $isRecalculateRequiredOnRenderFinish: false
+    $isRecalculateRequiredOnRenderFinish: false,
+
+    $isDataTravellingShock: false,
+    isDataTravelling: false,
+    dataTravellingDelta: 0.0,
+    dataTravellingLevel: undefined,
+    dataTravellingAttrInitialVal: undefined,
+    $dataTravellingAttrVal: undefined,
+
+
   };
 
 })();
@@ -134,11 +143,14 @@ bottom: -0.25em;
 
     this.calcVal = undefined;
     this.transitionCalcVal = undefined;
+    this.startCalcVal = undefined;
     this.transition = undefined;
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall = level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
+
+    this.isDataTravelling = false;
 
     this.takerAttrValS = [];
 
@@ -224,9 +236,23 @@ bottom: -0.25em;
   * Request the level corresponding to the given AttrVal
   * to recalculate this AttrVal.
   */
-  LAID.AttrVal.prototype.requestRecalculation = function () {
+  LAID.AttrVal.prototype.requestRecalculation = function ( ) {
+
     this.isRecalculateRequired = true;
     this.level.$addRecalculateDirtyAttrVal( this );
+  };
+
+  LAID.AttrVal.prototype.checkIsTransitionable = function () {
+
+    return this.renderCall && (
+      ( ( typeof this.startCalcVal  === "number" ) &&
+        typeof this.calcVal === "number" )
+        ||
+        ( ( this.startCalcVal instanceof LAID.Color  ) &&
+          this.calcVal instanceof LAID.Color )
+
+      );
+
   };
 
 
@@ -293,6 +319,7 @@ bottom: -0.25em;
         isDirty = true;
     }
 
+
     if ( isDirty ) {
       var
         attr = this.attr,
@@ -307,17 +334,26 @@ bottom: -0.25em;
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
-        this.takerAttrValS[ i ].requestRecalculation();
+        this.takerAttrValS[ i ].requestRecalculation( );
       }
 
       if ( this.renderCall ) {
-        level.$addRenderDirtyAttrVal( this );
+
+        if ( LAID.$isDataTravellingShock ) {
+          this.startCalcVal = this.transitionCalcVal;
+          if ( this.checkIsTransitionable() ) {
+            this.isDataTravelling = true;
+            level.$addTravelRenderDirtyAttrVal( this );
+          }
+        } else {
+          level.$addNormalRenderDirtyAttrVal( this );
+        }
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
         )  {
 
-          level.$updateNaturalWidthFromText();
-          level.$updateNaturalHeightFromText();
+          level.$updateNaturalWidthFromText( );
+          level.$updateNaturalHeightFromText( );
         }
 
         // In case there exists a transition
@@ -327,7 +363,7 @@ bottom: -0.25em;
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
           if ( LAID.$arrayUtils.pushUnique( level.$stateS, stateName ) ) {
-            level.$updateStates();
+            level.$updateStates(  ); //TODO
             // remove from the list of uninstalled states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyUninstalledStateS, stateName );
             // add state to the list of newly installed states
@@ -338,7 +374,7 @@ bottom: -0.25em;
         } else { // remove state
           if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
 
-            level.$updateStates();
+            level.$updateStates( );
             // remove from the list of installed states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
             // add state to the list of newly uninstalled states
@@ -898,8 +934,10 @@ bottom: -0.25em;
     this.$isInitiallyRendered = false;
 
     this.$attr2attrVal = {};
+    //this.$dataTravelAttrValS = [];
     this.$recalculateDirtyAttrValS = [];
-    this.$renderDirtyAttrValS = [];
+    this.$normalRenderDirtyAttrValS = [];
+    this.$travelRenderDirtyAttrValS = [];
 
     this.$childLevelS = [];
 
@@ -1419,13 +1457,14 @@ bottom: -0.25em;
     this.$changeAttrVal( "data." + dataKey, value );
   };
 
+
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
     return this.$attr2attrVal[ attr ];
   };
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    this.$attr2attrVal[ attr ].update( val );
+    this.$attr2attrVal[ attr ].update( val, false );
     if ( !LAID.$isRendering ) {
       LAID.$solveForRecalculation();
     } else {
@@ -1440,11 +1479,80 @@ bottom: -0.25em;
 
   };
 
-  LAID.Level.prototype.$addRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.Level.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.pushUnique( this.$renderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
 
+  };
+
+  LAID.Level.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
+
+  };
+
+
+
+  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
+    var attrVal;
+    if ( LAID.$isDataTravelling ) {
+      throw ("LAID Error: Existence of another unfinished data travel");
+    } else {
+      attrVal = this.$attr2attrVal[ "data." + dataKey ];
+      if ( attrVal === undefined ) {
+        throw ("LAID Error: Inexistence of data key for data travel");
+      }
+      console.log("BEGAN");
+      LAID.isDataTravelling = true;
+      LAID.dataTravellingDelta = 0.0;
+      LAID.dataTravellingLevel = this;
+      LAID.dataTravellingAttrInitialVal = attrVal.val;
+      LAID.$dataTravellingAttrVal = attrVal;
+
+      LAID.$isDataTravellingShock = true;
+      attrVal.update( finalVal, true );
+      LAID.$solveForRecalculation();
+      LAID.$isDataTravellingShock = false;
+
+    }
+  };
+
+  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
+    if ( LAID.$isDataTravelling ) {
+      throw ("LAID Error: Inexistence of a data travel");
+    } else if ( this !== LAID.dataTravellingLevel ){
+      throw ("LAID Error: Inexistence of a data travel for this Level");
+    } else {
+      console.log(delta);
+      if ( LAID.dataTravellingDelta !== delta ) {
+        console.log("CONT");
+
+        LAID.dataTravellingDelta = delta;
+        LAID.$render();
+      }
+    }
+  };
+
+  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
+    if ( LAID.$isDataTravelling ) {
+      console.error("LAID Error: Inexistence of a data travel");
+    } else {
+      console.log("END");
+
+      LAID.isDataTravelling = false;
+      // TODO: clear out attrvalues which are data travelling
+      LAID.$clearDataTravellingAttrVals();
+      if ( !isArrived ) {
+        LAID.$dataTravellingAttrVal.update(
+          LAID.dataTravellingAttrInitialVal, false );
+      } else {
+
+        // TODO
+      }
+      LAID.$render();
+    }
   };
 
 
@@ -1452,7 +1560,8 @@ bottom: -0.25em;
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Level.prototype.$findChildWithMaxOfAttr = function ( attr, attrValIndependentOf ) {
+  LAID.Level.prototype.$findChildWithMaxOfAttr =
+   function ( attr, attrValIndependentOf ) {
     var
       i, len, curMaxVal, curMaxLevel,
        childLevelS = this.$childLevelS,
@@ -1493,9 +1602,7 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$updateNaturalWidth = function () {
     if ( this.path === "/" ) {
-      console.log("bf",this.$renderDirtyAttrValS);
       this.$attr2attrVal.$naturalWidth.update( window.innerWidth );
-      console.log("af",this.$renderDirtyAttrValS.length,this.$attr2attrVal.$naturalWidth);
 
     } else if ( this.$lson.type === "text" ) {
       this.$updateNaturalWidthFromText();
@@ -1530,13 +1637,13 @@ bottom: -0.25em;
 /*
   LAID.Level.prototype.$kickBackScrollX = function () {
     if ( this.$attr2attrVal.scrollX !== undefined ) {
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
+      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
     }
   };
 
   LAID.Level.prototype.$kickBackScrollY = function () {
     if ( this.$attr2attrVal.scrollY !== undefined ) {
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
+      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
     }
   };
 */
@@ -1629,10 +1736,10 @@ bottom: -0.25em;
     if ( this.$attr2attrVal.$naturalWidth ) {
 
         this.part.$naturalWidthTextMode = true;
-        this.$addRenderDirtyAttrVal( this.$attr2attrVal.text );
+        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
 
         if ( this.$attr2attrVal.scrollX !== undefined ) {
-          this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
+          this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
         }
         // temporarily (for current recalculate) cycle
         // set the value to 0. This is only
@@ -1646,10 +1753,10 @@ bottom: -0.25em;
   LAID.Level.prototype.$updateNaturalHeightFromText = function () {
     if ( this.$attr2attrVal.$naturalHeight) {
       this.part.$naturalHeightTextMode = true;
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.text );
+      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
 
       if ( this.$attr2attrVal.scrollY !== undefined ) {
-        this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
+        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
       }
       // temporarily (for current recalculate) cycle
       // set the value to 0. This is only
@@ -1859,9 +1966,10 @@ bottom: -0.25em;
         ) {
 
 
+      attrVal.startCalcVal =  attrVal.transitionCalcVal;
+
       attrVal.transition = new LAID.Transition (
           transitionType,
-          attrVal.transitionCalcVal,
           transitionDelay ,
           transitionDuration, transitionArg2val,
           transitionDone );
@@ -3719,8 +3827,7 @@ return this;
   var transitionType2fn,
     epsilon = 1e-6;
 
-  LAID.Transition = function ( type, startCalcValue, delay, duration, args, done ) {
-    this.startCalcValue = startCalcValue;
+  LAID.Transition = function ( type, delay, duration, args, done ) {
     this.done = done;
     this.delay = delay;
     this.transition = ( transitionType2fn[ type ] )( duration, args );
@@ -4405,6 +4512,27 @@ return this;
     return ( ( attr.indexOf( "." ) === -1 ) &&
      ( attr[ 0 ] !== "$") );
    };
+
+})();
+
+( function () {
+  "use strict";
+
+  LAID.$clearDataTravellingAttrVals = function () {
+
+    var
+      dataTravellingAffectedAttrValS = LAID.$dataTravellingAffectedAttrValS,
+      dataTravellingAffectedAttrVal,
+      i, len;
+
+    for ( i = 0, len = dataTravellingAffectedAttrValS; i < len; i++ ) {
+      dataTravellingAffectedAttrVal =  dataTravellingAffectedAttrValS[ i ];
+      dataTravellingAffectedAttrVal.isDataTravelling = true;
+    }
+
+    LAID.$dataTravellingAffectedAttrValS = [];
+
+  };
 
 })();
 
@@ -5404,7 +5532,7 @@ function fix_stopPropagation() {
 
       type: function( intoLson, fromLson ) {
 
-        intoLson.type = fromLson.type || intoLson.type;
+        intoLson.type =  fromLson.type || intoLson.type;
 
 
       },
@@ -6334,6 +6462,8 @@ if (!Array.prototype.indexOf) {
     }
   }
 
+
+
   function render() {
 
     var
@@ -6341,15 +6471,20 @@ if (!Array.prototype.indexOf) {
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
       x, y,
-      xLen, yLen,
       i, len,
+      isDataTravelling = LAID.isDataTravelling,
+      dataTravellingDelta = LAID.dataTravellingDelta,
       renderDirtyLevelS = LAID.$renderDirtyLevelS,
       renderCleanedLevelS = [],
+      renderCleanedLevel,
       renderDirtyLevel,
-      renderDirtyAttrValS,
-      renderDirtyAttrVal,
+      travelRenderDirtyAttrValS,
+      travelRenderDirtyAttrVal,
+      normalRenderDirtyAttrValS,
+      normalRenderDirtyAttrVal,
       renderDirtyTransition,
-      renderCallS, isAttrTransitionComplete;
+      renderCallS, isLevelNormalTransitionComplete,
+      isAllNormalTransitionComplete = true;
 
     console.log( "render" );
 
@@ -6359,63 +6494,76 @@ if (!Array.prototype.indexOf) {
       if ( newPartLevel.path !== "/" ) {
         newPartLevel.parentLevel.part.node.appendChild( newPart.node );
       }
-      if ( newPartLevel.$lson.load ) {
-        newPartLevel.$lson.load.call( newPartLevel );
-      }
     }
+
 
     LAID.$newPartS = [];
 
-    for ( x = 0, xLen = renderDirtyLevelS.length; x < xLen; x++ ) {
+    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
 
       renderDirtyLevel = renderDirtyLevelS[ x ];
-      renderDirtyAttrValS = renderDirtyLevel.$renderDirtyAttrValS;
+      travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
+      normalRenderDirtyAttrValS = renderDirtyLevel.$normalRenderDirtyAttrValS;
       renderCallS = [];
-      console.log( renderDirtyLevel.path );
 
-      for ( y = 0, yLen = renderDirtyAttrValS.length; y < yLen; y++ ) {
+      for ( y = 0; y < travelRenderDirtyAttrValS.length; y++ ) {
 
-        isAttrTransitionComplete = true;
-        renderDirtyAttrVal = renderDirtyAttrValS[ y ];
-        LAID.$arrayUtils.pushUnique( renderCallS, renderDirtyAttrVal.renderCall );
-        renderDirtyTransition = renderDirtyAttrVal.transition;
+        travelRenderDirtyAttrVal = travelRenderDirtyAttrValS[ y ];
+        transitionAttrVal( travelRenderDirtyAttrVal, dataTravellingDelta );
+          LAID.$arrayUtils.pushUnique(
+             renderCallS, travelRenderDirtyAttrVal.renderCall );
 
+
+
+      }
+
+      for ( y = 0; y < normalRenderDirtyAttrValS.length; y++ ) {
+
+        normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
+        isLevelNormalTransitionComplete = true;
+        LAID.$arrayUtils.pushUnique( renderCallS, normalRenderDirtyAttrVal.renderCall );
+        renderDirtyTransition = normalRenderDirtyAttrVal.transition;
+
+        //console.log( normalRenderDirtyAttrVal, dataTravellingAffectedAttrValS);
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
           if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
-            isAttrTransitionComplete = false;
+            isLevelNormalTransitionComplete = false;
           } else {
             if ( !renderDirtyTransition.checkIsComplete() ) {
-              isAttrTransitionComplete = false;
-              if ( renderDirtyAttrVal.calcVal instanceof LAID.Color ) {
-                renderDirtyAttrVal.transitionCalcVal =
-                  LAID.$generateColorMix( renderDirtyTransition.startCalcValue,
-                    renderDirtyAttrVal.calcVal,
+              isAllNormalTransitionComplete = false;
+              isLevelNormalTransitionComplete = false;
+              transitionAttrVal( normalRenderDirtyAttrVal,
+                 renderDirtyTransition.generateNext( timeFrameDiff ) );
+              /*if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
+                normalRenderDirtyAttrVal.transitionCalcVal =
+                  LAID.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
+                    normalRenderDirtyAttrVal.calcVal,
                     renderDirtyTransition.generateNext( timeFrameDiff ) );
               } else {
-              renderDirtyAttrVal.transitionCalcVal =
-                renderDirtyTransition.startCalcValue +
-                ( renderDirtyTransition.generateNext( timeFrameDiff ) *
-                  ( renderDirtyAttrVal.calcVal -
-                     renderDirtyTransition.startCalcValue )
-                );
-              }
+                normalRenderDirtyAttrVal.transitionCalcVal =
+                  normalRenderDirtyAttrVal.startCalcVal +
+                  ( renderDirtyTransition.generateNext( timeFrameDiff ) *
+                    ( normalRenderDirtyAttrVal.calcVal -
+                      normalRenderDirtyAttrVal.startCalcVal )
+                    );
+              }*/
 
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
                 renderDirtyTransition.done.call( renderDirtyLevel );
               }
-              renderDirtyAttrVal.transition = undefined;
+              normalRenderDirtyAttrVal.transition = undefined;
             }
           }
         }
 
-        if ( isAttrTransitionComplete ) {
+        if ( isLevelNormalTransitionComplete ) {
 
-          renderDirtyAttrVal.transitionCalcVal =
-            renderDirtyAttrVal.calcVal;
-          LAID.$arrayUtils.removeAtIndex( renderDirtyAttrValS, y );
+          normalRenderDirtyAttrVal.transitionCalcVal =
+            normalRenderDirtyAttrVal.calcVal;
+          LAID.$arrayUtils.removeAtIndex( normalRenderDirtyAttrValS, y );
           y--;
 
         }
@@ -6440,11 +6588,11 @@ if (!Array.prototype.indexOf) {
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
+        //console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
-      if ( renderDirtyAttrValS.length === 0 ) {
+      if ( normalRenderDirtyAttrValS.length === 0 ) {
         LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
         x--;
       }
@@ -6453,22 +6601,44 @@ if (!Array.prototype.indexOf) {
     }
 
 
+
     for ( i = 0, len = renderCleanedLevelS.length; i < len; i++ ) {
-      renderCleanedLevelS[ i ].$isInitiallyRendered = true;
+      renderCleanedLevel = renderCleanedLevelS[ i ];
+      if ( !renderCleanedLevel.$isInitiallyRendered ) {
+        renderCleanedLevel.$isInitiallyRendered = true;
+        if ( ( renderCleanedLevel.$lson.load ) &&
+          (typeof renderCleanedLevel.$lson.load === "function" ) ) {
+            renderCleanedLevel.$lson.load.call( renderCleanedLevel );
+        }
+      }
     }
 
     LAID.$isRequestedForAnimationFrame = false;
 
     if ( LAID.$isRecalculateRequiredOnRenderFinish ) {
-      LAID.$solveForRecalculation();
       LAID.$isRecalculateRequiredOnRenderFinish = false;
+      LAID.$solveForRecalculation();
+    } else if ( !isAllNormalTransitionComplete ) {
+      LAID.$render( curTimeFrame );
     }
-
-    LAID.$render( curTimeFrame );
-
-
   }
 
+
+  function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
+    if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
+      normalRenderDirtyAttrVal.transitionCalcVal =
+        LAID.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
+          normalRenderDirtyAttrVal.calcVal,
+          delta );
+    } else {
+      normalRenderDirtyAttrVal.transitionCalcVal =
+        normalRenderDirtyAttrVal.startCalcVal +
+        ( delta *
+          ( normalRenderDirtyAttrVal.calcVal -
+            normalRenderDirtyAttrVal.startCalcVal )
+          );
+    }
+  }
 
 })();
 
@@ -6693,12 +6863,12 @@ if (!Array.prototype.indexOf) {
 
 
   LAID.$SpringTransition = function( duration, args ) {
-
     this.curTime = 0;
     this.value = 0;
-    this.velocity = parseFloat( args.velocity );
-    this.tension = parseFloat( args.tension );
     this.friction = parseFloat( args.friction );
+    this.tension = parseFloat( args.tension );
+    this.velocity = parseFloat( args.velocity || 0 );
+
     this.threshold = parseFloat( args.threshold || ( 1 / 1000 ) );
     this.isComplete = false;
   };

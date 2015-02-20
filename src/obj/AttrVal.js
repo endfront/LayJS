@@ -20,11 +20,14 @@
 
     this.calcVal = undefined;
     this.transitionCalcVal = undefined;
+    this.startCalcVal = undefined;
     this.transition = undefined;
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall = level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
+
+    this.isDataTravelling = false;
 
     this.takerAttrValS = [];
 
@@ -110,9 +113,23 @@
   * Request the level corresponding to the given AttrVal
   * to recalculate this AttrVal.
   */
-  LAID.AttrVal.prototype.requestRecalculation = function () {
+  LAID.AttrVal.prototype.requestRecalculation = function ( ) {
+
     this.isRecalculateRequired = true;
     this.level.$addRecalculateDirtyAttrVal( this );
+  };
+
+  LAID.AttrVal.prototype.checkIsTransitionable = function () {
+
+    return this.renderCall && (
+      ( ( typeof this.startCalcVal  === "number" ) &&
+        typeof this.calcVal === "number" )
+        ||
+        ( ( this.startCalcVal instanceof LAID.Color  ) &&
+          this.calcVal instanceof LAID.Color )
+
+      );
+
   };
 
 
@@ -179,6 +196,7 @@
         isDirty = true;
     }
 
+
     if ( isDirty ) {
       var
         attr = this.attr,
@@ -193,17 +211,26 @@
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
-        this.takerAttrValS[ i ].requestRecalculation();
+        this.takerAttrValS[ i ].requestRecalculation( );
       }
 
       if ( this.renderCall ) {
-        level.$addRenderDirtyAttrVal( this );
+
+        if ( LAID.$isDataTravellingShock ) {
+          this.startCalcVal = this.transitionCalcVal;
+          if ( this.checkIsTransitionable() ) {
+            this.isDataTravelling = true;
+            level.$addTravelRenderDirtyAttrVal( this );
+          }
+        } else {
+          level.$addNormalRenderDirtyAttrVal( this );
+        }
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
         )  {
 
-          level.$updateNaturalWidthFromText();
-          level.$updateNaturalHeightFromText();
+          level.$updateNaturalWidthFromText( );
+          level.$updateNaturalHeightFromText( );
         }
 
         // In case there exists a transition
@@ -213,7 +240,7 @@
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
           if ( LAID.$arrayUtils.pushUnique( level.$stateS, stateName ) ) {
-            level.$updateStates();
+            level.$updateStates(  ); //TODO
             // remove from the list of uninstalled states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyUninstalledStateS, stateName );
             // add state to the list of newly installed states
@@ -224,7 +251,7 @@
         } else { // remove state
           if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
 
-            level.$updateStates();
+            level.$updateStates( );
             // remove from the list of installed states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
             // add state to the list of newly uninstalled states

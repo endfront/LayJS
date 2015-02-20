@@ -131,7 +131,7 @@
 
       type: function( intoLson, fromLson ) {
 
-        intoLson.type = fromLson.type || intoLson.type;
+        intoLson.type =  fromLson.type || intoLson.type;
 
 
       },

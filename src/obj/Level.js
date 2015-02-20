@@ -39,8 +39,10 @@
     this.$isInitiallyRendered = false;
 
     this.$attr2attrVal = {};
+    //this.$dataTravelAttrValS = [];
     this.$recalculateDirtyAttrValS = [];
-    this.$renderDirtyAttrValS = [];
+    this.$normalRenderDirtyAttrValS = [];
+    this.$travelRenderDirtyAttrValS = [];
 
     this.$childLevelS = [];
 
@@ -560,13 +562,14 @@
     this.$changeAttrVal( "data." + dataKey, value );
   };
 
+
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
     return this.$attr2attrVal[ attr ];
   };
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    this.$attr2attrVal[ attr ].update( val );
+    this.$attr2attrVal[ attr ].update( val, false );
     if ( !LAID.$isRendering ) {
       LAID.$solveForRecalculation();
     } else {
@@ -581,11 +584,80 @@
 
   };
 
-  LAID.Level.prototype.$addRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.Level.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.pushUnique( this.$renderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
 
+  };
+
+  LAID.Level.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
+
+  };
+
+
+
+  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
+    var attrVal;
+    if ( LAID.$isDataTravelling ) {
+      throw ("LAID Error: Existence of another unfinished data travel");
+    } else {
+      attrVal = this.$attr2attrVal[ "data." + dataKey ];
+      if ( attrVal === undefined ) {
+        throw ("LAID Error: Inexistence of data key for data travel");
+      }
+      console.log("BEGAN");
+      LAID.isDataTravelling = true;
+      LAID.dataTravellingDelta = 0.0;
+      LAID.dataTravellingLevel = this;
+      LAID.dataTravellingAttrInitialVal = attrVal.val;
+      LAID.$dataTravellingAttrVal = attrVal;
+
+      LAID.$isDataTravellingShock = true;
+      attrVal.update( finalVal, true );
+      LAID.$solveForRecalculation();
+      LAID.$isDataTravellingShock = false;
+
+    }
+  };
+
+  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
+    if ( LAID.$isDataTravelling ) {
+      throw ("LAID Error: Inexistence of a data travel");
+    } else if ( this !== LAID.dataTravellingLevel ){
+      throw ("LAID Error: Inexistence of a data travel for this Level");
+    } else {
+      console.log(delta);
+      if ( LAID.dataTravellingDelta !== delta ) {
+        console.log("CONT");
+
+        LAID.dataTravellingDelta = delta;
+        LAID.$render();
+      }
+    }
+  };
+
+  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
+    if ( LAID.$isDataTravelling ) {
+      console.error("LAID Error: Inexistence of a data travel");
+    } else {
+      console.log("END");
+
+      LAID.isDataTravelling = false;
+      // TODO: clear out attrvalues which are data travelling
+      LAID.$clearDataTravellingAttrVals();
+      if ( !isArrived ) {
+        LAID.$dataTravellingAttrVal.update(
+          LAID.dataTravellingAttrInitialVal, false );
+      } else {
+
+        // TODO
+      }
+      LAID.$render();
+    }
   };
 
 
@@ -593,7 +665,8 @@
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Level.prototype.$findChildWithMaxOfAttr = function ( attr, attrValIndependentOf ) {
+  LAID.Level.prototype.$findChildWithMaxOfAttr =
+   function ( attr, attrValIndependentOf ) {
     var
       i, len, curMaxVal, curMaxLevel,
        childLevelS = this.$childLevelS,
@@ -634,9 +707,7 @@
 
   LAID.Level.prototype.$updateNaturalWidth = function () {
     if ( this.path === "/" ) {
-      console.log("bf",this.$renderDirtyAttrValS);
       this.$attr2attrVal.$naturalWidth.update( window.innerWidth );
-      console.log("af",this.$renderDirtyAttrValS.length,this.$attr2attrVal.$naturalWidth);
 
     } else if ( this.$lson.type === "text" ) {
       this.$updateNaturalWidthFromText();
@@ -671,13 +742,13 @@
 /*
   LAID.Level.prototype.$kickBackScrollX = function () {
     if ( this.$attr2attrVal.scrollX !== undefined ) {
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
+      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
     }
   };
 
   LAID.Level.prototype.$kickBackScrollY = function () {
     if ( this.$attr2attrVal.scrollY !== undefined ) {
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
+      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
     }
   };
 */
@@ -770,10 +841,10 @@
     if ( this.$attr2attrVal.$naturalWidth ) {
 
         this.part.$naturalWidthTextMode = true;
-        this.$addRenderDirtyAttrVal( this.$attr2attrVal.text );
+        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
 
         if ( this.$attr2attrVal.scrollX !== undefined ) {
-          this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
+          this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
         }
         // temporarily (for current recalculate) cycle
         // set the value to 0. This is only
@@ -787,10 +858,10 @@
   LAID.Level.prototype.$updateNaturalHeightFromText = function () {
     if ( this.$attr2attrVal.$naturalHeight) {
       this.part.$naturalHeightTextMode = true;
-      this.$addRenderDirtyAttrVal( this.$attr2attrVal.text );
+      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
 
       if ( this.$attr2attrVal.scrollY !== undefined ) {
-        this.$addRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
+        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
       }
       // temporarily (for current recalculate) cycle
       // set the value to 0. This is only
@@ -1000,9 +1071,10 @@
         ) {
 
 
+      attrVal.startCalcVal =  attrVal.transitionCalcVal;
+
       attrVal.transition = new LAID.Transition (
           transitionType,
-          attrVal.transitionCalcVal,
           transitionDelay ,
           transitionDuration, transitionArg2val,
           transitionDone );

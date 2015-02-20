@@ -4,8 +4,7 @@
   var transitionType2fn,
     epsilon = 1e-6;
 
-  LAID.Transition = function ( type, startCalcValue, delay, duration, args, done ) {
-    this.startCalcValue = startCalcValue;
+  LAID.Transition = function ( type, delay, duration, args, done ) {
     this.done = done;
     this.delay = delay;
     this.transition = ( transitionType2fn[ type ] )( duration, args );

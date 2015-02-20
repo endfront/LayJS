@@ -12,14 +12,13 @@ LAID.run( {
   },
   children: {
     "_SpringTransition": {
-      //type:"interface",
       transition: {
         all: {
           type:"spring",
           args: {
-            tension: 100.0,
-            friction: 10.0,
-            velocity:0.0,
+            tension: 191.0,
+            friction: 12.9,
+            //velocity:0.0,
           }
         }
       }
@@ -71,6 +70,7 @@ LAID.run( {
             backgroundColor: LAID.color( "black" )
           },
 
+
           children: {
             "MenuInvoke": {
               props: {
@@ -119,7 +119,10 @@ LAID.run( {
                       centerX: LAID.take("../", "width").divide(2),
                       centerY: LAID.take("../", "height").divide(2),
                       width: LAID.take("this", "$naturalWidth").max( LAID.take("this", "$naturalHeight") ),
-                      height: LAID.take("this", "width")
+                      height: LAID.take("this", "width"),
+                      overflowX: "visible",
+                      overflowY: "visible"
+
                     },
                     children: {
                       "TopBar": {
@@ -192,7 +195,7 @@ LAID.run( {
                 textPadding:20,
                 textSize: 30,
                 textLetterSpacing:1
-              }
+              },
             }
           },
         },
@@ -208,23 +211,13 @@ LAID.run( {
             backgroundColor: LAID.color("gainsboro"),
             overflowY: "auto",
           },
-          states: {
-            gotop: {
-              onlyif: LAID.take("this", "data.gotop"),
-              props: {
-                scrollY: 0
-              },
-              install: function () {
-                LAID.level("", this ).data( "gotop", false );
-              }
-            }
-          },
+
           children: {
             "Option1": {
               props: {
                 width:LAID.take("../", 'width').subtract(20),
                 centerX: LAID.take("../","width").divide(2),
-                height:450,
+                height:220,
                 backgroundColor:LAID.color("blue"),
                 text: "Hello Mars",
                 textPadding:10,
@@ -241,13 +234,7 @@ LAID.run( {
                   "zh": "li: %s"
                 }).i18nFormat(LAID.take("this", "backgroundColor").colorStringify())
               },
-              when: {
-                click: [
-                  function () {
-                    LAID.level( "../", this).data("gotop", true );
-                  }
-                ]
-              }
+
 
             }
           }
@@ -284,6 +271,25 @@ LAID.run( {
                 click: [
                   function () {
                     LAID.level("/").data("menu", false);
+                  }
+                ],
+                mousedown: [
+                  function () {
+                    if ( !LAID.isDataTravelling ) {
+                      LAID.level("/").dataTravelBegin( "menu", false );
+                    }
+                  }
+                ],
+                mousemove: [
+                  function () {
+                    if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
+                      LAID.level("/").dataTravelContinue( 0.5 );
+                    }
+                  }
+                ],
+                mouseup: [
+                  function () {
+                    LAID.level("/").dataTravelArrive( true );
                   }
                 ]
               }
