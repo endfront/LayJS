@@ -187,6 +187,9 @@ LAID.run( {
             },
             "Title": {
               inherit: ["/_SpringTransition"],
+              data: {
+                isRotating: false
+              },
               props: {
                 centerX: LAID.take("../", "width").divide(2),
                 text: "WOLPART",
@@ -196,14 +199,46 @@ LAID.run( {
                 textSize: 30,
                 textLetterSpacing:1
               },
+              /*load: function () {
+                this.data("isRotating", true);
+
+              },
+              transition: {
+                rotateZ: {
+                  type:"linear",
+                  duration:1000
+                }
+              },
+
+              states: {
+                "rotating": {
+                  onlyif: LAID.take("", "data.isRotating"),
+                  props: {
+                    rotateZ: 360
+                  },
+                  transition: {
+                    rotateZ:{
+                      done: function () {
+                        this.data("isRotating", false);
+
+                      }
+                    }
+                  },
+                  uninstall: function () {
+                    var self = this;
+                    setTimeout(function(){
+                          self.data("isRotating", true);
+                    });
+                  }
+                },
+
+              }*/
             }
           },
         },
         "Body": {
           inherit:[ "/_SpringTransition" ],
-          data: {
-            gotop: false
-          },
+
           props: {
             width: LAID.take("../", 'width'),
             top: LAID.take("../Header", "bottom"),
@@ -234,13 +269,21 @@ LAID.run( {
                   "zh": "li: %s"
                 }).i18nFormat(LAID.take("this", "backgroundColor").colorStringify())
               },
-
-
             }
           }
         },
         "BodyOverlay": {
           inherit: [ "/_SpringTransition" ],
+          data: {
+            startMove: 0,
+            fnCalculateDelta: function (e) {
+              var startMove = LAID.level("", this).attr("data.startMove");
+              var menuWidth = LAID.level("/Menu", this).attr("width");
+              var curMove = e.pageX;
+              var delta = (startMove - curMove) / menuWidth;
+              return delta;
+            }
+          },
           props: {
             top: LAID.take("../Body", "top"),
             width:LAID.take("../Body", "width"),
@@ -259,6 +302,28 @@ LAID.run( {
                 zIndex: {
                   delay: 200
                 }
+              },
+              when: {
+                mousemove: [
+                  function (e) {
+                    if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
+
+                      LAID.level("/").dataTravelContinue(
+                        this.attr("data.fnCalculateDelta").call( this, e)
+                      );
+
+                    }
+                  }
+                ],
+                mouseup: [
+                  function (e) {
+                    if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
+                      LAID.level("/").dataTravelArrive(
+                        this.attr("data.fnCalculateDelta").call( this, e) > 0.5
+                      );
+                    }
+                  }
+                ]
               }
             },
             "shown": {
@@ -268,30 +333,21 @@ LAID.run( {
                 zIndex:1
               },
               when: {
-                click: [
+                /*click: [
                   function () {
                     LAID.level("/").data("menu", false);
                   }
-                ],
+                ],*/
                 mousedown: [
-                  function () {
+                  function (e) {
                     if ( !LAID.isDataTravelling ) {
+                      LAID.level("", this).data("startMove", e.pageX );
                       LAID.level("/").dataTravelBegin( "menu", false );
+
                     }
-                  }
-                ],
-                mousemove: [
-                  function () {
-                    if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
-                      LAID.level("/").dataTravelContinue( 0.5 );
-                    }
-                  }
-                ],
-                mouseup: [
-                  function () {
-                    LAID.level("/").dataTravelArrive( true );
                   }
                 ]
+
               }
             },
           }

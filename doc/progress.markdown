@@ -4,9 +4,11 @@
 
 
 Current:
-  - dataTravel
-  - undo isDataTravelling on all affected attrValues once done travelling
   - dataTravel $readOnlys
+  - fix delta arrive FALSE
+  - update data travelling example in spec, whereby "mousedown" is together
+  with "movemove" and "mouseup" within the same state
+
   - input
   - $absoluteLeft/Top
 
@@ -76,6 +78,11 @@ Tests:
   - lazy attributes
     - state based
     - readonly based
+
+  - transition
+    - position int
+    - negative int
+    - LAID.Color
 
 
 

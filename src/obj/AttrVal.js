@@ -22,12 +22,12 @@
     this.transitionCalcVal = undefined;
     this.startCalcVal = undefined;
     this.transition = undefined;
+    this.isTransitionable = false;
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall = level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
 
-    this.isDataTravelling = false;
 
     this.takerAttrValS = [];
 
@@ -121,14 +121,25 @@
 
   LAID.AttrVal.prototype.checkIsTransitionable = function () {
 
-    return this.renderCall && (
-      ( ( typeof this.startCalcVal  === "number" ) &&
-        typeof this.calcVal === "number" )
-        ||
-        ( ( this.startCalcVal instanceof LAID.Color  ) &&
-          this.calcVal instanceof LAID.Color )
+    return this.renderCall &&
+      ( this.startCalcVal !== this.calcVal ) &&
+      (
+        (
+          ( typeof this.startCalcVal === "number" )
+            &&
+          ( typeof this.calcVal === "number" )
+        )
+          ||
+        (
+          ( this.startCalcVal instanceof LAID.Color  )
+              &&
+          ( this.calcVal instanceof LAID.Color )
+        )
+      ) &&
+      this.attr !== "zIndex"
 
-      );
+      ;
+
 
   };
 
@@ -214,23 +225,27 @@
         this.takerAttrValS[ i ].requestRecalculation( );
       }
 
-      if ( this.renderCall ) {
+      if ( LAID.$isDataTravellingShock ) {
 
-        if ( LAID.$isDataTravellingShock ) {
-          this.startCalcVal = this.transitionCalcVal;
-          if ( this.checkIsTransitionable() ) {
-            this.isDataTravelling = true;
-            level.$addTravelRenderDirtyAttrVal( this );
-          }
-        } else {
+        level.$addTravelRenderDirtyAttrVal( this );
+
+      }
+
+      if ( this.renderCall ) {
+        this.startCalcVal = this.transitionCalcVal;
+        this.isTransitionable = this.checkIsTransitionable();
+
+
+        if ( !LAID.$isDataTravellingShock ) {
           level.$addNormalRenderDirtyAttrVal( this );
+          
         }
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
         )  {
 
-          level.$updateNaturalWidthFromText( );
-          level.$updateNaturalHeightFromText( );
+          level.$updateNaturalWidthFromText();
+          level.$updateNaturalHeightFromText();
         }
 
         // In case there exists a transition
@@ -240,7 +255,7 @@
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
           if ( LAID.$arrayUtils.pushUnique( level.$stateS, stateName ) ) {
-            level.$updateStates(  ); //TODO
+            level.$updateStates();
             // remove from the list of uninstalled states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyUninstalledStateS, stateName );
             // add state to the list of newly installed states

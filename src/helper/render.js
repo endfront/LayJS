@@ -8,7 +8,10 @@
   */
   LAID.$render = function ( timeNow ) {
     if ( !LAID.$isRequestedForAnimationFrame &&
-       ( LAID.$renderDirtyLevelS.length !== 0 ) ) {
+       ( ( LAID.$renderDirtyLevelS.length !== 0 ) ||
+       LAID.isDataTravelling
+       ) ) {
+
       LAID.$prevTimeFrame = timeNow || performance.now();
       window.requestAnimationFrame( render );
     }
@@ -35,7 +38,7 @@
       normalRenderDirtyAttrValS,
       normalRenderDirtyAttrVal,
       renderDirtyTransition,
-      renderCallS, isLevelNormalTransitionComplete,
+      renderCallS, isNormalAttrValTransitionComplete,
       isAllNormalTransitionComplete = true;
 
     console.log( "render" );
@@ -53,54 +56,47 @@
 
     for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
 
+
       renderDirtyLevel = renderDirtyLevelS[ x ];
+
       travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
       normalRenderDirtyAttrValS = renderDirtyLevel.$normalRenderDirtyAttrValS;
+
       renderCallS = [];
 
       for ( y = 0; y < travelRenderDirtyAttrValS.length; y++ ) {
 
+
         travelRenderDirtyAttrVal = travelRenderDirtyAttrValS[ y ];
-        transitionAttrVal( travelRenderDirtyAttrVal, dataTravellingDelta );
-          LAID.$arrayUtils.pushUnique(
-             renderCallS, travelRenderDirtyAttrVal.renderCall );
 
+        if ( travelRenderDirtyAttrVal.isTransitionable ) {
 
+          transitionAttrVal( travelRenderDirtyAttrVal, dataTravellingDelta );
+            LAID.$arrayUtils.pushUnique(
+               renderCallS, travelRenderDirtyAttrVal.renderCall );
 
+        }
       }
 
       for ( y = 0; y < normalRenderDirtyAttrValS.length; y++ ) {
 
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
-        isLevelNormalTransitionComplete = true;
+        isNormalAttrValTransitionComplete = true;
         LAID.$arrayUtils.pushUnique( renderCallS, normalRenderDirtyAttrVal.renderCall );
         renderDirtyTransition = normalRenderDirtyAttrVal.transition;
 
-        //console.log( normalRenderDirtyAttrVal, dataTravellingAffectedAttrValS);
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
           if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
-            isLevelNormalTransitionComplete = false;
+            isNormalAttrValTransitionComplete = false;
           } else {
             if ( !renderDirtyTransition.checkIsComplete() ) {
               isAllNormalTransitionComplete = false;
-              isLevelNormalTransitionComplete = false;
+              isNormalAttrValTransitionComplete = false;
               transitionAttrVal( normalRenderDirtyAttrVal,
                  renderDirtyTransition.generateNext( timeFrameDiff ) );
-              /*if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
-                normalRenderDirtyAttrVal.transitionCalcVal =
-                  LAID.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
-                    normalRenderDirtyAttrVal.calcVal,
-                    renderDirtyTransition.generateNext( timeFrameDiff ) );
-              } else {
-                normalRenderDirtyAttrVal.transitionCalcVal =
-                  normalRenderDirtyAttrVal.startCalcVal +
-                  ( renderDirtyTransition.generateNext( timeFrameDiff ) *
-                    ( normalRenderDirtyAttrVal.calcVal -
-                      normalRenderDirtyAttrVal.startCalcVal )
-                    );
-              }*/
+
 
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
@@ -111,7 +107,7 @@
           }
         }
 
-        if ( isLevelNormalTransitionComplete ) {
+        if ( isNormalAttrValTransitionComplete ) {
 
           normalRenderDirtyAttrVal.transitionCalcVal =
             normalRenderDirtyAttrVal.calcVal;
@@ -144,7 +140,10 @@
         renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
-      if ( normalRenderDirtyAttrValS.length === 0 ) {
+      if (
+         ( normalRenderDirtyAttrValS.length === 0 ) &&
+         ( travelRenderDirtyAttrValS.length === 0 )
+      ) {
         LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
         x--;
       }

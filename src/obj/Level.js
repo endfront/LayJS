@@ -586,6 +586,7 @@
 
   LAID.Level.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
 
+    LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
 
@@ -593,6 +594,7 @@
 
   LAID.Level.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
 
+    LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
 
@@ -625,15 +627,13 @@
   };
 
   LAID.Level.prototype.dataTravelContinue = function ( delta ) {
-    if ( LAID.$isDataTravelling ) {
-      throw ("LAID Error: Inexistence of a data travel");
+    if ( !LAID.isDataTravelling ) {
+      throw( "LAID Error: Inexistence of a data travel" );
     } else if ( this !== LAID.dataTravellingLevel ){
-      throw ("LAID Error: Inexistence of a data travel for this Level");
+      throw( "LAID Error: Inexistence of a data travel for this Level" );
     } else {
-      console.log(delta);
       if ( LAID.dataTravellingDelta !== delta ) {
         console.log("CONT");
-
         LAID.dataTravellingDelta = delta;
         LAID.$render();
       }
@@ -642,11 +642,13 @@
 
   LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
     if ( LAID.$isDataTravelling ) {
-      console.error("LAID Error: Inexistence of a data travel");
+      throw( "LAID Error: Inexistence of a data travel" );
     } else {
       console.log("END");
 
       LAID.isDataTravelling = false;
+      LAID.dataTravellingLevel = undefined;
+
       // TODO: clear out attrvalues which are data travelling
       LAID.$clearDataTravellingAttrVals();
       if ( !isArrived ) {
@@ -656,6 +658,8 @@
 
         // TODO
       }
+
+
       LAID.$render();
     }
   };
@@ -1065,14 +1069,13 @@
         ( transitionDuration !== undefined ) &&
         ( transitionDelay !== undefined ) &&
         ( attrVal !== undefined ) &&
-        ( attrVal.transitionCalcVal !== undefined ) &&
-        ( attrVal.calcVal !== undefined ) &&
-        ( attrVal.transitionCalcVal !== attrVal.calcVal )
+        ( attrVal.isTransitionable )
         ) {
 
 
       attrVal.startCalcVal =  attrVal.transitionCalcVal;
-
+      //console.log(attrVal.attr, attrVal.startCalcVal,
+      //attrVal)
       attrVal.transition = new LAID.Transition (
           transitionType,
           transitionDelay ,
