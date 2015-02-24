@@ -16,7 +16,7 @@
     newlyUninstalledStateS,
     attrValNewlyUninstalledStateUninstall;
 
-    console.log("recalculate");
+    //console.log("recalculate");
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {

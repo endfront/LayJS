@@ -4,7 +4,7 @@
   LAID.RelPath = function ( relativePath ) {
 
 
-    if ( ( relativePath === "this" ) || ( relativePath === "" ) ) {
+    if  ( relativePath === "" ) {
 
       this.me = true;
 

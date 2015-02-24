@@ -50,23 +50,7 @@
   };
 
 
-  LAID.Take.prototype.colorLighten = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ) + val.execute( this );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ) + val;
-      };
-    }
-    return this;
-  };
 
 
   LAID.Take.prototype.add = function ( val ) {
@@ -597,6 +581,24 @@
   };
 
 
+  LAID.Take.prototype.colorEquals = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).equals( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).equals( val );
+      };
+    }
+    return this;
+
+  };
 
 
   LAID.Take.prototype.colorLighten = function ( val ) {
@@ -746,7 +748,8 @@
       };
     }
     return this;
-  }
+  };
+
 
   LAID.Take.prototype.colorGreen = function ( val ) {
 
@@ -764,7 +767,8 @@
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorBlue = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -781,7 +785,8 @@
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorHue = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -798,7 +803,8 @@
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorSaturation = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -815,7 +821,8 @@
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorLightness = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -832,7 +839,7 @@
       };
     }
     return this;
-  }
+  };
 
   /*
   * Call custom function with arguments, where arguments

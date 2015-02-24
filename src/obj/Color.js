@@ -66,6 +66,29 @@
 
   };
 
+  LAID.Color.prototype.equals = function ( otherColor ) {
+
+     return ( this.format === otherColor.format ) &&
+      ( this.a === otherColor.a ) &&
+      (
+        (
+          this.format === "rgb" &&
+          this.r === otherColor.r &&
+          this.g === otherColor.g &&
+          this.b === otherColor.b
+        )
+        ||
+        (
+          this.format === "hsl" &&
+          this.h === otherColor.h &&
+          this.s === otherColor.s &&
+          this.l === otherColor.l
+        )
+      );
+
+
+  };
+
   LAID.Color.prototype.rgb = function () {
     if ( this.format === "rgb" ) {
 

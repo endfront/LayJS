@@ -179,7 +179,7 @@ bottom: -0.25em;
   function getWhenEventTypeOfAttrWhen ( attr ) {
 
     return attr.startsWith( "when." ) ?
-    attr.slice( 5, attr.length - 1 ) : "";
+    attr.slice( 5, attr.length - 2 ) : "";
 
   }
 
@@ -361,7 +361,7 @@ bottom: -0.25em;
 
         if ( !LAID.$isDataTravellingShock ) {
           level.$addNormalRenderDirtyAttrVal( this );
-          
+
         }
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
@@ -529,16 +529,18 @@ bottom: -0.25em;
       return true;
     } else {
 
-      var _relPath00attr_S, i, len, level;
+      var _relPath00attr_S, i, len, takingLevel, takingAttrVal;
 
       if ( !( this.val instanceof LAID.Take ) ) {
         return false;
       } else {
         _relPath00attr_S = this.val._relPath00attr_S;
         for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-          level = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
-          if ( level &&
-             ( level.$getAttrVal( _relPath00attr_S[ i ][ 1 ] ).checkIsDependentOnAttrVal( attrVal ) ) ) {
+          takingLevel = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
+          takingAttrVal = takingLevel.$getAttrVal( _relPath00attr_S[ i ][ 1 ] );
+          if ( takingLevel &&
+              takingAttrVal &&
+             ( takingAttrVal.checkIsDependentOnAttrVal( attrVal ) ) ) {
                return true;
              }
         }
@@ -617,6 +619,29 @@ bottom: -0.25em;
     return this.format === "rgb" ?
       new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
       new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
+
+  };
+
+  LAID.Color.prototype.equals = function ( otherColor ) {
+
+     return ( this.format === otherColor.format ) &&
+      ( this.a === otherColor.a ) &&
+      (
+        (
+          this.format === "rgb" &&
+          this.r === otherColor.r &&
+          this.g === otherColor.g &&
+          this.b === otherColor.b
+        )
+        ||
+        (
+          this.format === "hsl" &&
+          this.h === otherColor.h &&
+          this.s === otherColor.s &&
+          this.l === otherColor.l
+        )
+      );
+
 
   };
 
@@ -1110,7 +1135,7 @@ bottom: -0.25em;
     var i, len;
 
     for ( i = 0, len = elementS.length ; i < len; i++ ) {
-      attr2val[ attrPrefix + ( i + 1 ) ] = elementS[ i ];
+      attr2val[ attrPrefix + "." + ( i + 1 ) ] = elementS[ i ];
     }
   }
 
@@ -1428,37 +1453,10 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$updateStates = function () {
 
-    var
-    attr2val = this.getStateAttr2val(),
-    attr, val,
-    attrVal,
-    i, len;
-
-    // TODO: fix this outdated comment below
-    //
-    // state projected attributes are those attributes which
-    // can be (key-)value modified by a state. This essentially
-    // includes keys within "props", "when", and "transition".
-    //
-    // Get the entire list of state projected attributes with
-    // the motive of removing (splicing) those attributes which
-    // have been modified by the state. Ideally the list should
-    // be empty at the end of
-
-    // Algorithm
-    //
-    // allATTRS = filter(curATTRS)
-    // for ATTR in (stateProjected) newATTRS
-    //   dirty ATTR (=new value)
-    //   remove ATTR from allATTRS
-    // for ATTR in allATTRS
-    //   dirty ATTR (=undefined)
-    //
-
     this.$undefineStateProjectedAttrs();
-    this.$commitAttr2Val( attr2val );
+    this.$commitAttr2Val( this.getStateAttr2val() );
 
-    console.log("NEW STATE", this.path, this.$stateS );
+    //console.log("NEW STATE", this.path, this.$stateS );
 
   };
 
@@ -1521,7 +1519,6 @@ bottom: -0.25em;
       if ( attrVal === undefined ) {
         throw ("LAID Error: Inexistence of data key for data travel");
       }
-      console.log("BEGAN");
       LAID.isDataTravelling = true;
       LAID.dataTravellingDelta = 0.0;
       LAID.dataTravellingLevel = this;
@@ -1543,7 +1540,6 @@ bottom: -0.25em;
       throw( "LAID Error: Inexistence of a data travel for this Level" );
     } else {
       if ( LAID.dataTravellingDelta !== delta ) {
-        console.log("CONT");
         LAID.dataTravellingDelta = delta;
         LAID.$render();
       }
@@ -1554,7 +1550,6 @@ bottom: -0.25em;
     if ( LAID.$isDataTravelling ) {
       throw( "LAID Error: Inexistence of a data travel" );
     } else {
-      console.log("END");
 
       LAID.isDataTravelling = false;
       LAID.dataTravellingLevel = undefined;
@@ -1580,25 +1575,31 @@ bottom: -0.25em;
   * parent for the attr
   */
   LAID.Level.prototype.$findChildWithMaxOfAttr =
-   function ( attr, attrValIndependentOf ) {
+   function ( attr, attrValIndependentOf, attrChildIndepedentOf ) {
     var
       i, len, curMaxVal, curMaxLevel,
        childLevelS = this.$childLevelS,
-       childLevel, childLevelAttrVal;
+       childLevel, childLevelAttrVal,
+       attrValChildIndepedentOf;
     for ( i = 0, len = childLevelS.length; i < len; i++ ) {
       childLevel = childLevelS[ i ];
-        childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
-        if (
+      childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
+      attrValChildIndepedentOf =
+        childLevel.$attr2attrVal[ attrChildIndepedentOf ];
+
+      if (
           ( childLevelAttrVal !== undefined ) &&
           ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
-          ! ( childLevelAttrVal.checkIsDependentOnAttrVal( attrValIndependentOf ) ) ) {
+          (  ( !attrValChildIndepedentOf ) ||
+            ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
+               attrValIndependentOf )  ) ) ) {
 
-          if ( curMaxLevel === undefined ) {
-            curMaxLevel = childLevel;
-            curMaxVal = childLevelAttrVal.calcVal;
-          } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
-            curMaxLevel = childLevel;
-          }
+        if ( curMaxLevel === undefined ) {
+          curMaxLevel = childLevel;
+          curMaxVal = childLevelAttrVal.calcVal;
+        } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
+          curMaxLevel = childLevel;
+        }
       }
     }
     return curMaxLevel;
@@ -1627,7 +1628,7 @@ bottom: -0.25em;
       this.$updateNaturalWidthFromText();
     } else {
       this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-      this.$attr2attrVal.$naturalWidth);
+      this.$attr2attrVal.$naturalWidth, "width" );
       this.$attr2attrVal.$naturalWidth.update(
           this.$naturalWidthLevel ?
          ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
@@ -1643,7 +1644,7 @@ bottom: -0.25em;
       this.$updateNaturalHeightFromText();
     } else {
       this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-      this.$attr2attrVal.$naturalHeight);
+      this.$attr2attrVal.$naturalHeight, "height");
 
       this.$attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
@@ -1672,7 +1673,7 @@ bottom: -0.25em;
     if ( this.$attr2attrVal.$naturalWidth &&
       ( this.path !== "/" ) &&
       ! LAID.$checkIsNan( childLevel.$attr2attrVal.right.calcVal ) &&
-      ! childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
+      ! childLevel.$attr2attrVal.width.checkIsDependentOnAttrVal(
         this.$attr2attrVal.$naturalWidth)
       ) {
 
@@ -1691,7 +1692,7 @@ bottom: -0.25em;
           // Find the child with the next largest right
           // This could be the same child level
           this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          this.$attr2attrVal.$naturalWidth);
+          this.$attr2attrVal.$naturalWidth, "width");
         }
       } else {
         if ( childLevel.$attr2attrVal.right.calcVal >
@@ -1711,10 +1712,11 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
 
+
     if ( this.$attr2attrVal.$naturalHeight &&
         ( this.path !== "/" ) &&
        !LAID.$checkIsNan( childLevel.$attr2attrVal.bottom.calcVal ) &&
-       !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
+       !( childLevel.$attr2attrVal.height.checkIsDependentOnAttrVal(
          this.$attr2attrVal.$naturalHeight) )
        ) {
 
@@ -1732,7 +1734,7 @@ bottom: -0.25em;
           // Find the child with the next largest bottom
           // This could be the same child level
           this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          this.$attr2attrVal.$naturalHeight);
+          this.$attr2attrVal.$naturalHeight, "height");
         }
       } else {
         if ( childLevel.$attr2attrVal.bottom.calcVal >
@@ -1852,7 +1854,8 @@ bottom: -0.25em;
       fnMainHandler = function ( e ) {
         var i, len, attrValForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
-          attrValForFnHandler = thisLevel.$attr2attrVal[ "when." + eventType + ( i + 1 ) ];
+          attrValForFnHandler =
+          thisLevel.$attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
           if ( attrValForFnHandler !== undefined ) {
             attrValForFnHandler.calcVal.call( thisLevel, e );
           }
@@ -1984,8 +1987,7 @@ bottom: -0.25em;
 
 
       attrVal.startCalcVal =  attrVal.transitionCalcVal;
-      //console.log(attrVal.attr, attrVal.startCalcVal,
-      //attrVal)
+
       attrVal.transition = new LAID.Transition (
           transitionType,
           transitionDelay ,
@@ -2039,14 +2041,16 @@ bottom: -0.25em;
 
   allStyles = document.body.style;
 
-  isGpuAccelerated = ( (cssPrefix + "transform" ) in allStyles );
 
   // check for matrix 3d support
-  if ( isGpuAccelerated ) {
+  //if ( ( (cssPrefix + "transform" ) in allStyles ) ) {
     // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
     allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
     isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
-  }
+  //}
+
+  //isGpuAccelerated = (  );
+
 
   allStyles = undefined;
 
@@ -2119,13 +2123,14 @@ bottom: -0.25em;
     LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
     function () {
       var attr2attrVal = this.level.$attr2attrVal;
+      cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
       "scale3d(" +
       ( attr2attrVal.scaleX !== undefined ? attr2attrVal.scaleX.transitionCalcVal : 1 ) + "," +
       ( attr2attrVal.scaleY !== undefined ? attr2attrVal.scaleY.transitionCalcVal : 1 ) + "," +
       ( attr2attrVal.scaleZ !== undefined ? attr2attrVal.scaleZ.transitionCalcVal : 1 ) + ") " +
       "translate3d(" +
-
+      
       ( ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px, " ) +
       //attr2attrVal.width.transitionCalcVal * ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) )  + "px ," ) +
 
@@ -2139,6 +2144,7 @@ bottom: -0.25em;
       "rotateX(" + ( attr2attrVal.rotateX !== undefined ? attr2attrVal.rotateX.transitionCalcVal : 0 ) + "deg) " +
       "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
       "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
+
     };
 
     LAID.Part.prototype.$renderFn_width = function () {
@@ -2698,7 +2704,7 @@ bottom: -0.25em;
   LAID.RelPath = function ( relativePath ) {
 
 
-    if ( ( relativePath === "this" ) || ( relativePath === "" ) ) {
+    if  ( relativePath === "" ) {
 
       this.me = true;
 
@@ -2799,23 +2805,7 @@ bottom: -0.25em;
   };
 
 
-  LAID.Take.prototype.colorLighten = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ) + val.execute( this );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ) + val;
-      };
-    }
-    return this;
-  };
 
 
   LAID.Take.prototype.add = function ( val ) {
@@ -3346,6 +3336,24 @@ bottom: -0.25em;
   };
 
 
+  LAID.Take.prototype.colorEquals = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).equals( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).equals( val );
+      };
+    }
+    return this;
+
+  };
 
 
   LAID.Take.prototype.colorLighten = function ( val ) {
@@ -3495,7 +3503,8 @@ bottom: -0.25em;
       };
     }
     return this;
-  }
+  };
+
 
   LAID.Take.prototype.colorGreen = function ( val ) {
 
@@ -3513,7 +3522,8 @@ bottom: -0.25em;
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorBlue = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -3530,7 +3540,8 @@ bottom: -0.25em;
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorHue = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -3547,7 +3558,8 @@ bottom: -0.25em;
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorSaturation = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -3564,7 +3576,8 @@ bottom: -0.25em;
       };
     }
     return this;
-  }
+  };
+
   LAID.Take.prototype.colorLightness = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -3581,7 +3594,7 @@ bottom: -0.25em;
       };
     }
     return this;
-  }
+  };
 
   /*
   * Call custom function with arguments, where arguments
@@ -4812,19 +4825,19 @@ return this;
         Math.sin( -rotateZradians ) * rightSegmentLength
       );
 
-    }).fn( LAID.take("this", "top"),
-        LAID.take("this", "height"),
-        LAID.take("this", "width"),
-        LAID.take("this", "rotateZ"),
-        LAID.take("this", "originX"),
-        LAID.take("this", "originY")
+    }).fn( LAID.take("", "top"),
+        LAID.take("", "height"),
+        LAID.take("", "width"),
+        LAID.take("", "rotateZ"),
+        LAID.take("", "originX"),
+        LAID.take("", "originY")
         );
 
 */
 
   essentialProp2defaultValue = {
-    width:  new LAID.Take( "this", "$naturalWidth" ),
-    height:  new LAID.Take( "this", "$naturalHeight" ),
+    width:  new LAID.Take( "", "$naturalWidth" ),
+    height:  new LAID.Take( "", "$naturalHeight" ),
     top: 0,
     left: 0
   };
@@ -5904,7 +5917,7 @@ function fix_stopPropagation() {
 
     return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
     ( ( [ "root", "transition", "data", "when", "state",
-     "inherit", "observe", "interface", "many", "this" ] ).
+     "inherit", "observe", "interface", "many", "" ] ).
     indexOf( stateName ) === -1 );
   }
 
@@ -6028,10 +6041,10 @@ function fix_stopPropagation() {
   };
 
 
-  var takeLeft = new LAID.Take( "this", "left" );
-  var takeWidth = new LAID.Take( "this", "width" );
-  var takeTop = new LAID.Take( "this", "top" );
-  var takeHeight = new LAID.Take( "this", "height" );
+  var takeLeft = new LAID.Take( "", "left" );
+  var takeWidth = new LAID.Take( "", "width" );
+  var takeTop = new LAID.Take( "", "top" );
+  var takeHeight = new LAID.Take( "", "height" );
 
 
 
@@ -6389,7 +6402,7 @@ if (!Array.prototype.indexOf) {
     // 1. Let O be the result of calling ToObject passing
     //    the this value as the argument.
     if (this === null) {
-      throw new TypeError('"this" is null or not defined');
+      throw new TypeError('"" is null or not defined');
     }
 
     var O = Object(this);
@@ -6537,7 +6550,7 @@ if (!Array.prototype.indexOf) {
       renderCallS, isNormalAttrValTransitionComplete,
       isAllNormalTransitionComplete = true;
 
-    console.log( "render" );
+    //console.log( "render" );
 
     for ( i = 0, len = newPartS.length; i < len; i++ ) {
       newPart = newPartS[ i ];
@@ -6841,7 +6854,7 @@ if (!Array.prototype.indexOf) {
     newlyUninstalledStateS,
     attrValNewlyUninstalledStateUninstall;
 
-    console.log("recalculate");
+    //console.log("recalculate");
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {

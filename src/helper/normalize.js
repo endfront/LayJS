@@ -13,7 +13,7 @@
 
     return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
     ( ( [ "root", "transition", "data", "when", "state",
-     "inherit", "observe", "interface", "many", "this" ] ).
+     "inherit", "observe", "interface", "many", "" ] ).
     indexOf( stateName ) === -1 );
   }
 
@@ -137,10 +137,10 @@
   };
 
 
-  var takeLeft = new LAID.Take( "this", "left" );
-  var takeWidth = new LAID.Take( "this", "width" );
-  var takeTop = new LAID.Take( "this", "top" );
-  var takeHeight = new LAID.Take( "this", "height" );
+  var takeLeft = new LAID.Take( "", "left" );
+  var takeWidth = new LAID.Take( "", "width" );
+  var takeTop = new LAID.Take( "", "top" );
+  var takeHeight = new LAID.Take( "", "height" );
 
 
 

@@ -17,14 +17,16 @@
 
   allStyles = document.body.style;
 
-  isGpuAccelerated = ( (cssPrefix + "transform" ) in allStyles );
 
   // check for matrix 3d support
-  if ( isGpuAccelerated ) {
+  //if ( ( (cssPrefix + "transform" ) in allStyles ) ) {
     // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
     allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
     isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
-  }
+  //}
+
+  //isGpuAccelerated = (  );
+
 
   allStyles = undefined;
 
@@ -97,13 +99,14 @@
     LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
     function () {
       var attr2attrVal = this.level.$attr2attrVal;
+      cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
       "scale3d(" +
       ( attr2attrVal.scaleX !== undefined ? attr2attrVal.scaleX.transitionCalcVal : 1 ) + "," +
       ( attr2attrVal.scaleY !== undefined ? attr2attrVal.scaleY.transitionCalcVal : 1 ) + "," +
       ( attr2attrVal.scaleZ !== undefined ? attr2attrVal.scaleZ.transitionCalcVal : 1 ) + ") " +
       "translate3d(" +
-
+      
       ( ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px, " ) +
       //attr2attrVal.width.transitionCalcVal * ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) )  + "px ," ) +
 
@@ -117,6 +120,7 @@
       "rotateX(" + ( attr2attrVal.rotateX !== undefined ? attr2attrVal.rotateX.transitionCalcVal : 0 ) + "deg) " +
       "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
       "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
+
     };
 
     LAID.Part.prototype.$renderFn_width = function () {

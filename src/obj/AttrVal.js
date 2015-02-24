@@ -56,7 +56,7 @@
   function getWhenEventTypeOfAttrWhen ( attr ) {
 
     return attr.startsWith( "when." ) ?
-    attr.slice( 5, attr.length - 1 ) : "";
+    attr.slice( 5, attr.length - 2 ) : "";
 
   }
 
@@ -238,7 +238,7 @@
 
         if ( !LAID.$isDataTravellingShock ) {
           level.$addNormalRenderDirtyAttrVal( this );
-          
+
         }
         if ( ( attr === "text" ) ||
           ( attr.startsWith( "textPadding" ) )
@@ -406,16 +406,18 @@
       return true;
     } else {
 
-      var _relPath00attr_S, i, len, level;
+      var _relPath00attr_S, i, len, takingLevel, takingAttrVal;
 
       if ( !( this.val instanceof LAID.Take ) ) {
         return false;
       } else {
         _relPath00attr_S = this.val._relPath00attr_S;
         for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-          level = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
-          if ( level &&
-             ( level.$getAttrVal( _relPath00attr_S[ i ][ 1 ] ).checkIsDependentOnAttrVal( attrVal ) ) ) {
+          takingLevel = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
+          takingAttrVal = takingLevel.$getAttrVal( _relPath00attr_S[ i ][ 1 ] );
+          if ( takingLevel &&
+              takingAttrVal &&
+             ( takingAttrVal.checkIsDependentOnAttrVal( attrVal ) ) ) {
                return true;
              }
         }

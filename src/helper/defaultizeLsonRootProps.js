@@ -93,19 +93,19 @@
         Math.sin( -rotateZradians ) * rightSegmentLength
       );
 
-    }).fn( LAID.take("this", "top"),
-        LAID.take("this", "height"),
-        LAID.take("this", "width"),
-        LAID.take("this", "rotateZ"),
-        LAID.take("this", "originX"),
-        LAID.take("this", "originY")
+    }).fn( LAID.take("", "top"),
+        LAID.take("", "height"),
+        LAID.take("", "width"),
+        LAID.take("", "rotateZ"),
+        LAID.take("", "originX"),
+        LAID.take("", "originY")
         );
 
 */
 
   essentialProp2defaultValue = {
-    width:  new LAID.Take( "this", "$naturalWidth" ),
-    height:  new LAID.Take( "this", "$naturalHeight" ),
+    width:  new LAID.Take( "", "$naturalWidth" ),
+    height:  new LAID.Take( "", "$naturalHeight" ),
     top: 0,
     left: 0
   };

@@ -1,15 +1,29 @@
 {
-  "name": "LAID",
-  "version": "0.0.0",
-  "description": "LAID is LAID",
+  "name": "laid",
+  "version": "1.0.0",
+  "description": "Javascript based anti-css layout framework",
   "main": "LAID.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "directories": {
+    "doc": "doc",
+    "test": "test"
   },
-  "author": "relfor <me@relfor.co>",
-  "license": "",
+  "dependencies": {},
   "devDependencies": {
-    "gulp": "latest",
-    "gulp-concat": "^2.4.1"
-  }
+    "gulp": "^3.8.11",
+    "gulp-concat": "^2.5.2",
+    "node-qunit-phantomjs": "^1.2.0"
+  },
+  "scripts": {
+    "test": "node test/nondisplay/runner.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "none"
+  },
+  "keywords": [
+    "laid",
+    "layout"
+  ],
+  "author": "relfor <me@relfor.co>",
+  "license": "GPLv2"
 }

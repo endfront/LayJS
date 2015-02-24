@@ -144,12 +144,12 @@ Psuedo-Defaults:
 - width
   `number`
   Width of part (excluding scale)
-  Default: LAID.take('this', '$naturalWidth')
+  Default: LAID.take('', '$naturalWidth')
 
 - height
   `number`
   Height of part (excluding scale)
-  Default: LAID.take('this', '$naturalHeight')
+  Default: LAID.take('', '$naturalHeight')
 
 - top
   `number`
@@ -810,7 +810,7 @@ LAID.Take methods
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation
+  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
   - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match (for regex)
@@ -865,7 +865,7 @@ LAID.transparent()
 eg of take with color:
 
   color: LAID.take('header', 'color').colorDarken(0.5)
-  color: LAID.rgb(100, LAID.take('this','data.green'),200).colorLighten(0.1)
+  color: LAID.rgb(100, LAID.take('','data.green'),200).colorLighten(0.1)
 
 
 
@@ -949,7 +949,7 @@ for example:
         RightSide: {
           props: {
             left: LAID.take('../LeftSide', 'right'),
-            width: LAID.take('this', 'textWidth'),
+            width: LAID.take('', 'textWidth'),
             text: 'nothing here'
           }
           }
@@ -1050,7 +1050,7 @@ would essentially compile to:
 
   - Special
       - '' ('.')
-      - 'this' ('.')
+      - '' ('.')
       - 'parent' ('../')
 
   - Many (by predetermined id field):
@@ -1076,9 +1076,9 @@ would essentially compile to:
               states: {
                 closed: {
                   props: {
-                    left: LAID.take('this', 'width').negative()
+                    left: LAID.take('', 'width').negative()
                   },
-                  onlyif: LAID.take('this', 'data.locked').and(LAID.take('../', 'state.collapsed'))
+                  onlyif: LAID.take('', 'data.locked').and(LAID.take('../', 'state.collapsed'))
                 }
               }
             }
@@ -1100,9 +1100,9 @@ LAID.run({
       },
       states: {
         hovered: {
-          onlyif: LAID.take("this", "$hovered"),
+          onlyif: LAID.take("", "$hovered"),
           props: {
-            backgroundColor: LAID.take("this", "root.backgroundColor").colorDarken(0.8)
+            backgroundColor: LAID.take("", "root.backgroundColor").colorDarken(0.8)
           }
         }
       }
@@ -1207,8 +1207,8 @@ for grid (note that the width and height cannot be used effectively for a grid)
         if (prev) {
           var row = Math.floor( index / 5 );
           var column = index % 5;
-          cur.formation('left', LAID.take('this', 'width').multiply(column));
-          cur.formation('top', LAID.take('this', 'height').multiply(row));
+          cur.formation('left', LAID.take('', 'width').multiply(column));
+          cur.formation('top', LAID.take('', 'height').multiply(row));
         }
       }
   })

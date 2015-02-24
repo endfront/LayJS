@@ -200,7 +200,7 @@
     var i, len;
 
     for ( i = 0, len = elementS.length ; i < len; i++ ) {
-      attr2val[ attrPrefix + ( i + 1 ) ] = elementS[ i ];
+      attr2val[ attrPrefix + "." + ( i + 1 ) ] = elementS[ i ];
     }
   }
 
@@ -518,37 +518,10 @@
 
   LAID.Level.prototype.$updateStates = function () {
 
-    var
-    attr2val = this.getStateAttr2val(),
-    attr, val,
-    attrVal,
-    i, len;
-
-    // TODO: fix this outdated comment below
-    //
-    // state projected attributes are those attributes which
-    // can be (key-)value modified by a state. This essentially
-    // includes keys within "props", "when", and "transition".
-    //
-    // Get the entire list of state projected attributes with
-    // the motive of removing (splicing) those attributes which
-    // have been modified by the state. Ideally the list should
-    // be empty at the end of
-
-    // Algorithm
-    //
-    // allATTRS = filter(curATTRS)
-    // for ATTR in (stateProjected) newATTRS
-    //   dirty ATTR (=new value)
-    //   remove ATTR from allATTRS
-    // for ATTR in allATTRS
-    //   dirty ATTR (=undefined)
-    //
-
     this.$undefineStateProjectedAttrs();
-    this.$commitAttr2Val( attr2val );
+    this.$commitAttr2Val( this.getStateAttr2val() );
 
-    console.log("NEW STATE", this.path, this.$stateS );
+    //console.log("NEW STATE", this.path, this.$stateS );
 
   };
 
@@ -611,7 +584,6 @@
       if ( attrVal === undefined ) {
         throw ("LAID Error: Inexistence of data key for data travel");
       }
-      console.log("BEGAN");
       LAID.isDataTravelling = true;
       LAID.dataTravellingDelta = 0.0;
       LAID.dataTravellingLevel = this;
@@ -633,7 +605,6 @@
       throw( "LAID Error: Inexistence of a data travel for this Level" );
     } else {
       if ( LAID.dataTravellingDelta !== delta ) {
-        console.log("CONT");
         LAID.dataTravellingDelta = delta;
         LAID.$render();
       }
@@ -644,7 +615,6 @@
     if ( LAID.$isDataTravelling ) {
       throw( "LAID Error: Inexistence of a data travel" );
     } else {
-      console.log("END");
 
       LAID.isDataTravelling = false;
       LAID.dataTravellingLevel = undefined;
@@ -670,25 +640,31 @@
   * parent for the attr
   */
   LAID.Level.prototype.$findChildWithMaxOfAttr =
-   function ( attr, attrValIndependentOf ) {
+   function ( attr, attrValIndependentOf, attrChildIndepedentOf ) {
     var
       i, len, curMaxVal, curMaxLevel,
        childLevelS = this.$childLevelS,
-       childLevel, childLevelAttrVal;
+       childLevel, childLevelAttrVal,
+       attrValChildIndepedentOf;
     for ( i = 0, len = childLevelS.length; i < len; i++ ) {
       childLevel = childLevelS[ i ];
-        childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
-        if (
+      childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
+      attrValChildIndepedentOf =
+        childLevel.$attr2attrVal[ attrChildIndepedentOf ];
+
+      if (
           ( childLevelAttrVal !== undefined ) &&
           ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
-          ! ( childLevelAttrVal.checkIsDependentOnAttrVal( attrValIndependentOf ) ) ) {
+          (  ( !attrValChildIndepedentOf ) ||
+            ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
+               attrValIndependentOf )  ) ) ) {
 
-          if ( curMaxLevel === undefined ) {
-            curMaxLevel = childLevel;
-            curMaxVal = childLevelAttrVal.calcVal;
-          } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
-            curMaxLevel = childLevel;
-          }
+        if ( curMaxLevel === undefined ) {
+          curMaxLevel = childLevel;
+          curMaxVal = childLevelAttrVal.calcVal;
+        } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
+          curMaxLevel = childLevel;
+        }
       }
     }
     return curMaxLevel;
@@ -717,7 +693,7 @@
       this.$updateNaturalWidthFromText();
     } else {
       this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-      this.$attr2attrVal.$naturalWidth);
+      this.$attr2attrVal.$naturalWidth, "width" );
       this.$attr2attrVal.$naturalWidth.update(
           this.$naturalWidthLevel ?
          ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
@@ -733,7 +709,7 @@
       this.$updateNaturalHeightFromText();
     } else {
       this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-      this.$attr2attrVal.$naturalHeight);
+      this.$attr2attrVal.$naturalHeight, "height");
 
       this.$attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
@@ -762,7 +738,7 @@
     if ( this.$attr2attrVal.$naturalWidth &&
       ( this.path !== "/" ) &&
       ! LAID.$checkIsNan( childLevel.$attr2attrVal.right.calcVal ) &&
-      ! childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
+      ! childLevel.$attr2attrVal.width.checkIsDependentOnAttrVal(
         this.$attr2attrVal.$naturalWidth)
       ) {
 
@@ -781,7 +757,7 @@
           // Find the child with the next largest right
           // This could be the same child level
           this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          this.$attr2attrVal.$naturalWidth);
+          this.$attr2attrVal.$naturalWidth, "width");
         }
       } else {
         if ( childLevel.$attr2attrVal.right.calcVal >
@@ -801,10 +777,11 @@
 
   LAID.Level.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
 
+
     if ( this.$attr2attrVal.$naturalHeight &&
         ( this.path !== "/" ) &&
        !LAID.$checkIsNan( childLevel.$attr2attrVal.bottom.calcVal ) &&
-       !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
+       !( childLevel.$attr2attrVal.height.checkIsDependentOnAttrVal(
          this.$attr2attrVal.$naturalHeight) )
        ) {
 
@@ -822,7 +799,7 @@
           // Find the child with the next largest bottom
           // This could be the same child level
           this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          this.$attr2attrVal.$naturalHeight);
+          this.$attr2attrVal.$naturalHeight, "height");
         }
       } else {
         if ( childLevel.$attr2attrVal.bottom.calcVal >
@@ -942,7 +919,8 @@
       fnMainHandler = function ( e ) {
         var i, len, attrValForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
-          attrValForFnHandler = thisLevel.$attr2attrVal[ "when." + eventType + ( i + 1 ) ];
+          attrValForFnHandler =
+          thisLevel.$attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
           if ( attrValForFnHandler !== undefined ) {
             attrValForFnHandler.calcVal.call( thisLevel, e );
           }
@@ -1074,8 +1052,7 @@
 
 
       attrVal.startCalcVal =  attrVal.transitionCalcVal;
-      //console.log(attrVal.attr, attrVal.startCalcVal,
-      //attrVal)
+
       attrVal.transition = new LAID.Transition (
           transitionType,
           transitionDelay ,

@@ -7,7 +7,7 @@ LAID.run( {
   },
   states: {
     menu: {
-      onlyif: LAID.take("this", "data.menu")
+      onlyif: LAID.take("", "data.menu")
     }
   },
   children: {
@@ -36,7 +36,7 @@ LAID.run( {
         "hidden": {
           onlyif: LAID.take("/", "data.menu").not(),
           props: {
-            left: LAID.take("this","width").negative()
+            left: LAID.take("","width").negative()
           }
         },
         "shown": {
@@ -105,7 +105,7 @@ LAID.run( {
 
 
                 "clicked": {
-                  onlyif: LAID.take("this", "$clicked"),
+                  onlyif: LAID.take("", "$clicked"),
                   props: {
                     shiftX: 3,
                     shiftY: 3
@@ -118,8 +118,8 @@ LAID.run( {
                     props: {
                       centerX: LAID.take("../", "width").divide(2),
                       centerY: LAID.take("../", "height").divide(2),
-                      width: LAID.take("this", "$naturalWidth").max( LAID.take("this", "$naturalHeight") ),
-                      height: LAID.take("this", "width"),
+                      width: LAID.take("", "$naturalWidth").max( LAID.take("", "$naturalHeight") ),
+                      height: LAID.take("", "width"),
                       overflowX: "visible",
                       overflowY: "visible"
 
@@ -130,7 +130,7 @@ LAID.run( {
                           data: {
                             barDistance:LAID.take(function ( width, height, numBars) {
                               return (width - (numBars * height))/2;
-                            }).fn(LAID.take("this", "width"),LAID.take("this", "height"),
+                            }).fn(LAID.take("", "width"),LAID.take("", "height"),
                                   LAID.take("../", "$numberOfChildren"))
                           },
                           props: {
@@ -144,9 +144,9 @@ LAID.run( {
                               onlyif: LAID.take("/", "data.menu"),
                               props: {
                                 rotateZ: 45,
-                                width: LAID.take("this", "root.width").multiply(1.5),
+                                width: LAID.take("", "root.width").multiply(1.5),
                                 top: LAID.take("../MiddleBar", "root.top")
-                                //width: LAID.take("this", "root.width").divide(Math.sin(45))
+                                //width: LAID.take("", "root.width").divide(Math.sin(45))
                               }
                             }
                           }
@@ -154,7 +154,7 @@ LAID.run( {
                       "MiddleBar": {
                         inherit: ["../TopBar"],
                         props: {
-                          top:LAID.take("this", "data.barDistance").add(LAID.take("this","height"))
+                          top:LAID.take("", "data.barDistance").add(LAID.take("","height"))
                         },
                         states: {
                           "cross": {
@@ -256,7 +256,7 @@ LAID.run( {
                 backgroundColor:LAID.color("blue"),
                 text: "Hello Mars",
                 textPadding:10,
-                textColor:LAID.take("this", "backgroundColor").colorInvert()
+                textColor:LAID.take("", "backgroundColor").colorInvert()
               }
             },
             "Option2": {
@@ -267,7 +267,7 @@ LAID.run( {
                 text: LAID.take({
                   "en": "number: %s",
                   "zh": "li: %s"
-                }).i18nFormat(LAID.take("this", "backgroundColor").colorStringify())
+                }).i18nFormat(LAID.take("", "backgroundColor").colorStringify())
               },
             }
           }
@@ -374,7 +374,7 @@ LAID.run({
           },
           props: {
             width:100,
-            height:LAID.take("this", "data.proxy").add(10),
+            height:LAID.take("", "data.proxy").add(10),
             backgroundColor:LAID.color("blue")
           }
 

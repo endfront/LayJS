@@ -1,6 +1,17 @@
 
 
 
+SPRINT:
+  - FIX dataTravel arrive
+  - ADD 5 test cases
+  - ADD 15 test cases
+  - ADD Level.addChildren()
+  - ADD Level.remove()
+  - ADD Level.clog()
+  - DOQUARTER many
+  - DOHALF many
+  - DOQUARTER many (queries)
+
 
 
 Current:
@@ -8,10 +19,12 @@ Current:
   - fix delta arrive FALSE
   - update data travelling example in spec, whereby "mousedown" is together
   with "movemove" and "mouseup" within the same state
-
+  - safari click (menu) not working
   - input
   - $absoluteLeft/Top
-
+  - mention about single argument takes (LAID.take(true)) in spec
+  - divide nondisplay tests into "runtime" and "nonruntime"
+  - LAID.Color in spec
 
 
   many:
@@ -24,67 +37,6 @@ Current:
   - Refine formation spec (including for creating formations)
   - todoMVC
   - Upload to github (with new .git object)
-
-Tests:
-  - run()
-  - level.addChildren()
-  - level.remove()
-    - when it is responsibly for natural width/height for parent node
-    - when it has child nodes as well (which might be reponsibly for other constraints)
-  - valid level name
-  - For illegal take references to expander props or expander props mentioned as takes
-    - transition.attr
-    - transition
-    - when
-    - when.eventType
-    - inherit
-    - props
-    - filters
-    - border
-  - Inherit
-      - one and two inherit (from external)
-      - one (one from child, one from neighbour) and two inherit (from within)
-      - two inherit (from external and within)
-  - Normalize
-      - lazy prop
-      - border decompression (check $$num)
-      - multiple type (boxShadows) decompression (check $$max)
-      - multiple type (boxShadows) decompression (existing within
-        root and state where state number exceeds)(check $$max)
-      - multiple type (boxShadows) decompression (existing within
-          states and not root)(check $$max)
-
-  - when
-    - check clicked
-
-  - SLSON (state inherit)
-    - check if alphabetical order is maintained
-    - check state hashed cache working
-
-  - Take
-    check divide, multiply, add.... all others
-
-  - state
-    - valid state name
-    - check state changes on onlyif invoke (and check install works)
-    - check state changes on onlyif uninvoke (and checkk uninstall works)
-
-  - load
-    - check load works
-
-  - render
-    - check basic render properly like height from node
-
-  - lazy attributes
-    - state based
-    - readonly based
-
-  - transition
-    - position int
-    - negative int
-    - LAID.Color
-
-
 
 
 

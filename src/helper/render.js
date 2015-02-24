@@ -41,7 +41,7 @@
       renderCallS, isNormalAttrValTransitionComplete,
       isAllNormalTransitionComplete = true;
 
-    console.log( "render" );
+    //console.log( "render" );
 
     for ( i = 0, len = newPartS.length; i < len; i++ ) {
       newPart = newPartS[ i ];
