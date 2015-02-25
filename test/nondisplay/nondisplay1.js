@@ -24,6 +24,17 @@ var externalInherit1 = {
   }
 };
 
+function ExampleClass () {
+  this.count = 0;
+}
+
+ExampleClass.prototype.increment = function () {
+  return ++this.count;
+};
+
+
+var exampleObject = new ExampleClass();
+
 
 LAID.run({
   children:{
@@ -65,6 +76,11 @@ LAID.run({
               three: 3,
               threePointFive: 3.5,
               sampleList: [ 2, 2.5, 3, 3.5 ],
+              yes: true,
+              no: false,
+              exampleObjectInstantiated: exampleObject,
+              increment: "increment",
+
 
               fiveAddTwo: LAID.take("", "data.five").add(2),
               fiveAddTwoPointFive: LAID.take("", "data.five").add(2.5),
@@ -75,17 +91,21 @@ LAID.run({
 
 
               fiveSubtractTwo: LAID.take("", "data.five").subtract(2),
-              fiveSubtractTwoPointFive: LAID.take("", "data.five").subtract(2.5),
+              fiveSubtractTwoPointFive:
+                LAID.take("", "data.five").subtract(2.5),
               fiveSubtractTakeThree: LAID.take("", "data.five").subtract(
                 LAID.take("", "data.three")),
-              fiveSubtractTakeThreePointFive: LAID.take("", "data.five").subtract(
+              fiveSubtractTakeThreePointFive:
+                LAID.take("", "data.five").subtract(
                 LAID.take("", "data.threePointFive")),
 
               fiveMultiplyTwo: LAID.take("", "data.five").multiply(2),
-              fiveMultiplyTwoPointFive: LAID.take("", "data.five").multiply(2.5),
+              fiveMultiplyTwoPointFive:
+                LAID.take("", "data.five").multiply(2.5),
               fiveMultiplyTakeThree: LAID.take("", "data.five").multiply(
                 LAID.take("", "data.three")),
-              fiveMultiplyTakeThreePointFive: LAID.take("", "data.five").multiply(
+              fiveMultiplyTakeThreePointFive:
+                LAID.take("", "data.five").multiply(
                 LAID.take("", "data.threePointFive")),
 
               fiveDivideTwo: LAID.take("", "data.five").divide(2),
@@ -96,25 +116,106 @@ LAID.run({
                 LAID.take("", "data.threePointFive")),
 
               fiveRemainderTwo: LAID.take("", "data.five").remainder(2),
-              fiveRemainderTwoPointFive: LAID.take("", "data.five").remainder(2.5),
+              fiveRemainderTwoPointFive:
+                LAID.take("", "data.five").remainder(2.5),
               fiveRemainderTakeThree: LAID.take("", "data.five").remainder(
                 LAID.take("", "data.three")),
-              fiveRemainderTakeThreePointFive: LAID.take("", "data.five").remainder(
+              fiveRemainderTakeThreePointFive:
+                LAID.take("", "data.five").remainder(
                 LAID.take("", "data.threePointFive")),
 
-              takeThreeHalf: LAID.take("", "data.three").half(),
-              takeThreePointFiveHalf: LAID.take("", "data.threePointFive").half(),
+              halfThree: LAID.take("", "data.three").half(),
+              halfThreePointFive: LAID.take("", "data.threePointFive").half(),
 
-              takeThreeDouble: LAID.take("", "data.three").double(),
-              takeThreePointFiveDouble: LAID.take("", "data.threePointFive").double(),
+              doubleThree: LAID.take("", "data.three").double(),
+              doubleThreePointFive:
+                LAID.take("", "data.threePointFive").double(),
 
-              twoContains: LAID.take("", "data.sampleList").contains(2),
-              twoPointFiveContains: LAID.take("", "data.sampleList").contains(2.5),
-              takeThreeContains: LAID.take("", "data.sampleList").contains(
+              containsTwo: LAID.take("", "data.sampleList").contains(2),
+              containsTwoPointFive:
+                LAID.take("", "data.sampleList").contains(2.5),
+              containsTakeThree: LAID.take("", "data.sampleList").contains(
                 LAID.take("", "data.three")),
-              takeThreePointFiveContains: LAID.take("", "data.sampleList").contains(
+              containsTakeThreePointFive:
+                LAID.take("", "data.sampleList").contains(
                 LAID.take("", "data.threePointFive")),
 
+
+              fiveEqFive: LAID.take("", "data.five").eq(5),
+              fiveEqStringFive: LAID.take("", "data.five").eq("5"),
+              fiveEqTakeFive: LAID.take("", "data.five").eq(
+                LAID.take("", "data.five")
+              ),
+
+              fiveGtFive: LAID.take("", "data.five").gt(5),
+              fiveGtTakeThree: LAID.take("", "data.five").gt(
+                LAID.take("", "data.three")
+              ),
+              fiveGtTakeThreePointFive: LAID.take("", "data.five").gt(
+                LAID.take("", "data.threePointFive")
+              ),
+
+              fiveGteFive: LAID.take("", "data.five").gte(5),
+              fiveGteTakeThree: LAID.take("", "data.five").gte(
+                LAID.take("", "data.three")
+              ),
+              fiveGteTakeThreePointFive: LAID.take("", "data.five").gte(
+                LAID.take("", "data.threePointFive")
+              ),
+
+              fiveLtFive: LAID.take("", "data.five").lt(5),
+              fiveLtTakeThree: LAID.take("", "data.five").lt(
+                LAID.take("", "data.three")
+              ),
+              fiveLtTakeThreePointFive: LAID.take("", "data.five").lt(
+                LAID.take("", "data.threePointFive")
+              ),
+
+              fiveLteFive: LAID.take("", "data.five").lte(5),
+              fiveLteTakeThree: LAID.take("", "data.five").lte(
+                LAID.take("", "data.three")
+              ),
+              fiveLteTakeThreePointFive: LAID.take("", "data.five").lte(
+                LAID.take("", "data.threePointFive")
+              ),
+
+              trueOrTrue: LAID.take("", "data.yes").or(true),
+              trueOrFalse: LAID.take("", "data.yes").or(false),
+              falseOrFalse: LAID.take("", "data.no").or(false),
+              trueOrTakeTrue: LAID.take("", "data.yes").or(
+                LAID.take("", "data.yes")),
+              trueOrTakeFalse: LAID.take("", "data.yes").or(
+                LAID.take("", "data.no")
+              ),
+              falseOrTakeFalse: LAID.take("", "data.no").or(
+                LAID.take("", "data.no")
+              ),
+
+              trueAndTrue: LAID.take("", "data.yes").and(true),
+              trueAndFalse: LAID.take("", "data.yes").and(false),
+              falseAndFalse: LAID.take("", "data.no").and(false),
+              trueAndTakeTrue: LAID.take("", "data.yes").and(
+                LAID.take("", "data.yes")),
+              trueAndTakeFalse: LAID.take("", "data.yes").and(
+                LAID.take("", "data.no")
+              ),
+              falseAndTakeFalse: LAID.take("", "data.no").and(
+                LAID.take("", "data.no")
+              ),
+
+              notTrue: LAID.take("", "data.yes").not(),
+              notFalse: LAID.take("", "data.no").not(),
+
+              negativeThree: LAID.take("", "data.three").negative(),
+              negativeThreePointFive:
+                LAID.take("", "data.threePointFive").negative(),
+
+              exampleObjectIncrementedMethod:
+                LAID.take("", "data.exampleObjectInstantiated").method(
+                  "increment"),
+              exampleObjectIncrementedTakeMethod:
+                LAID.take("", "data.exampleObjectInstantiated").method(
+                    LAID.take("", "data.increment")),
 
             },
             children: {
@@ -288,16 +389,20 @@ QUnit.test( "LAID.Take()", function( assert ) {
 
 QUnit.test( "LAID.Take.add()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveAddTwo") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveAddTwo") ===
     5+2, "[non-take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveAddTwoPointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveAddTwoPointFive") ===
     5+2.5, "[non-take,float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveAddTakeThree") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveAddTakeThree") ===
     5+3, "[take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveAddTakeThreePointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveAddTakeThreePointFive") ===
     5+3.5, "[take,non-float]" );
 
 });
@@ -307,98 +412,241 @@ QUnit.test( "LAID.Take.subtract()", function( assert ) {
   assert.ok( LAID.level("/Body/Content").attr("data.fiveSubtractTwo") ===
     5-2, "[non-take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveSubtractTwoPointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveSubtractTwoPointFive") ===
     5-2.5, "[non-take,float]" );
 
   assert.ok( LAID.level("/Body/Content").attr("data.fiveSubtractTakeThree") ===
     5-3, "[take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveSubtractTakeThreePointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveSubtractTakeThreePointFive") ===
     5-3.5, "[take,non-float]" );
 
 });
 
 QUnit.test( "LAID.Take.multiply()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveMultiplyTwo") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveMultiplyTwo") ===
     5*2, "[non-take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveMultiplyTwoPointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveMultiplyTwoPointFive") ===
     5*2.5, "[non-take,float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveMultiplyTakeThree") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveMultiplyTakeThree") ===
     5*3, "[take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveMultiplyTakeThreePointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveMultiplyTakeThreePointFive") ===
     5*3.5, "[take,non-float]" );
 
 });
 
 QUnit.test( "LAID.Take.divide()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveDivideTwo") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveDivideTwo") ===
     5/2, "[non-take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveDivideTwoPointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveDivideTwoPointFive") ===
     5/2.5, "[non-take,float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveDivideTakeThree") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveDivideTakeThree") ===
     5/3, "[take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveDivideTakeThreePointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveDivideTakeThreePointFive") ===
     5/3.5, "[take,non-float]" );
 
 });
 
 QUnit.test( "LAID.Take.remainder()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveRemainderTwo") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveRemainderTwo") ===
     5 % 2, "[non-take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveRemainderTwoPointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveRemainderTwoPointFive") ===
     5 % 2.5, "[non-take,float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveRemainderTakeThree") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveRemainderTakeThree") ===
     5 % 3, "[take,non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.fiveRemainderTakeThreePointFive") ===
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveRemainderTakeThreePointFive") ===
     5 % 3.5, "[take,non-float]" );
 
 });
 
 QUnit.test( "LAID.Take.half()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.takeThreeHalf") ===
+  assert.ok( LAID.level("/Body/Content").attr("data.halfThree") ===
     3 / 2, "[non-float]" );
 
 
-  assert.ok( LAID.level("/Body/Content").attr("data.takeThreePointFiveHalf") ===
+  assert.ok( LAID.level("/Body/Content").attr("data.halfThreePointFive") ===
     3.5 / 2, "[float]" );
 
 });
 
 QUnit.test( "LAID.Take.double()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.takeThreeDouble") ===
+  assert.ok( LAID.level("/Body/Content").attr("data.doubleThree") ===
     3 * 2, "[non-float]" );
 
-  assert.ok( LAID.level("/Body/Content").attr("data.takeThreePointFiveDouble") ===
+  assert.ok( LAID.level("/Body/Content").attr("data.doubleThreePointFive") ===
     3.5 * 2, "[float]" );
 
 });
 
 QUnit.test( "LAID.Take.contains()", function( assert ) {
 
-  assert.ok( LAID.level("/Body/Content").attr("data.twoContains") );
-  assert.ok( LAID.level("/Body/Content").attr("data.twoPointFiveContains") );
-  assert.ok( LAID.level("/Body/Content").attr("data.takeThreeContains") );
-  assert.ok( LAID.level("/Body/Content").attr("data.takeThreePointFiveContains") );
+  assert.ok( LAID.level("/Body/Content").attr("data.containsTwo") );
+  assert.ok( LAID.level("/Body/Content").attr("data.containsTwoPointFive") );
+  assert.ok( LAID.level("/Body/Content").attr("data.containsTakeThree") );
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.containsTakeThreePointFive") );
 
+});
+
+QUnit.test( "LAID.Take.eq()", function( assert ) {
+
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveEqFive"),
+    "5 === 5");
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveEqStringFive"),
+    "5 === '5'");
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveEqTakeFive"),
+    "5 === 5");
+
+});
+
+QUnit.test( "LAID.Take.gt()", function( assert ) {
+
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveGtFive"),
+    "5 > 5");
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveGtTakeThree"),
+    "5 > 3");
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveGtTakeThreePointFive"),
+    "5 > 3.5");
+
+});
+
+QUnit.test( "LAID.Take.gte()", function( assert ) {
+
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveGteFive"),
+    "5 >= 5");
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveGteTakeThree"),
+    "5 >= 3");
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.fiveGteTakeThreePointFive"),
+    "5 >= 3.5");
 
 });
 
 
+QUnit.test( "LAID.Take.lt()", function( assert ) {
 
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveLtFive"),
+    "5 < 5");
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveLtTakeThree"),
+    "5 < 3");
+  assert.ok( !LAID.level("/Body/Content").attr(
+    "data.fiveLtTakeThreePointFive"),
+    "5 < 3.5");
+
+});
+
+QUnit.test( "LAID.Take.lte()", function( assert ) {
+
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveLteFive"),
+    "5 <= 5");
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveLteTakeThree"),
+    "5 <= 3");
+  assert.ok( !LAID.level("/Body/Content").attr(
+    "data.fiveLteTakeThreePointFive"),
+    "5 <= 3.5");
+
+});
+
+QUnit.test( "LAID.Take.or()", function( assert ) {
+
+  assert.ok( LAID.level("/Body/Content").attr("data.trueOrTrue"),
+    "true || true");
+  assert.ok( LAID.level("/Body/Content").attr("data.trueOrFalse"),
+    "true || false");
+  assert.ok( LAID.level("/Body/Content").attr("data.falseOrFalse") ===
+    false,
+    "false || false");
+
+  assert.ok( LAID.level("/Body/Content").attr("data.trueOrTakeTrue"),
+    "true || true [take]");
+  assert.ok( LAID.level("/Body/Content").attr("data.trueOrTakeFalse"),
+    "true || false [take]");
+  assert.ok( LAID.level("/Body/Content").attr("data.falseOrTakeFalse") ===
+    false,
+    "false || false [take]");
+
+});
+
+QUnit.test( "LAID.Take.and()", function( assert ) {
+
+  assert.ok( LAID.level("/Body/Content").attr("data.trueAndTrue"),
+    "true && true");
+  assert.ok( LAID.level("/Body/Content").attr("data.trueAndFalse") ===
+    false,
+    "true && false");
+  assert.ok( LAID.level("/Body/Content").attr("data.falseAndFalse") ===
+    false,
+    "false && false");
+
+  assert.ok( LAID.level("/Body/Content").attr("data.trueAndTakeTrue"),
+    "true && true [take]");
+  assert.ok( LAID.level("/Body/Content").attr("data.trueAndTakeFalse") ===
+    false,
+    "true && false [take]");
+  assert.ok( LAID.level("/Body/Content").attr("data.falseAndTakeFalse") ===
+    false,
+    "false && false [take]");
+
+});
+
+QUnit.test( "LAID.Take.and()", function( assert ) {
+  assert.ok( LAID.level("/Body/Content").attr("data.notTrue") === false,
+    "!true");
+  assert.ok( LAID.level("/Body/Content").attr("data.notFalse") === true,
+    "!false");
+
+});
+
+QUnit.test( "LAID.Take.negative()", function( assert ) {
+  assert.ok( LAID.level("/Body/Content").attr("data.negativeThree") === -3,
+    "-3");
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.negativeThreePointFive") === -3.5,
+    "-3.5");
+});
+
+QUnit.test( "LAID.Take.method()", function( assert ) {
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.exampleObjectIncrementedMethod") === 1,
+    "return value 1");
+  assert.ok( exampleObject.count === 1,
+    "object mutability 1");
+    assert.ok( LAID.level("/Body/Content").attr(
+      "data.exampleObjectIncrementedTakeMethod") === 2,
+      "return value 2");
+    assert.ok( exampleObject.count === 2,
+      "object mutability 2");
+
+});
 /*
 TODO: Remaining Tests:
 
@@ -426,6 +674,8 @@ TODO: Remaining Tests:
       - multiple type (boxShadows) decompression (existing within
           states and not root)(check $$max)
 
+  - data
+    mutability of data object-valued key when inherited
   - when
     - check clicked
 
@@ -457,7 +707,8 @@ TODO: Remaining Tests:
     - LAID.Color
 
   - valid level name
-  - For illegal take references to expander props or expander props mentioned as takes
+  - For illegal take references to expander props or expander props
+   mentioned as takes
     - transition.attr
     - transition
     - when
@@ -470,7 +721,8 @@ TODO: Remaining Tests:
   - level.addChildren()
   - level.remove()
     - when it is responsibly for natural width/height for parent node
-    - when it has child nodes as well (which might be reponsibly for other constraints)
+    - when it has child nodes as well (which might be reponsibly for
+     other constraints)
 
 
 */

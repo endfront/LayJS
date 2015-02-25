@@ -799,11 +799,11 @@ LAID.Take methods
 
   - add,subtract,divide,multiply
   - remainder
-  - half, double
+  - half, double (unary)
   - min, max
-  - ceil, floor, abs, negative, sin, cos, tan
+  - ceil, floor, abs, sin, cos, tan
   - log, pow
-  - negative, positive (unary operators)
+  - negative (unary)
   - index, length (for array)
   - key (for dict)
   - method (invokes a method and returns the return)

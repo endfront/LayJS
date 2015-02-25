@@ -2793,7 +2793,6 @@ bottom: -0.25em;
   };
 
 
-
   LAID.Take.prototype.$mergePathAndProps = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
@@ -2803,8 +2802,6 @@ bottom: -0.25em;
     }
 
   };
-
-
 
 
 
@@ -3078,16 +3075,6 @@ bottom: -0.25em;
     return this;
   };
 
-  LAID.Take.prototype.positive = function () {
-
-    var oldExecutable = this.executable;
-
-    this.executable = function () {
-      return +oldExecutable.call( this );
-    };
-
-    return this;
-  };
 
   LAID.Take.prototype.negative = function () {
 
