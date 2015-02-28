@@ -688,7 +688,7 @@ bottom: -0.25em;
 
   };
 
-  // mix, invert, saturate, desaturate, greyscale
+  // mix, invert, saturate, desaturate
 
 
 
@@ -843,12 +843,6 @@ bottom: -0.25em;
     return this;
   };
 
-  LAID.Color.prototype.grayscale = function ( ) {
-
-    this.desaturate( 1 );
-    return this;
-
-  };
 
   LAID.Color.prototype.invert = function ( ) {
 
@@ -1375,7 +1369,7 @@ bottom: -0.25em;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
         //console.log( "\trecalculate", this.path, isSolveProgressed,
-          //recalculateDirtyAttrValS[ i ] );
+        //  recalculateDirtyAttrValS[ i ] );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -3087,23 +3081,7 @@ bottom: -0.25em;
     return this;
   };
 
-  LAID.Take.prototype.method = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this )[ val.execute( this ) ]();
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this )[ val ]();
-      };
-    }
-    return this;
-  };
 
   LAID.Take.prototype.key = function ( val ) {
 
@@ -3213,6 +3191,15 @@ bottom: -0.25em;
     return this;
   };
 
+  LAID.Take.prototype.abs = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return Math.abs( oldExecutable.call( this ) );
+    };
+    return this;
+  };
+
 
   LAID.Take.prototype.pow = function ( val ) {
 
@@ -3232,24 +3219,55 @@ bottom: -0.25em;
     return this;
   };
 
-  LAID.Take.prototype.log = function ( val ) {
+  LAID.Take.prototype.log = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return Math.log( oldExecutable.call( this ) );
+    };
+    return this;
+  };
+
+
+  LAID.Take.prototype.match = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
-        return Math.log( oldExecutable.call( this ), val.execute( this ) );
+        return oldExecutable.call( this ).match( val.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return Math.log( oldExecutable.call( this ), val );
+        return oldExecutable.call( this ).match( val );
       };
     }
     return this;
+
   };
 
+  LAID.Take.prototype.test = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).test( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).test( val );
+      };
+    }
+    return this;
+
+  };
+
+  LAID.Take.prototype.concat = LAID.Take.prototype.add;
 
 
   LAID.Take.prototype.format = function () {
@@ -3300,27 +3318,9 @@ bottom: -0.25em;
 
   }
 
-  LAID.Take.prototype.concat = LAID.Take.prototype.add;
 
 
-  LAID.Take.prototype.match = function () {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).match( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).match( val );
-      };
-    }
-    return this;
-
-  };
 
 
   LAID.Take.prototype.colorEquals = function ( val ) {
@@ -3443,17 +3443,6 @@ bottom: -0.25em;
 
   };
 
-  LAID.Take.prototype.colorGrayscale = function () {
-
-    var oldExecutable = this.executable;
-
-    this.executable = function () {
-      return oldExecutable.call( this ).copy().grayscale();
-    };
-
-    return this;
-
-  };
 
   LAID.Take.prototype.colorAlpha = function ( val ) {
 
@@ -6994,221 +6983,6 @@ if (!Array.prototype.indexOf) {
   }
 
 })();
-
-/*( function () {
-  "use strict";
-
-
-  var
-    SOLVER_DT = 0.001,
-    MAX_SOLVER_DT = 30.0;
-
-  LAID.$SpringTransition = function ( duration, args ) {
-      this.tension = args.tension; // tension
-      this.friction = args.friction; // friction
-      this.mass = args.mass; // mass
-
-      this.threshold = args.threshold / 2; //default threshold is 1.0
-      this.thresholdVelocity = args.threshold * 25.0;
-      this.thresholdAcceleration = Math.pow( args.threshold, 2 ) * 625.0;
-
-      this.curTime = 0;
-
-      this.prevPv = { p: 0, v: 0 };
-      this.prevDv = 0;
-  };
-
-  LAID.$SpringTransition.prototype.computeAcceleration = function ( pv, t ) {
-
-    return pv.p * ( -this.tension / this.mass) -
-      pv.v * ( this.friction / this.mass );
-  };
-
-  LAID.$SpringTransition.prototype.evaluateDerivative = function ( initialPv, t ) {
-
-    return {
-      dp: initialPv.v,
-      dv: this.computeAcceleration( initialPv, t )
-    };
-  };
-
-  LAID.$SpringTransition.prototype.evaluateDerivativeWithDerivative =
-    function (initialPv, t, dt, derivative) {
-
-    var pv = {
-      p: initialPv.p + ( derivative.dp * dt  ),
-      v: initialPv.v + ( derivative.dv * dt  )
-    };
-    return {
-      dp: pv.v,
-      dv: this.computeAcceleration( pv, t + dt )
-    };
-  };
-
-  LAID.$SpringTransition.prototype.integrate =
-  function ( pv, t, dt ) {
-
-    var
-      a = this.evaluateDerivative( pv, t ),
-      b = this.evaluateDerivativeWithDerivative( pv, t, dt * 0.5, a ),
-      c = this.evaluateDerivativeWithDerivative( pv, t, dt * 0.5, b ),
-      d = this.evaluateDerivativeWithDerivative( pv, t, dt, c ),
-
-      dpdt = ( a.dp + ( b.dp + c.dp ) * 2.0 + d.dp ) * ( 1.0 / 6.0 ),
-      dvdt = ( a.dv + ( b.dv + c.dv ) * 2.0 + d.dv ) * ( 1.0 / 6.0 );
-
-
-    pv.p = pv.p + ( dpdt * dt );
-    pv.v = pv.v + ( dvdt * dt );
-
-    this.prevDv = dvdt;
-  };
-
-  LAID.$SpringTransition.prototype.interpolate =
-    function ( prevPv, currentPv, alpha) {
-    return {
-      p: ( currentPv.p * alpha  ) + (
-          prevPv.p * ( 1 - alpha ) ),
-      v: ( currentPv.v * alpha  ) + (
-          prevPv.v * ( 1 - alpha ) )
-    };
-  };
-
-
-  LAID.$SpringTransition.prototype.advance =
-    function ( statePv, t, dt ) {
-
-    var prevPv, currentPv, alpha;
-
-    if ( dt > MAX_SOLVER_DT ) {
-      // excessive time step, force shut down
-      this.prevPv.p = 0;
-      this.prevPv.v = 0;
-      this.prevDv = 0;
-
-    } else {
-      curTime += dt;
-
-      prevPv = statePv;
-      currentState = statePv;
-      while ( this.curTime >= SOLVER_DT ) {
-        prevState = currentState;
-        this.integrate( currentPv, t, SOLVER_DT );
-        t += SOLVER_DT;
-        this.curTime -= SOLVER_DT;
-      }
-      this.prevPv = statePv = this.interpolate(prevPv, currentPv, alpha );
-      alpha = this.curTime / SOLVER_DT;
-    }
-  };
-
-  LAID.$SpringTransition.prototype.checkIsComplete = function () {
-
-    var i;
-
-    if ( Math.abs( this.prevPv.p ) >= this.threshold ) {
-      return false;
-    }
-
-
-    return ( Math.pow( this.prevPv.v, 2 ) < this.thresholdVelocity ) &&
-      ( Math.pow( this.prevDv, 2) < this.thresholdAcceleration );
-  };
-
-
-  LAID.$SpringTransition.prototype.generateNext = function ( time, delta ) {
-    var localTime, value, toValue, velocity, statePv = {};
-
-
-    //TODO: change
-    //if ( this.curVal === null ) {
-    //  return false;
-    //}
-
-    localTime = time - startTime;
-
-    value =  this.curVal;
-    toValue = this.toVal;
-    velocity = this.storedVelocity;
-
-    statePv.p = toValue - value;
-
-    // the solver assumes a spring of size zero
-    // flip the velocity from user perspective to solver perspective
-    statePv.v = velocity * -1;
-
-    this.advance( statePv, localTime, delta );
-    value = toValue - state.p;
-
-    // flip velocity back to user perspective
-    velocity = state.v * -1;
-
-    this.curVal = value;
-
-    if ( this.storedVelocity ) {
-     this.storedVelocity = velocity;
-    }
-  };
-  function Vector4 () {
-    this.x = 0;
-    this.y = 0;
-    this.z = 0;
-    this.w = 0;
-  };
-
-  Vector4.prototype.updateValues = function ( x, y, z, w ) {
-
-      this.x = x;
-      this.y = y;
-      this.z = z;
-      this.w = w;
-
-  };
-
-  Vector4.prototype.scalarMultiply = function ( mag ) {
-    var newVector = new Vector4();
-    newVector.updateValues(
-      this.x * mag,
-      this.y * mag,
-      this.z * mag,
-      this.w * mag,
-    );
-    return newVector;
-  };
-
-  Vector4.prototype.vectorAdd = function ( otherVector ) {
-    var newVector = new Vector4();
-    newVector.updateValues(
-      this.x + otherVector.x,
-      this.y + otherVector.y,
-      this.z + otherVector.z,
-      this.w + otherVector.w,
-    );
-    return newVector;
-  };
-
-
-  Vector4.prototype.squaredNorm = function ( vec ) {
-    return (
-      ( this.x * this.x ) +
-      ( this.y * this.y ) +
-      ( this.z * this.z ) +
-      ( this.w * this.w );
-    );
-  };
-  Vector4.prototype.index = function ( i ) {
-    return ([
-       this.x,
-       this.y,
-       this.z,
-       this.w
-     ])[ i ];
-  };
-
-})();
-
-
-*/
 
 ( function () {
   "use strict";

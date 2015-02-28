@@ -132,7 +132,7 @@
 
   };
 
-  // mix, invert, saturate, desaturate, greyscale
+  // mix, invert, saturate, desaturate
 
 
 
@@ -287,12 +287,6 @@
     return this;
   };
 
-  LAID.Color.prototype.grayscale = function ( ) {
-
-    this.desaturate( 1 );
-    return this;
-
-  };
 
   LAID.Color.prototype.invert = function ( ) {
 

@@ -21,7 +21,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
   LAID.color()
 
 
-### LAID.run
+### LAID.run()
 
 
     LAID.run([optional: root properties (object)], {
@@ -806,14 +806,13 @@ LAID.Take methods
   - negative (unary)
   - index, length (for array)
   - key (for dict)
-  - method (invokes a method and returns the return)
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorGrayscale, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
+  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
   - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
-  - (these return booleans) match (for regex)
+  - (these return booleans) match, test (for regex)
 
 
   takes one argument, either:

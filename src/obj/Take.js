@@ -332,23 +332,7 @@
     return this;
   };
 
-  LAID.Take.prototype.method = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this )[ val.execute( this ) ]();
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this )[ val ]();
-      };
-    }
-    return this;
-  };
 
   LAID.Take.prototype.key = function ( val ) {
 
@@ -458,6 +442,15 @@
     return this;
   };
 
+  LAID.Take.prototype.abs = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return Math.abs( oldExecutable.call( this ) );
+    };
+    return this;
+  };
+
 
   LAID.Take.prototype.pow = function ( val ) {
 
@@ -477,24 +470,55 @@
     return this;
   };
 
-  LAID.Take.prototype.log = function ( val ) {
+  LAID.Take.prototype.log = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return Math.log( oldExecutable.call( this ) );
+    };
+    return this;
+  };
+
+
+  LAID.Take.prototype.match = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
       this.$mergePathAndProps( val );
 
       this.executable = function () {
-        return Math.log( oldExecutable.call( this ), val.execute( this ) );
+        return oldExecutable.call( this ).match( val.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return Math.log( oldExecutable.call( this ), val );
+        return oldExecutable.call( this ).match( val );
       };
     }
     return this;
+
   };
 
+  LAID.Take.prototype.test = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).test( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).test( val );
+      };
+    }
+    return this;
+
+  };
+
+  LAID.Take.prototype.concat = LAID.Take.prototype.add;
 
 
   LAID.Take.prototype.format = function () {
@@ -545,27 +569,9 @@
 
   }
 
-  LAID.Take.prototype.concat = LAID.Take.prototype.add;
 
 
-  LAID.Take.prototype.match = function () {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).match( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).match( val );
-      };
-    }
-    return this;
-
-  };
 
 
   LAID.Take.prototype.colorEquals = function ( val ) {
@@ -688,17 +694,6 @@
 
   };
 
-  LAID.Take.prototype.colorGrayscale = function () {
-
-    var oldExecutable = this.executable;
-
-    this.executable = function () {
-      return oldExecutable.call( this ).copy().grayscale();
-    };
-
-    return this;
-
-  };
 
   LAID.Take.prototype.colorAlpha = function ( val ) {
 

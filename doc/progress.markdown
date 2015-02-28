@@ -1,42 +1,24 @@
 
 
 
-SPRINT:
-  - FIX dataTravel arrive
-  - ADD 5 test cases
-  - ADD 15 test cases
-  - ADD Level.addChildren()
-  - ADD Level.remove()
-  - ADD Level.clog()
-  - DOQUARTER many
-  - DOHALF many
-  - DOQUARTER many (queries)
 
 
 
 Current:
-  - dataTravel $readOnlys
-  - fix delta arrive FALSE
-  - update data travelling example in spec, whereby "mousedown" is together
-  with "movemove" and "mouseup" within the same state
-  - safari click (menu) not working
-  - input
-  - $absoluteLeft/Top
-  - mention about single argument takes (LAID.take(true)) in spec
-  - divide nondisplay tests into "runtime" and "nonruntime"
-  - LAID.Color in spec
 
 
   many:
-  - Check misspelling in event read only (eg $hoverd instead of $hovered)
-  - LAID.Many ( + LAID.takeMany)
+  - LAID.Many
   - Cache most recently used state combinations for Many
-  - removeLevel
   - lson.type
   - Add "$i" index for Many to spec
+  - LAID.takeMany
   - Refine formation spec (including for creating formations)
+
+Completion:
   - todoMVC
   - Upload to github (with new .git object)
+  - hacker news
 
 
 

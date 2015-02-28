@@ -1,4 +1,9 @@
-var qunit = require('node-qunit-phantomjs');
+var
+  qunit = require('node-qunit-phantomjs'),
+  testDomainS = ["general", "take", "color"],
+  i, len;
 
-qunit('./nondisplay1.html', { 'verbose': false });
 
+for ( i = 0, len = testDomainS.length; i < len; i++ ) {
+  qunit( "./" + testDomainS[ i ] + ".html", { "verbose": false } );
+}
