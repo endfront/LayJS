@@ -5,24 +5,7 @@ function doNothing2() {
 
 }
 
-var externalInherit1 = {
-  data: {
-    reddish: true
-  },
-  props: {
-    backgroundColor:LAID.rgb(255, 100, 120),
-    text: "reddish",
-    textColor: LAID.color("brown")
-  },
-  when: {
-    click: [
-      function () {}
-    ],
-    focus: [
-      function () {}
-    ]
-  }
-};
+
 
 
 LAID.run({
@@ -63,13 +46,7 @@ LAID.run({
 
             children: {
               "Box": {
-                inherit: [externalInherit1],
-                data: {
-                  box: true
-                },
-                props: {
 
-                }
               }
             }
         }
@@ -88,39 +65,30 @@ QUnit.test( "Level: root width", function( assert ) {
   //assert.strictEqual( 1 == 1, "Passed!" );
 });
 
-QUnit.test( "LAID.level() [absolute/root]", function( assert ) {
-  assert.strictEqual( LAID.level("/") , LAID.$path2level[ "/" ], "Passed!" );
-});
-
-QUnit.test( "LAID.level() [absolute/non-root]", function( assert ) {
+QUnit.test( "LAID.level()", function( assert ) {
+  assert.strictEqual( LAID.level("/") , LAID.$path2level[ "/" ],
+   "root level" );
   assert.strictEqual( LAID.level("/Header/Text") ,
-   LAID.$path2level[ "/Header/Text" ], "Passed!" );
+   LAID.$path2level[ "/Header/Text" ], "non-root level" );
 });
 
-QUnit.test( "LAID.level() [absolute/relative-child]", function( assert ) {
-  assert.strictEqual( LAID.level("Text", LAID.level("/Header") ) ,
-   LAID.$path2level[ "/Header/Text" ], "Passed!" );
+
+QUnit.test( "Level.level()", function( assert ) {
+  assert.strictEqual( LAID.level("/Header").level("Text") ,
+   LAID.$path2level[ "/Header/Text" ],
+    "Child" );
+  assert.strictEqual( LAID.level("/Header/Text").level("../") ,
+   LAID.$path2level[ "/Header" ], "Parent" );
+  assert.strictEqual( LAID.level("/Header").level("../Body") ,
+    LAID.$path2level[ "/Body" ], "Sibling" );
+  assert.strictEqual( LAID.level("/Header/Text").level("../../") ,
+    LAID.$path2level[ "/" ], "Ancestor" );
+  assert.strictEqual( LAID.level("/Header/Text").level("../../Body") ,
+    LAID.$path2level[ "/Body" ], "Cousin" );
+
 });
 
-QUnit.test( "LAID.level() [absolute/relative-parent]", function( assert ) {
-  assert.strictEqual( LAID.level("../", LAID.level("/Header/Text") ) ,
-   LAID.$path2level[ "/Header" ], "Passed!" );
-});
 
-QUnit.test( "LAID.level() [absolute/relative-sibling]", function( assert ) {
-  assert.strictEqual( LAID.level("../Body", LAID.level("/Header") ) ,
-   LAID.$path2level[ "/Body" ], "Passed!" );
-});
-
-QUnit.test( "LAID.level() [absolute/relative-ancestor]", function( assert ) {
-  assert.strictEqual( LAID.level("../../", LAID.level("/Header/Text") ) ,
-   LAID.$path2level[ "/" ], "Passed!" );
-});
-
-QUnit.test( "LAID.level() [absolute/relative-cousin]", function( assert ) {
-  assert.strictEqual( LAID.level("../../Body", LAID.level("/Header/Text") ) ,
-   LAID.$path2level[ "/Body" ], "Passed!" );
-});
 
 
 

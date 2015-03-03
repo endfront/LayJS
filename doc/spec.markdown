@@ -605,7 +605,7 @@ Psuedo-Defaults:
 
   - data.<data>
 
-  - when.<event><num>
+  - when.<event>.<num>
 
   - transition.<attr>.<duration/delay/done/type>
 
@@ -618,7 +618,7 @@ Psuedo-Defaults:
 
   - <state>.<prop>
 
-  - <state>.when<event><num>
+  - <state>.when.<event><num>
 
   - <state>.transition.<attr><duration/delay/done/type>
 

@@ -1,7 +1,13 @@
 (function () {
   "use strict";
 
-  var normalizedExternalLsonS = [];
+  var
+    normalizedExternalLsonS = [],
+    fnCenterToPos,
+    fnEdgeToPos,
+    takeWidth,
+    takeHeight,
+    key2fnNormalize;
 
   /*
   * Rules of a state name:
@@ -51,11 +57,6 @@
     key2fnNormalize.states( lson );
 
     rootProp2val = lson.props;
-
-    rootProp2val.centerX = takeLeftToCenterX;
-    rootProp2val.right = takeLeftToRight;
-    rootProp2val.centerY = takeTopToCenterY;
-    rootProp2val.bottom = takeTopToBottom;
 
     // Recurse to normalize children
     if ( isRecursive ) {
@@ -120,39 +121,24 @@
 
 
 
-  var fnCenterToPos = function( center, dim ) {
+  fnCenterToPos = function( center, dim ) {
     return center - ( dim / 2 );
   };
 
-  var fnEdgeToPos = function( edge, dim ) {
+  fnEdgeToPos = function( edge, dim ) {
     return edge - ( dim );
   };
 
-  var fnPosToCenter = function( pos, dim ) {
-    return pos + ( dim / 2 );
-  };
 
-  var fnPosToEdge = function( pos, dim ) {
-    return pos + ( dim );
-  };
-
-
-  var takeLeft = new LAID.Take( "", "left" );
-  var takeWidth = new LAID.Take( "", "width" );
-  var takeTop = new LAID.Take( "", "top" );
-  var takeHeight = new LAID.Take( "", "height" );
-
-
-
-  var takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
-  var takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
-  var takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
-  var takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+  takeWidth = new LAID.Take( "", "width" );
+  takeHeight = new LAID.Take( "", "height" );
 
 
 
 
-  var key2fnNormalize = {
+
+
+  key2fnNormalize = {
     /*type: function ( lson ) {
 
       checkAndThrowErrorAttrAsTake( "type", lson.type );
@@ -214,19 +200,23 @@
 
 
       if ( prop2val.centerX !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerX, takeWidth );
+        prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn(
+           prop2val.centerX, takeWidth );
       }
 
       if ( prop2val.right !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.right, takeWidth );
+        prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn(
+           prop2val.right, takeWidth );
       }
 
       if ( prop2val.centerY !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerY, takeHeight );
+        prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn(
+           prop2val.centerY, takeHeight );
       }
 
       if ( prop2val.bottom !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.bottom, takeHeight );
+        prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn(
+           prop2val.bottom, takeHeight );
       }
 
       for ( prop in prop2val ) {

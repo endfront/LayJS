@@ -1,11 +1,9 @@
 (function() {
   "use strict";
 
-  LAID.level = function ( path, refLevel ) {
+  LAID.level = function ( path ) {
 
-    return ( refLevel !== undefined ) ?
-    ( new LAID.RelPath( path ) ).resolve( refLevel ) :
-    LAID.$path2level[ path ];
+    return LAID.$path2level[ path ];
 
   };
 

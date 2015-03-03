@@ -50,12 +50,12 @@
     intoTransitionProp, fromTransitionProp ) {
 
 
-      var fromTransitionDirective, intoTransitionDirective,
-      fromTransitionArgKey2val,  intoTransitionArgKey2val,
-      fromTransitionArgKey;
+      var
+        fromTransitionDirective = fromTransition[ fromTransitionProp ],
+        intoTransitionDirective = intoTransition[ intoTransitionProp ],
+        fromTransitionArgKey2val,  intoTransitionArgKey2val,
+        fromTransitionArgKey;
 
-      fromTransitionDirective = fromTransition[ fromTransitionProp ];
-      intoTransitionDirective = intoTransition[ intoTransitionProp ];
 
       if ( fromTransitionDirective !== undefined ) {
 
@@ -306,9 +306,9 @@
 
 
         var
-        fromEventType2_fnEventHandlerS_ = fromLson.when,
-        intoEventType2_fnEventHandlerS_ = intoLson.when,
-        fnFromEventHandlerS, fnIntoEventHandlerS, fromEventType;
+          fromEventType2_fnEventHandlerS_ = fromLson.when,
+          intoEventType2_fnEventHandlerS_ = intoLson.when,
+          fnFromEventHandlerS, fnIntoEventHandlerS, fromEventType;
 
 
         if ( intoEventType2_fnEventHandlerS_ === undefined ) {

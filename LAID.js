@@ -237,7 +237,6 @@ bottom: -0.25em;
   * to recalculate this AttrVal.
   */
   LAID.AttrVal.prototype.requestRecalculation = function ( ) {
-
     this.isRecalculateRequired = true;
     this.level.$addRecalculateDirtyAttrVal( this );
   };
@@ -259,9 +258,7 @@ bottom: -0.25em;
           ( this.calcVal instanceof LAID.Color )
         )
       ) &&
-      this.attr !== "zIndex"
-
-      ;
+      this.attr !== "zIndex";
 
 
   };
@@ -1023,6 +1020,11 @@ bottom: -0.25em;
 
   };
 
+
+  LAID.Level.prototype.level = function ( relativePath ) {
+
+    return ( new LAID.RelPath( relativePath ) ).resolve( this );
+  };
   LAID.Level.prototype.addChildren = function ( name2lson ) {
 
     var childPath, childLevel, name;
@@ -1301,31 +1303,31 @@ bottom: -0.25em;
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
       } else {
-
         if ( attr.startsWith( "data." ) ) {
           this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
           this.$attr2attrVal[ attr ].update( undefined );
         } else {
           splitAttrLsonComponentS = attr.split( "." );
-
           if ( this.$lson.states === undefined ) {
             return false;
           } else {
 
-            if ( attr.startsWith("root.") ) {  // "root." state
-              attrLsonComponentObj = this.$lson;
-
-            } else { // non root state
-              attrLsonComponentObj = this.$lson.states[
+            // Get down to state level
+            attrLsonComponentObj = splitAttrLsonComponentS[ 0 ] === "root" ?
+              attrLsonComponentObj = this.$lson : this.$lson.states[
                splitAttrLsonComponentS[ 0 ] ];
-            }
-            // rempve the state part of the attr components
             splitAttrLsonComponentS.shift();
-            if ( (["when", "transition", "$$num", "$$max", "type",
-                "inherit", "data", "observe", "interface", "many"]).
-              indexOf( splitAttrLsonComponentS[ 0 ] ) === -1 ) {
-                attrLsonComponentObj = attrLsonComponentObj.props;
-              }
+
+            // rempve the state part of the attr components
+            if ( splitAttrLsonComponentS[ 0 ]  === "when" ) {
+              splitAttrLsonComponentS[ splitAttrLsonComponentS.length - 1 ] =
+                parseInt( splitAttrLsonComponentS[
+                  splitAttrLsonComponentS.length -1 ] ) - 1;
+            } else if ( splitAttrLsonComponentS[ 0 ]  !== "transition" ) {
+              // props
+              attrLsonComponentObj = attrLsonComponentObj.props;
+            }
+
 
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
@@ -1339,7 +1341,6 @@ bottom: -0.25em;
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-
               this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
               this.$attr2attrVal[ attr ].update( attrLsonComponentObj );
             }
@@ -1379,7 +1380,8 @@ bottom: -0.25em;
 
     } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
-    return recalculateDirtyAttrValS.length === 0 ? 1 : ( isSolveProgressedOnce ? 2 : 3 );
+    return recalculateDirtyAttrValS.length === 0 ? 1 :
+     ( isSolveProgressedOnce ? 2 : 3 );
 
   };
 
@@ -1456,8 +1458,18 @@ bottom: -0.25em;
 
 
   LAID.Level.prototype.attr = function ( attr ) {
-    return this.$attr2attrVal[ attr ] ?
-      this.$attr2attrVal[ attr ].calcVal : undefined;
+
+    if ( this.$attr2attrVal[ attr ] ) {
+      return this.$attr2attrVal[ attr ].calcVal;
+
+    } else if ( ( attr[ 0 ] !== "$" ) &&
+        this.$createLazyAttr( attr ) ) {
+        LAID.$solveForRecalculation();
+      return this.$attr2attrVal[ attr ].calcVal;
+
+    } else {
+      return undefined
+    }
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -1520,7 +1532,7 @@ bottom: -0.25em;
       LAID.$dataTravellingAttrVal = attrVal;
 
       LAID.$isDataTravellingShock = true;
-      attrVal.update( finalVal, true );
+      attrVal.update( finalVal );
       LAID.$solveForRecalculation();
       LAID.$isDataTravellingShock = false;
 
@@ -1548,14 +1560,15 @@ bottom: -0.25em;
       LAID.isDataTravelling = false;
       LAID.dataTravellingLevel = undefined;
 
-      // TODO: clear out attrvalues which are data travelling
+      // clear out attrvalues which are data travelling
       LAID.$clearDataTravellingAttrVals();
       if ( !isArrived ) {
         LAID.$dataTravellingAttrVal.update(
-          LAID.dataTravellingAttrInitialVal, false );
+          LAID.dataTravellingAttrInitialVal );
+        LAID.$solveForRecalculation();
+
       } else {
 
-        // TODO
       }
 
 
@@ -4234,11 +4247,9 @@ return this;
 (function() {
   "use strict";
 
-  LAID.level = function ( path, refLevel ) {
+  LAID.level = function ( path ) {
 
-    return ( refLevel !== undefined ) ?
-    ( new LAID.RelPath( path ) ).resolve( refLevel ) :
-    LAID.$path2level[ path ];
+    return LAID.$path2level[ path ];
 
   };
 
@@ -4712,10 +4723,16 @@ return this;
   var
     essentialProp2defaultValue,
     lazyProp2defaultValue,
-    takeActualRightWithRotateZ,
-    takeActualBottomWithRotateZ,
-    takeActualRightWithoutRotateZ,
-    takeActualBottomWithoutRotateZ;
+    fnPosToCenter,
+    fnPosToEdge,
+    takeLeft,
+    takeWidth,
+    takeTop,
+    takeHeight,
+    takeLeftToCenterX,
+    takeLeftToRight,
+    takeTopToCenterY,
+    takeTopToBottom;
 
   LAID.$defaultizeLsonRootProps = function ( lson ) {
     var
@@ -4726,6 +4743,12 @@ return this;
       prop,
       when, transition, metaMax, maxProp,
       eventType, transitionProp;
+
+
+    lson.props.right = takeLeftToRight;
+    lson.props.centerX = takeLeftToCenterX;
+    lson.props.bottom = takeTopToBottom;
+    lson.props.centerY = takeTopToCenterY;
 
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
@@ -4784,6 +4807,7 @@ return this;
     }
 
 
+
   };
 /*
   takeActualBottomWithRotateZ = new LAID.Take(function( top, height, width,
@@ -4811,12 +4835,33 @@ return this;
 
 */
 
+
   essentialProp2defaultValue = {
     width:  new LAID.Take( "", "$naturalWidth" ),
     height:  new LAID.Take( "", "$naturalHeight" ),
     top: 0,
     left: 0
   };
+
+  fnPosToCenter = function( pos, dim ) {
+    return pos + ( dim / 2 );
+  };
+
+  fnPosToEdge = function( pos, dim ) {
+    return pos + ( dim );
+  };
+
+
+  takeLeft = new LAID.Take( "", "left" );
+  takeWidth = new LAID.Take( "", "width" );
+  takeTop = new LAID.Take( "", "top" );
+  takeHeight = new LAID.Take( "", "height" );
+
+  takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
+  takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
+  takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
+  takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+
 
   // These match the psuedo defaults for non expander props
   lazyProp2defaultValue = {
@@ -5488,12 +5533,12 @@ function fix_stopPropagation() {
     intoTransitionProp, fromTransitionProp ) {
 
 
-      var fromTransitionDirective, intoTransitionDirective,
-      fromTransitionArgKey2val,  intoTransitionArgKey2val,
-      fromTransitionArgKey;
+      var
+        fromTransitionDirective = fromTransition[ fromTransitionProp ],
+        intoTransitionDirective = intoTransition[ intoTransitionProp ],
+        fromTransitionArgKey2val,  intoTransitionArgKey2val,
+        fromTransitionArgKey;
 
-      fromTransitionDirective = fromTransition[ fromTransitionProp ];
-      intoTransitionDirective = intoTransition[ intoTransitionProp ];
 
       if ( fromTransitionDirective !== undefined ) {
 
@@ -5744,9 +5789,9 @@ function fix_stopPropagation() {
 
 
         var
-        fromEventType2_fnEventHandlerS_ = fromLson.when,
-        intoEventType2_fnEventHandlerS_ = intoLson.when,
-        fnFromEventHandlerS, fnIntoEventHandlerS, fromEventType;
+          fromEventType2_fnEventHandlerS_ = fromLson.when,
+          intoEventType2_fnEventHandlerS_ = intoLson.when,
+          fnFromEventHandlerS, fnIntoEventHandlerS, fromEventType;
 
 
         if ( intoEventType2_fnEventHandlerS_ === undefined ) {
@@ -5881,7 +5926,13 @@ function fix_stopPropagation() {
 (function () {
   "use strict";
 
-  var normalizedExternalLsonS = [];
+  var
+    normalizedExternalLsonS = [],
+    fnCenterToPos,
+    fnEdgeToPos,
+    takeWidth,
+    takeHeight,
+    key2fnNormalize;
 
   /*
   * Rules of a state name:
@@ -5931,11 +5982,6 @@ function fix_stopPropagation() {
     key2fnNormalize.states( lson );
 
     rootProp2val = lson.props;
-
-    rootProp2val.centerX = takeLeftToCenterX;
-    rootProp2val.right = takeLeftToRight;
-    rootProp2val.centerY = takeTopToCenterY;
-    rootProp2val.bottom = takeTopToBottom;
 
     // Recurse to normalize children
     if ( isRecursive ) {
@@ -6000,39 +6046,24 @@ function fix_stopPropagation() {
 
 
 
-  var fnCenterToPos = function( center, dim ) {
+  fnCenterToPos = function( center, dim ) {
     return center - ( dim / 2 );
   };
 
-  var fnEdgeToPos = function( edge, dim ) {
+  fnEdgeToPos = function( edge, dim ) {
     return edge - ( dim );
   };
 
-  var fnPosToCenter = function( pos, dim ) {
-    return pos + ( dim / 2 );
-  };
 
-  var fnPosToEdge = function( pos, dim ) {
-    return pos + ( dim );
-  };
-
-
-  var takeLeft = new LAID.Take( "", "left" );
-  var takeWidth = new LAID.Take( "", "width" );
-  var takeTop = new LAID.Take( "", "top" );
-  var takeHeight = new LAID.Take( "", "height" );
-
-
-
-  var takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
-  var takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
-  var takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
-  var takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+  takeWidth = new LAID.Take( "", "width" );
+  takeHeight = new LAID.Take( "", "height" );
 
 
 
 
-  var key2fnNormalize = {
+
+
+  key2fnNormalize = {
     /*type: function ( lson ) {
 
       checkAndThrowErrorAttrAsTake( "type", lson.type );
@@ -6094,19 +6125,23 @@ function fix_stopPropagation() {
 
 
       if ( prop2val.centerX !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerX, takeWidth );
+        prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn(
+           prop2val.centerX, takeWidth );
       }
 
       if ( prop2val.right !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.right, takeWidth );
+        prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn(
+           prop2val.right, takeWidth );
       }
 
       if ( prop2val.centerY !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn( prop2val.centerY, takeHeight );
+        prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn(
+           prop2val.centerY, takeHeight );
       }
 
       if ( prop2val.bottom !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn( prop2val.bottom, takeHeight );
+        prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn(
+           prop2val.bottom, takeHeight );
       }
 
       for ( prop in prop2val ) {

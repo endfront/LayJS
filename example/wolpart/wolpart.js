@@ -18,7 +18,6 @@ LAID.run( {
           args: {
             tension: 191.0,
             friction: 12.9,
-            //velocity:0.0,
           }
         }
       }
@@ -146,7 +145,6 @@ LAID.run( {
                                 rotateZ: 45,
                                 width: LAID.take("", "root.width").multiply(1.5),
                                 top: LAID.take("../MiddleBar", "root.top")
-                                //width: LAID.take("", "root.width").divide(Math.sin(45))
                               }
                             }
                           }
@@ -177,9 +175,7 @@ LAID.run( {
                               rotateZ: -45
                             }
                           }
-
                         }
-
                     }
                   }
                 }
@@ -277,12 +273,13 @@ LAID.run( {
           data: {
             startMove: 0,
             fnCalculateDelta: function (e) {
-              var startMove = LAID.level("", this).attr("data.startMove");
-              var menuWidth = LAID.level("/Menu", this).attr("width");
+              var startMove = this.attr("data.startMove");
+              var menuWidth = LAID.level("/Menu").attr("width");
               var curMove = e.pageX;
               var delta = (startMove - curMove) / menuWidth;
               return delta;
-            }
+            },
+            didMouseMove: false
           },
           props: {
             top: LAID.take("../Body", "top"),
@@ -307,7 +304,7 @@ LAID.run( {
                 mousemove: [
                   function (e) {
                     if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
-
+                      this.data("didMouseMove", true);
                       LAID.level("/").dataTravelContinue(
                         this.attr("data.fnCalculateDelta").call( this, e)
                       );
@@ -317,10 +314,22 @@ LAID.run( {
                 ],
                 mouseup: [
                   function (e) {
-                    if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
-                      LAID.level("/").dataTravelArrive(
-                        this.attr("data.fnCalculateDelta").call( this, e) > 0.5
-                      );
+                    if ( LAID.dataTravellingLevel ===  LAID.level("/")) {
+                      if ( this.attr("data.didMouseMove") ) {
+                        LAID.level("/").dataTravelArrive(
+                          ( this.attr("data.fnCalculateDelta").call(
+                             this, e) > 0.5 )
+                        )
+                      } else {
+                        LAID.level("/").dataTravelArrive(true);
+                      }
+                      var self = this;
+                      setTimeout(function(){
+                        // delay for click event to realize change later
+                        self.data("didMouseMove", false);
+                      });
+
+
                     }
                   }
                 ]
@@ -333,21 +342,23 @@ LAID.run( {
                 zIndex:1
               },
               when: {
-                /*click: [
-                  function () {
-                    LAID.level("/").data("menu", false);
-                  }
-                ],*/
+
                 mousedown: [
                   function (e) {
                     if ( !LAID.isDataTravelling ) {
-                      LAID.level("", this).data("startMove", e.pageX );
+                      this.data("startMove", e.pageX );
                       LAID.level("/").dataTravelBegin( "menu", false );
 
                     }
                   }
+                ],
+                click: [
+                  function () {
+                    if (!this.attr("data.didMouseMove") ) {
+                      LAID.level("/").data("menu", false);
+                    }
+                  }
                 ]
-
               }
             },
           }

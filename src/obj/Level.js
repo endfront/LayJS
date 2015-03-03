@@ -94,6 +94,11 @@
 
   };
 
+
+  LAID.Level.prototype.level = function ( relativePath ) {
+
+    return ( new LAID.RelPath( relativePath ) ).resolve( this );
+  };
   LAID.Level.prototype.addChildren = function ( name2lson ) {
 
     var childPath, childLevel, name;
@@ -372,31 +377,31 @@
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
       } else {
-
         if ( attr.startsWith( "data." ) ) {
           this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
           this.$attr2attrVal[ attr ].update( undefined );
         } else {
           splitAttrLsonComponentS = attr.split( "." );
-
           if ( this.$lson.states === undefined ) {
             return false;
           } else {
 
-            if ( attr.startsWith("root.") ) {  // "root." state
-              attrLsonComponentObj = this.$lson;
-
-            } else { // non root state
-              attrLsonComponentObj = this.$lson.states[
+            // Get down to state level
+            attrLsonComponentObj = splitAttrLsonComponentS[ 0 ] === "root" ?
+              attrLsonComponentObj = this.$lson : this.$lson.states[
                splitAttrLsonComponentS[ 0 ] ];
-            }
-            // rempve the state part of the attr components
             splitAttrLsonComponentS.shift();
-            if ( (["when", "transition", "$$num", "$$max", "type",
-                "inherit", "data", "observe", "interface", "many"]).
-              indexOf( splitAttrLsonComponentS[ 0 ] ) === -1 ) {
-                attrLsonComponentObj = attrLsonComponentObj.props;
-              }
+
+            // rempve the state part of the attr components
+            if ( splitAttrLsonComponentS[ 0 ]  === "when" ) {
+              splitAttrLsonComponentS[ splitAttrLsonComponentS.length - 1 ] =
+                parseInt( splitAttrLsonComponentS[
+                  splitAttrLsonComponentS.length -1 ] ) - 1;
+            } else if ( splitAttrLsonComponentS[ 0 ]  !== "transition" ) {
+              // props
+              attrLsonComponentObj = attrLsonComponentObj.props;
+            }
+
 
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
@@ -410,7 +415,6 @@
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-
               this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
               this.$attr2attrVal[ attr ].update( attrLsonComponentObj );
             }
@@ -450,7 +454,8 @@
 
     } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
-    return recalculateDirtyAttrValS.length === 0 ? 1 : ( isSolveProgressedOnce ? 2 : 3 );
+    return recalculateDirtyAttrValS.length === 0 ? 1 :
+     ( isSolveProgressedOnce ? 2 : 3 );
 
   };
 
@@ -527,8 +532,18 @@
 
 
   LAID.Level.prototype.attr = function ( attr ) {
-    return this.$attr2attrVal[ attr ] ?
-      this.$attr2attrVal[ attr ].calcVal : undefined;
+
+    if ( this.$attr2attrVal[ attr ] ) {
+      return this.$attr2attrVal[ attr ].calcVal;
+
+    } else if ( ( attr[ 0 ] !== "$" ) &&
+        this.$createLazyAttr( attr ) ) {
+        LAID.$solveForRecalculation();
+      return this.$attr2attrVal[ attr ].calcVal;
+
+    } else {
+      return undefined
+    }
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -591,7 +606,7 @@
       LAID.$dataTravellingAttrVal = attrVal;
 
       LAID.$isDataTravellingShock = true;
-      attrVal.update( finalVal, true );
+      attrVal.update( finalVal );
       LAID.$solveForRecalculation();
       LAID.$isDataTravellingShock = false;
 
@@ -619,14 +634,15 @@
       LAID.isDataTravelling = false;
       LAID.dataTravellingLevel = undefined;
 
-      // TODO: clear out attrvalues which are data travelling
+      // clear out attrvalues which are data travelling
       LAID.$clearDataTravellingAttrVals();
       if ( !isArrived ) {
         LAID.$dataTravellingAttrVal.update(
-          LAID.dataTravellingAttrInitialVal, false );
+          LAID.dataTravellingAttrInitialVal );
+        LAID.$solveForRecalculation();
+
       } else {
 
-        // TODO
       }
 
 

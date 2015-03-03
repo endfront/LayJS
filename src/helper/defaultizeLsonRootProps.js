@@ -4,10 +4,16 @@
   var
     essentialProp2defaultValue,
     lazyProp2defaultValue,
-    takeActualRightWithRotateZ,
-    takeActualBottomWithRotateZ,
-    takeActualRightWithoutRotateZ,
-    takeActualBottomWithoutRotateZ;
+    fnPosToCenter,
+    fnPosToEdge,
+    takeLeft,
+    takeWidth,
+    takeTop,
+    takeHeight,
+    takeLeftToCenterX,
+    takeLeftToRight,
+    takeTopToCenterY,
+    takeTopToBottom;
 
   LAID.$defaultizeLsonRootProps = function ( lson ) {
     var
@@ -18,6 +24,12 @@
       prop,
       when, transition, metaMax, maxProp,
       eventType, transitionProp;
+
+
+    lson.props.right = takeLeftToRight;
+    lson.props.centerX = takeLeftToCenterX;
+    lson.props.bottom = takeTopToBottom;
+    lson.props.centerY = takeTopToCenterY;
 
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
@@ -76,6 +88,7 @@
     }
 
 
+
   };
 /*
   takeActualBottomWithRotateZ = new LAID.Take(function( top, height, width,
@@ -103,12 +116,33 @@
 
 */
 
+
   essentialProp2defaultValue = {
     width:  new LAID.Take( "", "$naturalWidth" ),
     height:  new LAID.Take( "", "$naturalHeight" ),
     top: 0,
     left: 0
   };
+
+  fnPosToCenter = function( pos, dim ) {
+    return pos + ( dim / 2 );
+  };
+
+  fnPosToEdge = function( pos, dim ) {
+    return pos + ( dim );
+  };
+
+
+  takeLeft = new LAID.Take( "", "left" );
+  takeWidth = new LAID.Take( "", "width" );
+  takeTop = new LAID.Take( "", "top" );
+  takeHeight = new LAID.Take( "", "height" );
+
+  takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
+  takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
+  takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
+  takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+
 
   // These match the psuedo defaults for non expander props
   lazyProp2defaultValue = {

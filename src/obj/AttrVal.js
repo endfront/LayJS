@@ -114,7 +114,6 @@
   * to recalculate this AttrVal.
   */
   LAID.AttrVal.prototype.requestRecalculation = function ( ) {
-
     this.isRecalculateRequired = true;
     this.level.$addRecalculateDirtyAttrVal( this );
   };
@@ -136,9 +135,7 @@
           ( this.calcVal instanceof LAID.Color )
         )
       ) &&
-      this.attr !== "zIndex"
-
-      ;
+      this.attr !== "zIndex";
 
 
   };

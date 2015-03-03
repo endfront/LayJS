@@ -1,9 +1,14 @@
+
+
 var
   qunit = require('node-qunit-phantomjs'),
-  testDomainS = ["general", "take", "color"],
-  i, len;
+  testDomainS,
+  i, len,
+  exec = require('child_process').exec;
 
-
-for ( i = 0, len = testDomainS.length; i < len; i++ ) {
-  qunit( "./" + testDomainS[ i ] + ".html", { "verbose": false } );
-}
+  exec('ls test*.html', function (error, stdout, stderr) {
+    testDomainS = stdout.trim().split("\n");
+    for ( i = 0, len = testDomainS.length; i < len; i++ ) {
+      qunit( "./" + testDomainS[ i ], { "verbose": false } );
+    }
+  });
