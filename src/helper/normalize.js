@@ -9,19 +9,8 @@
     takeHeight,
     key2fnNormalize;
 
-  /*
-  * Rules of a state name:
-  * (1) Must only contain alphanumeric characters, the underscore ("_"), or the hyphen ("-")
-  * (2) Must contain atleast one character
-  * (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
-  */
-  function checkIsValidStateName( stateName ) {
-
-    return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
-    ( ( [ "root", "transition", "data", "when", "state",
-     "inherit", "observe", "interface", "many", "" ] ).
-    indexOf( stateName ) === -1 );
-  }
+  
+  
 
   LAID.$normalize = function( lson, isExternal ) {
 
@@ -106,7 +95,7 @@
 
     } else {
 
-      if ( LAID.$checkIsExpanderAttr( prefix ) ) {
+      if ( LAID.$checkIsValidUtils.expanderAttr( prefix ) ) {
         checkAndThrowErrorAttrAsTake( prefix, val );
       }
 
@@ -319,7 +308,7 @@ if ()
         }
 
         for ( transitionProp in transition ) {
-          if ( LAID.$checkIsExpanderAttr( transitionProp ) ) {
+          if ( LAID.$checkIsValidUtils.expanderAttr( transitionProp ) ) {
             throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
@@ -368,7 +357,7 @@ if ()
 
       for ( var stateName in stateName2state ) {
 
-        if ( !checkIsValidStateName( stateName ) ) {
+        if ( !LAID.$checkIsValidUtils.stateName( stateName ) ) {
           throw ( "LAID Error: Invalid state name: " + stateName );
         }
 

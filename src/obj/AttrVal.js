@@ -92,8 +92,8 @@
     this.val = val;
 
     if ( ( val !== this.prevVal ) &&
-      !( LAID.$checkIsNan( val ) &&
-       LAID.$checkIsNan( this.prevVal ) )
+      !( LAID.$checkIsValidUtils.nan( val ) &&
+       LAID.$checkIsValidUtils.nan( this.prevVal ) )
       ) {
 
       if ( this.val instanceof LAID.Take ) {

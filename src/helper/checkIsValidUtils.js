@@ -1,0 +1,66 @@
+(function(){	
+  "use strict";
+
+
+
+
+  LAID.$checkIsValidUtils = {
+  	levelName: function ( levelName ) {
+  		return ( /^[\w\-]+$/ ).test( levelName );
+  	},
+  	/*
+  	* Rules of a state name:
+  	* (1) Must only contain alphanumeric characters, the underscore ("_"), or the hyphen ("-")
+  	* (2) Must contain atleast one character
+  	* (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
+  	*/
+  	stateName: function ( stateName ) {
+  		 return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
+		    ( ( [ "root", "transition", "data", "when",
+    		 "inherit", "observe", "interface", "many", "" ] ).
+    		indexOf( stateName ) === -1 );
+  	},
+  	expanderAttr: function ( attr ) {
+  		var expanderAttrS = [
+			  "border", "background", "boxShadows", "textShadows", "videoSources", "audioSources", "videoTracks", "audioTracks", "filters",
+			   "borderTop", "borderRight", "borderBottom", "borderLeft",
+			    "data", "when", "transition", "type", "inherit", "states", "observe"
+			     ];
+			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
+			 var nonStateAttrPrefixS = [ "data", "when", "transition" ];
+
+		  function stripStateAttrPrefix( attr ) {
+		    var i = attr.indexOf(".");
+		    if ( i === -1 ) {
+		      return attr;
+		    } else {
+		      var prefix = attr.slice( 0, i );
+		      if ( nonStateAttrPrefixS.indexOf( prefix ) !== -1 ) {
+		        return attr;
+		      } else {
+		        return attr.slice( i + 1 );
+		      }
+		    }
+		  }
+
+  		var strippedStateAttr = stripStateAttrPrefix( attr );
+    	return ( ( expanderAttrS.indexOf( strippedStateAttr ) !== -1 ) ||
+      	( regexExpanderAttrs.test( strippedStateAttr ) )
+    	);
+  	},
+  	propAttr: function ( attr ) {
+  		return ( ( attr.indexOf( "." ) === -1 ) &&
+     		( attr[ 0 ] !== "$") );
+  	},
+
+  	// source: underscore.js
+  	nan: function ( num ) {
+  		return ( typeof val === "number" ) &&
+	     ( val !== +val );
+  	}
+
+
+
+  };
+
+})();

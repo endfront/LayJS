@@ -277,7 +277,8 @@
         false ) ? "inset " : "" ) +
       ( attr2attrVal["boxShadows" + i + "X" ].transitionCalcVal + "px " ) +
       ( attr2attrVal["boxShadows" + i + "Y" ].transitionCalcVal + "px " ) +
-      (  attr2attrVal["boxShadows" + i + "Blur" ].transitionCalcVal
+      ( ( attr2attrVal["boxShadows" + i + "Blur" ] !== undefined ?
+        attr2attrVal["boxShadows" + i + "Blur" ].transitionCalcVal : 0 )
         + "px " ) +
       ( ( attr2attrVal["boxShadows" + i + "Spread" ] !== undefined ?
        attr2attrVal["boxShadows" + i + "Spread" ].transitionCalcVal : 0 )
