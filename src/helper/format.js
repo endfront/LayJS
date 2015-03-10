@@ -225,15 +225,19 @@
           argSLength = arguments.length,
           argS = Array.prototype.slice.call(arguments);
 
-        // result contians the formattable string
-        result = argS[ 0 ];
-        for ( i = 1; i < argSLength; i++ ) {
-          if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
-            result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+        try {
+          // result contians the formattable string
+          result = argS[ 0 ];
+          for ( i = 1; i < argSLength; i++ ) {
+            if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
+              result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+            }
           }
+          return result;
+        } catch (err) {
+          return "";
         }
 
-      return result;
     };
 
 }());

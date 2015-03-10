@@ -23,6 +23,7 @@ Completion:
 
 
 Future:
+  - takes across forbidden objects such as "when", "transition", etc
   - update spec to have quotes around state names
   - natural width and height dependent upon the rotation of Z axis of children.
   - Insert CSS from entry.js (normalize.css CSS)
@@ -31,6 +32,7 @@ Future:
   - change 'audio/videoControl"s"' to 'audio/videoControl' to respect naming convention of props?
   - Add $time as a read only property of root '/'
   - Canvas support
+  - $numberOfDisplayedChildren
   - Convert between transition and calc when transition add/delete
   - Introduce order number key for states
   - feature function which checks for overlapping parts

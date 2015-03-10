@@ -9,11 +9,12 @@
   var readonlyAttr2defaultVal = {
     $naturalWidth: null,
     $naturalHeight: null,
-    //$absoluteLeft: null,
-    //$absoluteTop null,
+    $absoluteX: null,
+    $absoluteY: null,
     $numberOfChildren: null,
-    $dataTravelledDelta: 0,
     $dataTravelling: false,
+    $dataTravelDelta: 0.0,
+    $dataTravelLevel: null,
 
     $hovered: false,
     $focused: false,
@@ -23,7 +24,7 @@
     $cursorX: 0,
     $cursorY: 0,
     $input: "",
-    $inputChecked: false,
+    $inputChecked: false
   };
 
   LAID.$getReadonlyAttrDefaultVal = function ( attr ) {

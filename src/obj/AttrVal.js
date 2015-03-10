@@ -115,7 +115,9 @@
   */
   LAID.AttrVal.prototype.requestRecalculation = function ( ) {
     this.isRecalculateRequired = true;
-    this.level.$addRecalculateDirtyAttrVal( this );
+    if ( this.level ) { // check for empty level
+      this.level.$addRecalculateDirtyAttrVal( this );
+    }
   };
 
   LAID.AttrVal.prototype.checkIsTransitionable = function () {
@@ -219,12 +221,12 @@
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
-        this.takerAttrValS[ i ].requestRecalculation( );
+        this.takerAttrValS[ i ].requestRecalculation();
       }
 
       if ( LAID.$isDataTravellingShock ) {
 
-        level.$addTravelRenderDirtyAttrVal( this );
+        level.part.$addTravelRenderDirtyAttrVal( this );
 
       }
 
@@ -234,20 +236,45 @@
 
 
         if ( !LAID.$isDataTravellingShock ) {
-          level.$addNormalRenderDirtyAttrVal( this );
+          level.part.$addNormalRenderDirtyAttrVal( this );
 
         }
-        if ( ( attr === "text" ) ||
-          ( attr.startsWith( "textPadding" ) )
-        )  {
 
-          level.$updateNaturalWidthFromText();
-          level.$updateNaturalHeightFromText();
+
+        switch ( attr ) {
+          case "text":
+            level.part.$updateNaturalWidthFromText();
+            level.part.$updateNaturalHeightFromText();
+            break;
+          case "width":
+            if ( level.$attr2attrVal.text !== undefined ) {
+              level.part.$updateNaturalHeightFromText();
+            }
+            break;
+          case "left":
+            level.part.$updateAbsoluteX();
+            break;
+          case "shiftX":
+            level.part.$updateAbsoluteX();
+            break;
+          case "top":
+            level.part.$updateAbsoluteY();
+            break;
+          case "shiftY":
+            level.part.$updateAbsoluteY();
+            break;
+          default:
+            if ( attr.startsWith( "textPadding" ) )  {
+              level.part.$updateNaturalWidthFromText();
+              level.part.$updateNaturalHeightFromText();          
+            } 
         }
+
+        
 
         // In case there exists a transition
         // for the given prop then update it
-        level.$updateTransitionProp( attr );
+        level.part.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
@@ -273,20 +300,23 @@
           }
         }
       } else if ( whenEventType !== "" ) {
-        level.$updateWhenEventType( whenEventType );
+        level.part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        level.$updateTransitionProp( transitionProp );
-      } else if ( attr === "right" ) {
-        if ( level.parentLevel !== undefined ) {
-          level.parentLevel.$updateNaturalWidthFromChild( level );
-        }
-      } else if ( attr === "bottom" ) {
-        if ( level.parentLevel !== undefined ) {
-          level.parentLevel.$updateNaturalHeightFromChild( level );
-        }
-      } else if ( attr === "width" ) {
-        if ( level.$attr2attrVal.text !== undefined ) {
-          level.$updateNaturalHeightFromText();
+        level.part.$updateTransitionProp( transitionProp );
+      } else {  
+
+        switch( attr ) {
+          case "right":
+            if ( level.parentLevel !== undefined ) {
+             level.parentLevel.part.$updateNaturalWidthFromChild( level );
+            }
+            break;
+          case "bottom":
+            if ( level.parentLevel !== undefined ) {
+              level.parentLevel.part.$updateNaturalHeightFromChild( level );
+            }
+            break;
+          
         }
       }
     }
@@ -313,6 +343,7 @@
       }
     }
   };
+
   LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
     if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {

@@ -1,8 +1,17 @@
 
+var springTransition = {
+  type:"spring",
+    args: {
+      velocity: 20,
+      tension: 200.0,
+      friction: 15.9,
+  }
+};
+
 
 LAID.run( {
   data: {
-    lang: "en",
+    lang: "zh",
     menu: false
   },
   states: {
@@ -12,23 +21,20 @@ LAID.run( {
   },
   children: {
     "_SpringTransition": {
+      $interface:true,
       transition: {
-        all: {
-          type:"spring",
-          args: {
-            tension: 191.0,
-            friction: 12.9,
-          }
-        }
+        all: springTransition
       }
     },
     "Menu": {
-      inherit: [ "/_SpringTransition" ],
       props: {
         height:LAID.take("../", "height"),
         width:300,
         backgroundColor:LAID.color("gainsboro"),
         zIndex:1
+      },
+      transition: {
+        left: springTransition
       },
 
       states: {
@@ -48,10 +54,12 @@ LAID.run( {
     },
 
     "Content": {
-      inherit: [ "/_SpringTransition" ],
       props: {
         width:LAID.take("../", "width"),
         height:LAID.take("../", "height")
+      },
+      transition: {
+        left: springTransition
       },
 
       states: {
@@ -68,7 +76,6 @@ LAID.run( {
             width: LAID.take( '../', 'width'),
             backgroundColor: LAID.color( "black" )
           },
-
 
           children: {
             "MenuInvoke": {
@@ -125,7 +132,7 @@ LAID.run( {
                     },
                     children: {
                       "TopBar": {
-                        inherit: [ "/_SpringTransition" ],
+                        $inherit: [ "/_SpringTransition" ],
                           data: {
                             barDistance:LAID.take(function ( width, height, numBars) {
                               return (width - (numBars * height))/2;
@@ -150,7 +157,7 @@ LAID.run( {
                           }
                       },
                       "MiddleBar": {
-                        inherit: ["../TopBar"],
+                        $inherit: ["../TopBar"],
                         props: {
                           top:LAID.take("", "data.barDistance").add(LAID.take("","height"))
                         },
@@ -165,7 +172,7 @@ LAID.run( {
                         }
                       },
                       "BottomBar": {
-                        inherit: ["../TopBar"],
+                        $inherit: ["../TopBar"],
                         props: {
                           top:LAID.take("../MiddleBar", "top").multiply(2)
                         },
@@ -182,7 +189,7 @@ LAID.run( {
               }
             },
             "Title": {
-              inherit: ["/_SpringTransition"],
+              //$inherit: ["/_SpringTransition"],
               data: {
                 isRotating: false
               },
@@ -233,7 +240,6 @@ LAID.run( {
           },
         },
         "Body": {
-          inherit:[ "/_SpringTransition" ],
 
           props: {
             width: LAID.take("../", 'width'),
@@ -250,26 +256,28 @@ LAID.run( {
                 centerX: LAID.take("../","width").divide(2),
                 height:220,
                 backgroundColor:LAID.color("blue"),
-                text: "Hello Mars",
+               text: LAID.take("Is data travelling? %s <br> Delta? %s").format( 
+                  LAID.take("/", "$dataTravelling"),
+                  LAID.take("/", "$dataTravelDelta")
+                   ),
                 textPadding:10,
                 textColor:LAID.take("", "backgroundColor").colorInvert()
               }
             },
             "Option2": {
-              inherit: ["../Option1"],
+              $inherit: ["../Option1"],
               props: {
                 top: LAID.take("../Option1", "height").add(10),
                 backgroundColor:LAID.take("../Option1", "backgroundColor").colorInvert(),
                 text: LAID.take({
-                  "en": "number: %s",
-                  "zh": "li: %s"
+                  "en": "color: %s",
+                  "zh": "颜色: %s"
                 }).i18nFormat(LAID.take("", "backgroundColor").colorStringify())
               },
             }
           }
         },
         "BodyOverlay": {
-          inherit: [ "/_SpringTransition" ],
           data: {
             startMove: 0,
             fnCalculateDelta: function (e) {
@@ -287,6 +295,9 @@ LAID.run( {
             height:LAID.take("../Body", "height"),
             backgroundColor:LAID.color("black"),
           },
+          transition: {
+            opacity: springTransition
+          },
           states: {
             "hidden": {
               onlyif: LAID.take("/", "data.menu").not(),
@@ -303,18 +314,18 @@ LAID.run( {
               when: {
                 mousemove: [
                   function (e) {
-                    if ( LAID.dataTravellingLevel ===  LAID.level("/") ) {
+//                    if ( LAID.level("/").attr("$dataTravellingLevel")  ) {
                       this.data("didMouseMove", true);
                       LAID.level("/").dataTravelContinue(
                         this.attr("data.fnCalculateDelta").call( this, e)
                       );
 
                     }
-                  }
+//                  }
                 ],
                 mouseup: [
                   function (e) {
-                    if ( LAID.dataTravellingLevel ===  LAID.level("/")) {
+                    if ( LAID.level("/").attr("$dataTravelling") ) {
                       if ( this.attr("data.didMouseMove") ) {
                         LAID.level("/").dataTravelArrive(
                           ( this.attr("data.fnCalculateDelta").call(
@@ -328,7 +339,6 @@ LAID.run( {
                         // delay for click event to realize change later
                         self.data("didMouseMove", false);
                       });
-
 
                     }
                   }
@@ -345,7 +355,7 @@ LAID.run( {
 
                 mousedown: [
                   function (e) {
-                    if ( !LAID.isDataTravelling ) {
+                    if ( !LAID.level("/").attr("$dataTravelling" ) ) {
                       this.data("startMove", e.pageX );
                       LAID.level("/").dataTravelBegin( "menu", false );
 

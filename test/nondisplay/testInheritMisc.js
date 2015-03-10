@@ -1,28 +1,11 @@
 var
-  externalDimension = 10,
-  internalDimension = 20,
-  noneDimension = 30,
-  stateDimension = 40,
-  externalColor = LAID.rgba(10,10,10),
-  internalColor = LAID.rgba(20,20,20),
-  noneColor = LAID.rgba(30,30,30),
-  stateColor = LAID.rgba(30,30,30);
-  
+  fnInternalLoad = function () {},
+  fnExternalLoad = function () {},
+  fnNoneLoad = function () {};
 
 
 var externalInherit = {
-  props: {
-    width: externalDimension,
-    height: externalDimension,
-    rotateZ: externalDimension,
-    border: {
-      width: externalDimension
-    },
-    boxShadows: [
-      {x: externalDimension, y:externalDimension,
-        blur: externalDimension, color: externalColor}
-    ]
-  }
+  load: fnExternalLoad
 };
 
 
@@ -33,38 +16,15 @@ LAID.run({
         "Content": {
             children: {
               "InternalInherit": {
-                props: {
-                  width: internalDimension,
-                  height: internalDimension,
-                  borderTopWidth: internalDimension,
-                  borderRightWidth: internalDimension,
-                  boxShadows: [
-                    {x: internalDimension, y:internalDimension,
-                      color: internalColor}
-                  ]
-                }
+                
               },
               "Box": {
                 $inherit: [externalInherit, "../InternalInherit" ],
-                data: {
-                  state: false
-                },
-                props: {
-                  width: noneDimension,
-                  borderTopWidth: noneDimension,
-                  boxShadows1X: noneDimension
-                },
+                
+                
                 
                 states: {
-                  "state": {
-                    onlyif:LAID.take("", "data.state"),
-                    props: {
-                      width: stateDimension,
-                      borderRightWidth: stateDimension,
-                      boxShadows: [{y:stateDimension}],
-                      boxShadows1Color: stateColor,
-                      z: stateDimension
-                    }
+                  "state1": {
                   },
                 }
               }

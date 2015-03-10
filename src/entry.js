@@ -94,6 +94,8 @@ bottom: -0.25em;
 
   window.laid = window.LAID = {
 
+    version: 1,
+
     $path2level: {},
     $cloggedLevelS: [],
     $newPartS: [],
@@ -101,7 +103,7 @@ bottom: -0.25em;
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
     $recalculateDirtyLevelS: [],
-    $renderDirtyLevelS: [],
+    $renderDirtyPartS: [],
     $prevFrameTime: 0,
     //$uninitialized: {},
     $isClogged:false,
@@ -110,10 +112,10 @@ bottom: -0.25em;
     $isRecalculateRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,
-    isDataTravelling: false,
-    dataTravellingDelta: 0.0,
-    dataTravellingLevel: undefined,
-    dataTravellingAttrInitialVal: undefined,
+    $isDataTravelling: false,
+    $dataTravelDelta: 0.0,
+    $dataTravellingLevel: undefined,
+    $dataTravellingAttrInitialVal: undefined,
     $dataTravellingAttrVal: undefined,
 
 

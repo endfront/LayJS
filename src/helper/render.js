@@ -8,7 +8,7 @@
   */
   LAID.$render = function ( timeNow ) {
     if ( !LAID.$isRequestedForAnimationFrame &&
-       ( ( LAID.$renderDirtyLevelS.length !== 0 ) ||
+       ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
        LAID.isDataTravelling
        ) ) {
 
@@ -27,21 +27,20 @@
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
       x, y,
       i, len,
-      isDataTravelling = LAID.isDataTravelling,
-      dataTravellingDelta = LAID.dataTravellingDelta,
-      renderDirtyLevelS = LAID.$renderDirtyLevelS,
-      renderCleanedLevelS = [],
-      renderCleanedLevel,
-      renderDirtyLevel,
+      isDataTravelling = LAID.$isDataTravelling,
+      dataTravellingDelta = LAID.$dataTravelDelta,
+      renderDirtyPartS = LAID.$renderDirtyPartS,
+      renderDirtyPart,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal,
       normalRenderDirtyAttrValS,
       normalRenderDirtyAttrVal,
       renderDirtyTransition,
       renderCallS, isNormalAttrValTransitionComplete,
+      renderNewLevelS = [],
+      renderNewLevel,
+      loadAttrVal,
       isAllNormalTransitionComplete = true;
-
-    //console.log( "render" );
 
     for ( i = 0, len = newPartS.length; i < len; i++ ) {
       newPart = newPartS[ i ];
@@ -54,13 +53,13 @@
 
     LAID.$newPartS = [];
 
-    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+    for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
 
-      renderDirtyLevel = renderDirtyLevelS[ x ];
+      renderDirtyPart = renderDirtyPartS[ x ];
 
-      travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
-      normalRenderDirtyAttrValS = renderDirtyLevel.$normalRenderDirtyAttrValS;
+      travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
+      normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
 
       renderCallS = [];
 
@@ -100,7 +99,7 @@
 
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
-                renderDirtyTransition.done.call( renderDirtyLevel );
+                renderDirtyTransition.done.call( renderDirtyPart.level );
               }
               normalRenderDirtyAttrVal.transition = undefined;
             }
@@ -136,31 +135,33 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
-        renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
+        //console.log("render call: ", renderCallS[ i ], renderDirtyPart.level.path );
+        renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if (
          ( normalRenderDirtyAttrValS.length === 0 ) &&
          ( travelRenderDirtyAttrValS.length === 0 )
       ) {
-        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
+        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyPartS, x );
         x--;
       }
-      renderCleanedLevelS.push( renderDirtyLevel );
+
+      if ( !renderDirtyPart.$isInitiallyRendered ) {
+        renderNewLevelS.push( renderDirtyPart.level );
+      }
 
     }
 
 
 
-    for ( i = 0, len = renderCleanedLevelS.length; i < len; i++ ) {
-      renderCleanedLevel = renderCleanedLevelS[ i ];
-      if ( !renderCleanedLevel.$isInitiallyRendered ) {
-        renderCleanedLevel.$isInitiallyRendered = true;
-        if ( ( renderCleanedLevel.$lson.load ) &&
-          (typeof renderCleanedLevel.$lson.load === "function" ) ) {
-            renderCleanedLevel.$lson.load.call( renderCleanedLevel );
-        }
+    for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
+      renderNewLevel = renderNewLevelS[ i ];
+      renderNewLevel.part.$isInitiallyRendered = true;
+      loadAttrVal = renderNewLevel.$attr2attrVal.$load;
+      if ( ( loadAttrVal ) &&
+        (typeof loadAttrVal.transitionCalcVal === "function" ) ) {
+          loadAttrVal.transitionCalcVal.call( renderCleanedLevel );
       }
     }
 

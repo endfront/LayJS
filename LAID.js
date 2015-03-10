@@ -94,6 +94,8 @@ bottom: -0.25em;
 
   window.laid = window.LAID = {
 
+    version: 1,
+
     $path2level: {},
     $cloggedLevelS: [],
     $newPartS: [],
@@ -101,7 +103,7 @@ bottom: -0.25em;
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
     $recalculateDirtyLevelS: [],
-    $renderDirtyLevelS: [],
+    $renderDirtyPartS: [],
     $prevFrameTime: 0,
     //$uninitialized: {},
     $isClogged:false,
@@ -110,10 +112,10 @@ bottom: -0.25em;
     $isRecalculateRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,
-    isDataTravelling: false,
-    dataTravellingDelta: 0.0,
-    dataTravellingLevel: undefined,
-    dataTravellingAttrInitialVal: undefined,
+    $isDataTravelling: false,
+    $dataTravelDelta: 0.0,
+    $dataTravellingLevel: undefined,
+    $dataTravellingAttrInitialVal: undefined,
     $dataTravellingAttrVal: undefined,
 
 
@@ -238,7 +240,9 @@ bottom: -0.25em;
   */
   LAID.AttrVal.prototype.requestRecalculation = function ( ) {
     this.isRecalculateRequired = true;
-    this.level.$addRecalculateDirtyAttrVal( this );
+    if ( this.level ) { // check for empty level
+      this.level.$addRecalculateDirtyAttrVal( this );
+    }
   };
 
   LAID.AttrVal.prototype.checkIsTransitionable = function () {
@@ -342,12 +346,12 @@ bottom: -0.25em;
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
-        this.takerAttrValS[ i ].requestRecalculation( );
+        this.takerAttrValS[ i ].requestRecalculation();
       }
 
       if ( LAID.$isDataTravellingShock ) {
 
-        level.$addTravelRenderDirtyAttrVal( this );
+        level.part.$addTravelRenderDirtyAttrVal( this );
 
       }
 
@@ -357,20 +361,45 @@ bottom: -0.25em;
 
 
         if ( !LAID.$isDataTravellingShock ) {
-          level.$addNormalRenderDirtyAttrVal( this );
+          level.part.$addNormalRenderDirtyAttrVal( this );
 
         }
-        if ( ( attr === "text" ) ||
-          ( attr.startsWith( "textPadding" ) )
-        )  {
 
-          level.$updateNaturalWidthFromText();
-          level.$updateNaturalHeightFromText();
+
+        switch ( attr ) {
+          case "text":
+            level.part.$updateNaturalWidthFromText();
+            level.part.$updateNaturalHeightFromText();
+            break;
+          case "width":
+            if ( level.$attr2attrVal.text !== undefined ) {
+              level.part.$updateNaturalHeightFromText();
+            }
+            break;
+          case "left":
+            level.part.$updateAbsoluteX();
+            break;
+          case "shiftX":
+            level.part.$updateAbsoluteX();
+            break;
+          case "top":
+            level.part.$updateAbsoluteY();
+            break;
+          case "shiftY":
+            level.part.$updateAbsoluteY();
+            break;
+          default:
+            if ( attr.startsWith( "textPadding" ) )  {
+              level.part.$updateNaturalWidthFromText();
+              level.part.$updateNaturalHeightFromText();          
+            } 
         }
+
+        
 
         // In case there exists a transition
         // for the given prop then update it
-        level.$updateTransitionProp( attr );
+        level.part.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
@@ -396,20 +425,23 @@ bottom: -0.25em;
           }
         }
       } else if ( whenEventType !== "" ) {
-        level.$updateWhenEventType( whenEventType );
+        level.part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        level.$updateTransitionProp( transitionProp );
-      } else if ( attr === "right" ) {
-        if ( level.parentLevel !== undefined ) {
-          level.parentLevel.$updateNaturalWidthFromChild( level );
-        }
-      } else if ( attr === "bottom" ) {
-        if ( level.parentLevel !== undefined ) {
-          level.parentLevel.$updateNaturalHeightFromChild( level );
-        }
-      } else if ( attr === "width" ) {
-        if ( level.$attr2attrVal.text !== undefined ) {
-          level.$updateNaturalHeightFromText();
+        level.part.$updateTransitionProp( transitionProp );
+      } else {  
+
+        switch( attr ) {
+          case "right":
+            if ( level.parentLevel !== undefined ) {
+             level.parentLevel.part.$updateNaturalWidthFromChild( level );
+            }
+            break;
+          case "bottom":
+            if ( level.parentLevel !== undefined ) {
+              level.parentLevel.part.$updateNaturalHeightFromChild( level );
+            }
+            break;
+          
         }
       }
     }
@@ -436,6 +468,7 @@ bottom: -0.25em;
       }
     }
   };
+
   LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
     if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
@@ -959,13 +992,11 @@ bottom: -0.25em;
 
     this.$lson = lson;
     this.$isInherited = false;
-    this.$isInitiallyRendered = false;
 
     this.$attr2attrVal = {};
     //this.$dataTravelAttrValS = [];
     this.$recalculateDirtyAttrValS = [];
-    this.$normalRenderDirtyAttrValS = [];
-    this.$travelRenderDirtyAttrValS = [];
+   
 
     this.$childLevelS = [];
 
@@ -973,14 +1004,6 @@ bottom: -0.25em;
     this.$stringHashedStates2_cachedAttr2val_ =  {};
     this.$newlyInstalledStateS = [];
     this.$newlyUninstalledStateS = [];
-
-
-    this.$whenEventType2fnMainHandler = {};
-
-    this.$naturalWidthLevel = undefined;
-    this.$naturalHeightLevel = undefined;
-
-
 
   };
 
@@ -1040,9 +1063,9 @@ bottom: -0.25em;
     LAID.$normalize( this.$lson, false );
 
     // check if it contains anything to inherit from
-    if ( this.$lson.inherit !== undefined ) { 
+    if ( this.$lson.$inherit !== undefined ) { 
       lson = { type: "none" };
-      refS = this.$lson.inherit;
+      refS = this.$lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
 
         ref = refS[ i ];
@@ -1126,7 +1149,7 @@ bottom: -0.25em;
     when = slson.when,
     transition = slson.transition,
     i, len;
-
+    
     initAttrsObj( "", slson.props, attr2val );
 
 
@@ -1175,26 +1198,25 @@ bottom: -0.25em;
   LAID.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableEventReadonlyS = this.$lson.observe,
-      observableEventReadonly, i, len;
-
-    if ( this.isPart ) {
-      //this.$initNecessaryAttrs();
+      observableReadonlyS = this.$lson.$observe,
+      observableReadonly, i, len;
+   
+    if ( this.path === "/" ) {
+      var dataTravelReadonlyS = [ "$dataTravelling",
+        "$dataTravelLevel", "$dataTravelDelta" ];
+      if ( observableReadonlyS ) {
+        observableReadonlyS = observableReadonlyS.concat(
+          dataTravelReadonlyS );
+      } else {
+        observableReadonlyS = dataTravelReadonlyS;
+      }
     }
 
-   
-
-    if ( observableEventReadonlyS !== undefined ) {
-      for ( i = 0, len = observableEventReadonlyS.length; i < len; i++ ) {
-        observableEventReadonly = observableEventReadonlyS[ i ];
-        if ( eventReadonly2defaultVal[ observableEventReadonly ] ===
-         undefined ) {
-          console.error("LAID Warning: Non Event Read-Only: " +
-           observableEventReadonly );
-        } else {
-          this.$attr2attrVal[ observableEventReadonly ].give(
-           LAID.$emptyAttrVal );
-        }
+    if ( observableReadonlyS ) {
+      for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
+        observableReadonly = observableReadonlyS[ i ];
+        this.$createLazyAttr( observableReadonly );
+        this.$attr2attrVal[ observableReadonly ].give( LAID.$emptyAttrVal );
       }
     }
 
@@ -1211,8 +1233,6 @@ bottom: -0.25em;
     transition = this.$lson.transition,
     attr2val = {};
 
-
-
     initAttrsObj( "data.", this.$lson.data, attr2val );
 
     if ( this.$lson.load !== undefined ) {
@@ -1224,7 +1244,6 @@ bottom: -0.25em;
         attr2val[ stateName + "." + "onlyif" ] = state.onlyif;
         attr2val[ stateName + "." + "install" ] = state.install;
         attr2val[ stateName + "." + "uninstall" ] = state.uninstall;
-
     }
 
     this.$commitAttr2Val( attr2val );
@@ -1254,11 +1273,15 @@ bottom: -0.25em;
      readonlyDefaultVal = LAID.$getReadonlyAttrDefaultVal( attr ),
      splitAttrLsonComponentS, attrLsonComponentObj, i, len,
      firstAttrLsonComponent;
-    if ( readonlyDefaultVal !== undefined ) {
+
+    if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
+      attr ) !== -1 ) {
+      this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+      this.$attr2attrVal[ attr ].update( this.$lson[ attr ] );
+
+    } else if ( readonlyDefaultVal !== undefined ) {
 
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-
-
 
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
@@ -1266,19 +1289,21 @@ bottom: -0.25em;
             this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
               break;
           case "$naturalWidth":
-
-
-            this.$updateNaturalWidth();
+            this.part.$updateNaturalWidth();
             break;
           case "$naturalHeight":
-
-            this.$updateNaturalHeight();
+            this.part.$updateNaturalHeight();
             break;
+          case "$absoluteX":
+            this.part.$updateAbsoluteX();
+            break;
+          case "$absoluteY":
+            this.part.$updateAbsoluteY();
+            break;
+
         }
       } else {
-
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
-
       }
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
@@ -1319,7 +1344,6 @@ bottom: -0.25em;
                 return false;
               }
             }
-
 
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
@@ -1392,9 +1416,6 @@ bottom: -0.25em;
   };
 
 
-
-
-
   /* Return the attr2value generated
   by the current states */
   LAID.Level.prototype.getStateAttr2val = function () {
@@ -1446,7 +1467,7 @@ bottom: -0.25em;
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.getStateAttr2val() );
 
-    //console.log("NEW STATE", this.path, this.$stateS );
+    //console.log("LAID INFO: new state", this.path, this.$stateS );
 
   };
 
@@ -1454,10 +1475,12 @@ bottom: -0.25em;
   LAID.Level.prototype.attr = function ( attr ) {
 
     if ( this.$attr2attrVal[ attr ] ) {
+      
       return this.$attr2attrVal[ attr ].calcVal;
 
     } else if ( ( attr[ 0 ] !== "$" ) &&
         this.$createLazyAttr( attr ) ) {
+
         LAID.$solveForRecalculation();
       return this.$attr2attrVal[ attr ].calcVal;
 
@@ -1469,7 +1492,6 @@ bottom: -0.25em;
   LAID.Level.prototype.data = function ( dataKey, value ) {
     this.$changeAttrVal( "data." + dataKey, value );
   };
-
 
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
     return this.$attr2attrVal[ attr ];
@@ -1492,37 +1514,24 @@ bottom: -0.25em;
 
   };
 
-  LAID.Level.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
-
-    LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
-
-  };
-
-  LAID.Level.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
-
-    LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
-
-  };
+  
 
 
 
   LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
     var attrVal;
     if ( LAID.$isDataTravelling ) {
-      throw ("LAID Error: Existence of another unfinished data travel");
+      console.error("LAID Warning: Existence of another unfinished data travel");
     } else {
       attrVal = this.$attr2attrVal[ "data." + dataKey ];
       if ( attrVal === undefined ) {
-        throw ("LAID Error: Inexistence of data key for data travel");
+        console.error ("LAID Warning: Inexistence of data key for data travel");
       }
-      LAID.isDataTravelling = true;
-      LAID.dataTravellingDelta = 0.0;
-      LAID.dataTravellingLevel = this;
-      LAID.dataTravellingAttrInitialVal = attrVal.val;
+      LAID.$isDataTravelling = true;
+      LAID.level("/").$attr2attrVal.$dataTravelling.update( true );
+      LAID.$dataTravellingLevel = this;
+      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( this );
+      LAID.$dataTravellingAttrInitialVal = attrVal.val;
       LAID.$dataTravellingAttrVal = attrVal;
 
       LAID.$isDataTravellingShock = true;
@@ -1534,31 +1543,37 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.dataTravelContinue = function ( delta ) {
-    if ( !LAID.isDataTravelling ) {
-      throw( "LAID Error: Inexistence of a data travel" );
-    } else if ( this !== LAID.dataTravellingLevel ){
-      throw( "LAID Error: Inexistence of a data travel for this Level" );
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
+    } else if ( this !== LAID.$dataTravellingLevel ){
+      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
     } else {
-      if ( LAID.dataTravellingDelta !== delta ) {
-        LAID.dataTravellingDelta = delta;
+      if ( LAID.$dataTravelDelta !== delta ) {
+        LAID.$dataTravelDelta = delta;
+        LAID.level("/").$attr2attrVal.$dataTravelDelta.update( delta );
         LAID.$render();
       }
     }
   };
 
   LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
-    if ( LAID.$isDataTravelling ) {
-      throw( "LAID Error: Inexistence of a data travel" );
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
     } else {
 
-      LAID.isDataTravelling = false;
-      LAID.dataTravellingLevel = undefined;
+      LAID.$isDataTravelling = false;
+      LAID.level("/").$attr2attrVal.$dataTravelling.update( false );
+      LAID.$dataTravellingLevel = undefined;
+      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( null );
+      LAID.$dataTravelDelta = 0.0;
+      LAID.level("/").$attr2attrVal.$dataTravelDelta.update( 0.0 );
+
 
       // clear out attrvalues which are data travelling
       LAID.$clearDataTravellingAttrVals();
       if ( !isArrived ) {
         LAID.$dataTravellingAttrVal.update(
-          LAID.dataTravellingAttrInitialVal );
+          LAID.$dataTravellingAttrInitialVal );
         LAID.$solveForRecalculation();
 
       } else {
@@ -1571,18 +1586,149 @@ bottom: -0.25em;
   };
 
 
+  
+
+  
+
+
+
+
+
+
+
+})();
+
+(function() {
+  "use strict";
+
+
+  LAID.Many = function ( level ) {
+
+    this.level = level;
+
+
+  };
+
+
+})();
+
+( function () {
+  "use strict";
+
+
+
+  var isGpuAccelerated, cssPrefix, allStyles,
+  defaultCss, defaultTextCss, inputType2tag;
+
+
+  // source: http://davidwalsh.name/vendor-prefix
+  cssPrefix = (Array.prototype.slice
+    .call(window.getComputedStyle(document.body, null))
+    .join('')
+    .match(/(-moz-|-webkit-|-ms-)/)
+  )[1];
+
+
+  allStyles = document.body.style;
+
+
+  // check for matrix 3d support
+  //if ( ( (cssPrefix + "transform" ) in allStyles ) ) {
+    // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
+    allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
+    isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
+  //}
+
+  //isGpuAccelerated = (  );
+
+
+  allStyles = undefined;
+
+
+  defaultCss = "position:absolute;display:block;margin:0;padding:0;" +
+  "box-sizing:border-box;-moz-box-sizing:border-box;" +
+  "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
+  "overflow-x:hidden;overflow-y:hidden;" +
+  "-webkit-overflow-scrolling:touch;";
+
+  defaultTextCss = defaultCss + "font-size:16px;" +
+  "font-family:sans-serif;color:black;";
+
+  inputType2tag = {
+    button: "button",
+    multiline: "textarea",
+    optgroup: "optgroup",
+    option: "option"
+  };
+
+  LAID.Part = function ( level ) {
+
+    this.level = level;
+    this.node = undefined;
+
+    this.$naturalWidthTextMode = false;
+    this.$naturalHeightTextMode = false;
+
+    this.$naturalWidthLevel = undefined;
+    this.$naturalHeightLevel = undefined;
+
+    this.$normalRenderDirtyAttrValS = [];
+    this.$travelRenderDirtyAttrValS = [];
+
+    this.$whenEventType2fnMainHandler = {};
+
+    this.$absoluteY = undefined;
+    this.$absoluteX = undefined;
+
+    this.$isInitiallyRendered = false;
+
+  };
+
+
+  LAID.Part.prototype.$init = function () {
+
+    var
+      levelType = this.level.$lson.$type,
+      inputType = this.level.$lson.$inputType,
+      inputTypeTag = inputType2tag[ inputType ];
+
+    if ( this.level.path === "/" ) {
+      this.node = document.body;
+    } else if ( inputType !== undefined ) {
+      if ( inputTypeTag !== undefined ) {
+        this.node = document.createElement( inputTypeTag );
+      } else {
+        this.node = document.createElement( "input" );
+        this.node.type = inputType;
+      }
+    } else {
+      this.node = document.createElement( ( ( levelType === "none" ) ||
+       ( levelType === "text" ) ) ? "div" :
+        ( levelType === "image" ?
+         "img" : levelType ) );
+    }
+    this.node.style.cssText = ( levelType === "text" ) ? defaultTextCss : defaultCss;
+
+    if ( this.level.$lson.$interface ) {
+      this.node.style.visibility = "hidden";
+    }
+  };
+
+
   /*
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Level.prototype.$findChildWithMaxOfAttr =
+  LAID.Part.prototype.$findChildWithMaxOfAttr =
    function ( attr, attrValIndependentOf, attrChildIndepedentOf ) {
     var
-      i, len, curMaxVal, curMaxLevel,
-       childLevelS = this.$childLevelS,
+       curMaxVal, curMaxLevel,
        childLevel, childLevelAttrVal,
        attrValChildIndepedentOf;
-    for ( i = 0, len = childLevelS.length; i < len; i++ ) {
+    for ( var i = 0,
+         childLevelS = this.level.$childLevelS,
+        len = childLevelS.length;
+         i < len; i++ ) {
       childLevel = childLevelS[ i ];
       childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
       attrValChildIndepedentOf =
@@ -1606,17 +1752,61 @@ bottom: -0.25em;
     return curMaxLevel;
   };
 
+  LAID.Part.prototype.$updateAbsoluteX = function () {
 
-  LAID.Level.prototype.$updateNaturalWidth = function () {
-    if ( this.path === "/" ) {
-      this.$attr2attrVal.$naturalWidth.update( window.innerWidth );
+    var 
+      attr2attrVal = this.level.$attr2attrVal,
+      relativeLeft = attr2attrVal.left.calcVal,
+      shiftX = attr2attrVal.shiftX ? attr2attrVal.shiftX.calcVal : 0,
+      parentAbsoluteX = this.level.path !== "/" ? 
+        this.level.parentLevel.part.$absoluteX : 0,
+      absoluteX = relativeLeft + shiftX + parentAbsoluteX;
 
-    } else if ( this.$lson.type === "text" ) {
+    if ( typeof absoluteX === "number" ) {
+      this.$absoluteX = absoluteX;
+      if ( attr2attrVal.$absoluteX ) {
+        attr2attrVal.$absoluteX.update( this.$absoluteX );
+      }
+      for ( var i = 0, childLevelS = this.level.$childLevelS,
+         len = childLevelS.length; i < len; i++ ) {
+        childLevelS[ i ].part.$updateAbsoluteX();
+      }
+    }
+  };
+
+  LAID.Part.prototype.$updateAbsoluteY = function () {
+
+    var 
+      attr2attrVal = this.level.$attr2attrVal,
+      relativeTop = attr2attrVal.top.calcVal,
+      shiftY = attr2attrVal.shiftY ? attr2attrVal.shiftY.calcVal : 0,
+      parentAbsoluteY = this.level.path !== "/" ?
+        this.level.parentLevel.part.$absoluteY : 0,
+      absoluteY = relativeTop + shiftY + parentAbsoluteY;
+
+    if ( typeof absoluteY === "number" ) {
+      this.$absoluteY = absoluteY;
+      if ( attr2attrVal.$absoluteY ) {
+        attr2attrVal.$absoluteY.update( this.$absoluteY );
+      }
+      for ( var i = 0, childLevelS = this.level.$childLevelS,
+         len = childLevelS.length; i < len; i++ ) {
+        childLevelS[ i ].part.$updateAbsoluteY();
+      }
+    }
+  };
+
+  LAID.Part.prototype.$updateNaturalWidth = function () {
+    var attr2attrVal = this.level.$attr2attrVal
+    if ( this.level.path === "/" ) {
+      attr2attrVal.$naturalWidth.update( window.innerWidth );
+
+    } else if ( this.level.$lson.$type === "text" ) {
       this.$updateNaturalWidthFromText();
     } else {
       this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-      this.$attr2attrVal.$naturalWidth, "width" );
-      this.$attr2attrVal.$naturalWidth.update(
+      attr2attrVal.$naturalWidth, "width" );
+      attr2attrVal.$naturalWidth.update(
           this.$naturalWidthLevel ?
          ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
          0
@@ -1624,16 +1814,17 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Level.prototype.$updateNaturalHeight = function () {
-    if ( this.path === "/" ) {
-      this.$attr2attrVal.$naturalHeight.update( window.innerHeight );
-    } else if ( this.$lson.type === "text" ) {
+  LAID.Part.prototype.$updateNaturalHeight = function () {
+    var attr2attrVal = this.level.$attr2attrVal
+    if ( this.level.path === "/" ) {
+      attr2attrVal.$naturalHeight.update( window.innerHeight );
+    } else if ( this.level.$lson.$type === "text" ) {
       this.$updateNaturalHeightFromText();
     } else {
       this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-      this.$attr2attrVal.$naturalHeight, "height");
+      attr2attrVal.$naturalHeight, "height");
 
-      this.$attr2attrVal.$naturalHeight.update(
+      attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
          ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
          0
@@ -1641,27 +1832,16 @@ bottom: -0.25em;
     }
   };
 
-/*
-  LAID.Level.prototype.$kickBackScrollX = function () {
-    if ( this.$attr2attrVal.scrollX !== undefined ) {
-      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
-    }
-  };
 
-  LAID.Level.prototype.$kickBackScrollY = function () {
-    if ( this.$attr2attrVal.scrollY !== undefined ) {
-      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
-    }
-  };
-*/
+  LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
 
-  LAID.Level.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
+    var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( this.$attr2attrVal.$naturalWidth &&
-      ( this.path !== "/" ) &&
+    if ( attr2attrVal.$naturalWidth &&
+      ( this.level.path !== "/" ) &&
       ! LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal ) &&
       ! childLevel.$attr2attrVal.width.checkIsDependentOnAttrVal(
-        this.$attr2attrVal.$naturalWidth)
+        attr2attrVal.$naturalWidth)
       ) {
 
       if ( this.$naturalWidthLevel === undefined ) {
@@ -1674,12 +1854,12 @@ bottom: -0.25em;
         // a possibility that it has receded behind another
         // child element which has a higher right position
         // than the current child level responsible for the natural width
-        if ( this.$attr2attrVal.$naturalWidth.calcVal >
+        if ( attr2attrVal.$naturalWidth.calcVal >
            childLevel.$attr2attrVal.right.calcVal  ) {
           // Find the child with the next largest right
           // This could be the same child level
           this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          this.$attr2attrVal.$naturalWidth, "width");
+          attr2attrVal.$naturalWidth, "width");
         }
       } else {
         if ( childLevel.$attr2attrVal.right.calcVal >
@@ -1687,7 +1867,7 @@ bottom: -0.25em;
             this.$naturalWidthLevel = childLevel;
         }
       }
-      this.$attr2attrVal.$naturalWidth.update(
+      attr2attrVal.$naturalWidth.update(
         this.$naturalWidthLevel ?
         ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
         0
@@ -1697,14 +1877,15 @@ bottom: -0.25em;
   };
 
 
-  LAID.Level.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
+  LAID.Part.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
 
+    var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( this.$attr2attrVal.$naturalHeight &&
-        ( this.path !== "/" ) &&
+    if ( attr2attrVal.$naturalHeight &&
+        ( this.level.path !== "/" ) &&
        !LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal ) &&
        !( childLevel.$attr2attrVal.height.checkIsDependentOnAttrVal(
-         this.$attr2attrVal.$naturalHeight) )
+         attr2attrVal.$naturalHeight) )
        ) {
 
       if ( this.$naturalHeightLevel === undefined ) {
@@ -1716,12 +1897,12 @@ bottom: -0.25em;
           // a possibility that it has receded behind another
           // child element which has a higher bottom position
           // than the current child level responsible for the natural height
-         if ( this.$attr2attrVal.$naturalHeight.calcVal >
+         if ( attr2attrVal.$naturalHeight.calcVal >
            childLevel.$attr2attrVal.bottom.calcVal  ) {
           // Find the child with the next largest bottom
           // This could be the same child level
           this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          this.$attr2attrVal.$naturalHeight, "height");
+          attr2attrVal.$naturalHeight, "height");
         }
       } else {
         if ( childLevel.$attr2attrVal.bottom.calcVal >
@@ -1731,7 +1912,7 @@ bottom: -0.25em;
         }
 
 
-      this.$attr2attrVal.$naturalHeight.update(
+      attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
           ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
           0
@@ -1739,53 +1920,74 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Level.prototype.$updateNaturalWidthFromText = function () {
+  LAID.Part.prototype.$updateNaturalWidthFromText = function () {
 
-    if ( this.$attr2attrVal.$naturalWidth ) {
+    var attr2attrVal = this.level.$attr2attrVal;
 
-        this.part.$naturalWidthTextMode = true;
-        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
+    if ( attr2attrVal.$naturalWidth ) {
 
-        if ( this.$attr2attrVal.scrollX !== undefined ) {
-          this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
+        this.$naturalWidthTextMode = true;
+        this.$addNormalRenderDirtyAttrVal( attr2attrVal.text );
+
+        if ( attr2attrVal.scrollX !== undefined ) {
+          this.$addNormalRenderDirtyAttrVal( attr2attrVal.scrollX );
         }
         // temporarily (for current recalculate) cycle
         // set the value to 0. This is only
         // as a render cycle is required for learning
         // the natural width
-        this.$attr2attrVal.$naturalWidth.update( 0 );
+        attr2attrVal.$naturalWidth.update( 0 );
 
     }
   };
 
-  LAID.Level.prototype.$updateNaturalHeightFromText = function () {
-    if ( this.$attr2attrVal.$naturalHeight) {
-      this.part.$naturalHeightTextMode = true;
-      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
+  LAID.Part.prototype.$updateNaturalHeightFromText = function () {
 
-      if ( this.$attr2attrVal.scrollY !== undefined ) {
-        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
+    var attr2attrVal = this.level.$attr2attrVal;
+
+    if ( attr2attrVal.$naturalHeight) {
+      this.$naturalHeightTextMode = true;
+      this.$addNormalRenderDirtyAttrVal( attr2attrVal.text );
+
+      if ( attr2attrVal.scrollY !== undefined ) {
+        this.$addNormalRenderDirtyAttrVal( attr2attrVal.scrollY );
       }
       // temporarily (for current recalculate) cycle
       // set the value to 0. This is only
       // as a render cycle is required for learning
       // the natural height
-      this.$attr2attrVal.$naturalHeight.update( 0 );
+      attr2attrVal.$naturalHeight.update( 0 );
 
     }
   };
 
-  LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
+  LAID.Part.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
+
+  };
+
+  LAID.Part.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
+
+  };
+
+  LAID.Part.prototype.$updateWhenEventType = function ( eventType ) {
 
     var
       numFnHandlersForEventType =
-        this.$attr2attrVal[ "$$num.when." + eventType ].val,
+        this.level.$attr2attrVal[ "$$num.when." + eventType ].val,
       fnMainHandler,
-      thisLevel = this;
+      thisLevel = this.level;
 
     if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
       LAID.$eventUtils.remove( 
-        this.part.node, eventType,
+        this.node, eventType,
           this.$whenEventType2fnMainHandler[ eventType ] );
     }
 
@@ -1801,7 +2003,7 @@ bottom: -0.25em;
           }
         }
       };
-      LAID.$eventUtils.add( this.part.node, eventType, fnMainHandler );
+      LAID.$eventUtils.add( this.node, eventType, fnMainHandler );
       this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
@@ -1810,19 +2012,20 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Level.prototype.$checkIsPropInTransition = function ( prop ) {
-    return ( this.$attr2attrVal[ "transition." + prop  + ".type" ] !==
+  LAID.Part.prototype.$checkIsPropInTransition = function ( prop ) {
+    return ( this.level.$attr2attrVal[ "transition." + prop  + ".type" ] !==
       undefined )  ||
-      ( this.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
+      ( this.level.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
         undefined );
   };
 
-  LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
+  LAID.Part.prototype.$updateTransitionProp = function ( transitionProp ) {
+
 
     if ( this.$isInitiallyRendered ) {
 
       var
-        attr2attrVal = this.$attr2attrVal,
+        attr2attrVal = this.level.$attr2attrVal,
         attr, attrVal,
         transitionPrefix,
         transitionType, transitionDuration, transitionDelay, transitionDone,
@@ -1913,7 +2116,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Level.prototype.$updateTransitionAttrVal = function ( attrVal,
+  LAID.Part.prototype.$updateTransitionAttrVal = function ( attrVal,
     transitionType, transitionDelay, transitionDuration,
     transitionArg2val, transitionDone  ) {
 
@@ -1925,7 +2128,6 @@ bottom: -0.25em;
         ( attrVal !== undefined ) &&
         ( attrVal.isTransitionable )
         ) {
-
 
       attrVal.startCalcVal =  attrVal.transitionCalcVal;
 
@@ -1940,114 +2142,6 @@ bottom: -0.25em;
     }
   }
 
-
-
-
-
-
-
-
-})();
-
-(function() {
-  "use strict";
-
-
-  LAID.Many = function ( level ) {
-
-    this.level = level;
-
-
-  };
-
-
-})();
-
-( function () {
-  "use strict";
-
-
-
-  var isGpuAccelerated, cssPrefix, allStyles,
-  defaultCss, defaultTextCss, inputType2tag;
-
-
-  // source: http://davidwalsh.name/vendor-prefix
-  cssPrefix = (Array.prototype.slice
-    .call(window.getComputedStyle(document.body, null))
-    .join('')
-    .match(/(-moz-|-webkit-|-ms-)/)
-  )[1];
-
-
-  allStyles = document.body.style;
-
-
-  // check for matrix 3d support
-  //if ( ( (cssPrefix + "transform" ) in allStyles ) ) {
-    // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
-    allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
-    isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
-  //}
-
-  //isGpuAccelerated = (  );
-
-
-  allStyles = undefined;
-
-
-  defaultCss = "position:absolute;display:block;margin:0;padding:0;" +
-  "box-sizing:border-box;-moz-box-sizing:border-box;" +
-  "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
-  "overflow-x:hidden;overflow-y:hidden;" +
-  "-webkit-overflow-scrolling:touch;";
-
-  defaultTextCss = defaultCss + "font-size:16px;" +
-  "font-family:sans-serif;color:black;";
-
-  inputType2tag = {
-    button: "button",
-    multiline: "textarea",
-    optgroup: "optgroup",
-    option: "option"
-  };
-
-  LAID.Part = function ( level ) {
-
-    this.level = level;
-    this.node = undefined;
-
-    this.$naturalWidthTextMode = false;
-    this.$naturalHeightTextMode = false;
-
-  };
-
-
-  LAID.Part.prototype.$init = function () {
-
-    var
-    levelType = this.level.$lson.type,
-    inputType = this.level.$lson.inputType,
-    inputTypeTag = inputType2tag[ inputType ];
-
-    if ( this.level.path === "/" ) {
-      this.node = document.body;
-    } else if ( inputType !== undefined ) {
-      if ( inputTypeTag !== undefined ) {
-        this.node = document.createElement( inputTypeTag );
-      } else {
-        this.node = document.createElement( "input" );
-        this.node.type = inputType;
-      }
-    } else {
-      this.node = document.createElement( ( ( levelType === "none" ) ||
-       ( levelType === "text" ) ) ? "div" :
-        ( levelType === "image" ?
-         "img" : levelType ) );
-    }
-    this.node.style.cssText = ( levelType === "text" ) ? defaultTextCss : defaultCss;
-
-  };
 
   // Below we will customize prototypical functions
   // using conditionals. As per the results from
@@ -2680,7 +2774,8 @@ bottom: -0.25em;
       if ( this.absolute ) {
           return LAID.$path2level[ this.absolutePath ];
       } else {
-        for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        for ( var i = 0; i < this.numberOfParentTraversals;
+         ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
         }
 
           return ( this.childPath === "" ) ? referenceLevel :
@@ -4242,8 +4337,8 @@ return this;
 
 
 
-    //rootLson.props.width = window.innerWidth;
-    //rootLson.props.height = window.innerHeight;
+    
+    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
     rootLevel = new LAID.Level( "/", rootLson, undefined );
     rootLevel.$init();
@@ -4251,7 +4346,6 @@ return this;
 
     window.onresize = updateSize;
 
-    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
   };
 
@@ -4486,16 +4580,15 @@ return this;
 
       x, y,
       yLen,
-      renderDirtyLevelS = LAID.$renderDirtyLevelS,
-      renderDirtyLevel,
+      renderDirtyPartS = LAID.$renderDirtyPartS,
+      renderDirtyPart,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal;
 
-      for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+      for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
-        renderDirtyLevel = renderDirtyLevelS[ x ];
-        travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
-        //console.log( travelRenderDirtyAttrValS.length)
+        renderDirtyPart = renderDirtyPartS[ x ];
+        travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
 
 
         for ( y = 0, yLen = travelRenderDirtyAttrValS.length; y < yLen; y++ ) {
@@ -4508,7 +4601,7 @@ return this;
 
             // Adding to the "normal" render list automatically
             // removes the attrval from the "travel" render list
-            renderDirtyLevel.$addNormalRenderDirtyAttrVal(
+            renderDirtyPart.$addNormalRenderDirtyAttrVal(
               travelRenderDirtyAttrVal
             );
           } else {
@@ -4743,11 +4836,11 @@ return this;
     }
 
     if ( lson.props.text !== undefined ) {
-      lson.type = "text";
+      lson.$type = "text";
     } else if ( lson.type === undefined ) {
-      lson.type = "none";
+      lson.$type = "none";
     } else if ( lson.type.startsWith( "input:" ) ) {
-      lson.inputType = lson.type.slice( ( "input:" ).length );
+      lson.$inputType = lson.type.slice( ( "input:" ).length );
     }
 
 
@@ -5348,15 +5441,19 @@ function fix_stopPropagation() {
           argSLength = arguments.length,
           argS = Array.prototype.slice.call(arguments);
 
-        // result contians the formattable string
-        result = argS[ 0 ];
-        for ( i = 1; i < argSLength; i++ ) {
-          if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
-            result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+        try {
+          // result contians the formattable string
+          result = argS[ 0 ];
+          for ( i = 1; i < argSLength; i++ ) {
+            if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
+              result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+            }
           }
+          return result;
+        } catch (err) {
+          return "";
         }
 
-      return result;
     };
 
 }());
@@ -5402,11 +5499,12 @@ function fix_stopPropagation() {
   var readonlyAttr2defaultVal = {
     $naturalWidth: null,
     $naturalHeight: null,
-    //$absoluteLeft: null,
-    //$absoluteTop null,
+    $absoluteX: null,
+    $absoluteY: null,
     $numberOfChildren: null,
-    $dataTravelledDelta: 0,
     $dataTravelling: false,
+    $dataTravelDelta: 0.0,
+    $dataTravelLevel: null,
 
     $hovered: false,
     $focused: false,
@@ -5416,7 +5514,7 @@ function fix_stopPropagation() {
     $cursorX: 0,
     $cursorY: 0,
     $input: "",
-    $inputChecked: false,
+    $inputChecked: false
   };
 
   LAID.$getReadonlyAttrDefaultVal = function ( attr ) {
@@ -5446,7 +5544,9 @@ function fix_stopPropagation() {
           if ( key2fnInherit[ key ] ) {
             key2fnInherit[ key ]( into, from );
           } else {
-            into[ key ] = from[ key ];
+            if ( key !== "$interface" ) {
+              into[ key ] = from[ key ];
+            }
           }
         }
       }
@@ -5556,22 +5656,10 @@ function fix_stopPropagation() {
     // Precondition: `into<Scope>.key (eg: intoLAID.key)` is already defined
     var key2fnInherit = {
 
-      type: function( intoLson, fromLson ) {
-
-        intoLson.type =  fromLson.type || intoLson.type;
-
-
-      },
 
       data: function( intoLson, fromLson ) {
 
         inheritSingleLevelObject( intoLson, fromLson, "data" );
-
-      },
-
-      load: function ( intoLson, fromLson ) {
-
-        intoLson.load = fromLson.load || intoLson.load;
 
       },
 
@@ -5905,8 +5993,12 @@ function fix_stopPropagation() {
     multipleTypeProp, multipleTypePropNumName;
 
 
-    //key2fnNormalize.type( lson );
-    key2fnNormalize.inherit( lson );
+    key2fnNormalize.$type( lson );
+    key2fnNormalize.$inherit( lson );
+    key2fnNormalize.$interface( lson );
+    key2fnNormalize.$observe( lson );
+
+
     key2fnNormalize.many( lson );
 
     key2fnNormalize.props( lson );
@@ -5994,8 +6086,6 @@ function fix_stopPropagation() {
 
 
 
-
-
   key2fnNormalize = {
     /*type: function ( lson ) {
 
@@ -6019,21 +6109,26 @@ function fix_stopPropagation() {
       }
 
     },*/
+    $type: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$type", lson.$type );
+    },
 
-    inherit: function ( lson ) {
+    $inherit: function ( lson ) {
 
-      checkAndThrowErrorAttrAsTake( "inherit", lson.inherit );
-      if ( ( lson.inherit !== undefined ) &&
-        LAID.type( lson.inherit ) !== "array" ) {
-          lson.inherit = [ lson.inherit ];
+      checkAndThrowErrorAttrAsTake( "$inherit", lson.$inherit );
+      if ( ( lson.$inherit !== undefined ) &&
+        LAID.type( lson.$inherit ) !== "array" ) {
+          lson.$inherit = [ lson.$inherit ];
         }
 
     },
 
-    interface: function ( lson ) {
+    $interface: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$interface", lson.$interface );
+    },
 
-      checkAndThrowErrorAttrAsTake( "interface", lson.interface );
-
+    $observe: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
     },
 
     /*
@@ -6461,7 +6556,7 @@ if (!Array.prototype.indexOf) {
   */
   LAID.$render = function ( timeNow ) {
     if ( !LAID.$isRequestedForAnimationFrame &&
-       ( ( LAID.$renderDirtyLevelS.length !== 0 ) ||
+       ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
        LAID.isDataTravelling
        ) ) {
 
@@ -6480,21 +6575,20 @@ if (!Array.prototype.indexOf) {
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
       x, y,
       i, len,
-      isDataTravelling = LAID.isDataTravelling,
-      dataTravellingDelta = LAID.dataTravellingDelta,
-      renderDirtyLevelS = LAID.$renderDirtyLevelS,
-      renderCleanedLevelS = [],
-      renderCleanedLevel,
-      renderDirtyLevel,
+      isDataTravelling = LAID.$isDataTravelling,
+      dataTravellingDelta = LAID.$dataTravelDelta,
+      renderDirtyPartS = LAID.$renderDirtyPartS,
+      renderDirtyPart,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal,
       normalRenderDirtyAttrValS,
       normalRenderDirtyAttrVal,
       renderDirtyTransition,
       renderCallS, isNormalAttrValTransitionComplete,
+      renderNewLevelS = [],
+      renderNewLevel,
+      loadAttrVal,
       isAllNormalTransitionComplete = true;
-
-    //console.log( "render" );
 
     for ( i = 0, len = newPartS.length; i < len; i++ ) {
       newPart = newPartS[ i ];
@@ -6507,13 +6601,13 @@ if (!Array.prototype.indexOf) {
 
     LAID.$newPartS = [];
 
-    for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+    for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
 
-      renderDirtyLevel = renderDirtyLevelS[ x ];
+      renderDirtyPart = renderDirtyPartS[ x ];
 
-      travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
-      normalRenderDirtyAttrValS = renderDirtyLevel.$normalRenderDirtyAttrValS;
+      travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
+      normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
 
       renderCallS = [];
 
@@ -6553,7 +6647,7 @@ if (!Array.prototype.indexOf) {
 
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
-                renderDirtyTransition.done.call( renderDirtyLevel );
+                renderDirtyTransition.done.call( renderDirtyPart.level );
               }
               normalRenderDirtyAttrVal.transition = undefined;
             }
@@ -6589,31 +6683,33 @@ if (!Array.prototype.indexOf) {
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ], renderDirtyLevel.path );
-        renderDirtyLevel.part[ "$renderFn_" + renderCallS[ i ] ]();
+        //console.log("render call: ", renderCallS[ i ], renderDirtyPart.level.path );
+        renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if (
          ( normalRenderDirtyAttrValS.length === 0 ) &&
          ( travelRenderDirtyAttrValS.length === 0 )
       ) {
-        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyLevelS, x );
+        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyPartS, x );
         x--;
       }
-      renderCleanedLevelS.push( renderDirtyLevel );
+
+      if ( !renderDirtyPart.$isInitiallyRendered ) {
+        renderNewLevelS.push( renderDirtyPart.level );
+      }
 
     }
 
 
 
-    for ( i = 0, len = renderCleanedLevelS.length; i < len; i++ ) {
-      renderCleanedLevel = renderCleanedLevelS[ i ];
-      if ( !renderCleanedLevel.$isInitiallyRendered ) {
-        renderCleanedLevel.$isInitiallyRendered = true;
-        if ( ( renderCleanedLevel.$lson.load ) &&
-          (typeof renderCleanedLevel.$lson.load === "function" ) ) {
-            renderCleanedLevel.$lson.load.call( renderCleanedLevel );
-        }
+    for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
+      renderNewLevel = renderNewLevelS[ i ];
+      renderNewLevel.part.$isInitiallyRendered = true;
+      loadAttrVal = renderNewLevel.$attr2attrVal.$load;
+      if ( ( loadAttrVal ) &&
+        (typeof loadAttrVal.transitionCalcVal === "function" ) ) {
+          loadAttrVal.transitionCalcVal.call( renderCleanedLevel );
       }
     }
 

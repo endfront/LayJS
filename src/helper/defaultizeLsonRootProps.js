@@ -80,11 +80,11 @@
     }
 
     if ( lson.props.text !== undefined ) {
-      lson.type = "text";
+      lson.$type = "text";
     } else if ( lson.type === undefined ) {
-      lson.type = "none";
+      lson.$type = "none";
     } else if ( lson.type.startsWith( "input:" ) ) {
-      lson.inputType = lson.type.slice( ( "input:" ).length );
+      lson.$inputType = lson.type.slice( ( "input:" ).length );
     }
 
 

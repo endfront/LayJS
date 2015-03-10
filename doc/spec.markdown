@@ -23,40 +23,33 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
 ### LAID.run()
 
+    LAID.run( {
+      children: {
+        "Child": {
 
-    LAID.run([optional: root properties (object)], {
-        "Name": {
+          $type: string,
+          $interface: boolean,
+          $inherit [ string | object, ... ],
+          $observe: [ string, ... ],
 
-          type: string,
-          interface: boolean,
-          inherit: [ string | object, ... ],
           data: object | array | string | number,
           props: object,
           when: object,
           transition: transitionObj,
           load: function,
-          observe: [ string, ... ],
+
           many: {
               data: object,
-              props: {
-                  formation: string,
-                  sort: array | string,
-                  order: string,
-                  id: string (constant)
-                  ...
-              },
-              transition: transitionObj,
+            
+              formation: string,
+              sort: array | string,
+              ascending: boolean,
+              $id: string (constant),
+              rows: array,
+              filter: LAID.takeMany,
+
               load: function,
-              states: {
-                  props: object
-                  < name >: {
-                      props: object,
-                      onlyif: LAID.Take,
-                      transition: transitionObj,
-                      install: function,
-                      uninstall: function
-                  }
-              },
+
           },
           states: {
               < name >: {
@@ -71,16 +64,18 @@ LAID involves writing LSON (Layout Syntax Object Notation)
           children: LSON
 
           }
-      })
+       }
+      }
+    })
 
+(The object passed into `LAID.run()` is called `LSON`)
 
-### type
+### LSON.$type
 
-  `string`
-  **constant**
-  Type of Part:
+  Type: `string`.
+  On of the below
     "none"
-    "text" (auto-detect is on)
+    "text" (auto-detect is on to distinguish between "none" and "text")
     "image"
     "video"
     "audio"
@@ -97,23 +92,25 @@ LAID involves writing LSON (Layout Syntax Object Notation)
     "input:< any other valid input[type] html property i.e file, color, date, etc >" (coming soon: individual support)
 
 
+### LSON.$inherit
 
-### interface
+Type: `string` | `Object` | `array of strings and/or Objects`
+`string`: Relative path to level to inherit from (eg: "../RoundButton")
+`Object`: Direct object which serves as LSON for inheritance.
+More about inheritance in inherit section of this document.
+
+
+### LSON.$interface
 
   If set to true, the level will not render.
-  Primary usage for such a level exists during inheritance.
-
-### inherit
-
-Type: `String` | `Array of Strings`
-Constant: *Yes*
+  (Primary usage for such a level exists during inheritance)
 
 
 ### data
 
-
 Type: `Object`
-
+A mapping of keys to values, where meta information specific to the
+level can be used for storage.
 
 
 ### props
@@ -122,24 +119,13 @@ Type: `Object`
 
 The keys within `props` are predefined
 
-##### List of props
+##### List of all possible props
 
-Psuedo-Defaults:
-  Leaving aside the few essential props: "left", "top", "width", and "height";
-  every other prop which comes with a default comes with a "Psuedo-Default",
-  which is the default value for the prop just as it is for the essential
-  ( i.e "left", "top", "width", and "height" ), albeit the difference is in
-  the attribute access of the prop. A prop without an LSON value which falls
-  back on a psuedo-default will when accessed by attribute will return
-  undefined. The reason behind this is performance optimization, as there
-  exist a large number of props which need basic defaults, however will
-  unlikely be accessed as an attribute.
-  Note: wherever "Default" or "Psuedo-Default" is not mentioned, specifying
-  the the prop is a must.
+Defaults:
 
 - display
   `boolean`
-  Psuedo-Default: 0
+  Default: 0
 
 - width
   `number`
@@ -174,187 +160,186 @@ Psuedo-Defaults:
 - z
   `number`
   In pixels
-  Psuedo-Default: 0
+  Default: 0
 
 - shiftX
   `number`
   Additional x translation
-  Psuedo-Default: 0
+  Default: 0
 
 - shiftY
   `number`
   Additional y translation
-  Psuedo-Default: 0
+  Default: 0
 
 - shiftZ
   `number`
   Additional z translation
-  Psuedo-Default: 0
+  Default: 0
 
 
 - scaleX
   `number`
   Units to scale the X dimension
-  Psuedo-Default: 1
+  Default: 1
 
 
 - scaleY
   `number`
   Units to scale the Y dimension
-  Psuedo-Default: 1
+  Default: 1
 
 - scaleZ
   `number`
   Units to scale the Z dimension
-  Psuedo-Default: 1
+  Default: 1
 
 
 - rotateX
   `number`
   In degrees
-  Psuedo-Default: 0
+  Default: 0
 
 
 - rotateY
   `number`
   In degrees
-  Psuedo-Default: 0
+  Default: 0
 
 
 - rotateZ
   `number`
   In degrees
-  Psuedo-Default: 0
+  Default: 0
 
 
 - skewX
   `number`
   In degrees
-  Psuedo-Default: 0
+  Default: 0
 
 - skewY
   `number`
   In degress
-  Psuedo-Default: 0
+  Default: 0
 
 - originX
   `number`
   in fraction (percent)
-  Psuedo-Default: 0.5
+  Default: 0.5
 
 - originY
   `number`
   in fraction (percent)
-  Psuedo-Default: 0.5
+  Default: 0.5
 
 - originZ
   `number`
   in pixels
-  Psuedo-Default: 0
+  Default: 0
 
 - perspective
   `number`
   In pixels
-  Psuedo-Default: 0
+  Default: 0
 
 - perspectiveOriginX
   `number`
   in fraction (percent)
-  Psuedo-Default: 0.5
+  Default: 0.5
 
 - perspectiveOriginY
   `number`
   in fraction (percent)
-  Psuedo-Default: 0.5
+  Default: 0.5
 
 - backfaceVisibility
   `boolean`
-  Psuedo-Default: false
+  Default: false
 
 
 - opacity
   `number`
-  Psuedo-Default: 1
+  Default: 1
 
 
 - overflowX
   `string`
   CSS overflow property
-  Psuedo-Default: 'hidden'
+  Default: 'hidden'
 
 - overflowY
   `string`
   CSS overflow property
-  Psuedo-Default: 'hidden'
+  Default: 'hidden'
 
 
 - scrollX
   `number`
-  Psuedo-Default: 0
+  Default: 0
 
 - scrollY
   `number`
-  Psuedo-Default: 0
+  Default: 0
 
 - scrollElastic
   `boolean`
   CSS `-webkit-overflow-scrolling` with value "touch"
-  Psuedo-Default: true
+  Default: true
 
 - cursor
   `string`
   CSS cursor property
-  Psuedo-Default: 'auto'
+  Default: 'auto'
 
 
 - background (no support for multiple backgrounds)
+  This is an "object-type" prop.
   {
-    color: LAID.Color (Psuedo-default: transparent),
-    image: string (Psuedo-Default: none),
-    attachment: string (CSS background-attachment) (Psuedo-Default: "scroll"),
-    repeat: string (CSS background-repeat) (Psuedo-Default: true),
-    positionX: number (Psuedo-Default: 0),
-    positionY: number (Psuedo-Default: 0),
-    sizeX: number (Psuedo-Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2),
-    sizeY: number (Psuedo-Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2)
+    color: LAID.Color (Default: transparent),
+    image: string (Default: none),
+    attachment: string (CSS background-attachment) (Default: "scroll"),
+    repeat: string (CSS background-repeat) (Default: true),
+    positionX: number (Default: 0),
+    positionY: number (Default: 0),
+    sizeX: number (Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2),
+    sizeY: number (Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2)
    }
 
 
 - boxShadows
-  *multiple type prop*
+  This is a "multiple-type" and an "object-type" prop.
   [
     {
-      inset: boolean (Psuedo-Default: false)
+      inset: boolean (Default: false)
       x: number (in pixels),
       y: number (in pixels),
       blur: number,
-      spread: number (Psuedo-Default: 0),
+      spread: number (Default: 0),
       color: LAID.Color
     }
     ...
   ]
 
-
-
-
-
 - cornerRadius
   `number`
+  This is a "shorthand-type" prop.
   Shorthand for `cornerRadiusTopLeft`, `cornerRadiusTopRight`, `cornerRadiusBottomRight`, `cornerRadiusBottomLeft`
-  Psuedo-Default: 0
+  Default: 0
 
 
 - border
+  This is a "shorthand-type" prop.
   Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >
   { top/right/bottom/left/< undefined >: {
-    style: string (CSS border-style) (Psuedo-Default: 'solid'),
-    color: LAID.Color (Psuedo-Default: transparent),
-    width: number (Psuedo-Default: 0)
+    style: string (CSS border-style) (Default: 'solid'),
+    color: LAID.Color (Default: transparent),
+    width: number (Default: 0)
 
   } }
 
   filters
-  *multiple type prop*
+  This is a "multiple-type" and an "object-type" prop.
   [
     [  
       type: "url" | "blur" | "brightness" | "contrast" | "dropShadow" | "grayscale" | "hueRotate" | "invert" |
@@ -390,25 +375,25 @@ Psuedo-Defaults:
 - textSize
   in pixels
   `number`
-  Psuedo-Default: 13
+  Default: 13
 
 - textFamily
   `string`
   CSS font-family
-  Psuedo-Default: 'sans-serif'
+  Default: 'sans-serif'
 
 - textWeight
   `string`
   CSS font-weight
-  Psuedo-Default: 'normal'
+  Default: 'normal'
 
 - textColor
   `LAID.Color`
-  Psuedo-Default: "black"
+  Default: "black"
 
 
 - textShadows
- *multiple type prop*
+  This is a "multiple-type" and an "object-type" prop.
   [
     {
       x: number ,
@@ -424,89 +409,89 @@ Psuedo-Defaults:
 - textVariant
   `string`
   CSS font-variant
-  Psuedo-Default: 'normal'
+  Default: 'normal'
 
 - textStyle
   `string`
   CSS font-style
-  Psuedo-Default: 'normal'
+  Default: 'normal'
 
 - textDecoration
   `string`
   CSS text-decoration
-  Psuedo-Default: 'none'
+  Default: 'none'
 
 - textAlign
   `string`
   CSS text-align
-  Psuedo-Default: 'start'
+  Default: 'start'
 
 
 - textLetterSpacing
   `number` / `undefined`
   In pixels. undefined for initial (native) letter spacing.
-  Psuedo-Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
+  Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
 
 
 - textWordSpacing
   `number` / `undefined`
   In pixels. undefined for initial (native) word spacing.
-  Psuedo-Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
+  Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
 
 
 - textOverflow
   `string`
   CSS text-overflow
-  Psuedo-Default: 'clip'
+  Default: 'clip'
 
 
 - textIndent
   `number`
-  Psuedo-Default: 0
+  Default: 0
 
 - textWhitespace
   `string`
   CSS white-space
-  Psuedo-Default: 'normal'
-
+  Default: 'normal'
 
 
 - textPadding
   `number`
+  This is a "shorthand-type" prop.
   Border box padding.
   Shorthand for `textPaddingTop`, `textPaddingRight`, `textPaddingBottom` and `textPaddingLeft`
-  Psuedo-Default: 0
+  Default: 0
 
 
 - inputLabel
   `string`
-  Psuedo-Default: ""
+  Default: ""
 
 - inputRows
   `number`
   Rows for textarea
-  Psuedo-Default: 2
+  Default: 2
 
 - input
   `string`
-  Psuedo-Default: ""
+  Default: ""
 
 - inputPlaceholder
   `string`
-  Psuedo-Default: ""
+  Default: ""
 
 - inputAutocomplete
   `boolean`
-  Psuedo-Default: true
+  Default: true
 
 
 - inputAutocorrect
   `boolean`
-  Psuedo-Default: true
+  Default: true
 
 - inputDisabled
   `boolean`
-  Psuedo-Default: false
+  Default: false
 
 
 - linkHref
@@ -529,7 +514,7 @@ Psuedo-Defaults:
 
 
 - videoSources / audioSources
-  *multiple type prop*
+  This is a "multiple-type" and an "object-type" prop.
   [
     {
       type: string ( html5 < source > type ),
@@ -539,14 +524,14 @@ Psuedo-Defaults:
   ]
 
 - videoTracks / audioTracks
-  *multiple type prop*
+  This is a "multiple-type" and an "object-type" prop.
   [
     {
-      default: boolean (psuedo-default: false),
-      kind: string ( html5 < track > kind ) (psuedo-default: ""),
-      label: string ( html5 < track > label ) (psuedo-default: ""),
-      src: string ( html5 < track > src ) (psuedo-default: ""),
-      srclang: string ( html5 < track > srclang ) (psuedo-default: "")
+      default: boolean (Default: false),
+      kind: string ( html5 < track > kind ) (Default: ""),
+      label: string ( html5 < track > label ) (Default: ""),
+      src: string ( html5 < track > src ) (Default: ""),
+      srclang: string ( html5 < track > srclang ) (Default: "")
     },
     ...
   ]
@@ -554,45 +539,45 @@ Psuedo-Defaults:
 
 - videoAutoplay
   `boolean`
-  Psuedo-Default: false
+  Default: false
 
 
 - videoControls / audioControls
   `boolean`
-  Psuedo-Default: true
+  Default: true
 
 
 - videoCrossorigin
   `string`
   html5 < video > crossorigin
-  Psuedo-Default: "anonymous"
+  Default: "anonymous"
 
 
 - videoLoop / audioLoop
   `boolean`
-  Psuedo-Default: false
+  Default: false
 
 
 - videoMuted / audioMuted
   `boolean`
-  Psuedo-Default: false
+  Default: false
 
 
 
 - videoPreload / audioPreload
   `string`
   html5 < video >/< audio > preload
-  Psuedo-Default: 'auto'
+  Default: 'auto'
 
 
 - videoPoster
   `string` / `null`
-  Psuedo-Default: null
+  Default: null
 
 
 - audioVolume
   `number`
-  Psuedo-Default: 0.7
+  Default: 0.7
 
 
 ### Attributes
@@ -610,9 +595,6 @@ Psuedo-Defaults:
   - transition.<attr>.<duration/delay/done/type>
 
   - transition.<attr>.args.<arg>
-
-  <!-- - state.<state>
-  returns true if state is active -->
 
   - load
 
@@ -632,9 +614,25 @@ Psuedo-Defaults:
 
 
   - read-only properties (prefix: $)
+
+    - $type
+      This can only be set once using a non-take value with the LSON.
+
+    - $inherit
+      This can only be set once using a non-take value with the LSON.
+
+    - $interface
+      This can only be set once using a non-take value with the LSON.
+
+    - $observe
+      This can only be set once using a non-take value with the LSON.
+
+
     - $dataTravelling (`boolean`)
 
-    - $dataTravelledDelta (`number`)
+    - $dataTravelDelta (`number`)
+
+    - $dataTravelLevel ('LAID.Level')
 
     - $naturalWidth (`number`)
     Width of the part occupied by text if its a text element, image if its an image element,
@@ -644,10 +642,10 @@ Psuedo-Defaults:
     Height of the part occupied by text if its a text element, image if its an image element,
     otherwise if a view then the height occupied by the children parts.
 
-    - $absoluteLeft (`number`)
+    - $absoluteX (`number`)
     Position in pixels of the left of the element relative to the root level ( irrespective of the amount scrolled horizontally ).
 
-    - $absoluteTop (`number`)
+    - $absoluteY (`number`)
     Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
 
@@ -677,17 +675,17 @@ Psuedo-Defaults:
 
     - $inputChecked (`boolean`)
 
-    /*- $inputSelected (`boolean`)*/
 
 
-### LAID observe
+### LSON.$observe
 
   All read-only attributes except for:
     - $numberOfChildren
     - $naturalWidth
     - $naturalHeight
     - $dataTravelling
-    - $dataTravelledDelta
+    - $dataTravelDelta
+    - $dataTravelLevel
 
   such as "$hovered", "$focused", "$input", and
   the others require 2 or more event listeners bound to the respective
@@ -699,27 +697,29 @@ Psuedo-Defaults:
   since lexical parsing of internal functions is out of the question there
   is no viable way for LAID to be aware and switch on the event listeners for
   the corresponding read-only.
-  This is the purpose behind `observe`, `observe` takes in an array of strings,
+  This is the purpose behind `$observe`, `$observe` takes in an array of strings,
   where strings are references made to such read-onlys. Thus if a reference is
   made within `observe` LAID will switch on the event listeners for the
   read-only.
 
-### LAID many
+### LSON.many
 
 Type: `Object`
 
 
 
-### LAID states
+### LSON.states
 
-object containing states
-
-### LAID children
-
-children levels
+Object containing states.
+More about states in the states section
 
 
-### LAID when
+### LSON.children
+
+Object containing children levels in the form of LSON.
+
+
+### LSON.when
 
 contains events as keys, and values as a callback function or
 arrays of callback functions (order respected)
@@ -761,7 +761,7 @@ example with multiple callback functions specified (with the aid on array):
     })
 
 
-### LAID load
+### LSON.load
 
 Functions called upon loading of level, with the context of the level.
 
@@ -776,10 +776,6 @@ LAID.Level methods:
 
   attr( attr ) //gets attr value
   data( changedData ) //changes data value
-
-
-
-
 
 
 
@@ -809,20 +805,22 @@ LAID.Take methods
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
-  - (these return booleans) exactly, eq, gt, lt, gte, lte, not, contains
+  - (these return booleans) eq (===), gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match, test (for regex)
+  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
+  - (many) filterEq, filterGt, filterLt, filterLte, filterGte, filterRegex,
+  filterContains, filterFn
 
 
   takes one argument, either:
     - LAID.Take object
     - anything else
 
-  LAID.take(level, property).add(10).divide(LAID.take(level2,property2)).subtract(10).multiply(1.2)
-  LAID.take(level, property).min(LAID.take(level2,property2), 20, 30)
-  LAID.take("foo:%s, bar:%s, baz:%s").format(LAID.take(level1, prop1), LAID.take(level2, prop2), LAID.take(level3, prop3) )
-  LAID.take(function).fn(LAID.take(level1, prop1), LAID.take(level2, prop2), LAID.take(level3, prop3), function( arg1, arg2, arg3 ) {
+  LAID.take(levelPath, property).add(10).divide(LAID.take(levelPath2,attr2)).subtract(10).multiply(1.2)
+  LAID.take(level, attr).min(LAID.take(levelPath2,attr2), 20, 30)
+  LAID.take("foo:%s, bar:%s, baz:%s").format(LAID.take(levelPath1, attr1), LAID.take(levelPath2, attr2), LAID.take(levelPath3, attr3) )
+  LAID.take(function).fn(LAID.take(levelPath1, attr1), LAID.take(levelPath2, attr2), LAID.take(levelPath3, attr3), function( arg1, arg2, arg3 ) {
     return something
   })
   LAID.take('/', 'data.lang').i18nFormat(
@@ -830,24 +828,15 @@ LAID.Take methods
     lang-code: formattable string
     .....
   },
-  LAID.take(level1, prop1), LAID.take(level2,prop2)
+  LAID.take(level1, attr1), LAID.take(level2,attr2)
   )
 
-
-LAID.takeMany
-
-  For queries:
-
-  LAID.takeMany( level, queryObject )
-
-  available methods:
-  - length()
-  - one() (yields a take object)
+  LAID.take(manyLevelPath, "many").filterGt("age", 10).filterLt(
+  "age", LAID.take(level, attr))
 
 
-  LAID.takeMany("/Lab/Patient, {"data.age": {$gt:25}, "data.diabetes": {$eq: true} }).length()
 
-  LAID.takeMany("/BuyHosting/Plan", { "data.selected":true } }).one("data.price")
+)
 
 
 ### LAID.Color (LAID.rgb, LAID.rgba, LAID.hsl, LAID.hsla, LAID.color)
@@ -873,11 +862,11 @@ eg of take with color:
 Scale -> Position -> Skew -> Rotate
 
 
-### LAID inherit
+### Inheritance
 
     LAID.run({
       "BigBox": {
-        inherit: < level string >
+        $inherit < level string >
       }
     })
 
@@ -885,7 +874,7 @@ or
 
     LAID.run({
       "BigBox": {
-        inherit: < object reference >
+        $inherit < object reference >
       }
     })
 
@@ -894,7 +883,7 @@ also together using an array (the order of the array is respected from left to r
 
   LAID.run({
     "BigBox": {
-      inherit: [ < object reference > | < level string >, ... ]
+      $inherit [ < object reference > | < level string >, ... ]
     }
   })
 
@@ -903,7 +892,7 @@ looks like:
 
   LAID.run({
     "BigBox": {
-      inherit: [ '../Box', someBoxObject ]
+      $inherit [ '../Box', someBoxObject ]
     }
   })
 
@@ -934,7 +923,7 @@ for example:
 
     LAID.run({
       "BigBox": {
-        inherit: [ box ],
+        $inherit [ box ],
         props: {
           width: 300,
           height: 300
@@ -1006,7 +995,7 @@ example of `when` stacking up:
         }
       },
       "OtherBox": {
-        inherit: ["Box"],
+        $inherit ["Box"],
         when: {
           "click": function() {
             console.log("OtherBox clicked");
@@ -1088,9 +1077,9 @@ would essentially compile to:
 
 
 States are unordered.
-The inheritance mechanism governing states matches that mentioned for the `inherit` key.
+The inheritance mechanism governing states matches that mentioned for the `$inherit` key.
 onlyif is the condition for which a state needs to be activated.
-Takes across states and root lson takes place by prefixing "<state name>." to the corresponding "props", "when", and "transition" keys:
+Takes across states and root lson takes place by prefixing "< state name >." to the corresponding "props", "when", and "transition" keys:
 
 LAID.run({
     Box: {
@@ -1113,23 +1102,29 @@ LAID.run({
 
 ### Many
 
+  Related methods:
+    - rows()
+    - rowsMore()
+    - rowsCommit()
+    - formation()
+    - sort()
+    - ascending()
+    - filter()
+
 
   LAID.start({
       "BioData": {
         width: LAID.take('Person'),
         children: {
           "Person": {
-            width: 200,
             many: {
-              data: {
-                n:5
-              },
-              props: {
-                formation:'grid',
-                sort: ['name'],
-                order: 'ascending',
-                id: "_id"
-              },
+              
+              formation:'grid',
+              sort: ['name'],
+              ascending: true, //default
+              id: "_id",
+                
+
               rows: [
                 {_id:'00423', name:'Eddard Stark', age: 50},
                 {_id:'08383', name:'Tyrion Lannister', age: 40},
@@ -1147,39 +1142,38 @@ LAID.run({
 id: key which is id (cannot be changed)
 first: style of the first element
 sort: key (or multiple in order of sorting) to sort (can be changed) or it takes a function
-done using (2nd argument a boolean representing whether the sort is in descending order)
+ascending: the order of the sort, true by default. False for descending.
 
 
 rows
 
-  - contains arbitrary data, which is fed into the 'data' key
+  Contains arbitrary data, which is fed into the 'data' key.
+  This result of data changes are bound to this array
 
 
 example:
 
   {_id:'00423', name:'Eddard Stark', age: 50 },
 
-
+can be changed
+  
+  LAID.many('/BioData/Person').rows([
+  {id:'01010', name: 'Robb Stark', age: 32}])
 
 more can be added by:
 
-  LAID.many('/BioData/Person').more( [{id:'01010', name: 'Robb Stark', age: 32}] )
+  LAID.many('/BioData/Person').rowsMore( [{id:'01010', name: 'Robb Stark', age: 32}] )
 
 
 or committed (facebook react style)
 
-  LAID.many('/BioData/Person').commit( [
+  LAID.many('/BioData/Person').rowsCommit( [
     {_id:'00423', name:'Eddard Stark', age: 50},
     {_id:'08383', name:'Tyrion Lannister', age: 40},
     {_id:'01919', name:'Joffrey Baratheon', age: 16},
     {id:'01010', name: 'Robb Stark', age: 32}
   ] );
 
-
-queries (mongodb style)
-
-  LAID.many("/Lab/Patient").query({"data.age": {$gt:25}, "data.diabetes": {$eq: true} })
-  LAID.many("/BuyHosting/Plan").query({ "data.selected":true } })
 
 formation:
   `String`
@@ -1211,9 +1205,6 @@ for grid (note that the width and height cannot be used effectively for a grid)
         }
       }
   })
-
-
-
 
 
 
@@ -1275,14 +1266,14 @@ objects provided in the corresponding modified states.
 
 ##### dataTravel
 
-Level.dataTravelBegin( changedData )
+Level.dataTravelBegin( dataKey, changedData )
 Level.dataTravelContinue( delta )
 Level.dataTravelArrive( isArrived )
 
 note: `dataTravelling` attribute is set to true when travelling
 
 
-Using the `Level.data( changedData, [ ,stateTransitionObject ] )` data can
+Using the `Level.data( dataKey, changedData )` data can
 be changed of any Level. This is data change can cause change in props of
 the Level in context, or any other Level constrained by it, directly or indirectly.
 This potential data change can have 2 attribute configuration of the Level, these 2 attribute configurations
@@ -1301,13 +1292,16 @@ Note that while data travelling, any call to `attr()` will return the previous d
 
 **Extra attributes associated with data travel**
 
-Two attributes are available to each `Level` which contain information of data travelling:
+Three (read-only) attributes are available to the root `Level` which contain information of data travelling:
 
-- *dataTravelling*
-  This is boolean specifying `true` if the `Level` is currently data travelling.
+- $dataTravelling
+  This is a boolean specifying `true` if there is data travelling.
 
-- *dataTravellingDelta*
-  This is a number specifying the delta of the data travelling, if the `Level` is data travelling.
+- $dataTravelDelta
+  This is a float (number) specifying the delta of the data travelling.
+
+- $dataTravelLevel
+  This is the Level where the data travel was initiated from (using dataTravelBegin)
 
 
 Example:

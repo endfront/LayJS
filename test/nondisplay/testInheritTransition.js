@@ -101,7 +101,7 @@ LAID.run({
                 }
               },
               "Box": {
-                inherit: [externalInherit, "../InternalInherit" ],
+                $inherit: [externalInherit, "../InternalInherit" ],
                 data: {
                   state: false
                 },

@@ -33,13 +33,11 @@
 
     this.$lson = lson;
     this.$isInherited = false;
-    this.$isInitiallyRendered = false;
 
     this.$attr2attrVal = {};
     //this.$dataTravelAttrValS = [];
     this.$recalculateDirtyAttrValS = [];
-    this.$normalRenderDirtyAttrValS = [];
-    this.$travelRenderDirtyAttrValS = [];
+   
 
     this.$childLevelS = [];
 
@@ -47,14 +45,6 @@
     this.$stringHashedStates2_cachedAttr2val_ =  {};
     this.$newlyInstalledStateS = [];
     this.$newlyUninstalledStateS = [];
-
-
-    this.$whenEventType2fnMainHandler = {};
-
-    this.$naturalWidthLevel = undefined;
-    this.$naturalHeightLevel = undefined;
-
-
 
   };
 
@@ -114,9 +104,9 @@
     LAID.$normalize( this.$lson, false );
 
     // check if it contains anything to inherit from
-    if ( this.$lson.inherit !== undefined ) { 
+    if ( this.$lson.$inherit !== undefined ) { 
       lson = { type: "none" };
-      refS = this.$lson.inherit;
+      refS = this.$lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
 
         ref = refS[ i ];
@@ -200,7 +190,7 @@
     when = slson.when,
     transition = slson.transition,
     i, len;
-
+    
     initAttrsObj( "", slson.props, attr2val );
 
 
@@ -249,26 +239,25 @@
   LAID.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableEventReadonlyS = this.$lson.observe,
-      observableEventReadonly, i, len;
-
-    if ( this.isPart ) {
-      //this.$initNecessaryAttrs();
+      observableReadonlyS = this.$lson.$observe,
+      observableReadonly, i, len;
+   
+    if ( this.path === "/" ) {
+      var dataTravelReadonlyS = [ "$dataTravelling",
+        "$dataTravelLevel", "$dataTravelDelta" ];
+      if ( observableReadonlyS ) {
+        observableReadonlyS = observableReadonlyS.concat(
+          dataTravelReadonlyS );
+      } else {
+        observableReadonlyS = dataTravelReadonlyS;
+      }
     }
 
-   
-
-    if ( observableEventReadonlyS !== undefined ) {
-      for ( i = 0, len = observableEventReadonlyS.length; i < len; i++ ) {
-        observableEventReadonly = observableEventReadonlyS[ i ];
-        if ( eventReadonly2defaultVal[ observableEventReadonly ] ===
-         undefined ) {
-          console.error("LAID Warning: Non Event Read-Only: " +
-           observableEventReadonly );
-        } else {
-          this.$attr2attrVal[ observableEventReadonly ].give(
-           LAID.$emptyAttrVal );
-        }
+    if ( observableReadonlyS ) {
+      for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
+        observableReadonly = observableReadonlyS[ i ];
+        this.$createLazyAttr( observableReadonly );
+        this.$attr2attrVal[ observableReadonly ].give( LAID.$emptyAttrVal );
       }
     }
 
@@ -285,8 +274,6 @@
     transition = this.$lson.transition,
     attr2val = {};
 
-
-
     initAttrsObj( "data.", this.$lson.data, attr2val );
 
     if ( this.$lson.load !== undefined ) {
@@ -298,7 +285,6 @@
         attr2val[ stateName + "." + "onlyif" ] = state.onlyif;
         attr2val[ stateName + "." + "install" ] = state.install;
         attr2val[ stateName + "." + "uninstall" ] = state.uninstall;
-
     }
 
     this.$commitAttr2Val( attr2val );
@@ -328,11 +314,15 @@
      readonlyDefaultVal = LAID.$getReadonlyAttrDefaultVal( attr ),
      splitAttrLsonComponentS, attrLsonComponentObj, i, len,
      firstAttrLsonComponent;
-    if ( readonlyDefaultVal !== undefined ) {
+
+    if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
+      attr ) !== -1 ) {
+      this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+      this.$attr2attrVal[ attr ].update( this.$lson[ attr ] );
+
+    } else if ( readonlyDefaultVal !== undefined ) {
 
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-
-
 
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
@@ -340,19 +330,21 @@
             this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
               break;
           case "$naturalWidth":
-
-
-            this.$updateNaturalWidth();
+            this.part.$updateNaturalWidth();
             break;
           case "$naturalHeight":
-
-            this.$updateNaturalHeight();
+            this.part.$updateNaturalHeight();
             break;
+          case "$absoluteX":
+            this.part.$updateAbsoluteX();
+            break;
+          case "$absoluteY":
+            this.part.$updateAbsoluteY();
+            break;
+
         }
       } else {
-
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
-
       }
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
@@ -393,7 +385,6 @@
                 return false;
               }
             }
-
 
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
@@ -466,9 +457,6 @@
   };
 
 
-
-
-
   /* Return the attr2value generated
   by the current states */
   LAID.Level.prototype.getStateAttr2val = function () {
@@ -520,7 +508,7 @@
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.getStateAttr2val() );
 
-    //console.log("NEW STATE", this.path, this.$stateS );
+    //console.log("LAID INFO: new state", this.path, this.$stateS );
 
   };
 
@@ -528,10 +516,12 @@
   LAID.Level.prototype.attr = function ( attr ) {
 
     if ( this.$attr2attrVal[ attr ] ) {
+      
       return this.$attr2attrVal[ attr ].calcVal;
 
     } else if ( ( attr[ 0 ] !== "$" ) &&
         this.$createLazyAttr( attr ) ) {
+
         LAID.$solveForRecalculation();
       return this.$attr2attrVal[ attr ].calcVal;
 
@@ -543,7 +533,6 @@
   LAID.Level.prototype.data = function ( dataKey, value ) {
     this.$changeAttrVal( "data." + dataKey, value );
   };
-
 
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
     return this.$attr2attrVal[ attr ];
@@ -566,37 +555,24 @@
 
   };
 
-  LAID.Level.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
-
-    LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
-
-  };
-
-  LAID.Level.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
-
-    LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyLevelS, this );
-
-  };
+  
 
 
 
   LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
     var attrVal;
     if ( LAID.$isDataTravelling ) {
-      throw ("LAID Error: Existence of another unfinished data travel");
+      console.error("LAID Warning: Existence of another unfinished data travel");
     } else {
       attrVal = this.$attr2attrVal[ "data." + dataKey ];
       if ( attrVal === undefined ) {
-        throw ("LAID Error: Inexistence of data key for data travel");
+        console.error ("LAID Warning: Inexistence of data key for data travel");
       }
-      LAID.isDataTravelling = true;
-      LAID.dataTravellingDelta = 0.0;
-      LAID.dataTravellingLevel = this;
-      LAID.dataTravellingAttrInitialVal = attrVal.val;
+      LAID.$isDataTravelling = true;
+      LAID.level("/").$attr2attrVal.$dataTravelling.update( true );
+      LAID.$dataTravellingLevel = this;
+      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( this );
+      LAID.$dataTravellingAttrInitialVal = attrVal.val;
       LAID.$dataTravellingAttrVal = attrVal;
 
       LAID.$isDataTravellingShock = true;
@@ -608,31 +584,37 @@
   };
 
   LAID.Level.prototype.dataTravelContinue = function ( delta ) {
-    if ( !LAID.isDataTravelling ) {
-      throw( "LAID Error: Inexistence of a data travel" );
-    } else if ( this !== LAID.dataTravellingLevel ){
-      throw( "LAID Error: Inexistence of a data travel for this Level" );
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
+    } else if ( this !== LAID.$dataTravellingLevel ){
+      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
     } else {
-      if ( LAID.dataTravellingDelta !== delta ) {
-        LAID.dataTravellingDelta = delta;
+      if ( LAID.$dataTravelDelta !== delta ) {
+        LAID.$dataTravelDelta = delta;
+        LAID.level("/").$attr2attrVal.$dataTravelDelta.update( delta );
         LAID.$render();
       }
     }
   };
 
   LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
-    if ( LAID.$isDataTravelling ) {
-      throw( "LAID Error: Inexistence of a data travel" );
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
     } else {
 
-      LAID.isDataTravelling = false;
-      LAID.dataTravellingLevel = undefined;
+      LAID.$isDataTravelling = false;
+      LAID.level("/").$attr2attrVal.$dataTravelling.update( false );
+      LAID.$dataTravellingLevel = undefined;
+      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( null );
+      LAID.$dataTravelDelta = 0.0;
+      LAID.level("/").$attr2attrVal.$dataTravelDelta.update( 0.0 );
+
 
       // clear out attrvalues which are data travelling
       LAID.$clearDataTravellingAttrVals();
       if ( !isArrived ) {
         LAID.$dataTravellingAttrVal.update(
-          LAID.dataTravellingAttrInitialVal );
+          LAID.$dataTravellingAttrInitialVal );
         LAID.$solveForRecalculation();
 
       } else {
@@ -645,375 +627,9 @@
   };
 
 
-  /*
-  * Additional constraint of not being dependent upon
-  * parent for the attr
-  */
-  LAID.Level.prototype.$findChildWithMaxOfAttr =
-   function ( attr, attrValIndependentOf, attrChildIndepedentOf ) {
-    var
-      i, len, curMaxVal, curMaxLevel,
-       childLevelS = this.$childLevelS,
-       childLevel, childLevelAttrVal,
-       attrValChildIndepedentOf;
-    for ( i = 0, len = childLevelS.length; i < len; i++ ) {
-      childLevel = childLevelS[ i ];
-      childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
-      attrValChildIndepedentOf =
-        childLevel.$attr2attrVal[ attrChildIndepedentOf ];
+  
 
-      if (
-          ( childLevelAttrVal !== undefined ) &&
-          ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
-          (  ( !attrValChildIndepedentOf ) ||
-            ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
-               attrValIndependentOf )  ) ) ) {
-
-        if ( curMaxLevel === undefined ) {
-          curMaxLevel = childLevel;
-          curMaxVal = childLevelAttrVal.calcVal;
-        } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
-          curMaxLevel = childLevel;
-        }
-      }
-    }
-    return curMaxLevel;
-  };
-
-
-  LAID.Level.prototype.$updateNaturalWidth = function () {
-    if ( this.path === "/" ) {
-      this.$attr2attrVal.$naturalWidth.update( window.innerWidth );
-
-    } else if ( this.$lson.type === "text" ) {
-      this.$updateNaturalWidthFromText();
-    } else {
-      this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-      this.$attr2attrVal.$naturalWidth, "width" );
-      this.$attr2attrVal.$naturalWidth.update(
-          this.$naturalWidthLevel ?
-         ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
-         0
-      );
-    }
-  };
-
-  LAID.Level.prototype.$updateNaturalHeight = function () {
-    if ( this.path === "/" ) {
-      this.$attr2attrVal.$naturalHeight.update( window.innerHeight );
-    } else if ( this.$lson.type === "text" ) {
-      this.$updateNaturalHeightFromText();
-    } else {
-      this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-      this.$attr2attrVal.$naturalHeight, "height");
-
-      this.$attr2attrVal.$naturalHeight.update(
-          this.$naturalHeightLevel ?
-         ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
-         0
-      );
-    }
-  };
-
-/*
-  LAID.Level.prototype.$kickBackScrollX = function () {
-    if ( this.$attr2attrVal.scrollX !== undefined ) {
-      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX, true );
-    }
-  };
-
-  LAID.Level.prototype.$kickBackScrollY = function () {
-    if ( this.$attr2attrVal.scrollY !== undefined ) {
-      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY, true );
-    }
-  };
-*/
-
-  LAID.Level.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
-
-    if ( this.$attr2attrVal.$naturalWidth &&
-      ( this.path !== "/" ) &&
-      ! LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal ) &&
-      ! childLevel.$attr2attrVal.width.checkIsDependentOnAttrVal(
-        this.$attr2attrVal.$naturalWidth)
-      ) {
-
-      if ( this.$naturalWidthLevel === undefined ) {
-        this.$naturalWidthLevel = childLevel;
-      } else if ( this.$naturalWidthLevel === childLevel ) {
-
-        // Check If the current child level responsible for the stretch
-        // of the naturalWidth boundary, has receeded
-        // If this would be the case, then there is
-        // a possibility that it has receded behind another
-        // child element which has a higher right position
-        // than the current child level responsible for the natural width
-        if ( this.$attr2attrVal.$naturalWidth.calcVal >
-           childLevel.$attr2attrVal.right.calcVal  ) {
-          // Find the child with the next largest right
-          // This could be the same child level
-          this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          this.$attr2attrVal.$naturalWidth, "width");
-        }
-      } else {
-        if ( childLevel.$attr2attrVal.right.calcVal >
-          this.$naturalWidthLevel.$attr2attrVal.right.calcVal ) {
-            this.$naturalWidthLevel = childLevel;
-        }
-      }
-      this.$attr2attrVal.$naturalWidth.update(
-        this.$naturalWidthLevel ?
-        ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
-        0
-      );
-
-    }
-  };
-
-
-  LAID.Level.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
-
-
-    if ( this.$attr2attrVal.$naturalHeight &&
-        ( this.path !== "/" ) &&
-       !LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal ) &&
-       !( childLevel.$attr2attrVal.height.checkIsDependentOnAttrVal(
-         this.$attr2attrVal.$naturalHeight) )
-       ) {
-
-      if ( this.$naturalHeightLevel === undefined ) {
-        this.$naturalHeightLevel = childLevel;
-      } else if ( this.$naturalHeightLevel === childLevel ) {
-        // Check If the current child level responsible for the stretch
-          // of the naturalHeight boundary, has receeded
-          // If this would be the case, then there is
-          // a possibility that it has receded behind another
-          // child element which has a higher bottom position
-          // than the current child level responsible for the natural height
-         if ( this.$attr2attrVal.$naturalHeight.calcVal >
-           childLevel.$attr2attrVal.bottom.calcVal  ) {
-          // Find the child with the next largest bottom
-          // This could be the same child level
-          this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          this.$attr2attrVal.$naturalHeight, "height");
-        }
-      } else {
-        if ( childLevel.$attr2attrVal.bottom.calcVal >
-          this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal ) {
-            this.$naturalHeightLevel = childLevel;
-          }
-        }
-
-
-      this.$attr2attrVal.$naturalHeight.update(
-          this.$naturalHeightLevel ?
-          ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
-          0
-      );
-    }
-  };
-
-  LAID.Level.prototype.$updateNaturalWidthFromText = function () {
-
-    if ( this.$attr2attrVal.$naturalWidth ) {
-
-        this.part.$naturalWidthTextMode = true;
-        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
-
-        if ( this.$attr2attrVal.scrollX !== undefined ) {
-          this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollX );
-        }
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        this.$attr2attrVal.$naturalWidth.update( 0 );
-
-    }
-  };
-
-  LAID.Level.prototype.$updateNaturalHeightFromText = function () {
-    if ( this.$attr2attrVal.$naturalHeight) {
-      this.part.$naturalHeightTextMode = true;
-      this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.text );
-
-      if ( this.$attr2attrVal.scrollY !== undefined ) {
-        this.$addNormalRenderDirtyAttrVal( this.$attr2attrVal.scrollY );
-      }
-      // temporarily (for current recalculate) cycle
-      // set the value to 0. This is only
-      // as a render cycle is required for learning
-      // the natural height
-      this.$attr2attrVal.$naturalHeight.update( 0 );
-
-    }
-  };
-
-  LAID.Level.prototype.$updateWhenEventType = function ( eventType ) {
-
-    var
-      numFnHandlersForEventType =
-        this.$attr2attrVal[ "$$num.when." + eventType ].val,
-      fnMainHandler,
-      thisLevel = this;
-
-    if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
-      LAID.$eventUtils.remove( 
-        this.part.node, eventType,
-          this.$whenEventType2fnMainHandler[ eventType ] );
-    }
-
-    if ( numFnHandlersForEventType !== 0 ) {
-
-      fnMainHandler = function ( e ) {
-        var i, len, attrValForFnHandler;
-        for ( i = 0; i < numFnHandlersForEventType; i++ ) {
-          attrValForFnHandler =
-          thisLevel.$attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
-          if ( attrValForFnHandler !== undefined ) {
-            attrValForFnHandler.calcVal.call( thisLevel, e );
-          }
-        }
-      };
-      LAID.$eventUtils.add( this.part.node, eventType, fnMainHandler );
-      this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
-
-    } else {
-      this.$whenEventType2fnMainHandler[ eventType ] = undefined;
-
-    }
-  };
-
-  LAID.Level.prototype.$checkIsPropInTransition = function ( prop ) {
-    return ( this.$attr2attrVal[ "transition." + prop  + ".type" ] !==
-      undefined )  ||
-      ( this.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
-        undefined );
-  };
-
-  LAID.Level.prototype.$updateTransitionProp = function ( transitionProp ) {
-
-    if ( this.$isInitiallyRendered ) {
-
-      var
-        attr2attrVal = this.$attr2attrVal,
-        attr, attrVal,
-        transitionPrefix,
-        transitionType, transitionDuration, transitionDelay, transitionDone,
-        transitionArgS, transitionArg2val = {},
-        transitionObj,
-        i, len,
-        allAffectedProp, // (eg: when `top` changes but transition
-        //is provided by `positional`)
-        affectedPropAttrVal;
-
-      // TODO: change the below to a helper function
-      if ( ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf(
-         transitionProp ) !== -1  ) {
-        return;
-      }
-
-      if ( !this.$checkIsPropInTransition( transitionProp ) ) {
-        if ( this.$checkIsPropInTransition( "all" ) ) {
-          allAffectedProp = transitionProp;
-          transitionProp = "all";
-        } else {
-          return;
-        }
-      }
-
-
-      transitionPrefix = "transition." + transitionProp + ".";
-
-      transitionType =
-        attr2attrVal[ transitionPrefix + "type" ] ?
-        attr2attrVal[ transitionPrefix + "type" ].calcVal :
-        "linear";
-
-      transitionDuration =
-        ( attr2attrVal[ transitionPrefix + "duration" ] ?
-        attr2attrVal[ transitionPrefix + "duration" ].calcVal :
-        0 );
-      transitionDelay =
-        ( attr2attrVal[ transitionPrefix + "delay" ] ?
-        attr2attrVal[ transitionPrefix + "delay" ].calcVal :
-        0 );
-      transitionDone =
-        ( attr2attrVal[ transitionPrefix + "done" ] ?
-        attr2attrVal[ transitionPrefix + "done" ].calcVal :
-        undefined );
-      transitionArgS = LAID.$transitionType2args[ transitionType ] ?
-        LAID.$transitionType2args[ transitionType ] : [];
-
-
-      for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
-
-        transitionArg2val[ transitionArgS[ i ] ] = (
-           attr2attrVal[ transitionPrefix + "args." +
-            transitionArgS[ i ] ] ?
-           attr2attrVal[ transitionPrefix + "args." +
-            transitionArgS[ i ] ].calcVal : undefined );
-      }
-
-      if ( !allAffectedProp && ( transitionProp === "all" ) ) {
-
-        for ( attr in attr2attrVal ) {
-          attrVal = attr2attrVal[ attr ];
-          // Only invoke a transition if:
-          // (1) The prop is renderable (i.e has a render call)
-          // (2) The prop doesn't have a transition of its
-          //     own. For instance if "left" already has
-          //     a transition then we will not want to override
-          //     its transition with the lower priority "all" transition
-          if ( attrVal.renderCall &&
-              !this.$checkIsPropInTransition( attrVal.attr ) ) {
-            this.$updateTransitionAttrVal(
-              attrVal,
-               transitionType, transitionDelay, transitionDuration,
-               transitionArg2val, transitionDone
-             );
-
-          }
-        }
-      } else {
-
-        this.$updateTransitionAttrVal(
-           attr2attrVal[ allAffectedProp || transitionProp ],
-           transitionType, transitionDelay, transitionDuration,
-           transitionArg2val, transitionDone
-         );
-
-      }
-    }
-  };
-
-  LAID.Level.prototype.$updateTransitionAttrVal = function ( attrVal,
-    transitionType, transitionDelay, transitionDuration,
-    transitionArg2val, transitionDone  ) {
-
-    // First check if the transition information is complete
-    if (
-          transitionType &&
-        ( transitionDuration !== undefined ) &&
-        ( transitionDelay !== undefined ) &&
-        ( attrVal !== undefined ) &&
-        ( attrVal.isTransitionable )
-        ) {
-
-
-      attrVal.startCalcVal =  attrVal.transitionCalcVal;
-
-      attrVal.transition = new LAID.Transition (
-          transitionType,
-          transitionDelay ,
-          transitionDuration, transitionArg2val,
-          transitionDone );
-    } else if ( attrVal !== undefined ) { // else delete the transition
-
-      attrVal.transition = undefined;
-    }
-  }
-
+  
 
 
 

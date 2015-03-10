@@ -38,7 +38,8 @@
       if ( this.absolute ) {
           return LAID.$path2level[ this.absolutePath ];
       } else {
-        for ( var i = 0; i < this.numberOfParentTraversals; ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        for ( var i = 0; i < this.numberOfParentTraversals;
+         ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
         }
 
           return ( this.childPath === "" ) ? referenceLevel :

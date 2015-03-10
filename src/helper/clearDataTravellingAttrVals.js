@@ -7,16 +7,15 @@
 
       x, y,
       yLen,
-      renderDirtyLevelS = LAID.$renderDirtyLevelS,
-      renderDirtyLevel,
+      renderDirtyPartS = LAID.$renderDirtyPartS,
+      renderDirtyPart,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal;
 
-      for ( x = 0; x < renderDirtyLevelS.length; x++ ) {
+      for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
-        renderDirtyLevel = renderDirtyLevelS[ x ];
-        travelRenderDirtyAttrValS = renderDirtyLevel.$travelRenderDirtyAttrValS;
-        //console.log( travelRenderDirtyAttrValS.length)
+        renderDirtyPart = renderDirtyPartS[ x ];
+        travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
 
 
         for ( y = 0, yLen = travelRenderDirtyAttrValS.length; y < yLen; y++ ) {
@@ -29,7 +28,7 @@
 
             // Adding to the "normal" render list automatically
             // removes the attrval from the "travel" render list
-            renderDirtyLevel.$addNormalRenderDirtyAttrVal(
+            renderDirtyPart.$addNormalRenderDirtyAttrVal(
               travelRenderDirtyAttrVal
             );
           } else {

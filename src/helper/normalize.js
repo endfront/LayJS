@@ -36,8 +36,12 @@
     multipleTypeProp, multipleTypePropNumName;
 
 
-    //key2fnNormalize.type( lson );
-    key2fnNormalize.inherit( lson );
+    key2fnNormalize.$type( lson );
+    key2fnNormalize.$inherit( lson );
+    key2fnNormalize.$interface( lson );
+    key2fnNormalize.$observe( lson );
+
+
     key2fnNormalize.many( lson );
 
     key2fnNormalize.props( lson );
@@ -125,8 +129,6 @@
 
 
 
-
-
   key2fnNormalize = {
     /*type: function ( lson ) {
 
@@ -150,21 +152,26 @@
       }
 
     },*/
+    $type: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$type", lson.$type );
+    },
 
-    inherit: function ( lson ) {
+    $inherit: function ( lson ) {
 
-      checkAndThrowErrorAttrAsTake( "inherit", lson.inherit );
-      if ( ( lson.inherit !== undefined ) &&
-        LAID.type( lson.inherit ) !== "array" ) {
-          lson.inherit = [ lson.inherit ];
+      checkAndThrowErrorAttrAsTake( "$inherit", lson.$inherit );
+      if ( ( lson.$inherit !== undefined ) &&
+        LAID.type( lson.$inherit ) !== "array" ) {
+          lson.$inherit = [ lson.$inherit ];
         }
 
     },
 
-    interface: function ( lson ) {
+    $interface: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$interface", lson.$interface );
+    },
 
-      checkAndThrowErrorAttrAsTake( "interface", lson.interface );
-
+    $observe: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
     },
 
     /*

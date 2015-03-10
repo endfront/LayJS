@@ -19,7 +19,9 @@
           if ( key2fnInherit[ key ] ) {
             key2fnInherit[ key ]( into, from );
           } else {
-            into[ key ] = from[ key ];
+            if ( key !== "$interface" ) {
+              into[ key ] = from[ key ];
+            }
           }
         }
       }
@@ -129,22 +131,10 @@
     // Precondition: `into<Scope>.key (eg: intoLAID.key)` is already defined
     var key2fnInherit = {
 
-      type: function( intoLson, fromLson ) {
-
-        intoLson.type =  fromLson.type || intoLson.type;
-
-
-      },
 
       data: function( intoLson, fromLson ) {
 
         inheritSingleLevelObject( intoLson, fromLson, "data" );
-
-      },
-
-      load: function ( intoLson, fromLson ) {
-
-        intoLson.load = fromLson.load || intoLson.load;
 
       },
 

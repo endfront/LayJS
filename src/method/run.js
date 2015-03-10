@@ -8,8 +8,8 @@
 
 
 
-    //rootLson.props.width = window.innerWidth;
-    //rootLson.props.height = window.innerHeight;
+    
+    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
     rootLevel = new LAID.Level( "/", rootLson, undefined );
     rootLevel.$init();
@@ -17,7 +17,6 @@
 
     window.onresize = updateSize;
 
-    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
   };
 
