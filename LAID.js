@@ -2812,6 +2812,9 @@ bottom: -0.25em;
       // here in this second overloaded case
       var directValue = relativePath;
 
+      if ( directValue instanceof LAID.Take ) {
+          this.$mergePathAndProps( directValue );
+      }
       this.executable = function () {
         return directValue;
       };
@@ -2988,6 +2991,24 @@ bottom: -0.25em;
 
       this.executable = function () {
         return oldExecutable.call( this ) === val;
+      };
+    }
+    return this;
+  };
+
+  LAID.Take.prototype.neq = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ) !== val.execute( this );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ) !== val;
       };
     }
     return this;
@@ -4509,7 +4530,11 @@ return this;
   "use strict";
 
 
-
+  var reservedNameS = [ 
+    "root", "transition", "data", "when", "load",
+    "",
+    "many", "formation", "sort", "ascending", "rows", "row", "filter" 
+  ];
 
   LAID.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
@@ -4523,14 +4548,14 @@ return this;
   	*/
   	stateName: function ( stateName ) {
   		 return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
-		    ( ( [ "root", "transition", "data", "when",
-    		 "inherit", "observe", "interface", "many", "" ] ).
+		    ( reservedNameS.
     		indexOf( stateName ) === -1 );
   	},
   	expanderAttr: function ( attr ) {
   		var expanderAttrS = [
-			  "border", "background", "boxShadows", "textShadows", "videoSources", "audioSources", "videoTracks", "audioTracks", "filters",
-			   "borderTop", "borderRight", "borderBottom", "borderLeft",
+			  "border", "background", "boxShadows", "textShadows",
+         "videoSources", "audioSources", "videoTracks", "audioTracks",
+          "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
 			    "data", "when", "transition", "type", "inherit", "states", "observe"
 			     ];
 			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;

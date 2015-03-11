@@ -805,12 +805,12 @@ LAID.Take methods
   - concat (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (these return booleans) eq (===), gt, lt, gte, lte, not, contains
+  - (these return booleans) eq (===), neq (!==), gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match, test (for regex)
   - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
-  - (many) filterEq, filterGt, filterLt, filterLte, filterGte, filterRegex,
-  filterContains, filterFn
+  - (many) filterEq, filterNeq, filterGt, filterLt, filterLte, filterGte, filterRegex,
+  filterContains, filterFn, filterFetch
 
 
   takes one argument, either:

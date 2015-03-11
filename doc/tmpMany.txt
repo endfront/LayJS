@@ -1,0 +1,108 @@
+
+
+
+Case 1 (row take problem):
+
+
+	{
+		"A": {
+			cons: LAID.take("../I", "rows").filterFetch(0, "num" ) //first item price 
+		},
+		"I": {
+			many: {
+				rows: LAID.take("/", "transactions")
+			}
+		}
+	}
+
+
+
+	"A" -> inherits from "I:0"
+	"B" -> takes from "A" 
+	"I:rows" -> takes from "B"
+
+
+The "rows" attribute of many decomposes down to the "row" key in the LSON
+which is similar to "data" in every way except that it cannot have
+takes occuring with in.
+
+The must be a default 2 way binding across the "rows" attribute of many.
+i.e
+	(1) If the "rows" attribute of many is changed (by committing), then the resulting changes must reflect on the corresponding level(s).
+	(2) If a level which is a part of a many has its data changed then the resulting changes must reflect on the "rows" attribute of many.
+
+
+IOS app screen (assuming no holes)
+
+
+	{
+		"IconsWrapper": {
+			data: {
+				pageSize: 300,
+				numScrollPage: 0
+			},
+			props: {
+				width: LAID.take("", "$naturalWidth").add(
+					LAID.take( "",
+						"data.pageSize")
+				),
+				overflowX: "scroll",
+				scrollX: LAID.take("", "data.numScrollPage")
+			},
+			when: {
+				// scroll end
+				"mouseup": [
+					function () {
+						this.data("data.numScrollPage",
+							Math.round(
+								parseFloat(this.attr("$scrollX")) /
+								this.attr("data.pageSize"))
+							)		
+						);
+					
+					}
+				]
+			},
+			"Icons": {
+				props: {
+					top: LAID.take("", "row.y").multiply(
+						LAID.take("../Icons", "data.vgap").add(LAID.take("", "height"))),
+					left: LAID.take("", "row.x").multiply(
+						LAID.take("../Icons", "data.hgap").add(LAID.take("", "width"))).plus(
+							LAID.take("", "row.pageNum").multiply(
+							LAID.take("../Icons", "data.pageSize")
+							)
+						),
+						
+				states: {
+					"drag": {
+						onlyif: LAID.take("", "data.drag"),
+						props: {
+							top: LAID.take("", "data.x"),
+							left: LAID.take("", "data.y")
+						}
+					}
+				},
+				},
+				many: {
+					
+					filter: LAID.take("", "rows").filterEq("recentlyDeleted", false),
+					load: function () {
+						var ajaxIcons = getOverAjax("icons");
+						this.rows(ajaxIcons)
+					}
+				}
+			},
+		}
+		"IconPage": {
+
+			many: {
+				rows: LAID.take("/", "data.apps").length().mod(
+					LAID.take("/", "appsPerPage")
+				)
+			}
+		}
+
+	}
+
+

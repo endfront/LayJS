@@ -93,6 +93,12 @@ LAID.run({
                 LAID.take("", "data.five")
               ),
 
+              fiveNeqFive: LAID.take("", "data.five").neq(5),
+              fiveNeqStrFive: LAID.take("", "data.five").neq("5"),
+              fiveNeqTakeFive: LAID.take("", "data.five").neq(
+                LAID.take("", "data.five")
+              ),
+
               fiveGtFive: LAID.take("", "data.five").gt(5),
               fiveGtTakeThree: LAID.take("", "data.five").gt(
                 LAID.take("", "data.three")
@@ -565,6 +571,17 @@ QUnit.test( "LAID.Take.eq()", function( assert ) {
   assert.ok( !LAID.level("/Body/Content").attr("data.fiveEqStrFive"),
     "5 , '5'");
   assert.ok( LAID.level("/Body/Content").attr("data.fiveEqTakeFive"),
+    "5 , 5");
+
+});
+
+QUnit.test( "LAID.Take.neq()", function( assert ) {
+
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveNeqFive"),
+    "5 , 5");
+  assert.ok( LAID.level("/Body/Content").attr("data.fiveNeqStrFive"),
+    "5 , '5'");
+  assert.ok( !LAID.level("/Body/Content").attr("data.fiveNeqTakeFive"),
     "5 , 5");
 
 });

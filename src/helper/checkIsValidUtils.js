@@ -2,7 +2,11 @@
   "use strict";
 
 
-
+  var reservedNameS = [ 
+    "root", "transition", "data", "when", "load",
+    "",
+    "many", "formation", "sort", "ascending", "rows", "row", "filter" 
+  ];
 
   LAID.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
@@ -16,14 +20,14 @@
   	*/
   	stateName: function ( stateName ) {
   		 return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
-		    ( ( [ "root", "transition", "data", "when",
-    		 "inherit", "observe", "interface", "many", "" ] ).
+		    ( reservedNameS.
     		indexOf( stateName ) === -1 );
   	},
   	expanderAttr: function ( attr ) {
   		var expanderAttrS = [
-			  "border", "background", "boxShadows", "textShadows", "videoSources", "audioSources", "videoTracks", "audioTracks", "filters",
-			   "borderTop", "borderRight", "borderBottom", "borderLeft",
+			  "border", "background", "boxShadows", "textShadows",
+         "videoSources", "audioSources", "videoTracks", "audioTracks",
+          "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
 			    "data", "when", "transition", "type", "inherit", "states", "observe"
 			     ];
 			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;

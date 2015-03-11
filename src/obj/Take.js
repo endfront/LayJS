@@ -20,6 +20,9 @@
       // here in this second overloaded case
       var directValue = relativePath;
 
+      if ( directValue instanceof LAID.Take ) {
+          this.$mergePathAndProps( directValue );
+      }
       this.executable = function () {
         return directValue;
       };
@@ -196,6 +199,24 @@
 
       this.executable = function () {
         return oldExecutable.call( this ) === val;
+      };
+    }
+    return this;
+  };
+
+  LAID.Take.prototype.neq = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ) !== val.execute( this );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ) !== val;
       };
     }
     return this;

@@ -76,6 +76,7 @@ LAID.run( {
             width: LAID.take( '../', 'width'),
             backgroundColor: LAID.color( "black" )
           },
+          
 
           children: {
             "MenuInvoke": {
@@ -85,7 +86,6 @@ LAID.run( {
                 width:LAID.take("Wrapper", "width").add(20),
                 height:LAID.take("Wrapper", "height").add(20),
                 cornerRadius:100
-
               },
               states: {
                 "hidden": {
