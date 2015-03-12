@@ -54,7 +54,11 @@
   	},
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
-     		( attr[ 0 ] !== "$") );
+     		( attr[ 0 ] !== "$") &&
+        ( [ "load", "formation", "sort",
+            "ascending", "rows", "filter"
+          ].indexOf( attr ) === -1 )
+       );
   	},
 
   	// source: underscore.js

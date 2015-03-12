@@ -2,40 +2,39 @@
   "use strict";
   LAID.$solveForNew = function () {
 
-    var i, len,
-    isSolveProgressed,
-    newLevelS = LAID.$newLevelS,
-    solvedLevelS = [];
+    var
+      i, len,
+      isSolveProgressed,
+      isSolveProgressedOnce = false,
+      newLevelS = LAID.$newLevelS,
+      solvedLevelS = [];
 
-    LAID.$isSolvingNewLevels = true;
+    //LAID.$isSolvingNewLevels = true;
 
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
         if ( newLevelS[ i ].$inheritAndReproduce() ) {
           isSolveProgressed = true;
+          isSolveProgressedOnce = true;
           solvedLevelS.push( newLevelS[ i ] );
           LAID.$arrayUtils.removeAtIndex( newLevelS, i );
           i--;
         }
       }
-      // The reason we will not use `len` to check the length below is
-      // that more recalculate dirty levels could have been added during
-      // the loop
+   
     } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
-
-    if ( newLevelS.length !== 0 ) {
-      throw "LAID Error: Circular/Undefined Inherit Reference Encountered";
-    }
-
-    LAID.$isSolvingNewLevels = false;
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
       solvedLevelS[ i ].$initAllAttrs();
     }
 
-    LAID.$solveForRecalculation();
+    //LAID.$isSolvingNewLevels = false;
 
+
+    return newLevelS.length === 0 ?  0 :
+      isSolveProgressedOnce ? 1 : 2;
+   
   };
 
 })();

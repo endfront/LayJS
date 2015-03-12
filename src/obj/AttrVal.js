@@ -70,7 +70,7 @@
 
   function checkIsStateProjectedAttr( attr ) {
     var i = attr.indexOf( "." );
-    if ( ( i === -1 ) && ( attr[ 0 ] !== "$" ) ) {
+    if ( LAID.$checkIsValidUtils.propAttr( attr ) ) {
       return true;
     } else {
       var prefix = attr.slice( 0, i );

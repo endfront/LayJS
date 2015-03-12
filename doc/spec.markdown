@@ -257,6 +257,9 @@ Defaults:
   `boolean`
   Default: false
 
+- userSelect
+  `boolean`
+  Default: false
 
 - opacity
   `number`

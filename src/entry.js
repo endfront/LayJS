@@ -98,7 +98,8 @@ bottom: -0.25em;
 
     $path2level: {},
     $cloggedLevelS: [],
-    $newPartS: [],
+    $insertedPartS: [],
+    $removedPartS: [],
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
@@ -107,9 +108,9 @@ bottom: -0.25em;
     $prevFrameTime: 0,
     //$uninitialized: {},
     $isClogged:false,
-    $isSolvingNewLevels: false,
+    $isSolving: false,
     $isRequestedForAnimationFrame: false,
-    $isRecalculateRequiredOnRenderFinish: false,
+    $isSolveRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,
     $isDataTravelling: false,

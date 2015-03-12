@@ -219,6 +219,7 @@
   };
 
 
+
   LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
 
     var attr2attrVal = this.level.$attr2attrVal;
@@ -635,6 +636,11 @@
 
   LAID.Part.prototype.$renderFn_opacity = function () {
     this.node.style.opacity = this.level.$attr2attrVal.opacity.transitionCalcVal;
+  };
+
+  LAID.Part.prototype.$renderFn_userSelect = function () {
+    this.node.style[ cssPrefix + "user-select" ] = 
+      this.level.$attr2attrVal.userSelect.transitionCalcVal;
   };
 
   LAID.Part.prototype.$renderFn_display = function () {

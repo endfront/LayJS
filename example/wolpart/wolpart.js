@@ -11,7 +11,7 @@ var springTransition = {
 
 LAID.run( {
   data: {
-    lang: "zh",
+    lang: "en",
     menu: false
   },
   states: {
@@ -240,7 +240,7 @@ LAID.run( {
           },
         },
         "Body": {
-
+          
           props: {
             width: LAID.take("../", 'width'),
             top: LAID.take("../Header", "bottom"),
@@ -248,13 +248,16 @@ LAID.run( {
             backgroundColor: LAID.color("gainsboro"),
             overflowY: "auto",
           },
+          transition:{
+            height:springTransition
+          },
 
           children: {
             "Option1": {
               props: {
                 width:LAID.take("../", 'width').subtract(20),
                 centerX: LAID.take("../","width").divide(2),
-                height:220,
+                height:120,
                 backgroundColor:LAID.color("blue"),
                text: LAID.take("Is data travelling? %s <br> Delta? %s").format( 
                   LAID.take("/", "$dataTravelling"),
@@ -275,6 +278,7 @@ LAID.run( {
                 }).i18nFormat(LAID.take("", "backgroundColor").colorStringify())
               },
             }
+            
           }
         },
         "BodyOverlay": {
@@ -290,6 +294,7 @@ LAID.run( {
             didMouseMove: false
           },
           props: {
+            cursor:"default",
             top: LAID.take("../Body", "top"),
             width:LAID.take("../Body", "width"),
             height:LAID.take("../Body", "height"),

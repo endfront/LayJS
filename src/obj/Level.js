@@ -54,9 +54,8 @@
 
     if ( !LAID.$isClogged ) {
       LAID.$newLevelS.push( this );
-      if ( !LAID.$isSolvingNewLevels ) {
-        LAID.$solveForNew();
-      }
+      LAID.$solve();
+      
 
     } else {
       LAID.$cloggedLevelS.push( this );
@@ -89,9 +88,31 @@
 
       }
     }
-
   };
 
+  LAID.Level.prototype.remove = function () {
+    if ( this.path === "/" ) {
+      console.error("LAID Warning: Attempt to remove root level prohibited");
+    } else {
+      var
+       parentLevel = this.parentLevel,
+       parentPart = parentLevel.part;
+
+      LAID.$path2level[ this.path ] = undefined;
+      LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
+      LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.part );
+
+      if ( parentPart.$naturalWidthLevel === this ) {
+        parentPart.$updateNaturalWidth();
+      }
+      if ( parentPart.$naturalHeightLevel === this ) {
+        parentPart.$updateNaturalHeight();
+      }
+
+      LAID.$solve();
+
+    }
+  };
 
   /*
   * Return false if the level could not be inherited (due
@@ -150,7 +171,9 @@
     if ( this.isPart ) {
       this.part = new LAID.Part( this );
       this.part.$init();
-      LAID.$newPartS.push( this.part );
+      if ( this.path !== "/" ) {
+        LAID.$insertedPartS.push( this.part );
+      }
     } else {
       this.many = new LAID.Many( this );
     }
@@ -294,6 +317,7 @@
   LAID.Level.prototype.$commitAttr2Val = function ( attr2val ) {
 
     var attr, val, attrVal;
+    
     for ( attr in attr2val ) {
       val = attr2val[ attr ];
       attrVal = this.$attr2attrVal[ attr ];
@@ -341,7 +365,6 @@
           case "$absoluteY":
             this.part.$updateAbsoluteY();
             break;
-
         }
       } else {
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
@@ -350,10 +373,8 @@
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
       } else {
-        if ( attr.startsWith( "data." ) ) {
-          this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-          this.$attr2attrVal[ attr ].update( undefined );
-        } else {
+        if ( !attr.startsWith( "data." ) ) {
+        
           splitAttrLsonComponentS = attr.split( "." );
           if ( this.$lson.states === undefined ) {
             return false;
@@ -437,8 +458,8 @@
 
     } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
-    return recalculateDirtyAttrValS.length === 0 ? 1 :
-     ( isSolveProgressedOnce ? 2 : 3 );
+    return recalculateDirtyAttrValS.length === 0 ? 0 :
+     ( isSolveProgressedOnce ? 1 : 2 );
 
   };
 
@@ -519,15 +540,12 @@
       
       return this.$attr2attrVal[ attr ].calcVal;
 
-    } else if ( ( attr[ 0 ] !== "$" ) &&
-        this.$createLazyAttr( attr ) ) {
+    } else if ( this.$createLazyAttr( attr ) ) {
 
-        LAID.$solveForRecalculation();
-      return this.$attr2attrVal[ attr ].calcVal;
+        LAID.$solve();
+        return this.$attr2attrVal[ attr ].calcVal;
 
-    } else {
-      return undefined
-    }
+    } 
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -542,9 +560,9 @@
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
     this.$attr2attrVal[ attr ].update( val, false );
     if ( !LAID.$isRendering ) {
-      LAID.$solveForRecalculation();
+      LAID.$solve();
     } else {
-      LAID.$isRecalculateRequiredOnRenderFinish = true;
+      LAID.$isSolveRequiredOnRenderFinish = true;
     }
   };
 
@@ -577,7 +595,7 @@
 
       LAID.$isDataTravellingShock = true;
       attrVal.update( finalVal );
-      LAID.$solveForRecalculation();
+      LAID.$solve();
       LAID.$isDataTravellingShock = false;
 
     }
@@ -615,7 +633,7 @@
       if ( !isArrived ) {
         LAID.$dataTravellingAttrVal.update(
           LAID.$dataTravellingAttrInitialVal );
-        LAID.$solveForRecalculation();
+        LAID.$solve();
 
       } else {
 

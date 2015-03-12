@@ -98,7 +98,8 @@ bottom: -0.25em;
 
     $path2level: {},
     $cloggedLevelS: [],
-    $newPartS: [],
+    $insertedPartS: [],
+    $removedPartS: [],
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
@@ -107,9 +108,9 @@ bottom: -0.25em;
     $prevFrameTime: 0,
     //$uninitialized: {},
     $isClogged:false,
-    $isSolvingNewLevels: false,
+    $isSolving: false,
     $isRequestedForAnimationFrame: false,
-    $isRecalculateRequiredOnRenderFinish: false,
+    $isSolveRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,
     $isDataTravelling: false,
@@ -195,7 +196,7 @@ bottom: -0.25em;
 
   function checkIsStateProjectedAttr( attr ) {
     var i = attr.indexOf( "." );
-    if ( ( i === -1 ) && ( attr[ 0 ] !== "$" ) ) {
+    if ( LAID.$checkIsValidUtils.propAttr( attr ) ) {
       return true;
     } else {
       var prefix = attr.slice( 0, i );
@@ -1013,9 +1014,8 @@ bottom: -0.25em;
 
     if ( !LAID.$isClogged ) {
       LAID.$newLevelS.push( this );
-      if ( !LAID.$isSolvingNewLevels ) {
-        LAID.$solveForNew();
-      }
+      LAID.$solve();
+      
 
     } else {
       LAID.$cloggedLevelS.push( this );
@@ -1048,9 +1048,31 @@ bottom: -0.25em;
 
       }
     }
-
   };
 
+  LAID.Level.prototype.remove = function () {
+    if ( this.path === "/" ) {
+      console.error("LAID Warning: Attempt to remove root level prohibited");
+    } else {
+      var
+       parentLevel = this.parentLevel,
+       parentPart = parentLevel.part;
+
+      LAID.$path2level[ this.path ] = undefined;
+      LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
+      LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.part );
+
+      if ( parentPart.$naturalWidthLevel === this ) {
+        parentPart.$updateNaturalWidth();
+      }
+      if ( parentPart.$naturalHeightLevel === this ) {
+        parentPart.$updateNaturalHeight();
+      }
+
+      LAID.$solve();
+
+    }
+  };
 
   /*
   * Return false if the level could not be inherited (due
@@ -1109,7 +1131,9 @@ bottom: -0.25em;
     if ( this.isPart ) {
       this.part = new LAID.Part( this );
       this.part.$init();
-      LAID.$newPartS.push( this.part );
+      if ( this.path !== "/" ) {
+        LAID.$insertedPartS.push( this.part );
+      }
     } else {
       this.many = new LAID.Many( this );
     }
@@ -1253,6 +1277,7 @@ bottom: -0.25em;
   LAID.Level.prototype.$commitAttr2Val = function ( attr2val ) {
 
     var attr, val, attrVal;
+    
     for ( attr in attr2val ) {
       val = attr2val[ attr ];
       attrVal = this.$attr2attrVal[ attr ];
@@ -1300,7 +1325,6 @@ bottom: -0.25em;
           case "$absoluteY":
             this.part.$updateAbsoluteY();
             break;
-
         }
       } else {
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
@@ -1309,10 +1333,8 @@ bottom: -0.25em;
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
       } else {
-        if ( attr.startsWith( "data." ) ) {
-          this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-          this.$attr2attrVal[ attr ].update( undefined );
-        } else {
+        if ( !attr.startsWith( "data." ) ) {
+        
           splitAttrLsonComponentS = attr.split( "." );
           if ( this.$lson.states === undefined ) {
             return false;
@@ -1396,8 +1418,8 @@ bottom: -0.25em;
 
     } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
-    return recalculateDirtyAttrValS.length === 0 ? 1 :
-     ( isSolveProgressedOnce ? 2 : 3 );
+    return recalculateDirtyAttrValS.length === 0 ? 0 :
+     ( isSolveProgressedOnce ? 1 : 2 );
 
   };
 
@@ -1478,15 +1500,12 @@ bottom: -0.25em;
       
       return this.$attr2attrVal[ attr ].calcVal;
 
-    } else if ( ( attr[ 0 ] !== "$" ) &&
-        this.$createLazyAttr( attr ) ) {
+    } else if ( this.$createLazyAttr( attr ) ) {
 
-        LAID.$solveForRecalculation();
-      return this.$attr2attrVal[ attr ].calcVal;
+        LAID.$solve();
+        return this.$attr2attrVal[ attr ].calcVal;
 
-    } else {
-      return undefined
-    }
+    } 
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -1501,9 +1520,9 @@ bottom: -0.25em;
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
     this.$attr2attrVal[ attr ].update( val, false );
     if ( !LAID.$isRendering ) {
-      LAID.$solveForRecalculation();
+      LAID.$solve();
     } else {
-      LAID.$isRecalculateRequiredOnRenderFinish = true;
+      LAID.$isSolveRequiredOnRenderFinish = true;
     }
   };
 
@@ -1536,7 +1555,7 @@ bottom: -0.25em;
 
       LAID.$isDataTravellingShock = true;
       attrVal.update( finalVal );
-      LAID.$solveForRecalculation();
+      LAID.$solve();
       LAID.$isDataTravellingShock = false;
 
     }
@@ -1574,7 +1593,7 @@ bottom: -0.25em;
       if ( !isArrived ) {
         LAID.$dataTravellingAttrVal.update(
           LAID.$dataTravellingAttrInitialVal );
-        LAID.$solveForRecalculation();
+        LAID.$solve();
 
       } else {
 
@@ -1831,6 +1850,7 @@ bottom: -0.25em;
       );
     }
   };
+
 
 
   LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
@@ -2249,6 +2269,11 @@ bottom: -0.25em;
 
   LAID.Part.prototype.$renderFn_opacity = function () {
     this.node.style.opacity = this.level.$attr2attrVal.opacity.transitionCalcVal;
+  };
+
+  LAID.Part.prototype.$renderFn_userSelect = function () {
+    this.node.style[ cssPrefix + "user-select" ] = 
+      this.level.$attr2attrVal.userSelect.transitionCalcVal;
   };
 
   LAID.Part.prototype.$renderFn_display = function () {
@@ -4353,20 +4378,11 @@ return this;
 
   LAID.run =  function ( rootLson ) {
 
-    var
-      rootLevel;
-
-
-
-    
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
-    rootLevel = new LAID.Level( "/", rootLson, undefined );
-    rootLevel.$init();
-    LAID.$newLevelS = [ rootLevel ];
+    ( new LAID.Level( "/", rootLson, undefined ) ).$init();
 
     window.onresize = updateSize;
-
 
   };
 
@@ -4377,7 +4393,6 @@ return this;
 
     rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
     rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
-    LAID.$solveForRecalculation();
 
   }
 
@@ -4450,16 +4465,15 @@ return this;
 (function() {
   "use strict";
 
-
   LAID.unclog = function () {
 
-    var i, len,
-     cloggedLevelS = LAID.cloggedLevelS;
+    var 
+    	i, len,
+    	cloggedLevelS = LAID.cloggedLevelS;
     for ( i = 0, len = cloggedLevelS.length; i < len; i++ ) {
       LAID.$newLevelS.push( cloggedLevelS[ i ] );
-
     }
-    LAID.$solveForNew();
+    LAID.$solve();
     
   };
 
@@ -4582,7 +4596,11 @@ return this;
   	},
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
-     		( attr[ 0 ] !== "$") );
+     		( attr[ 0 ] !== "$") &&
+        ( [ "load", "formation", "sort",
+            "ascending", "rows", "filter"
+          ].indexOf( attr ) === -1 )
+       );
   	},
 
   	// source: underscore.js
@@ -4947,6 +4965,7 @@ return this;
     perspectiveOriginY: 0.5,
     backfaceVisibility: false,
     opacity:1.0,
+    userSelect: "all",
     zIndex: "auto",
     overflowX: "hidden",
     overflowY: "hidden",
@@ -6595,9 +6614,10 @@ if (!Array.prototype.indexOf) {
   function render() {
 
     var
-      newPartS = LAID.$newPartS, newPart, newPartLevel,
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
+      insertedPartS = LAID.$insertedPartS, insertedPart,
+      removedPartS = LAID.$removedPartS, removedPart,    
       x, y,
       i, len,
       isDataTravelling = LAID.$isDataTravelling,
@@ -6615,21 +6635,26 @@ if (!Array.prototype.indexOf) {
       loadAttrVal,
       isAllNormalTransitionComplete = true;
 
-    for ( i = 0, len = newPartS.length; i < len; i++ ) {
-      newPart = newPartS[ i ];
-      newPartLevel = newPart.level;
-      if ( newPartLevel.path !== "/" ) {
-        newPartLevel.parentLevel.part.node.appendChild( newPart.node );
-      }
+    for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
+      insertedPart = insertedPartS[ i ];
+      insertedPart.level.parentLevel.part.node.appendChild(
+        insertedPart.node );  
     }
 
+    LAID.$insertedPartS = [];
 
-    LAID.$newPartS = [];
+    for ( i = 0, len = removedPartS.length; i < len; i++ ) {
+      removedPart = removedPartS[ i ];
+      removedPart.level.parentLevel.part.node.removeChild(
+        removedPart.node );
+    }
+
+    LAID.$removedPartS = [];
 
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
-
       renderDirtyPart = renderDirtyPartS[ x ];
+
 
       travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
       normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
@@ -6654,12 +6679,14 @@ if (!Array.prototype.indexOf) {
 
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
         isNormalAttrValTransitionComplete = true;
-        LAID.$arrayUtils.pushUnique( renderCallS, normalRenderDirtyAttrVal.renderCall );
+        LAID.$arrayUtils.pushUnique( renderCallS,
+          normalRenderDirtyAttrVal.renderCall );
         renderDirtyTransition = normalRenderDirtyAttrVal.transition;
 
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
-          if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
+          if ( renderDirtyTransition.delay &&
+            renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
             isNormalAttrValTransitionComplete = false;
           } else {
@@ -6708,41 +6735,40 @@ if (!Array.prototype.indexOf) {
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ], renderDirtyPart.level.path );
+        //console.log("render call: ", renderCallS[ i ],
+        // renderDirtyPart.level.path );
         renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if (
          ( normalRenderDirtyAttrValS.length === 0 ) &&
-         ( travelRenderDirtyAttrValS.length === 0 )
-      ) {
+         ( travelRenderDirtyAttrValS.length === 0 ) ) {
         LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyPartS, x );
         x--;
       }
 
       if ( !renderDirtyPart.$isInitiallyRendered ) {
-        renderNewLevelS.push( renderDirtyPart.level );
+        LAID.$arrayUtils.pushUnique( renderNewLevelS, renderDirtyPart.level );
       }
 
     }
 
-
-
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
       renderNewLevel.part.$isInitiallyRendered = true;
-      loadAttrVal = renderNewLevel.$attr2attrVal.$load;
+      loadAttrVal = renderNewLevel.$attr2attrVal.load;
+      
       if ( ( loadAttrVal ) &&
-        (typeof loadAttrVal.transitionCalcVal === "function" ) ) {
-          loadAttrVal.transitionCalcVal.call( renderCleanedLevel );
+        ( typeof loadAttrVal.calcVal === "function" ) ) {
+          loadAttrVal.calcVal.call( renderNewLevel );
       }
     }
 
     LAID.$isRequestedForAnimationFrame = false;
 
-    if ( LAID.$isRecalculateRequiredOnRenderFinish ) {
-      LAID.$isRecalculateRequiredOnRenderFinish = false;
-      LAID.$solveForRecalculation();
+    if ( LAID.$isSolveRequiredOnRenderFinish ) {
+      LAID.$isSolveRequiredOnRenderFinish = false;
+      LAID.$solve();
     } else if ( !isAllNormalTransitionComplete ) {
       LAID.$render( curTimeFrame );
     }
@@ -6861,95 +6887,89 @@ if (!Array.prototype.indexOf) {
 
 ( function () {
   "use strict";
-  LAID.$solveForNew = function () {
+  LAID.$solve = function () {
 
-    var i, len,
-    isSolveProgressed,
-    newLevelS = LAID.$newLevelS,
-    solvedLevelS = [];
+    
+    if ( !LAID.$isSolving ) {
 
-    LAID.$isSolvingNewLevels = true;
+      var 
+        ret,
+        isSolveNewComplete,
+        isSolveRecalculationComplete,
+        isSolveProgressed,
+        isSolveHaltedForOneLoop = false;
 
-    do {
-      isSolveProgressed = false;
-      for ( i = 0; i < newLevelS.length; i++ ) {
-        if ( newLevelS[ i ].$inheritAndReproduce() ) {
+      LAID.$isSolving = true;
+
+      do {
+
+        isSolveProgressed = false;
+        isSolveNewComplete = false;
+        isSolveRecalculationComplete = false;
+
+        ret = LAID.$solveForNew();
+        if ( ret !== 2 ) {
           isSolveProgressed = true;
-          solvedLevelS.push( newLevelS[ i ] );
-          LAID.$arrayUtils.removeAtIndex( newLevelS, i );
-          i--;
+          isSolveNewComplete = ( ret === 0 );
         }
+          
+        ret = LAID.$solveForRecalculation();
+        if ( ret !== 2 ) {
+          isSolveProgressed = true;
+          isSolveRecalculationComplete = ( ret === 0 );
+        }
+        
+        executeStateInstallation();
+
+        if ( !isSolveProgressed ) {
+          if ( isSolveHaltedForOneLoop ) {
+            break;
+          } else {
+            isSolveHaltedForOneLoop = true;
+          }
+        } else {
+          isSolveHaltedForOneLoop = false;
+        }
+
+      } while ( !( isSolveNewComplete && isSolveRecalculationComplete ) );
+
+      if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
+        throw "LAID Error: Circular/Undefined Reference Encountered";      
       }
-      // The reason we will not use `len` to check the length below is
-      // that more recalculate dirty levels could have been added during
-      // the loop
-    } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
 
-    if ( newLevelS.length !== 0 ) {
-      throw "LAID Error: Circular/Undefined Inherit Reference Encountered";
+      LAID.$isSolving = false;
+
+      LAID.$render();
+
     }
-
-    LAID.$isSolvingNewLevels = false;
-
-    for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
-      solvedLevelS[ i ].$initAllAttrs();
-    }
-
-    LAID.$solveForRecalculation();
 
   };
 
-})();
+  function executeStateInstallation () {
 
-( function () {
-  "use strict";
-  LAID.$solveForRecalculation = function () {
-
-
-    var i, j, len, jLen,
-    isSolveProgressed,
-    ret,
-    recalculateDirtyLevelS = LAID.$recalculateDirtyLevelS,
-    newlyInstalledStateLevelS = LAID.$newlyInstalledStateLevelS,
-    newlyInstalledStateLevel,
-    newlyInstalledStateS,
-    attrValNewlyInstalledStateInstall,
-    newlyUninstalledStateLevelS = LAID.$newlyUninstalledStateLevelS,
-    newlyUninstalledStateLevel,
-    newlyUninstalledStateS,
-    attrValNewlyUninstalledStateUninstall;
-
-    //console.log("recalculate");
-    do {
-      isSolveProgressed = false;
-      for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
-        ret = recalculateDirtyLevelS[ i ].$solveForRecalculation();
-        if ( ret !== 3 ) {
-          isSolveProgressed = true;
-          if ( ret === 1 ) {
-            LAID.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
-            i--;
-          }
-        }
-      }
-      // The reason we will not use `len` to check the length below is
-      // that more recalculate dirty levels could have been added during
-      // the loop
-    } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
-
-    if ( recalculateDirtyLevelS.length !== 0 ) {
-      throw "LAID Error: Circular/Undefined Reference Encountered";
-    }
+    var
+      i, j, len, jLen,
+      newlyInstalledStateLevelS = LAID.$newlyInstalledStateLevelS,
+      newlyInstalledStateLevel,
+      newlyInstalledStateS,
+      attrValNewlyInstalledStateInstall,
+      newlyUninstalledStateLevelS = LAID.$newlyUninstalledStateLevelS,
+      newlyUninstalledStateLevel,
+      newlyUninstalledStateS,
+      attrValNewlyUninstalledStateUninstall;
 
     for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
       newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
         attrValNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] + ".install" ];
+          newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] +
+          ".install" ];
         attrValNewlyInstalledStateInstall &&
-         ( LAID.type(attrValNewlyInstalledStateInstall.calcVal) === "function") &&
-          attrValNewlyInstalledStateInstall.calcVal.call( newlyInstalledStateLevel );
+          ( LAID.type(attrValNewlyInstalledStateInstall.calcVal ) ===
+          "function") &&
+          attrValNewlyInstalledStateInstall.calcVal.call(
+          newlyInstalledStateLevel );
       }
       // empty the list
       newlyInstalledStateLevel.$newlyInstalledStateS = [];
@@ -6961,17 +6981,96 @@ if (!Array.prototype.indexOf) {
       newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
         attrValNewlyUninstalledStateUninstall =
-        newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] + ".uninstall" ];
+          newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] +
+          ".uninstall" ];
         attrValNewlyUninstalledStateUninstall &&
-        ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) === "function") &&
-         attrValNewlyUninstalledStateUninstall.calcVal.call( newlyUninstalledStateLevel );
+          ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
+          "function") &&
+          attrValNewlyUninstalledStateUninstall.calcVal.call( 
+          newlyUninstalledStateLevel );
       }
       // empty the list
       newlyUninstalledStateLevel.$newlyUninstalledStateS = [];
     }
     LAID.$newlyUninstalledStateLevelS = [];
+  }
 
-    LAID.$render();
+
+})();
+
+( function () {
+  "use strict";
+  LAID.$solveForNew = function () {
+
+    var
+      i, len,
+      isSolveProgressed,
+      isSolveProgressedOnce = false,
+      newLevelS = LAID.$newLevelS,
+      solvedLevelS = [];
+
+    //LAID.$isSolvingNewLevels = true;
+
+    do {
+      isSolveProgressed = false;
+      for ( i = 0; i < newLevelS.length; i++ ) {
+        if ( newLevelS[ i ].$inheritAndReproduce() ) {
+          isSolveProgressed = true;
+          isSolveProgressedOnce = true;
+          solvedLevelS.push( newLevelS[ i ] );
+          LAID.$arrayUtils.removeAtIndex( newLevelS, i );
+          i--;
+        }
+      }
+   
+    } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
+
+    for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
+      solvedLevelS[ i ].$initAllAttrs();
+    }
+
+    //LAID.$isSolvingNewLevels = false;
+
+
+    return newLevelS.length === 0 ?  0 :
+      isSolveProgressedOnce ? 1 : 2;
+   
+  };
+
+})();
+
+( function () {
+  "use strict";
+  LAID.$solveForRecalculation = function () {
+
+
+    var 
+      i,
+      isSolveProgressed,
+      isSolveProgressedOnce = true,
+      ret,
+      recalculateDirtyLevelS = LAID.$recalculateDirtyLevelS;
+      
+
+    //console.log("recalculate");
+    do {
+      isSolveProgressed = false;
+      for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
+        ret = recalculateDirtyLevelS[ i ].$solveForRecalculation();
+        if ( ret !== 2 ) {
+          isSolveProgressed = true;
+          isSolveProgressedOnce = true;
+          if ( ret === 0 ) {
+            LAID.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
+            i--;
+          }
+        }
+      }
+    
+    } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
+
+    return recalculateDirtyLevelS.length === 0 ?  0 :
+      isSolveProgressedOnce ? 1 : 2;
 
   };
 

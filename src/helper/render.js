@@ -22,9 +22,10 @@
   function render() {
 
     var
-      newPartS = LAID.$newPartS, newPart, newPartLevel,
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
+      insertedPartS = LAID.$insertedPartS, insertedPart,
+      removedPartS = LAID.$removedPartS, removedPart,    
       x, y,
       i, len,
       isDataTravelling = LAID.$isDataTravelling,
@@ -42,21 +43,26 @@
       loadAttrVal,
       isAllNormalTransitionComplete = true;
 
-    for ( i = 0, len = newPartS.length; i < len; i++ ) {
-      newPart = newPartS[ i ];
-      newPartLevel = newPart.level;
-      if ( newPartLevel.path !== "/" ) {
-        newPartLevel.parentLevel.part.node.appendChild( newPart.node );
-      }
+    for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
+      insertedPart = insertedPartS[ i ];
+      insertedPart.level.parentLevel.part.node.appendChild(
+        insertedPart.node );  
     }
 
+    LAID.$insertedPartS = [];
 
-    LAID.$newPartS = [];
+    for ( i = 0, len = removedPartS.length; i < len; i++ ) {
+      removedPart = removedPartS[ i ];
+      removedPart.level.parentLevel.part.node.removeChild(
+        removedPart.node );
+    }
+
+    LAID.$removedPartS = [];
 
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
-
       renderDirtyPart = renderDirtyPartS[ x ];
+
 
       travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
       normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
@@ -81,12 +87,14 @@
 
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
         isNormalAttrValTransitionComplete = true;
-        LAID.$arrayUtils.pushUnique( renderCallS, normalRenderDirtyAttrVal.renderCall );
+        LAID.$arrayUtils.pushUnique( renderCallS,
+          normalRenderDirtyAttrVal.renderCall );
         renderDirtyTransition = normalRenderDirtyAttrVal.transition;
 
         if ( renderDirtyTransition !== undefined ) { // if transitioning
 
-          if ( renderDirtyTransition.delay && renderDirtyTransition.delay > 0 ) {
+          if ( renderDirtyTransition.delay &&
+            renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
             isNormalAttrValTransitionComplete = false;
           } else {
@@ -135,41 +143,40 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ], renderDirtyPart.level.path );
+        //console.log("render call: ", renderCallS[ i ],
+        // renderDirtyPart.level.path );
         renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
       }
 
       if (
          ( normalRenderDirtyAttrValS.length === 0 ) &&
-         ( travelRenderDirtyAttrValS.length === 0 )
-      ) {
+         ( travelRenderDirtyAttrValS.length === 0 ) ) {
         LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyPartS, x );
         x--;
       }
 
       if ( !renderDirtyPart.$isInitiallyRendered ) {
-        renderNewLevelS.push( renderDirtyPart.level );
+        LAID.$arrayUtils.pushUnique( renderNewLevelS, renderDirtyPart.level );
       }
 
     }
 
-
-
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
       renderNewLevel.part.$isInitiallyRendered = true;
-      loadAttrVal = renderNewLevel.$attr2attrVal.$load;
+      loadAttrVal = renderNewLevel.$attr2attrVal.load;
+      
       if ( ( loadAttrVal ) &&
-        (typeof loadAttrVal.transitionCalcVal === "function" ) ) {
-          loadAttrVal.transitionCalcVal.call( renderCleanedLevel );
+        ( typeof loadAttrVal.calcVal === "function" ) ) {
+          loadAttrVal.calcVal.call( renderNewLevel );
       }
     }
 
     LAID.$isRequestedForAnimationFrame = false;
 
-    if ( LAID.$isRecalculateRequiredOnRenderFinish ) {
-      LAID.$isRecalculateRequiredOnRenderFinish = false;
-      LAID.$solveForRecalculation();
+    if ( LAID.$isSolveRequiredOnRenderFinish ) {
+      LAID.$isSolveRequiredOnRenderFinish = false;
+      LAID.$solve();
     } else if ( !isAllNormalTransitionComplete ) {
       LAID.$render( curTimeFrame );
     }

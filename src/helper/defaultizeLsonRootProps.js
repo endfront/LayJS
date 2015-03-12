@@ -166,6 +166,7 @@
     perspectiveOriginY: 0.5,
     backfaceVisibility: false,
     opacity:1.0,
+    userSelect: "all",
     zIndex: "auto",
     overflowX: "hidden",
     overflowY: "hidden",
