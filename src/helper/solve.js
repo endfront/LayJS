@@ -2,8 +2,9 @@
   "use strict";
   LAID.$solve = function () {
 
-    
+    console.log("foo");
     if ( !LAID.$isSolving ) {
+      console.log("bar");
 
       var 
         ret,
@@ -21,23 +22,35 @@
         isSolveRecalculationComplete = false;
 
         ret = LAID.$solveForNew();
-        if ( ret !== 2 ) {
+
+        if ( ret < 2 ) {
           isSolveProgressed = true;
-          isSolveNewComplete = ( ret === 0 );
         }
           
         ret = LAID.$solveForRecalculation();
-        if ( ret !== 2 ) {
+        if ( ret < 2 ) {
           isSolveProgressed = true;
-          isSolveRecalculationComplete = ( ret === 0 );
         }
-        
+
         executeStateInstallation();
+
+        // The reason we cannot use `ret` to confirm
+        // completion and not `ret` is because during solving
+        // for recalculation new levels could have been
+        // added ((from many.rows), and during execution
+        //  of state installation new recalculations or
+        // levels could have been created 
+
+        isSolveRecalculationComplete =
+          LAID.$recalculateDirtyLevelS.length === 0;
+        isSolveNewComplete =
+          LAID.$newLevelS.length === 0;
 
         if ( !isSolveProgressed ) {
           if ( isSolveHaltedForOneLoop ) {
             break;
           } else {
+
             isSolveHaltedForOneLoop = true;
           }
         } else {
@@ -51,7 +64,6 @@
       }
 
       LAID.$isSolving = false;
-
       LAID.$render();
 
     }

@@ -6,12 +6,14 @@
     var 
       i,
       isSolveProgressed,
-      isSolveProgressedOnce = true,
+      isSolveProgressedOnce = false,
       ret,
       recalculateDirtyLevelS = LAID.$recalculateDirtyLevelS;
       
+    if ( !recalculateDirtyLevelS.length ) {
+      return 3;
+    }
 
-    //console.log("recalculate");
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
@@ -27,6 +29,7 @@
       }
     
     } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
+
 
     return recalculateDirtyLevelS.length === 0 ?  0 :
       isSolveProgressedOnce ? 1 : 2;

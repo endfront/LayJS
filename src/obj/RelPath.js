@@ -4,13 +4,16 @@
   LAID.RelPath = function ( relativePath ) {
 
 
-    if  ( relativePath === "" ) {
+    this.me = false;
+    this.many = false;
 
+    if  ( relativePath === "" ) {
       this.me = true;
 
-    } else {
+    } else if ( relativePath === "*" ) { 
+      this.many = true;
 
-      this.me = false;
+    } else {
       if ( relativePath[ 0 ] === "/" ) {
         this.absolute = true;
         this.absolutePath = relativePath;
@@ -34,6 +37,8 @@
 
     if ( this.me ) {
       return referenceLevel;
+    } else if ( this.many ) { 
+      return referenceLevel.$derivedManyLevel;
     } else {
       if ( this.absolute ) {
           return LAID.$path2level[ this.absolutePath ];

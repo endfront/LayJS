@@ -12,7 +12,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
   LAID.many()
   LAID.part()
   LAID.take()
-  LAID.takeMany()
+  LAID.filter()
 
   LAID.rgb()
   LAID.rgba()
@@ -22,10 +22,12 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
 
 ### LAID.run()
+  
+  The input to `LAID.run()` is an object known as LSON.
 
     LAID.run( {
       children: {
-        "Child": {
+        "ChildName": {
 
           $type: string,
           $interface: boolean,
@@ -44,11 +46,20 @@ LAID involves writing LSON (Layout Syntax Object Notation)
               formation: string,
               sort: array | string,
               ascending: boolean,
+              filter: LAID.takeMany,
               $id: string (constant),
               rows: array,
-              filter: LAID.takeMany,
 
               load: function,
+
+              states: {
+                < name >: {
+                  formation: string,
+                  sort: array | string,
+                  ascending: boolean,
+                  filter: LAID.takeMany,
+                }
+              }
 
           },
           states: {
@@ -68,7 +79,6 @@ LAID involves writing LSON (Layout Syntax Object Notation)
       }
     })
 
-(The object passed into `LAID.run()` is called `LSON`)
 
 ### LSON.$type
 
@@ -601,6 +611,14 @@ Defaults:
 
   - load
 
+  - formation
+
+  - sort
+
+  - ascending
+
+  - filter
+
   - <state>.<prop>
 
   - <state>.when.<event><num>
@@ -630,6 +648,12 @@ Defaults:
     - $observe
       This can only be set once using a non-take value with the LSON.
 
+    - $id
+      The name of the unique key which is reponsible for id for each row in `rows` for `Many`.
+
+    - $i
+      Index of a (`Many`) derived `Level` with respect to other `Level`s derived
+      in the `Many`, as decided by the `sort` and `ascending` keys.
 
     - $dataTravelling (`boolean`)
 
@@ -813,7 +837,7 @@ LAID.Take methods
   - (these return booleans) match, test (for regex)
   - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
   - (many) filterEq, filterNeq, filterGt, filterLt, filterLte, filterGte, filterRegex,
-  filterContains, filterFn, filterFetch
+  filterContains, filterFn, filterFetch, filterEnd
 
 
   takes one argument, either:
@@ -1109,10 +1133,6 @@ LAID.run({
     - rows()
     - rowsMore()
     - rowsCommit()
-    - formation()
-    - sort()
-    - ascending()
-    - filter()
 
 
   LAID.start({
@@ -1125,8 +1145,8 @@ LAID.run({
               formation:'grid',
               sort: ['name'],
               ascending: true, //default
-              id: "_id",
-                
+              
+              $id: "_id",
 
               rows: [
                 {_id:'00423', name:'Eddard Stark', age: 50},
@@ -1142,7 +1162,7 @@ LAID.run({
 
 
 
-id: key which is id (cannot be changed)
+$id: key which is id (cannot be changed)
 first: style of the first element
 sort: key (or multiple in order of sorting) to sort (can be changed) or it takes a function
 ascending: the order of the sort, true by default. False for descending.
@@ -1161,11 +1181,11 @@ example:
 can be changed
   
   LAID.many('/BioData/Person').rows([
-  {id:'01010', name: 'Robb Stark', age: 32}])
+  {_id:'01010', name: 'Robb Stark', age: 32}])
 
 more can be added by:
 
-  LAID.many('/BioData/Person').rowsMore( [{id:'01010', name: 'Robb Stark', age: 32}] )
+  LAID.many('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
 
 
 or committed (facebook react style)
@@ -1174,22 +1194,25 @@ or committed (facebook react style)
     {_id:'00423', name:'Eddard Stark', age: 50},
     {_id:'08383', name:'Tyrion Lannister', age: 40},
     {_id:'01919', name:'Joffrey Baratheon', age: 16},
-    {id:'01010', name: 'Robb Stark', age: 32}
+    {_id:'01010', name: 'Robb Stark', age: 32}
   ] );
 
 
 formation:
   `String`
 
-formation object examples:
+All built-in formations:
+  - "onebelow"
+  - "totheright"
+  - "grid"
 
-(1) "onebelow" formation
+Formations can be added on the go, using `LAID.formattion()`,
+with a unique formation name and formation object to it.
+An example of the "onebelow" formation:
 
-  LAID.formation('onebelow', {
-      algorithm: function (options, prev, cur, all, index) {
-        if (prev) cur.formation('top', LAID.take(prev, 'bottom'))
-      }
-  })
+(1) "bottom" formation
+
+  // TODO: fill in
 
 
 
@@ -1198,16 +1221,7 @@ formation object examples:
 
 for grid (note that the width and height cannot be used effectively for a grid)
 
-  LAID.formation('grid', {
-      algorithm: function (options, prev, cur, all, index) {
-        if (prev) {
-          var row = Math.floor( index / 5 );
-          var column = index % 5;
-          cur.formation('left', LAID.take('', 'width').multiply(column));
-          cur.formation('top', LAID.take('', 'height').multiply(row));
-        }
-      }
-  })
+  // TODO: fill in
 
 
 

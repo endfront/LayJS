@@ -24,10 +24,10 @@
     this.transition = undefined;
     this.isTransitionable = false;
 
+
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
-    this.renderCall = level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
-
+    this.renderCall = level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
 
     this.takerAttrValS = [];
 
@@ -41,7 +41,7 @@
   * Else return the empty string.
   */
   function getStateNameOfOnlyIf ( attr ) {
-    var match = attr.match( /^([\w\-]+).onlyif$/ );
+    var match = attr.match( /^([\w\-:]+).onlyif$/ );
 
     return ( match !== null && match[ 1 ] !== "data" ) ?
     match[ 1 ] : "";
@@ -72,6 +72,9 @@
     var i = attr.indexOf( "." );
     if ( LAID.$checkIsValidUtils.propAttr( attr ) ) {
       return true;
+    } else if ( 
+      [ "formation", "filter", "sort", "ascending" ].indexOf ( attr ) !== -1 ) {
+      return true;
     } else {
       var prefix = attr.slice( 0, i );
       return ( ( [ "when", "transition", "$$num", "$$max" ] ).indexOf(
@@ -89,9 +92,12 @@
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
 
+    if ( this.attr === "rows" ) {
+      val = { level: this.level, rows: val };
+    }
     this.val = val;
 
-    if ( ( val !== this.prevVal ) &&
+    if ( ( !LAID.identical( val, this.prevVal ) ) && 
       !( LAID.$checkIsValidUtils.nan( val ) &&
        LAID.$checkIsValidUtils.nan( this.prevVal ) )
       ) {
@@ -163,6 +169,8 @@
       level = this.level,
       i, len;
 
+// /    console.log("update", this.attr );
+
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
         this.isTaken = this.take();
@@ -192,17 +200,17 @@
     if ( !isDirty ) {
       switch ( this.attr ) {
         case "input":
-          this.transitionCalcVal = this.level.part.node.value;
+          this.transitionCalcVal = this.level.$part.node.value;
 
       }
     }
 
     switch ( this.attr ) {
       case "scrollX":
-        this.transitionCalcVal = this.level.part.node.scrollLeft;
+        this.transitionCalcVal = this.level.$part.node.scrollLeft;
         isDirty = true;
       case "scrollY":
-        this.transitionCalcVal = this.level.part.node.scrollTop;
+        this.transitionCalcVal = this.level.$part.node.scrollTop;
         isDirty = true;
     }
 
@@ -223,10 +231,14 @@
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
         this.takerAttrValS[ i ].requestRecalculation();
       }
+      
+      if ( level.$derivedManyLevel ) {
+        level.$derivedManyLevel.$attr2attrVal.rows.requestRecalculation();
+      }
 
       if ( LAID.$isDataTravellingShock ) {
 
-        level.part.$addTravelRenderDirtyAttrVal( this );
+        level.$part.$addTravelRenderDirtyAttrVal( this );
 
       }
 
@@ -236,45 +248,41 @@
 
 
         if ( !LAID.$isDataTravellingShock ) {
-          level.part.$addNormalRenderDirtyAttrVal( this );
-
+          level.$part.$addNormalRenderDirtyAttrVal( this );
         }
-
 
         switch ( attr ) {
           case "text":
-            level.part.$updateNaturalWidthFromText();
-            level.part.$updateNaturalHeightFromText();
+            level.$part.$updateNaturalWidthFromText();
+            level.$part.$updateNaturalHeightFromText();
             break;
           case "width":
             if ( level.$attr2attrVal.text !== undefined ) {
-              level.part.$updateNaturalHeightFromText();
+              level.$part.$updateNaturalHeightFromText();
             }
             break;
           case "left":
-            level.part.$updateAbsoluteX();
+            level.$part.$updateAbsoluteX();
             break;
           case "shiftX":
-            level.part.$updateAbsoluteX();
+            level.$part.$updateAbsoluteX();
             break;
           case "top":
-            level.part.$updateAbsoluteY();
+            level.$part.$updateAbsoluteY();
             break;
           case "shiftY":
-            level.part.$updateAbsoluteY();
+            level.$part.$updateAbsoluteY();
             break;
           default:
             if ( attr.startsWith( "textPadding" ) )  {
-              level.part.$updateNaturalWidthFromText();
-              level.part.$updateNaturalHeightFromText();          
+              level.$part.$updateNaturalWidthFromText();
+              level.$part.$updateNaturalHeightFromText();          
             } 
         }
 
-        
-
         // In case there exists a transition
         // for the given prop then update it
-        level.part.$updateTransitionProp( attr );
+        level.$part.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
@@ -290,7 +298,7 @@
         } else { // remove state
           if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
 
-            level.$updateStates( );
+            level.$updateStates();
             // remove from the list of installed states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
             // add state to the list of newly uninstalled states
@@ -300,23 +308,24 @@
           }
         }
       } else if ( whenEventType !== "" ) {
-        level.part.$updateWhenEventType( whenEventType );
+        level.$part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        level.part.$updateTransitionProp( transitionProp );
+        level.$part.$updateTransitionProp( transitionProp );
+      } else if ( attr === "rows" ) {
+        level.$many.$updateRows();
       } else {  
 
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
-             level.parentLevel.part.$updateNaturalWidthFromChild( level );
+             level.parentLevel.$part.$updateNaturalWidthFromChild( level );
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
-              level.parentLevel.part.$updateNaturalHeightFromChild( level );
+              level.parentLevel.$part.$updateNaturalHeightFromChild( level );
             }
             break;
-          
         }
       }
     }
@@ -330,13 +339,13 @@
       if ( this.isEventReadonlyAttr ) {
         // Given that a reference exists, add event listeners
         var
-        eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
-        eventType,
-        fnBoundHandler;
+          eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
+          eventType,
+          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
-          LAID.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.add( this.level.$part.node, eventType, fnBoundHandler );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = fnBoundHandler;
         }
@@ -355,7 +364,7 @@
          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAID.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.remove( this.level.$part.node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = undefined;
         }
       }
@@ -416,6 +425,7 @@
         attr = _relPath00attr_S[ i ][ 1 ];
 
         level = relPath.resolve( this.level );
+
         if ( ( level !== undefined ) && ( level.$getAttrVal( attr ) !== undefined ) ) {
           level.$getAttrVal( attr ).giveNot( this );
         }

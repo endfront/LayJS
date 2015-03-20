@@ -45,15 +45,15 @@
 
     for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
       insertedPart = insertedPartS[ i ];
-      insertedPart.level.parentLevel.part.node.appendChild(
+      insertedPart.level.parentLevel.$part.node.appendChild(
         insertedPart.node );  
     }
-
+    
     LAID.$insertedPartS = [];
 
     for ( i = 0, len = removedPartS.length; i < len; i++ ) {
       removedPart = removedPartS[ i ];
-      removedPart.level.parentLevel.part.node.removeChild(
+      removedPart.level.parentLevel.$part.node.removeChild(
         removedPart.node );
     }
 
@@ -62,7 +62,6 @@
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
       renderDirtyPart = renderDirtyPartS[ x ];
-
 
       travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
       normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
@@ -163,7 +162,7 @@
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
-      renderNewLevel.part.$isInitiallyRendered = true;
+      renderNewLevel.$part.$isInitiallyRendered = true;
       loadAttrVal = renderNewLevel.$attr2attrVal.load;
       
       if ( ( loadAttrVal ) &&

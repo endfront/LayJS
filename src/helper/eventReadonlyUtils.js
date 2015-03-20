@@ -37,28 +37,28 @@
     },
     $scrolledX: {
       scroll: function () {
-        this.$changeAttrVal( "$scrolledX", this.part.node.scrollTop );
+        this.$changeAttrVal( "$scrolledX", this.$part.node.scrollTop );
       }
     },
     $cursorX: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorX", this.part.node.offsetX );
+        this.$changeAttrVal( "$cursorX", this.$part.node.offsetX );
       }
     },
     $cursorY: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorY", this.part.node.offsetY );
+        this.$changeAttrVal( "$cursorY", this.$part.node.offsetY );
       }
     },
     $input: {
       click: function () {
-        this.$changeAttrVal( "$input", this.part.node.value );
+        this.$changeAttrVal( "$input", this.$part.node.value );
       },
       change: function () {
-        this.$changeAttrVal( "$input", this.part.node.value );
+        this.$changeAttrVal( "$input", this.$part.node.value );
       },
       keydown: function () {
-        this.$changeAttrVal( "$input", this.part.node.value );
+        this.$changeAttrVal( "$input", this.$part.node.value );
       }
     },
 

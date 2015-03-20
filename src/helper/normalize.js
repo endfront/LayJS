@@ -10,53 +10,56 @@
     key2fnNormalize;
 
   
-  
 
   LAID.$normalize = function( lson, isExternal ) {
 
     if ( isExternal ) {
-
       // If we haven't previously normalized it, only then proceed
       if ( normalizedExternalLsonS.indexOf( lson ) === -1 ) {
 
-        _normalize( lson, true );
+        normalize( lson, true );
         normalizedExternalLsonS.push( lson );
-
       }
 
-    } else {
-      _normalize( lson, false );
-
+    } else {      
+      normalize( lson, false );
     }
   };
 
-  function _normalize( lson, isRecursive ) {
+  function normalize( lson, isRecursive ) {
 
-    var rootProp2val, stateProp2val, stateName2state, stateName,
-    multipleTypeProp, multipleTypePropNumName;
+    var
+      lsonKey,
+      rootLson = lson;
 
-
-    key2fnNormalize.$type( lson );
-    key2fnNormalize.$inherit( lson );
-    key2fnNormalize.$interface( lson );
-    key2fnNormalize.$observe( lson );
-
-
-    key2fnNormalize.many( lson );
-
-    key2fnNormalize.props( lson );
-    key2fnNormalize.transition( lson );
-    key2fnNormalize.when( lson );
-    key2fnNormalize.states( lson );
-
-    rootProp2val = lson.props;
-
-    // Recurse to normalize children
-    if ( isRecursive ) {
-
-      key2fnNormalize.children( lson );
-
+    if ( !lson.states ) {
+      lson.states = {};
     }
+
+    if ( lson.states.root ) {
+      throw "LAID Error: State name 'root' is reserved.";
+    }
+
+    lson.states.root = {
+      props: lson.props,
+      when: lson.when,
+      transition: lson.transition
+    };
+
+    for ( lsonKey in lson ) {
+      if ( lsonKey !== "children" || isRecursive ) {
+        if ( !key2fnNormalize[ lsonKey ] ) {
+          throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
+        }
+        key2fnNormalize[ lsonKey ]( lson );
+      }
+    }
+
+    lson.props = undefined;
+    lson.when = undefined;
+    lson.transition = undefined;
+
+
   }
 
 
@@ -174,16 +177,22 @@
       checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
     },
 
+    data: function ( lson ) {
+
+      checkAndThrowErrorAttrAsTake( "data", lson.data );
+
+    },
     /*
     * normalize the `lson`
     */
     props: function( lson ) {
 
-      var prop2val = lson.props,
-      prop, val,
-      longhandPropS, longhandProp, shorthandVal,
-      multipleTypePropMatchDetails,curMultipleMax,
-      i, len;
+      var
+        prop2val = lson.props,
+        prop, val,
+        longhandPropS, longhandProp, shorthandVal,
+        multipleTypePropMatchDetails,curMultipleMax,
+        i, len;
 
 
       if ( lson.props === undefined ) {
@@ -257,7 +266,6 @@
 
       var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
 
-
       for ( eventType in eventType2_fnCallbackS_ ) {
         fnCallbackS = eventType2_fnCallbackS_[ eventType ];
         checkAndThrowErrorAttrAsTake( "when." + eventType,
@@ -266,25 +274,8 @@
       }
     }
   },
-/*
-data: function ( lson ) {
-// normalize color here
-
-var key2value = lson.data;
-
-for ( var key in key2value ) {
-
-
-if ()
-
-}
-
-
-},
-*/
 
   transition: function( lson ) {
-
 
     if ( lson.transition === undefined ) {
       lson.transition = {};
@@ -328,36 +319,15 @@ if ()
             checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
             transitionArgKey2val  );
 
-            /*transitionArgKeyS = [];
-            for ( transitionArgKey in transitionArgKey2val ) {
-              transitionArgKeyS.push( transitionArgKey );
-            }*/
-            //LAID.$meta.set( lson, "keys", "transition." + transitionProp, transitionArgKeyS );
           }
-
         }
       }
     }
   },
 
-  many: function ( lson ) {
-
-    if ( lson.many !== undefined ) {
-      var many = lson.many;
-      checkAndThrowErrorAttrAsTake( "many", many );
-
-      key2fnNormalize.inherit( many );
-      key2fnNormalize.props( many );
-      key2fnNormalize.transition( many );
-      key2fnNormalize.states( many );
-
-    }
-  },
-
-  states: function( lson ) {
+  states: function( lson, isMany ) {
 
     if ( lson.states !== undefined ) {
-
 
       var stateName2state = lson.states, state;
       checkAndThrowErrorAttrAsTake( "states",  stateName2state );
@@ -372,9 +342,11 @@ if ()
 
         checkAndThrowErrorAttrAsTake( "states." + stateName, state );
 
-        key2fnNormalize.props( state );
-        key2fnNormalize.when( state );
-        key2fnNormalize.transition( state );
+        if ( !isMany ) {
+          key2fnNormalize.props( state );
+          key2fnNormalize.when( state );
+          key2fnNormalize.transition( state );
+        } 
 
       }
     }
@@ -385,14 +357,45 @@ if ()
 
     if ( lson.children !== undefined ) {
 
-
       var childName2childLson = lson.children;
+      checkAndThrowErrorAttrAsTake( "children",  childName2childLson );
 
       for ( var childName in childName2childLson ) {
 
-        _normalize( childName2childLson[ childName ], true );
+        normalize( childName2childLson[ childName ], true );
 
       }
+    }
+  },
+
+  many: function ( lson )  {
+
+    if ( lson.many !== undefined ) {
+
+      var many = lson.many;
+
+      checkAndThrowErrorAttrAsTake( "many", many );
+
+      if ( !many.states ) {
+        many.states = {};
+      }
+
+      many.states.root = {
+      
+        formation: many.formation,
+        sort: many.sort,
+        ascending: many.ascending,
+        filter: many.filter
+
+      };
+
+      many.formation = undefined;
+      many.sort = undefined;
+      many.ascending = undefined;
+      many.filter = undefined;
+
+      key2fnNormalize.states( many, true );
+
     }
   }
 };

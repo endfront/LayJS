@@ -23,4 +23,6 @@ gulp.task( 'concat', function() {
 
 gulp.task('default', function() {
     gulp.watch( js_fileS,  [ 'concat' ] );
+    gulp.start( "concat" );
+
 });

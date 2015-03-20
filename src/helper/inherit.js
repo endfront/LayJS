@@ -9,15 +9,15 @@
 
 
   /*
-  * Inherit the root, state, or many LAID from `from` into `into`.
+  * Inherit the root, state, or many LSON from `from` into `into`.
   */
-  LAID.$inherit = function ( into, from, isState, isRootState ) {
+  LAID.$inherit = function ( into, from, isMany, isState, isRootState ) {
 
     if ( !isState ) {
       for ( var key in from ) {
         if ( from[ key ] ) {
           if ( key2fnInherit[ key ] ) {
-            key2fnInherit[ key ]( into, from );
+            key2fnInherit[ key ]( into, from, isMany );
           } else {
             if ( key !== "$interface" ) {
               into[ key ] = from[ key ];
@@ -33,18 +33,26 @@
         into.uninstall = from.uninstall || into.uninstall;
       }
 
-      if ( from.props !== undefined ) {
-        key2fnInherit.props( into, from );
-      }
-      if ( from.when !== undefined ) {
-        key2fnInherit.when( into, from );
-      }
-      if ( from.transition !== undefined ) {
-        key2fnInherit.transition( into, from );
-      }
-      if ( from.$$max !== undefined ) {
-        key2fnInherit.$$max( into, from );
-      }
+      if ( isMany ) {
+        into.formation = from.formation || into.formation;
+        into.sort = from.sort || into.sort;
+        into.ascending = from.ascending || into.ascending;
+        into.filter = from.filter || into.filter;
+
+      } else {
+        if ( from.props !== undefined ) {
+          key2fnInherit.props( into, from );
+        }
+        if ( from.when !== undefined ) {
+          key2fnInherit.when( into, from );
+        }
+        if ( from.transition !== undefined ) {
+          key2fnInherit.transition( into, from );
+        }
+        if ( from.$$max !== undefined ) {
+          key2fnInherit.$$max( into, from );
+        }
+      } 
     }
   };
 
@@ -220,7 +228,7 @@
           intoLson.many = {};
         }
 
-        LAID.$inherit( intoLson.many, fromLson.many, false, false );
+        LAID.$inherit( intoLson.many, fromLson.many, false, false, false );
 
       },
 
@@ -263,17 +271,17 @@
 
           }
           LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
-             false, false );
+             false, false, false );
 
         }
       },
 
-      states: function( intoLson, fromLson ) {
+      states: function( intoLson, fromLson, isMany ) {
 
         var
-        fromStateName2state = fromLson.states,
-        intoStateName2state = intoLson.states,
-        inheritFromState, inheritIntoState;
+          fromStateName2state = fromLson.states,
+          intoStateName2state = intoLson.states,
+          inheritFromState, inheritIntoState;
 
         if ( intoStateName2state === undefined ) {
           intoStateName2state = intoLson.states = {};
@@ -287,7 +295,8 @@
 
           }
 
-          LAID.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true, false );
+          LAID.$inherit( intoStateName2state[ name ],
+           fromStateName2state[ name ], isMany, true, false );
 
         }
       },

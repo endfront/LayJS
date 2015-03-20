@@ -15,29 +15,26 @@
     takeTopToCenterY,
     takeTopToBottom;
 
-  LAID.$defaultizeLsonRootProps = function ( lson ) {
+  LAID.$defaultize = function ( lson ) {
     var
       essentialProp,
-      props = lson.props,
+      rootState = lson.states.root,
+      rootStateProps = rootState.props,
+      rootStateTransition = rootState.transition,
+      props,
       states = lson.states,
       stateName, state,
       prop,
       when, transition, metaMax, maxProp,
       eventType, transitionProp;
-
-
-    lson.props.right = takeLeftToRight;
-    lson.props.centerX = takeLeftToCenterX;
-    lson.props.bottom = takeTopToBottom;
-    lson.props.centerY = takeTopToCenterY;
-
+    
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
-      if ( props[ essentialProp ] === undefined ) {
-        props[ essentialProp ] = essentialProp2defaultValue[ essentialProp ];
+      if ( rootStateProps[ essentialProp ] === undefined ) {
+        rootStateProps[ essentialProp ] =
+          essentialProp2defaultValue[ essentialProp ];
       }
     }
-
 
     if ( states ) {
       for ( stateName in states ) {
@@ -47,13 +44,30 @@
         transition = state.transition;
         metaMax = state.$$max;
 
-        for ( prop in props ) {
+        if ( props.left || props.left === 0 ) {
+          takeLeft = new LAID.Take( "",  stateName + ".left" );
 
-          if ( ( lson.props[ prop ] === undefined ) &&
+          props.centerX = new LAID.Take( fnPosToCenter ).fn(
+            takeLeft, takeWidth );
+          props.right = new LAID.Take( fnPosToEdge ).fn(
+            takeLeft, takeWidth );
+        }
+
+        if ( props.top || props.top === 0 ) {
+          takeTop = new LAID.Take( "",  stateName + ".top" );
+
+          props.centerY = new LAID.Take( fnPosToCenter ).fn(
+            takeTop, takeHeight );
+          props.bottom = new LAID.Take( fnPosToEdge ).fn(
+            takeTop, takeHeight );  
+       }
+
+        for ( prop in props ) {
+          
+          if ( ( rootStateProps[ prop ] === undefined ) &&
               ( lazyProp2defaultValue[ prop ] !== undefined )
             ) {
-
-              lson.props[ prop ] = lazyProp2defaultValue[ prop ];
+              rootStateProps[ prop ] = lazyProp2defaultValue[ prop ];
           }
         }
       }
@@ -72,14 +86,14 @@
         }
       }
 
-      for ( transitionProp in transition ) {
-        if ( !lson.transition[ transitionProp ] )  {
-          lson.transition[ transitionProp ] = {};
+      for ( transitionProp in rootStateTransition ) {
+        if ( !rootStateTransition[ transitionProp ] )  {
+          rootStateTransition[ transitionProp ] = {};
         }
       }
     }
 
-    if ( lson.props.text !== undefined ) {
+    if ( rootStateProps.text !== undefined ) {
       lson.$type = "text";
     } else if ( lson.type === undefined ) {
       lson.$type = "none";
@@ -133,16 +147,19 @@
   };
 
 
-  takeLeft = new LAID.Take( "", "left" );
+
   takeWidth = new LAID.Take( "", "width" );
-  takeTop = new LAID.Take( "", "top" );
   takeHeight = new LAID.Take( "", "height" );
 
+  /*
+  takeLeft = new LAID.Take( "", "left" );
+  takeTop = new LAID.Take( "", "top" );
+  
   takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
   takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
   takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
   takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
-
+  */
 
   // These match the psuedo defaults for non expander props
   lazyProp2defaultValue = {

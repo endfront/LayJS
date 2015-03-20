@@ -9,7 +9,7 @@ var springTransition = {
 };
 
 
-LAID.run( {
+var x =( {
   data: {
     lang: "en",
     menu: false
@@ -196,6 +196,7 @@ LAID.run( {
               props: {
                 centerX: LAID.take("../", "width").divide(2),
                 text: "WOLPART",
+//                height:200,
                 textAlign: "center",
                 textColor: LAID.color( "white"),
                 textPadding:20,
@@ -253,6 +254,27 @@ LAID.run( {
           },
 
           children: {
+            /*"Option" : {
+              props: {
+                width:LAID.take("../", 'width').subtract(20),
+                height:120,
+                backgroundColor: LAID.color("blue"),
+                centerX: LAID.take("../","width").divide(2),
+                backgroundColor:LAID.color("blue"),
+                textColor:LAID.take("", "backgroundColor").colorInvert(),
+                text: "hlrlo world"
+//                text: LAID.take("", "row.title")
+
+              },
+              many:{
+                formation: "onebelow",
+                $id: "id",
+                rows: [
+                  {id:1, title:"first"},
+                  {id:2, title:"second"}
+                ]
+              }
+            }*/
             "Option1": {
               props: {
                 width:LAID.take("../", 'width').subtract(20),
@@ -278,7 +300,6 @@ LAID.run( {
                 }).i18nFormat(LAID.take("", "backgroundColor").colorStringify())
               },
             }
-            
           }
         },
         "BodyOverlay": {
@@ -384,6 +405,69 @@ LAID.run( {
   }
 });
 
+
+
+LAID.run({
+  children: {
+    "Option" : {
+      props: {
+
+    
+        width:LAID.take("../", 'width').subtract(20),
+        height:120,
+        backgroundColor: LAID.color("blue"),
+        centerX: LAID.take("../","width").divide(2),
+        backgroundColor:LAID.color("blue"),
+        textColor:LAID.take("", "backgroundColor").colorInvert(),
+//        text: "hlrlo world" 
+        text: LAID.take("", "row.title")
+
+      },
+      many:{
+        data: {
+          formationGap: 10
+        },
+        formation: "onebelow",
+        $id: "id",
+        rows: [
+          {id:1, title:"first"},
+          {id:2, title:"second"},
+          {id:3, title:"third"}
+
+        ]
+      }
+    }
+  }
+        
+})
+ 
+
+var w = ({
+  props: {
+    backgroundColor: LAID.color("red")
+  },
+  children: {
+    "Top": {
+      data: {
+        on: true
+      },
+      props: {
+        height: LAID.take("../", "height").divide(2),
+        width: LAID.take("../", "width"),
+        backgroundColor: LAID.color("blue")
+      },
+      states: {
+        "on": {
+          onlyif: LAID.take("", "data.on"),
+          props: {
+              bottom: 700
+          }
+        }
+      }
+    }
+  }
+});
+
 /*
 LAID.run({
   children: {
@@ -418,3 +502,5 @@ LAID.run({
   }
 
 });*/
+
+/**/

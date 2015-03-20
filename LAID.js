@@ -150,10 +150,10 @@ bottom: -0.25em;
     this.transition = undefined;
     this.isTransitionable = false;
 
+
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
-    this.renderCall = level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
-
+    this.renderCall = level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
 
     this.takerAttrValS = [];
 
@@ -167,7 +167,7 @@ bottom: -0.25em;
   * Else return the empty string.
   */
   function getStateNameOfOnlyIf ( attr ) {
-    var match = attr.match( /^([\w\-]+).onlyif$/ );
+    var match = attr.match( /^([\w\-:]+).onlyif$/ );
 
     return ( match !== null && match[ 1 ] !== "data" ) ?
     match[ 1 ] : "";
@@ -198,6 +198,9 @@ bottom: -0.25em;
     var i = attr.indexOf( "." );
     if ( LAID.$checkIsValidUtils.propAttr( attr ) ) {
       return true;
+    } else if ( 
+      [ "formation", "filter", "sort", "ascending" ].indexOf ( attr ) !== -1 ) {
+      return true;
     } else {
       var prefix = attr.slice( 0, i );
       return ( ( [ "when", "transition", "$$num", "$$max" ] ).indexOf(
@@ -215,9 +218,12 @@ bottom: -0.25em;
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
 
+    if ( this.attr === "rows" ) {
+      val = { level: this.level, rows: val };
+    }
     this.val = val;
 
-    if ( ( val !== this.prevVal ) &&
+    if ( ( !LAID.identical( val, this.prevVal ) ) && 
       !( LAID.$checkIsValidUtils.nan( val ) &&
        LAID.$checkIsValidUtils.nan( this.prevVal ) )
       ) {
@@ -289,6 +295,8 @@ bottom: -0.25em;
       level = this.level,
       i, len;
 
+// /    console.log("update", this.attr );
+
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
         this.isTaken = this.take();
@@ -318,17 +326,17 @@ bottom: -0.25em;
     if ( !isDirty ) {
       switch ( this.attr ) {
         case "input":
-          this.transitionCalcVal = this.level.part.node.value;
+          this.transitionCalcVal = this.level.$part.node.value;
 
       }
     }
 
     switch ( this.attr ) {
       case "scrollX":
-        this.transitionCalcVal = this.level.part.node.scrollLeft;
+        this.transitionCalcVal = this.level.$part.node.scrollLeft;
         isDirty = true;
       case "scrollY":
-        this.transitionCalcVal = this.level.part.node.scrollTop;
+        this.transitionCalcVal = this.level.$part.node.scrollTop;
         isDirty = true;
     }
 
@@ -349,10 +357,14 @@ bottom: -0.25em;
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
         this.takerAttrValS[ i ].requestRecalculation();
       }
+      
+      if ( level.$derivedManyLevel ) {
+        level.$derivedManyLevel.$attr2attrVal.rows.requestRecalculation();
+      }
 
       if ( LAID.$isDataTravellingShock ) {
 
-        level.part.$addTravelRenderDirtyAttrVal( this );
+        level.$part.$addTravelRenderDirtyAttrVal( this );
 
       }
 
@@ -362,45 +374,41 @@ bottom: -0.25em;
 
 
         if ( !LAID.$isDataTravellingShock ) {
-          level.part.$addNormalRenderDirtyAttrVal( this );
-
+          level.$part.$addNormalRenderDirtyAttrVal( this );
         }
-
 
         switch ( attr ) {
           case "text":
-            level.part.$updateNaturalWidthFromText();
-            level.part.$updateNaturalHeightFromText();
+            level.$part.$updateNaturalWidthFromText();
+            level.$part.$updateNaturalHeightFromText();
             break;
           case "width":
             if ( level.$attr2attrVal.text !== undefined ) {
-              level.part.$updateNaturalHeightFromText();
+              level.$part.$updateNaturalHeightFromText();
             }
             break;
           case "left":
-            level.part.$updateAbsoluteX();
+            level.$part.$updateAbsoluteX();
             break;
           case "shiftX":
-            level.part.$updateAbsoluteX();
+            level.$part.$updateAbsoluteX();
             break;
           case "top":
-            level.part.$updateAbsoluteY();
+            level.$part.$updateAbsoluteY();
             break;
           case "shiftY":
-            level.part.$updateAbsoluteY();
+            level.$part.$updateAbsoluteY();
             break;
           default:
             if ( attr.startsWith( "textPadding" ) )  {
-              level.part.$updateNaturalWidthFromText();
-              level.part.$updateNaturalHeightFromText();          
+              level.$part.$updateNaturalWidthFromText();
+              level.$part.$updateNaturalHeightFromText();          
             } 
         }
 
-        
-
         // In case there exists a transition
         // for the given prop then update it
-        level.part.$updateTransitionProp( attr );
+        level.$part.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
@@ -416,7 +424,7 @@ bottom: -0.25em;
         } else { // remove state
           if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
 
-            level.$updateStates( );
+            level.$updateStates();
             // remove from the list of installed states (which may/may not be present within)
             LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
             // add state to the list of newly uninstalled states
@@ -426,23 +434,24 @@ bottom: -0.25em;
           }
         }
       } else if ( whenEventType !== "" ) {
-        level.part.$updateWhenEventType( whenEventType );
+        level.$part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        level.part.$updateTransitionProp( transitionProp );
+        level.$part.$updateTransitionProp( transitionProp );
+      } else if ( attr === "rows" ) {
+        level.$many.$updateRows();
       } else {  
 
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
-             level.parentLevel.part.$updateNaturalWidthFromChild( level );
+             level.parentLevel.$part.$updateNaturalWidthFromChild( level );
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
-              level.parentLevel.part.$updateNaturalHeightFromChild( level );
+              level.parentLevel.$part.$updateNaturalHeightFromChild( level );
             }
             break;
-          
         }
       }
     }
@@ -456,13 +465,13 @@ bottom: -0.25em;
       if ( this.isEventReadonlyAttr ) {
         // Given that a reference exists, add event listeners
         var
-        eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
-        eventType,
-        fnBoundHandler;
+          eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
+          eventType,
+          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
-          LAID.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.add( this.level.$part.node, eventType, fnBoundHandler );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = fnBoundHandler;
         }
@@ -481,7 +490,7 @@ bottom: -0.25em;
          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAID.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.remove( this.level.$part.node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] = undefined;
         }
       }
@@ -542,6 +551,7 @@ bottom: -0.25em;
         attr = _relPath00attr_S[ i ][ 1 ];
 
         level = relPath.resolve( this.level );
+
         if ( ( level !== undefined ) && ( level.$getAttrVal( attr ) !== undefined ) ) {
           level.$getAttrVal( attr ).giveNot( this );
         }
@@ -960,48 +970,102 @@ bottom: -0.25em;
 
 ( function () {
   "use strict";
+  LAID.Filter = function ( rowsWrapper ) {
+    this.rowsWrapper = rowsWrapper;
+  };
+  
+  LAID.Filter.prototype.eq = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.eq( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.neq = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.neq( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.gt = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.gt( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.gte = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.gte( this.rowsWrapper, val ) );
+  };
+  
+  LAID.Filter.prototype.lt = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.lt( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.lte = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.lte( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.regex = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.regex( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.contains = function ( val ) {
+  	return new LAID.Filter( LAID.$filterUtils.contains( this.rowsWrapper, val ) );
+  };
+
+  LAID.Filter.prototype.fn = function ( fnFilter ) {
+  	return new LAID.Filter( LAID.$filterUtils.fn( this.rowsWrapper, fnFilter ) );
+  };
+
+  LAID.Filter.prototype.fetch = function ( index, attr ) {
+  	return LAID.$filterUtils.fetch(
+  		this.rowsWrapper, index, attr );
+  };
+
+  LAID.Filter.prototype.end = function () {
+  	return this.rowsWrapper.rows;
+  };
+
+
+ 
+})();
+
+( function () {
+  "use strict";
 
 
   
 
 
-  LAID.Level = function ( path, lson, parent ) {
+  LAID.Level = function ( path, lson, parent, derivedManyLevel, row ) {
 
     this.path = path;
     this.parentLevel = parent; // parent Level
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
-    this.isPart = undefined;
-    // This is relevant if the Level is a Part.
-    // If true it implies that this Part
-    // has been generated by a Many Level.
-    this.isManyDerived = undefined;
+    this.$isPart = undefined;
 
-    // If the Level is a Many (i.e this.isPart is false)
-    // then this.many will hold a reference to the corresponding
+    // If the Level is a Many (i.e this.$isPart is false)
+    // then this.$many will hold a reference to the corresponding
     // Many object.
-    this.part = undefined;
-    // If the Level is a Many (i.e this.isPart is false)
-    // then this.many will hold a reference to the corresponding
+    this.$part = undefined;
+    // If the Level is a Many (i.e this.$isPart is false)
+    // then this.$many will hold a reference to the corresponding
     // Many object.
-    this.many = undefined;
+    this.$many = undefined;
+
     // If the Level is derived from a Many Level
-    // (i.e this.isManyDerived is true)
-    // then this.derivedMany will hold
-    // a reference to that Many object
-    this.derivedMany = undefined;
+    // then this.$derivedManyLevel will hold
+    // a reference to the level
+    this.$derivedManyLevel = derivedManyLevel;
+
+    // If the Level is derived from a Many Level
+    // this will contain the row information will
+    // be contained within below
+    this.$row = row;
 
     this.$lson = lson;
     this.$isInherited = false;
 
     this.$attr2attrVal = {};
-    //this.$dataTravelAttrValS = [];
     this.$recalculateDirtyAttrValS = [];
-   
 
     this.$childLevelS = [];
 
-    this.$stateS = [];
+    this.$stateS = [ "root" ];
     this.$stringHashedStates2_cachedAttr2val_ =  {};
     this.$newlyInstalledStateS = [];
     this.$newlyUninstalledStateS = [];
@@ -1012,14 +1076,22 @@ bottom: -0.25em;
 
     LAID.$path2level[ this.path ] = this;
 
-    if ( !LAID.$isClogged ) {
-      LAID.$newLevelS.push( this );
-      LAID.$solve();
-      
-
-    } else {
-      LAID.$cloggedLevelS.push( this );
-    }
+    // Check is this is many derived level,
+    // if it is not then add it to the queue
+    // of levels for the "$inherit" key to be
+    // executed.
+    // If so then we can proceed doing nothing as
+    // the level already has its LSON inherited
+    // through its derived many level.
+  
+    if ( !this.$derivedManyLevel ) { 
+      if ( !LAID.$isClogged ) {
+        LAID.$newLevelS.push( this );
+        
+      } else {
+        LAID.$cloggedLevelS.push( this );
+      }
+    } 
 
   };
 
@@ -1028,6 +1100,18 @@ bottom: -0.25em;
 
     return ( new LAID.RelPath( relativePath ) ).resolve( this );
   };
+
+  LAID.Level.prototype.node = function () {
+
+    return this.$part.node;
+  };
+
+  LAID.Level.prototype.many = function () {
+
+    return this.$derivedManyLevel && this.$derivedManyLevel.$many;
+   
+  };
+
   LAID.Level.prototype.addChildren = function ( name2lson ) {
 
     var childPath, childLevel, name;
@@ -1047,20 +1131,28 @@ bottom: -0.25em;
         childLevel.$init();
 
       }
+      LAID.$solve();
     }
   };
 
   LAID.Level.prototype.remove = function () {
+    
+    this.$remove();
+    LAID.$solve();
+    
+  };
+
+  LAID.Level.prototype.$remove = function () {
     if ( this.path === "/" ) {
       console.error("LAID Warning: Attempt to remove root level prohibited");
     } else {
       var
        parentLevel = this.parentLevel,
-       parentPart = parentLevel.part;
+       parentPart = parentLevel.$part;
 
       LAID.$path2level[ this.path ] = undefined;
       LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
-      LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.part );
+      LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
 
       if ( parentPart.$naturalWidthLevel === this ) {
         parentPart.$updateNaturalWidth();
@@ -1069,7 +1161,9 @@ bottom: -0.25em;
         parentPart.$updateNaturalHeight();
       }
 
-      LAID.$solve();
+      if ( this.$derivedManyLevel ) {
+        this.$derivedManyLevel.$many.$removeLevel( this );
+      }
 
     }
   };
@@ -1077,13 +1171,13 @@ bottom: -0.25em;
   /*
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
-  * Else add the level's children to the tree and return true
   */
-  LAID.Level.prototype.$inheritAndReproduce = function () {
+  LAID.Level.prototype.$inherit = function () {
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
 
-    LAID.$normalize( this.$lson, false );
-
+    if ( !this.$derivedManyLevel ) {
+     LAID.$normalize( this.$lson, false );
+    }
     // check if it contains anything to inherit from
     if ( this.$lson.$inherit !== undefined ) { 
       lson = { type: "none" };
@@ -1112,7 +1206,7 @@ bottom: -0.25em;
            inheritedAndNormalizedLson = ref;
         }
 
-        LAID.$inherit( lson, inheritedAndNormalizedLson, false, false );
+        LAID.$inherit( lson, inheritedAndNormalizedLson, false, false, false );
       }
 
       LAID.$inherit( lson, this.$lson, false, false );
@@ -1120,29 +1214,41 @@ bottom: -0.25em;
       this.$lson = lson;
     }
 
-    LAID.$defaultizeLsonRootProps( this.$lson );
 
-    if ( this.$lson.children !== undefined ) {
-      this.addChildren( this.$lson.children );
-    }
+    
 
-    this.isPart = this.$lson.many === undefined;
-
-    if ( this.isPart ) {
-      this.part = new LAID.Part( this );
-      this.part.$init();
-      if ( this.path !== "/" ) {
-        LAID.$insertedPartS.push( this.part );
-      }
-    } else {
-      this.many = new LAID.Many( this );
-    }
     this.$isInherited = true;
     return true;
 
   };
 
+  LAID.Level.prototype.$identifyAndReproduce = function ( ) {
+    this.$isPart = this.$lson.$many === undefined;
 
+    if ( this.$isPart ) {
+      if ( !this.$derivedManyLevel ) {
+        LAID.$defaultize( this.$lson );
+      }
+      this.$part = new LAID.$part( this );
+      this.$part.$init();
+      if ( this.path !== "/" ) {
+        LAID.$insertedPartS.push( this.$part );
+      }
+      if ( this.$lson.children !== undefined ) {
+        this.addChildren( this.$lson.children );
+      }
+    } else {
+
+      var partLson = this.$lson;
+      this.$lson = this.$lson.$many;
+      partLson.$many = undefined;
+      this.$many = new LAID.$many( this, partLson );
+      this.$many.$init();
+      /*if ( this.$lson.rows ) {
+        this.$lson.rows = {level: this, rows: this.$lson.rows};
+      }*/
+    }
+  };
 
   function initAttrsObj( attrPrefix, key2val, attr2val ) {
 
@@ -1163,60 +1269,65 @@ bottom: -0.25em;
   }
 
   /* Flatten the slson to attr2val dict */
-  function convertSLSONtoAttr2Val( slson, attr2val ) {
+  function convertSLSONtoAttr2Val( slson, attr2val, isPart ) {
 
-    var prop,
-    transitionProp, transitionDirective,
-    transitionPropPrefix,
-    eventType, fnCallbackS,
-    prop2val = slson.props,
-    when = slson.when,
-    transition = slson.transition,
-    i, len;
-    
-    initAttrsObj( "", slson.props, attr2val );
+    var
+      prop,
+      transitionProp, transitionDirective,
+      transitionPropPrefix,
+      eventType, fnCallbackS,
+      prop2val = slson.props,
+      when = slson.when,
+      transition = slson.transition,
+      i, len;
+          
+    if ( isPart ){ 
+      initAttrsObj( "", slson.props, attr2val );
 
+      for ( transitionProp in transition ) {
+        transitionDirective = transition[ transitionProp ];
+        transitionPropPrefix =  "transition." + transitionProp + ".";
+        if ( transitionDirective.type !== undefined ) {
+          attr2val[ transitionPropPrefix + "type" ] =
+            transitionDirective.type;
+        }
+        if ( transitionDirective.duration !== undefined ) {
+          attr2val[ transitionPropPrefix + "duration" ] =
+            transitionDirective.duration;
+        }
+        if ( transitionDirective.delay !== undefined ) {
+          attr2val[ transitionPropPrefix + "delay" ] =
+            transitionDirective.delay;
+        }
+        if ( transitionDirective.done !== undefined ) {
+          attr2val[ transitionPropPrefix + "done" ] =
+            transitionDirective.done;
+        }
+        if ( transitionDirective.args !== undefined ) {
+          initAttrsObj( transitionPropPrefix + "args.",
+            transitionDirective.args, attr2val );
+        }
+      }
 
-    for ( transitionProp in transition ) {
-      transitionDirective = transition[ transitionProp ];
-      transitionPropPrefix =  "transition." + transitionProp + ".";
-      if ( transitionDirective.type !== undefined ) {
-        attr2val[ transitionPropPrefix + "type" ] =
-          transitionDirective.type;
+      for ( eventType in when ) {
+        fnCallbackS = when[ eventType ];
+        initAttrsArray(  "when." + eventType, fnCallbackS, attr2val );
       }
-      if ( transitionDirective.duration !== undefined ) {
-        attr2val[ transitionPropPrefix + "duration" ] =
-          transitionDirective.duration;
+
+      if ( slson.$$num !== undefined ) {
+        initAttrsObj( "$$num.", slson.$$num, attr2val );
       }
-      if ( transitionDirective.delay !== undefined ) {
-        attr2val[ transitionPropPrefix + "delay" ] =
-          transitionDirective.delay;
+
+      if ( slson.$$max !== undefined ) {
+        initAttrsObj(  "$$max.", slson.$$max, attr2val );
       }
-      if ( transitionDirective.done !== undefined ) {
-        attr2val[ transitionPropPrefix + "done" ] =
-          transitionDirective.done;
-      }
-      if ( transitionDirective.args !== undefined ) {
-        initAttrsObj( transitionPropPrefix + "args.",
-          transitionDirective.args, attr2val );
-      }
+    } else {
+      attr2val.formation = slson.formation;
+      attr2val.sort = slson.sort;
+      attr2val.ascending = slson.ascending;
+      attr2val.filter = slson.filter;
+      
     }
-
-    for ( eventType in when ) {
-      fnCallbackS = when[ eventType ];
-      initAttrsArray(  "when." + eventType, fnCallbackS, attr2val );
-    }
-
-    if ( slson.$$num !== undefined ) {
-      initAttrsObj( "$$num.", slson.$$num, attr2val );
-    }
-
-    if ( slson.$$max !== undefined ) {
-      initAttrsObj(  "$$max.", slson.$$max, attr2val );
-    }
-
-
-
   }
 
   LAID.Level.prototype.$initAllAttrs = function () {
@@ -1224,6 +1335,7 @@ bottom: -0.25em;
     var
       observableReadonlyS = this.$lson.$observe,
       observableReadonly, i, len;
+    
    
     if ( this.path === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
@@ -1247,27 +1359,45 @@ bottom: -0.25em;
     this.$initNonStateProjectedAttrs();
     this.$updateStates();
 
+
   };
 
   LAID.Level.prototype.$initNonStateProjectedAttrs = function () {
 
-    var i, key, val, stateName, state,
+    var 
+      key, val, stateName, state,
+      states = this.$lson.states,
+      lson = this.$lson,
+      attr2val = {};
 
-    states = this.$lson.states, when = this.$lson.when,
-    transition = this.$lson.transition,
-    attr2val = {};
+    initAttrsObj( "data.", lson.data, attr2val );
 
-    initAttrsObj( "data.", this.$lson.data, attr2val );
+    if ( this.$derivedManyLevel ) {
+      initAttrsObj( "row.", this.$row, attr2val );
+      this.$row = undefined;
+    }
 
-    if ( this.$lson.load !== undefined ) {
-      attr2val.load = this.$lson.load;
+    if ( lson.load !== undefined ) {
+      attr2val.load = lson.load;
     }
 
     for ( stateName in states ) {
         state = states[ stateName ];
-        attr2val[ stateName + "." + "onlyif" ] = state.onlyif;
-        attr2val[ stateName + "." + "install" ] = state.install;
-        attr2val[ stateName + "." + "uninstall" ] = state.uninstall;
+        if ( stateName !== "root" ) {
+          attr2val[ stateName + "." + "onlyif" ] = state.onlyif;
+          if ( state.install ) {
+            attr2val[ stateName + "." + "install" ] = state.install;
+          }
+          if ( state.uninstall ) {
+            attr2val[ stateName + "." + "uninstall" ] = state.uninstall;
+          }
+        }
+    }
+
+    if ( !this.$isPart ) { // Many
+      attr2val.all = undefined;
+      attr2val.rows = lson.rows;
+      attr2val.$id = lson.$id;
     }
 
     this.$commitAttr2Val( attr2val );
@@ -1277,7 +1407,6 @@ bottom: -0.25em;
   LAID.Level.prototype.$commitAttr2Val = function ( attr2val ) {
 
     var attr, val, attrVal;
-    
     for ( attr in attr2val ) {
       val = attr2val[ attr ];
       attrVal = this.$attr2attrVal[ attr ];
@@ -1287,6 +1416,12 @@ bottom: -0.25em;
       attrVal.update( val );
 
     }
+  };
+
+  LAID.Level.prototype.$createAttrVal = function ( attr, val ) {
+
+    ( this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this ) ).update( val );
+
   };
 
   /*
@@ -1314,16 +1449,16 @@ bottom: -0.25em;
             this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
               break;
           case "$naturalWidth":
-            this.part.$updateNaturalWidth();
+            this.$part.$updateNaturalWidth();
             break;
           case "$naturalHeight":
-            this.part.$updateNaturalHeight();
+            this.$part.$updateNaturalHeight();
             break;
           case "$absoluteX":
-            this.part.$updateAbsoluteX();
+            this.$part.$updateAbsoluteX();
             break;
           case "$absoluteY":
-            this.part.$updateAbsoluteY();
+            this.$part.$updateAbsoluteY();
             break;
         }
       } else {
@@ -1333,19 +1468,17 @@ bottom: -0.25em;
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
       } else {
-        if ( !attr.startsWith( "data." ) ) {
-        
+        if ( attr.startsWith( "data." ) ) {
+          return false;
+        } else {
           splitAttrLsonComponentS = attr.split( "." );
           if ( this.$lson.states === undefined ) {
             return false;
           } else {
-
             firstAttrLsonComponent = splitAttrLsonComponentS[ 0 ];
 
             // Get down to state level
-            if ( firstAttrLsonComponent === "root" ) {
-              attrLsonComponentObj = this.$lson;
-            } else if ( LAID.$checkIsValidUtils.stateName(
+            if ( LAID.$checkIsValidUtils.stateName(
              firstAttrLsonComponent ) ) {
               attrLsonComponentObj = this.$lson.states[ firstAttrLsonComponent ];
             } else {
@@ -1407,8 +1540,8 @@ bottom: -0.25em;
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-        //console.log( "\trecalculate", this.path, isSolveProgressed,
-        //  recalculateDirtyAttrValS[ i ] );
+//        console.log( "\trecalculate", this.path, isSolveProgressed,
+  //    recalculateDirtyAttrValS[ i ] );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -1440,41 +1573,65 @@ bottom: -0.25em;
 
   /* Return the attr2value generated
   by the current states */
-  LAID.Level.prototype.getStateAttr2val = function () {
+  LAID.Level.prototype.$getStateAttr2val = function () {
 
-    var attr2val = {};
-
-    if ( this.isManyDerived ) {
-      // TODO:MANY: get from Many object
-    } else {
-      var stringHashedStates = this.$stateS.sort().join( "&" );
-      if ( this.$stringHashedStates2_cachedAttr2val_[
-       stringHashedStates ] === undefined ) {
-        convertSLSONtoAttr2Val( this.generateSLSON(), attr2val);
-        this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
-         attr2val;
-      }
-      return this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
+    var
+      attr2val = {},
+      stringHashedStates2_cachedAttr2val_;
+  // Refer to the central cache for Many levels
+   stringHashedStates2_cachedAttr2val_ = this.$derivedManyLevel ?
+      this.$derivedManyLevel.stringHashedStates2_cachedAttr2val_ :
+      this.stringHashedStates2_cachedAttr2val_;
+    
+    this.$sortStates();
+    var stringHashedStates = this.$stateS.join( "&" );
+    if ( this.$stringHashedStates2_cachedAttr2val_[
+     stringHashedStates ] === undefined ) {
+      convertSLSONtoAttr2Val( this.$generateSLSON(), attr2val, this.$isPart);
+      this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
+        attr2val;
     }
+    return this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
+  
 
   };
 
+  LAID.Level.prototype.$sortStates = function ( stateS ) {
+
+    var
+      sortedStateS = this.$stateS.sort(),
+      i, len, sortedState;
+
+    for ( i = 0, len = sortedStateS.length; i < len; i++ ) {
+      sortedState = sortedStateS[ i ];
+      if ( sortedState.startsWith( "formation:") ) {
+        LAID.$arrayUtils.removeAtIndex( sortedStateS, i );
+        // ensure "formation:" states get lowest priority
+        // behind "root". "root" will be demoted to the 0th
+        // index only after this change.
+        sortedStateS.unshift( sortedState );
+        break;
+      }
+    }
+  
+  LAID.$arrayUtils.remove( sortedStateS, "root" );
+  sortedStateS.unshift("root");
+
+  };
 
   /*
   *  From the current states generate the
   *  correspinding SLSON (state projected lson)
   *  Requirement: the order of states must be sorted
   */
-  LAID.Level.prototype.generateSLSON =  function () {
+  LAID.Level.prototype.$generateSLSON =  function () {
 
-    this.$stateS.sort();
+    this.$sortStates();
 
     var slson = {}, attr2val;
-
-    LAID.$inherit( slson, this.$lson, true, true );
-
     for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
-      LAID.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ], true, true );
+      LAID.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ],
+        !this.$isPart, true, true );
     }
 
     return slson;
@@ -1487,7 +1644,7 @@ bottom: -0.25em;
   LAID.Level.prototype.$updateStates = function () {
 
     this.$undefineStateProjectedAttrs();
-    this.$commitAttr2Val( this.getStateAttr2val() );
+    this.$commitAttr2Val( this.$getStateAttr2val() );
 
     //console.log("LAID INFO: new state", this.path, this.$stateS );
 
@@ -1498,7 +1655,10 @@ bottom: -0.25em;
 
     if ( this.$attr2attrVal[ attr ] ) {
       
-      return this.$attr2attrVal[ attr ].calcVal;
+      if ( attr === "rows" ) {
+        return this.$attr2attrVal[ attr ].calcVal.rows;
+      } 
+        return this.$attr2attrVal[ attr ].calcVal;
 
     } else if ( this.$createLazyAttr( attr ) ) {
 
@@ -1513,7 +1673,12 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
+    if ( !this.$attr2attrVal[ attr ] ) {
+      this.$createLazyAttr( attr );
+      LAID.$solve();
+    }
     return this.$attr2attrVal[ attr ];
+
   };
 
   /* Manually change attr value */
@@ -1621,13 +1786,169 @@ bottom: -0.25em;
   "use strict";
 
 
-  LAID.Many = function ( level ) {
+  LAID.$many = function ( level, partLson ) {
 
     this.level = level;
+    this.$partLson = partLson;
+
+	  this.$stringHashedStates2_cachedAttr2val_ =  {};
+
+    this.$id = level.$lson.$id;
+    this.$id2level = {};
+
+  };
+
+  LAID.$many.prototype.$init = function () {
+
+    var
+      states = this.$partLson.states || ( this.$partLson.states = {} ),
+      formationName2state = LAID.$formationName2state,
+      formationName;
+    
+
+    if ( this.$id === undefined ) {
+
+    }
+    
+    // initiate formations
+    for ( formationName in formationName2state ) {
+      states[ "formation:" + formationName ] =
+        formationName2state[ formationName ];
+    }
+
+    LAID.$defaultize( this.$partLson );
+
+  };
+
+  LAID.$many.prototype.filter = function () {
+
+    return new LAID.Filter( this.$attr2attrVal.rows.calcVal );
+  };
+
+  /*
+  *	Update the rows by:
+  * (1) Creating new levels in accordance to new rows
+  * (2) Updating existing levels in accordance to changes in changed rows
+  */
+  LAID.$many.prototype.$updateRows = function () {
+  	var 
+  		rowS = this.level.$attr2attrVal.rows.calcVal.rows,
+  		row,
+  		id,
+  		level,
+  		parentLevel = this.level.parentLevel,
+      updatedLevelS = [],
+      newLevelS = [],
+      id2level = this.$id2level,
+      i, len;
+
+    sortRows( rowS, this.level.$attr2attrVal.sort.calcVal );
+
+
+
+  	for ( i = 0, len = rowS.length; i < len; i++ ) {
+  		row = rowS[ i ];
+  		id = row[ this.$id ];
+  		level = this.$id2level[ id ];
+      if ( level === null ) {
+        // deleted level
+        continue;
+  		} else if ( !level ) {
+  			level = new LAID.Level( this.level.path + ":" + id,
+  			 this.$partLson, parentLevel, this.level, row );
+  			parentLevel.$childLevelS.push( level );
+  			id2level[ id ] = level;
+
+        level.$createAttrVal( "$i", i + 1 );
+        level.$init();
+        level.$identifyAndReproduce();
+
+        newLevelS.push( level );
+
+  		} else {
+        // update row
+        level.$attr2attrVal.$i.update( i + 1 );
+
+  		}
+
+      updatedLevelS.push( level );
+
+  	}
+
+    // solve as new levels might have been intoduced
+    // after "Level.$identifyAndReproduce()"
+    LAID.$solve();
+
+
+    for ( i = 0, len = newLevelS.length; i < len; i++ ) {
+      newLevelS[ i ].$initAllAttrs();
+
+    }
+
+    for ( id in id2level ) {
+      level = id2level[ id ];
+      if ( updatedLevelS.indexOf( level ) === -1 ) {
+        level.$remove();
+      }
+    }
+
+
+    this.$updateFormation();
+
+
+  	LAID.$solve();
+
+  };
+
+  LAID.$many.prototype.$updateFormation = function ( ) {
+
+
+/*    var
+      formationObj = this.$formationName2obj[ 
+        this.$attr2attrVal.formation.calcVal ],
+      id, level,
+      formationProp2val = formationObj.props,
+      formationProp, formationPropVal, attrVal;
+
+    for ( id in id2level ) {
+      level = id2level[ id ];
+      for ( formationProp in formationProp2val ) {
+        formationPropVal = formationProp2val[ formationProp ];
+        attrVal = formationProp2val;
+        if ( !attrVal ) {
+          level.$createAttrVal( formationProp, formationPropVal  );
+          attrVal = level.$attr2attrVal.formationProp;
+          attrVal.isFormationProp = true;
+        }
+        level.$attr2attrVal.
+      }
+    }
+  */
 
 
   };
 
+  LAID.$many.prototype.$removeLevel = function ( level ) {
+
+    this.$id2level[ id ] = null;
+
+  };
+
+  LAID.$many.prototype.$updateSort = function () {
+    var
+      sort = this.level.$attr2attrVal.sort.calcVal,
+      rowS = this.level.$attr2attrVal.rows.calcVal,
+      sortedRowS = sortRows( rowsS, sort  );
+
+    this.level.$attr2attrVal.rows.update( sortedRowS );
+
+
+  };
+
+  
+  function sortRows ( rowS ) {
+    return rowS;
+  };
 
 })();
 
@@ -1680,7 +2001,7 @@ bottom: -0.25em;
     option: "option"
   };
 
-  LAID.Part = function ( level ) {
+  LAID.$part = function ( level ) {
 
     this.level = level;
     this.node = undefined;
@@ -1704,7 +2025,7 @@ bottom: -0.25em;
   };
 
 
-  LAID.Part.prototype.$init = function () {
+  LAID.$part.prototype.$init = function () {
 
     var
       levelType = this.level.$lson.$type,
@@ -1738,7 +2059,7 @@ bottom: -0.25em;
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Part.prototype.$findChildWithMaxOfAttr =
+  LAID.$part.prototype.$findChildWithMaxOfAttr =
    function ( attr, attrValIndependentOf, attrChildIndepedentOf ) {
     var
        curMaxVal, curMaxLevel,
@@ -1771,14 +2092,14 @@ bottom: -0.25em;
     return curMaxLevel;
   };
 
-  LAID.Part.prototype.$updateAbsoluteX = function () {
+  LAID.$part.prototype.$updateAbsoluteX = function () {
 
     var 
       attr2attrVal = this.level.$attr2attrVal,
       relativeLeft = attr2attrVal.left.calcVal,
       shiftX = attr2attrVal.shiftX ? attr2attrVal.shiftX.calcVal : 0,
       parentAbsoluteX = this.level.path !== "/" ? 
-        this.level.parentLevel.part.$absoluteX : 0,
+        this.level.parentLevel.$part.$absoluteX : 0,
       absoluteX = relativeLeft + shiftX + parentAbsoluteX;
 
     if ( typeof absoluteX === "number" ) {
@@ -1788,19 +2109,19 @@ bottom: -0.25em;
       }
       for ( var i = 0, childLevelS = this.level.$childLevelS,
          len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].part.$updateAbsoluteX();
+        childLevelS[ i ].$isPart && childLevelS[ i ].$part.$updateAbsoluteX();
       }
     }
   };
 
-  LAID.Part.prototype.$updateAbsoluteY = function () {
+  LAID.$part.prototype.$updateAbsoluteY = function () {
 
     var 
       attr2attrVal = this.level.$attr2attrVal,
       relativeTop = attr2attrVal.top.calcVal,
       shiftY = attr2attrVal.shiftY ? attr2attrVal.shiftY.calcVal : 0,
       parentAbsoluteY = this.level.path !== "/" ?
-        this.level.parentLevel.part.$absoluteY : 0,
+        this.level.parentLevel.$part.$absoluteY : 0,
       absoluteY = relativeTop + shiftY + parentAbsoluteY;
 
     if ( typeof absoluteY === "number" ) {
@@ -1810,12 +2131,12 @@ bottom: -0.25em;
       }
       for ( var i = 0, childLevelS = this.level.$childLevelS,
          len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].part.$updateAbsoluteY();
+        childLevelS[ i ].$isPart && childLevelS[ i ].$part.$updateAbsoluteY();
       }
     }
   };
 
-  LAID.Part.prototype.$updateNaturalWidth = function () {
+  LAID.$part.prototype.$updateNaturalWidth = function () {
     var attr2attrVal = this.level.$attr2attrVal
     if ( this.level.path === "/" ) {
       attr2attrVal.$naturalWidth.update( window.innerWidth );
@@ -1833,7 +2154,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeight = function () {
+  LAID.$part.prototype.$updateNaturalHeight = function () {
     var attr2attrVal = this.level.$attr2attrVal
     if ( this.level.path === "/" ) {
       attr2attrVal.$naturalHeight.update( window.innerHeight );
@@ -1853,7 +2174,7 @@ bottom: -0.25em;
 
 
 
-  LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
+  LAID.$part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
@@ -1897,7 +2218,7 @@ bottom: -0.25em;
   };
 
 
-  LAID.Part.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
+  LAID.$part.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
@@ -1940,7 +2261,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$updateNaturalWidthFromText = function () {
+  LAID.$part.prototype.$updateNaturalWidthFromText = function () {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
@@ -1961,7 +2282,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeightFromText = function () {
+  LAID.$part.prototype.$updateNaturalHeightFromText = function () {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
@@ -1981,7 +2302,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.$part.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
 
     LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
@@ -1989,7 +2310,7 @@ bottom: -0.25em;
 
   };
 
-  LAID.Part.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.$part.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
 
     LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
@@ -1997,7 +2318,7 @@ bottom: -0.25em;
 
   };
 
-  LAID.Part.prototype.$updateWhenEventType = function ( eventType ) {
+  LAID.$part.prototype.$updateWhenEventType = function ( eventType ) {
 
     var
       numFnHandlersForEventType =
@@ -2032,14 +2353,14 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$checkIsPropInTransition = function ( prop ) {
+  LAID.$part.prototype.$checkIsPropInTransition = function ( prop ) {
     return ( this.level.$attr2attrVal[ "transition." + prop  + ".type" ] !==
       undefined )  ||
       ( this.level.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
         undefined );
   };
 
-  LAID.Part.prototype.$updateTransitionProp = function ( transitionProp ) {
+  LAID.$part.prototype.$updateTransitionProp = function ( transitionProp ) {
 
 
     if ( this.$isInitiallyRendered ) {
@@ -2136,7 +2457,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$updateTransitionAttrVal = function ( attrVal,
+  LAID.$part.prototype.$updateTransitionAttrVal = function ( attrVal,
     transitionType, transitionDelay, transitionDuration,
     transitionArg2val, transitionDone  ) {
 
@@ -2175,7 +2496,7 @@ bottom: -0.25em;
   if ( isGpuAccelerated ) {
 
 
-    LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
+    LAID.$part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
     function () {
       var attr2attrVal = this.level.$attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
@@ -2202,12 +2523,12 @@ bottom: -0.25em;
 
     };
 
-    LAID.Part.prototype.$renderFn_width = function () {
+    LAID.$part.prototype.$renderFn_width = function () {
       this.node.style.width = this.level.$attr2attrVal.width.transitionCalcVal + "px";
       //this.$renderFn_positional(); //apply change to transform
     };
 
-    LAID.Part.prototype.$renderFn_height = function () {
+    LAID.$part.prototype.$renderFn_height = function () {
       this.node.style.height = this.level.$attr2attrVal.height.transitionCalcVal + "px";
       //this.$renderFn_positional(); //apply change to transform
     };
@@ -2217,15 +2538,15 @@ bottom: -0.25em;
   } else {
     // legacy browser usage or forced non-gpu mode
 
-    LAID.Part.prototype.$renderFn_width = function () {
+    LAID.$part.prototype.$renderFn_width = function () {
       this.node.style.width = this.level.$attr2attrVal.width.transitionCalcVal + "px";
     };
 
-    LAID.Part.prototype.$renderFn_height = function () {
+    LAID.$part.prototype.$renderFn_height = function () {
       this.node.style.height = this.level.$attr2attrVal.height.transitionCalcVal + "px";
     };
 
-    LAID.Part.prototype.$renderFn_positional = function () {
+    LAID.$part.prototype.$renderFn_positional = function () {
       var attr2attrVal = this.level.$attr2attrVal;
       this.node.style.left = ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
       this.node.style.top = ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
@@ -2237,7 +2558,7 @@ bottom: -0.25em;
 
 
 
-  LAID.Part.prototype.$renderFn_origin = function () {
+  LAID.$part.prototype.$renderFn_origin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
 
       console.log("origin!", ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
@@ -2251,80 +2572,80 @@ bottom: -0.25em;
   };
 
 
-  LAID.Part.prototype.$renderFn_perspective = function () {
+  LAID.$part.prototype.$renderFn_perspective = function () {
     this.node.style[ cssPrefix + "perspective" ] = this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
   };
 
-  LAID.Part.prototype.$renderFn_perspectiveOrigin = function () {
+  LAID.$part.prototype.$renderFn_perspectiveOrigin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
     this.node.style[ cssPrefix + "perspective-origin" ] =
     ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 ) + "% " +
     ( attr2attrVal.perspectiveOriginY.transitionCalcVal * 100 ) + "%";
   };
 
-  LAID.Part.prototype.$renderFn_backfaceVisibility = function () {
+  LAID.$part.prototype.$renderFn_backfaceVisibility = function () {
     this.node.style[ cssPrefix + "backface-visibility" ] = this.level.$attr2attrVal.perspective.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_opacity = function () {
+  LAID.$part.prototype.$renderFn_opacity = function () {
     this.node.style.opacity = this.level.$attr2attrVal.opacity.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_userSelect = function () {
+  LAID.$part.prototype.$renderFn_userSelect = function () {
     this.node.style[ cssPrefix + "user-select" ] = 
       this.level.$attr2attrVal.userSelect.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_display = function () {
+  LAID.$part.prototype.$renderFn_display = function () {
     this.node.style.display = this.level.$attr2attrVal.display ?
     "block" : "none";
   };
 
-  LAID.Part.prototype.$renderFn_zIndex = function () {
+  LAID.$part.prototype.$renderFn_zIndex = function () {
 
     this.node.style.zIndex =
       this.level.$attr2attrVal.zIndex.transitionCalcVal || "auto";
   };
 
 
-  LAID.Part.prototype.$renderFn_scrollX = function () {
+  LAID.$part.prototype.$renderFn_scrollX = function () {
     this.node.scrollLeft = this.level.$attr2attrVal.scrollX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_scrollY = function () {
+  LAID.$part.prototype.$renderFn_scrollY = function () {
     this.node.scrollTop = this.level.$attr2attrVal.scrollY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_overflowX = function () {
+  LAID.$part.prototype.$renderFn_overflowX = function () {
     this.node.style.overflowX = this.level.$attr2attrVal.overflowX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_overflowY = function () {
+  LAID.$part.prototype.$renderFn_overflowY = function () {
     this.node.style.overflowY = this.level.$attr2attrVal.overflowY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_cursor = function () {
+  LAID.$part.prototype.$renderFn_cursor = function () {
     this.node.style.cursor = this.level.$attr2attrVal.cursor.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundColor = function () {
+  LAID.$part.prototype.$renderFn_backgroundColor = function () {
     this.node.style.backgroundColor = this.level.$attr2attrVal.backgroundColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.$renderFn_backgroundImage = function () {
+  LAID.$part.prototype.$renderFn_backgroundImage = function () {
     this.node.style.backgroundImage = this.level.$attr2attrVal.backgroundImage.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundAttachment = function () {
+  LAID.$part.prototype.$renderFn_backgroundAttachment = function () {
     this.node.style.backgroundAttachment = this.level.$attr2attrVal.backgroundAttachment.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundRepeat = function () {
+  LAID.$part.prototype.$renderFn_backgroundRepeat = function () {
     this.node.style.backgroundRepeat = this.level.$attr2attrVal.backgroundColor.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundSize = function () {
+  LAID.$part.prototype.$renderFn_backgroundSize = function () {
     var backgroundSizeX = this.level.$attr2attrVal.backgroundSizeX,
     backgroundSizeY = this.level.$attr2attrVal.backgroundSizeY;
 
@@ -2338,7 +2659,7 @@ bottom: -0.25em;
 
   };
 
-  LAID.Part.prototype.$renderFn_backgroundPosition = function () {
+  LAID.$part.prototype.$renderFn_backgroundPosition = function () {
     this.node.style.backgroundPosition =
     ( this.level.$attr2attrVal.backgroundPositionX !== undefined ?
        this.level.$attr2attrVal.backgroundPositionX.transitionCalcVal : 0 ) +
@@ -2348,7 +2669,7 @@ bottom: -0.25em;
     "px" ;
   };
 
-  LAID.Part.prototype.$renderFn_boxShadows = function () {
+  LAID.$part.prototype.$renderFn_boxShadows = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     s = "",
@@ -2378,7 +2699,7 @@ bottom: -0.25em;
 
 
 
-  LAID.Part.prototype.$renderFn_filters = function () {
+  LAID.$part.prototype.$renderFn_filters = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     s = "",
@@ -2414,58 +2735,58 @@ bottom: -0.25em;
 
   };
 
-  LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
+  LAID.$part.prototype.$renderFn_cornerRadiusTopLeft = function () {
     this.node.style.borderTopLeftRadius = this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
+  LAID.$part.prototype.$renderFn_cornerRadiusTopRight = function () {
     this.node.style.borderTopRightRadius = this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
+  LAID.$part.prototype.$renderFn_cornerRadiusBottomRight = function () {
     this.node.style.borderBottomRightRadius = this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
+  LAID.$part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
     this.node.style.borderBottomLeftRadius = this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
   };
 
 
 
-  LAID.Part.prototype.$renderFn_borderTopStyle = function () {
+  LAID.$part.prototype.$renderFn_borderTopStyle = function () {
     this.node.style.borderTopStyle = this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderRightStyle = function () {
+  LAID.$part.prototype.$renderFn_borderRightStyle = function () {
     this.node.style.borderRightStyle = this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderBottomStyle = function () {
+  LAID.$part.prototype.$renderFn_borderBottomStyle = function () {
     this.node.style.borderBottomStyle = this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderLeftStyle = function () {
+  LAID.$part.prototype.$renderFn_borderLeftStyle = function () {
     this.node.style.borderLeftStyle = this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_borderTopColor = function () {
+  LAID.$part.prototype.$renderFn_borderTopColor = function () {
     this.node.style.borderTopColor = this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderRightColor = function () {
+  LAID.$part.prototype.$renderFn_borderRightColor = function () {
     this.node.style.borderRightColor = this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderBottomColor = function () {
+  LAID.$part.prototype.$renderFn_borderBottomColor = function () {
     this.node.style.borderBottomColor = this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderLeftColor = function () {
+  LAID.$part.prototype.$renderFn_borderLeftColor = function () {
     this.node.style.borderLeftColor = this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.$renderFn_borderTopWidth = function () {
+  LAID.$part.prototype.$renderFn_borderTopWidth = function () {
     this.node.style.borderTopWidth = this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderRightWidth = function () {
+  LAID.$part.prototype.$renderFn_borderRightWidth = function () {
     this.node.style.borderRightWidth = this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderBottomWidth = function () {
+  LAID.$part.prototype.$renderFn_borderBottomWidth = function () {
     this.node.style.borderBottomWidth = this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderLeftWidth = function () {
+  LAID.$part.prototype.$renderFn_borderLeftWidth = function () {
     this.node.style.borderLeftWidth = this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
   };
 
@@ -2473,7 +2794,7 @@ bottom: -0.25em;
 
   /* Text Related */
 
-  LAID.Part.prototype.$renderFn_text = function () {
+  LAID.$part.prototype.$renderFn_text = function () {
     if ( this.$naturalWidthTextMode ) {
       this.node.style.display = "inline";
       this.node.style.width = "auto";
@@ -2486,7 +2807,6 @@ bottom: -0.25em;
     if ( this.$naturalHeightTextMode ) {
       this.node.style.height = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-
       this.level.$changeAttrVal( "$naturalHeight", this.node.getBoundingClientRect().height );
       this.$naturalHeightTextMode = false;
     }
@@ -2495,22 +2815,22 @@ bottom: -0.25em;
 
   };
 
-  LAID.Part.prototype.$renderFn_textSize = function () {
+  LAID.$part.prototype.$renderFn_textSize = function () {
     this.node.style.fontSize = this.level.$attr2attrVal.textSize.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_textFamily = function () {
+  LAID.$part.prototype.$renderFn_textFamily = function () {
     this.node.style.fontFamily = this.level.$attr2attrVal.textFamily.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textWeight = function () {
+  LAID.$part.prototype.$renderFn_textWeight = function () {
 
     this.node.style.fontWeight = this.level.$attr2attrVal.textWeight.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textColor = function () {
+  LAID.$part.prototype.$renderFn_textColor = function () {
     this.node.style.color = this.level.$attr2attrVal.textColor.transitionCalcVal.stringify();
   };
 
 
-  LAID.Part.prototype.$renderFn_textShadows = function () {
+  LAID.$part.prototype.$renderFn_textShadows = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     s = "",
@@ -2530,47 +2850,47 @@ bottom: -0.25em;
     this.node.style.textShadow = s;
   };
 
-  LAID.Part.prototype.$renderFn_textVariant = function () {
+  LAID.$part.prototype.$renderFn_textVariant = function () {
     this.node.style.fontVariant = this.level.$attr2attrVal.textVariant.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textStyle = function () {
+  LAID.$part.prototype.$renderFn_textStyle = function () {
     this.node.style.fontStyle = this.level.$attr2attrVal.textStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textDecoration = function () {
+  LAID.$part.prototype.$renderFn_textDecoration = function () {
     this.node.style.textDecoration = this.level.$attr2attrVal.textDecoration.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textAlign = function () {
+  LAID.$part.prototype.$renderFn_textAlign = function () {
     this.node.style.textAlign = this.level.$attr2attrVal.textAlign.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
+  LAID.$part.prototype.$renderFn_textLetterSpacing = function () {
     var textLetterSpacing = this.level.$attr2attrVal.textLetterSpacing;
     this.node.style.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcVal !== undefined ?
       textLetterSpacing.transitionCalcVal + "px" : "normal";
   };
-  LAID.Part.prototype.$renderFn_textWordSpacing = function () {
+  LAID.$part.prototype.$renderFn_textWordSpacing = function () {
     var textWordSpacing = this.level.$attr2attrVal.textWordSpacing;
     this.node.style.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcVal !== undefined ?
     textWordSpacing.transitionCalcVal + "px" : "normal";
   };
-  LAID.Part.prototype.$renderFn_textOverflow = function () {
+  LAID.$part.prototype.$renderFn_textOverflow = function () {
     this.node.style.textOverflow = this.level.$attr2attrVal.textOverflow.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textIndent = function () {
+  LAID.$part.prototype.$renderFn_textIndent = function () {
     this.node.style.textIndent = this.level.$attr2attrVal.textIndent.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_textWhitespace = function () {
+  LAID.$part.prototype.$renderFn_textWhitespace = function () {
     this.node.style.whitespace = this.level.$attr2attrVal.textWhitespace.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textPaddingTop = function () {
+  LAID.$part.prototype.$renderFn_textPaddingTop = function () {
     this.node.style.paddingTop = this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_textPaddingRight = function () {
+  LAID.$part.prototype.$renderFn_textPaddingRight = function () {
     this.node.style.paddingRight = this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_textPaddingBottom = function () {
+  LAID.$part.prototype.$renderFn_textPaddingBottom = function () {
     this.node.style.paddingBottom = this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_textPaddingLeft = function () {
+  LAID.$part.prototype.$renderFn_textPaddingLeft = function () {
     this.node.style.paddingLeft = this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
   };
 
@@ -2579,52 +2899,52 @@ bottom: -0.25em;
 
   /* Input (<input/> and <textarea>) Related */
 
-  LAID.Part.prototype.$renderFn_inputLabel = function () {
+  LAID.$part.prototype.$renderFn_inputLabel = function () {
     this.node.label = this.level.$attr2attrVal.inputLabel.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputRows = function () {
+  LAID.$part.prototype.$renderFn_inputRows = function () {
     this.node.rows = this.level.$attr2attrVal.inputRows.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_input = function () {
+  LAID.$part.prototype.$renderFn_input = function () {
     this.node.value = this.level.$attr2attrVal.input.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputPlaceholder = function () {
+  LAID.$part.prototype.$renderFn_inputPlaceholder = function () {
     this.node.placeholder = this.level.$attr2attrVal.inputPlaceholder.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputAutocomplete = function () {
+  LAID.$part.prototype.$renderFn_inputAutocomplete = function () {
     this.node.autocomplete = this.level.$attr2attrVal.inputAutocomplete.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputAutocorrect = function () {
+  LAID.$part.prototype.$renderFn_inputAutocorrect = function () {
     this.node.autocorrect = this.level.$attr2attrVal.inputAutocorrect.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputDisabled = function () {
+  LAID.$part.prototype.$renderFn_inputDisabled = function () {
     this.node.disabled = this.level.$attr2attrVal.inputDisabled.transitionCalcVal;
   };
 
 
   /* Link (<a>) Related */
 
-  LAID.Part.prototype.$renderFn_linkHref = function () {
+  LAID.$part.prototype.$renderFn_linkHref = function () {
     this.node.href = this.level.$attr2attrVal.linkHref.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkRel = function () {
+  LAID.$part.prototype.$renderFn_linkRel = function () {
     this.node.rel = this.level.$attr2attrVal.linkRel.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkDownload = function () {
+  LAID.$part.prototype.$renderFn_linkDownload = function () {
     this.node.download = this.level.$attr2attrVal.linkDownload.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkTarget = function () {
+  LAID.$part.prototype.$renderFn_linkTarget = function () {
     this.node.target = this.level.$attr2attrVal.linkTarget.transitionCalcVal;
   };
 
 
   /* Image (<img>) related */
-  LAID.Part.prototype.$renderFn_imageUrl = function () {
+  LAID.$part.prototype.$renderFn_imageUrl = function () {
     this.node.src = this.level.$attr2attrVal.imageUrl.transitionCalcVal;
   };
 
   /* Audio (<audio>) related */
-  LAID.Part.prototype.$renderFn_audioSources = function () {
+  LAID.$part.prototype.$renderFn_audioSources = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     i, len,
@@ -2647,7 +2967,7 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_audioTracks = function () {
+  LAID.$part.prototype.$renderFn_audioTracks = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     i, len,
@@ -2670,24 +2990,24 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_audioVolume = function () {
+  LAID.$part.prototype.$renderFn_audioVolume = function () {
     this.node.volume = this.level.$attr2attrVal.audioVolume.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioControls = function () {
+  LAID.$part.prototype.$renderFn_audioControls = function () {
     this.node.controls = this.level.$attr2attrVal.audioControls.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioLoop = function () {
+  LAID.$part.prototype.$renderFn_audioLoop = function () {
     this.node.loop = this.level.$attr2attrVal.audioLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioMuted = function () {
+  LAID.$part.prototype.$renderFn_audioMuted = function () {
     this.node.muted = this.level.$attr2attrVal.audioMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioPreload = function () {
+  LAID.$part.prototype.$renderFn_audioPreload = function () {
     this.node.preload = this.level.$attr2attrVal.audioPreload.transitionCalcVal;
   };
 
   /* Video (<video>) related */
-  LAID.Part.prototype.$renderFn_videoSources = function () {
+  LAID.$part.prototype.$renderFn_videoSources = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     i, len,
@@ -2710,7 +3030,7 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_videoTracks = function () {
+  LAID.$part.prototype.$renderFn_videoTracks = function () {
     var
     attr2attrVal = this.level.$attr2attrVal,
     i, len,
@@ -2733,25 +3053,25 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_videoAutoplay = function () {
+  LAID.$part.prototype.$renderFn_videoAutoplay = function () {
     this.node.autoplay = this.level.$attr2attrVal.videoAutoplay.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoControls = function () {
+  LAID.$part.prototype.$renderFn_videoControls = function () {
     this.node.controls = this.level.$attr2attrVal.videoControls.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoCrossorigin = function () {
+  LAID.$part.prototype.$renderFn_videoCrossorigin = function () {
     this.node.crossorigin = this.level.$attr2attrVal.videoCrossorigin.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoLoop = function () {
+  LAID.$part.prototype.$renderFn_videoLoop = function () {
     this.node.loop = this.level.$attr2attrVal.videoLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoMuted = function () {
+  LAID.$part.prototype.$renderFn_videoMuted = function () {
     this.node.muted = this.level.$attr2attrVal.videoMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoPreload = function () {
+  LAID.$part.prototype.$renderFn_videoPreload = function () {
     this.node.preload = this.level.$attr2attrVal.videoPreload.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoPoster = function () {
+  LAID.$part.prototype.$renderFn_videoPoster = function () {
     this.node.poster = this.level.$attr2attrVal.videoPoster.transitionCalcVal;
   };
 
@@ -2765,13 +3085,16 @@ bottom: -0.25em;
   LAID.RelPath = function ( relativePath ) {
 
 
-    if  ( relativePath === "" ) {
+    this.me = false;
+    this.many = false;
 
+    if  ( relativePath === "" ) {
       this.me = true;
 
-    } else {
+    } else if ( relativePath === "*" ) { 
+      this.many = true;
 
-      this.me = false;
+    } else {
       if ( relativePath[ 0 ] === "/" ) {
         this.absolute = true;
         this.absolutePath = relativePath;
@@ -2795,6 +3118,8 @@ bottom: -0.25em;
 
     if ( this.me ) {
       return referenceLevel;
+    } else if ( this.many ) { 
+      return referenceLevel.$derivedManyLevel;
     } else {
       if ( this.absolute ) {
           return LAID.$path2level[ this.absolutePath ];
@@ -3661,6 +3986,56 @@ bottom: -0.25em;
     return this;
   };
 
+  LAID.Take.prototype.filterFetch = function ( index, attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( index instanceof LAID.Take ) {
+      this.$mergePathAndProps( index );
+
+      if ( attr instanceof LAID.Take ) {
+        this.$mergePathAndProps( attr );
+        this.executable = function () {
+          return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index.execute( this ),
+            attr.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index.execute( this ),
+            attr
+          );
+        }
+      }
+    } else if ( attr instanceof LAID.Take ) {
+      this.$mergePathAndProps( attr );
+      this.executable = function () {
+        return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index,
+            attr.execute( this )
+          );
+      }
+
+    } else {
+      this.executable = function () {
+        return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index,
+            attr
+          );
+      }
+    }
+
+    return this;
+
+  };
+
   /*
   * Call custom function with arguments, where arguments
   * can be LAID.Take objects.
@@ -4282,6 +4657,29 @@ return this;
 
 })();
 
+( function () {
+	"use strict";
+	LAID.filter = function ( rowsWrapper ) {
+		return new LAID.Filter( rowsWrapper );
+	}
+
+})();
+
+( function () {
+	"use strict";
+
+	LAID.formation = function ( name, state ) {
+		state.onlyif = LAID.take("*", "formation").eq( name ).and(
+			LAID.take("", "$i").neq(1));
+
+		LAID.$formationName2state[ name ] = state;
+
+	};
+
+
+
+
+})();
 (function() {
   "use strict";
 
@@ -4320,6 +4718,13 @@ return this;
 
   })();
 
+( function () {
+  "use strict";
+  LAID.identical = function ( v1,  v2 ) {
+    return v1 === v2;
+
+  };
+})();
 (function() {
   "use strict";
 
@@ -4381,6 +4786,8 @@ return this;
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
     ( new LAID.Level( "/", rootLson, undefined ) ).$init();
+
+    LAID.$solve();
 
     window.onresize = updateSize;
 
@@ -4547,12 +4954,14 @@ return this;
   var reservedNameS = [ 
     "root", "transition", "data", "when", "load",
     "",
-    "many", "formation", "sort", "ascending", "rows", "row", "filter" 
+    "many", "formation", "sort", "ascending",
+    "rows", "row", "filter", "args", "all"
   ];
 
   LAID.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
-  		return ( /^[\w\-]+$/ ).test( levelName );
+  		return ( /^[\w\-]+$/ ).test( levelName ) &&
+        ( reservedNameS.indexOf( levelName ) === -1 );
   	},
   	/*
   	* Rules of a state name:
@@ -4561,9 +4970,16 @@ return this;
   	* (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
   	*/
   	stateName: function ( stateName ) {
-  		 return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
-		    ( reservedNameS.
-    		indexOf( stateName ) === -1 );
+  		 return (
+       ( ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
+		    ( 
+          ( reservedNameS.indexOf( stateName ) === -1 ) ||
+          stateName === "root"
+        )
+      )
+       || 
+       ( stateName.startsWith("formation:"))
+       );
   	},
   	expanderAttr: function ( attr ) {
   		var expanderAttrS = [
@@ -4571,7 +4987,7 @@ return this;
          "videoSources", "audioSources", "videoTracks", "audioTracks",
           "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
 			    "data", "when", "transition", "type", "inherit", "states", "observe"
-			     ];
+			];
 			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
 			 var nonStateAttrPrefixS = [ "data", "when", "transition" ];
 
@@ -4597,9 +5013,7 @@ return this;
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
      		( attr[ 0 ] !== "$") &&
-        ( [ "load", "formation", "sort",
-            "ascending", "rows", "filter"
-          ].indexOf( attr ) === -1 )
+        ( reservedNameS.indexOf( attr ) === -1 )
        );
   	},
 
@@ -4814,29 +5228,26 @@ return this;
     takeTopToCenterY,
     takeTopToBottom;
 
-  LAID.$defaultizeLsonRootProps = function ( lson ) {
+  LAID.$defaultize = function ( lson ) {
     var
       essentialProp,
-      props = lson.props,
+      rootState = lson.states.root,
+      rootStateProps = rootState.props,
+      rootStateTransition = rootState.transition,
+      props,
       states = lson.states,
       stateName, state,
       prop,
       when, transition, metaMax, maxProp,
       eventType, transitionProp;
-
-
-    lson.props.right = takeLeftToRight;
-    lson.props.centerX = takeLeftToCenterX;
-    lson.props.bottom = takeTopToBottom;
-    lson.props.centerY = takeTopToCenterY;
-
+    
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
-      if ( props[ essentialProp ] === undefined ) {
-        props[ essentialProp ] = essentialProp2defaultValue[ essentialProp ];
+      if ( rootStateProps[ essentialProp ] === undefined ) {
+        rootStateProps[ essentialProp ] =
+          essentialProp2defaultValue[ essentialProp ];
       }
     }
-
 
     if ( states ) {
       for ( stateName in states ) {
@@ -4846,13 +5257,30 @@ return this;
         transition = state.transition;
         metaMax = state.$$max;
 
-        for ( prop in props ) {
+        if ( props.left || props.left === 0 ) {
+          takeLeft = new LAID.Take( "",  stateName + ".left" );
 
-          if ( ( lson.props[ prop ] === undefined ) &&
+          props.centerX = new LAID.Take( fnPosToCenter ).fn(
+            takeLeft, takeWidth );
+          props.right = new LAID.Take( fnPosToEdge ).fn(
+            takeLeft, takeWidth );
+        }
+
+        if ( props.top || props.top === 0 ) {
+          takeTop = new LAID.Take( "",  stateName + ".top" );
+
+          props.centerY = new LAID.Take( fnPosToCenter ).fn(
+            takeTop, takeHeight );
+          props.bottom = new LAID.Take( fnPosToEdge ).fn(
+            takeTop, takeHeight );  
+       }
+
+        for ( prop in props ) {
+          
+          if ( ( rootStateProps[ prop ] === undefined ) &&
               ( lazyProp2defaultValue[ prop ] !== undefined )
             ) {
-
-              lson.props[ prop ] = lazyProp2defaultValue[ prop ];
+              rootStateProps[ prop ] = lazyProp2defaultValue[ prop ];
           }
         }
       }
@@ -4871,14 +5299,14 @@ return this;
         }
       }
 
-      for ( transitionProp in transition ) {
-        if ( !lson.transition[ transitionProp ] )  {
-          lson.transition[ transitionProp ] = {};
+      for ( transitionProp in rootStateTransition ) {
+        if ( !rootStateTransition[ transitionProp ] )  {
+          rootStateTransition[ transitionProp ] = {};
         }
       }
     }
 
-    if ( lson.props.text !== undefined ) {
+    if ( rootStateProps.text !== undefined ) {
       lson.$type = "text";
     } else if ( lson.type === undefined ) {
       lson.$type = "none";
@@ -4932,16 +5360,19 @@ return this;
   };
 
 
-  takeLeft = new LAID.Take( "", "left" );
+
   takeWidth = new LAID.Take( "", "width" );
-  takeTop = new LAID.Take( "", "top" );
   takeHeight = new LAID.Take( "", "height" );
 
+  /*
+  takeLeft = new LAID.Take( "", "left" );
+  takeTop = new LAID.Take( "", "top" );
+  
   takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
   takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
   takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
   takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
-
+  */
 
   // These match the psuedo defaults for non expander props
   lazyProp2defaultValue = {
@@ -5089,28 +5520,28 @@ return this;
     },
     $scrolledX: {
       scroll: function () {
-        this.$changeAttrVal( "$scrolledX", this.part.node.scrollTop );
+        this.$changeAttrVal( "$scrolledX", this.$part.node.scrollTop );
       }
     },
     $cursorX: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorX", this.part.node.offsetX );
+        this.$changeAttrVal( "$cursorX", this.$part.node.offsetX );
       }
     },
     $cursorY: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorY", this.part.node.offsetY );
+        this.$changeAttrVal( "$cursorY", this.$part.node.offsetY );
       }
     },
     $input: {
       click: function () {
-        this.$changeAttrVal( "$input", this.part.node.value );
+        this.$changeAttrVal( "$input", this.$part.node.value );
       },
       change: function () {
-        this.$changeAttrVal( "$input", this.part.node.value );
+        this.$changeAttrVal( "$input", this.$part.node.value );
       },
       keydown: function () {
-        this.$changeAttrVal( "$input", this.part.node.value );
+        this.$changeAttrVal( "$input", this.$part.node.value );
       }
     },
 
@@ -5202,6 +5633,106 @@ function fix_preventDefault() {
 function fix_stopPropagation() {
   this.cancelBubble = true;
 }
+
+( function () {
+	"use strict";
+
+	LAID.$filterUtils = {
+		eq: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val === curVal;
+				}, rowsWrapper.rows )
+			}
+		},
+		neq: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val !== curVal;
+				}, rowsWrapper.rows )
+			}
+		},
+		gt: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val > curVal;
+				}, rowsWrapper.rows )
+			}
+		},
+		gte: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val >= curVal;
+				}, rowsWrapper.rows )
+			}
+		},
+		lt: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val < curVal;
+				}, rowsWrapper.rows )
+			}
+		},
+		lte: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val <= curVal;
+				}, rowsWrapper.rows )
+			}
+		},
+		regex: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val.test( curVal );
+				}, rowsWrapper.rows )
+			}
+		},
+		contains: function ( rowsWrapper, val ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( function ( curVal ) {
+					return val.indexOf( curVal ) !== -1;
+				}, rowsWrapper.rows )
+			}
+		},
+		fn: function ( rowsWrapper, fnFilter ) {
+			return {
+				level: rowsWrapper.level,
+				rows: filter( fnFilter , rowsWrapper.rows )
+			}
+		},
+		fetch: function ( rowsWrapper, index, attr ) {
+			var 
+		    row = rowsWrapper.rows[ index - 1 ],
+	      many = rowsWrapper.level.$many,
+        id = many.$id,
+        idVal = row[ id ];
+
+			return many.$id2level[ idVal ].$getAttrVal( attr ).calcVal;
+
+		}
+
+	};
+
+	function filter ( fnFilter, rowS ) {
+		var filteredRowS = [];
+		for ( var i = 0, len = rowS.length, row; i < len; i++ ) {
+			row = rowS[ i ];
+			if ( fnFilter( row ) ) {
+				filteredRowS.push( row );
+			} 
+		}
+		return filteredRowS;
+	}
+
+})();
 
 ( function () {
   "use strict";
@@ -5503,6 +6034,45 @@ function fix_stopPropagation() {
 }());
 
 ( function () {
+	"use strict";
+
+	LAID.$formationName2state = {
+		"onebelow": {
+			onlyif: LAID.take( "*", "formation" ).eq( "onebelow" ).and(
+				LAID.take("", "$i").neq(1)),
+			
+			props: {
+				top: 
+					LAID.take(function(){
+						var i = this.attr("$i");
+						if ( i === 2 ) {
+							return this.$many.filter().fetch(
+								1, "bottom" );
+						} else {
+							console.log(this.$many.filter().fetch( 
+								i - 1, "formation:onebelow.bottom" ));
+							return LAID.filter( rows ).fetch( 
+								i - 1, "formation:onebelow.bottom" );
+						}
+
+					}).fn( LAID.take("*", "all" ) ).add( 
+				 	LAID.take("*", "data.formationGap")),
+			}
+		},
+		"totheright": {
+			onlyif: LAID.take( "*", "formation" ).eq( "totheright" ).and(
+				LAID.take("", "$i").neq(1)),
+		
+			props: {
+				right: LAID.take( "*", "rows" ).filterFetch( 
+					LAID.take("", "$i").subtract(1),
+					"formation:totheright.right"
+				 ).add(LAID.take("*", "data.formationGap")),
+			}
+		},
+	};
+})();
+( function () {
   "use strict";
 
   LAID.$generateColorMix = function ( startColor, endColor, fraction ) {
@@ -5578,15 +6148,15 @@ function fix_stopPropagation() {
 
 
   /*
-  * Inherit the root, state, or many LAID from `from` into `into`.
+  * Inherit the root, state, or many LSON from `from` into `into`.
   */
-  LAID.$inherit = function ( into, from, isState, isRootState ) {
+  LAID.$inherit = function ( into, from, isMany, isState, isRootState ) {
 
     if ( !isState ) {
       for ( var key in from ) {
         if ( from[ key ] ) {
           if ( key2fnInherit[ key ] ) {
-            key2fnInherit[ key ]( into, from );
+            key2fnInherit[ key ]( into, from, isMany );
           } else {
             if ( key !== "$interface" ) {
               into[ key ] = from[ key ];
@@ -5602,18 +6172,26 @@ function fix_stopPropagation() {
         into.uninstall = from.uninstall || into.uninstall;
       }
 
-      if ( from.props !== undefined ) {
-        key2fnInherit.props( into, from );
-      }
-      if ( from.when !== undefined ) {
-        key2fnInherit.when( into, from );
-      }
-      if ( from.transition !== undefined ) {
-        key2fnInherit.transition( into, from );
-      }
-      if ( from.$$max !== undefined ) {
-        key2fnInherit.$$max( into, from );
-      }
+      if ( isMany ) {
+        into.formation = from.formation || into.formation;
+        into.sort = from.sort || into.sort;
+        into.ascending = from.ascending || into.ascending;
+        into.filter = from.filter || into.filter;
+
+      } else {
+        if ( from.props !== undefined ) {
+          key2fnInherit.props( into, from );
+        }
+        if ( from.when !== undefined ) {
+          key2fnInherit.when( into, from );
+        }
+        if ( from.transition !== undefined ) {
+          key2fnInherit.transition( into, from );
+        }
+        if ( from.$$max !== undefined ) {
+          key2fnInherit.$$max( into, from );
+        }
+      } 
     }
   };
 
@@ -5789,7 +6367,7 @@ function fix_stopPropagation() {
           intoLson.many = {};
         }
 
-        LAID.$inherit( intoLson.many, fromLson.many, false, false );
+        LAID.$inherit( intoLson.many, fromLson.many, false, false, false );
 
       },
 
@@ -5832,17 +6410,17 @@ function fix_stopPropagation() {
 
           }
           LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
-             false, false );
+             false, false, false );
 
         }
       },
 
-      states: function( intoLson, fromLson ) {
+      states: function( intoLson, fromLson, isMany ) {
 
         var
-        fromStateName2state = fromLson.states,
-        intoStateName2state = intoLson.states,
-        inheritFromState, inheritIntoState;
+          fromStateName2state = fromLson.states,
+          intoStateName2state = intoLson.states,
+          inheritFromState, inheritIntoState;
 
         if ( intoStateName2state === undefined ) {
           intoStateName2state = intoLson.states = {};
@@ -5856,7 +6434,8 @@ function fix_stopPropagation() {
 
           }
 
-          LAID.$inherit( intoStateName2state[ name ], fromStateName2state[ name ], true, false );
+          LAID.$inherit( intoStateName2state[ name ],
+           fromStateName2state[ name ], isMany, true, false );
 
         }
       },
@@ -6011,53 +6590,56 @@ function fix_stopPropagation() {
     key2fnNormalize;
 
   
-  
 
   LAID.$normalize = function( lson, isExternal ) {
 
     if ( isExternal ) {
-
       // If we haven't previously normalized it, only then proceed
       if ( normalizedExternalLsonS.indexOf( lson ) === -1 ) {
 
-        _normalize( lson, true );
+        normalize( lson, true );
         normalizedExternalLsonS.push( lson );
-
       }
 
-    } else {
-      _normalize( lson, false );
-
+    } else {      
+      normalize( lson, false );
     }
   };
 
-  function _normalize( lson, isRecursive ) {
+  function normalize( lson, isRecursive ) {
 
-    var rootProp2val, stateProp2val, stateName2state, stateName,
-    multipleTypeProp, multipleTypePropNumName;
+    var
+      lsonKey,
+      rootLson = lson;
 
-
-    key2fnNormalize.$type( lson );
-    key2fnNormalize.$inherit( lson );
-    key2fnNormalize.$interface( lson );
-    key2fnNormalize.$observe( lson );
-
-
-    key2fnNormalize.many( lson );
-
-    key2fnNormalize.props( lson );
-    key2fnNormalize.transition( lson );
-    key2fnNormalize.when( lson );
-    key2fnNormalize.states( lson );
-
-    rootProp2val = lson.props;
-
-    // Recurse to normalize children
-    if ( isRecursive ) {
-
-      key2fnNormalize.children( lson );
-
+    if ( !lson.states ) {
+      lson.states = {};
     }
+
+    if ( lson.states.root ) {
+      throw "LAID Error: State name 'root' is reserved.";
+    }
+
+    lson.states.root = {
+      props: lson.props,
+      when: lson.when,
+      transition: lson.transition
+    };
+
+    for ( lsonKey in lson ) {
+      if ( lsonKey !== "children" || isRecursive ) {
+        if ( !key2fnNormalize[ lsonKey ] ) {
+          throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
+        }
+        key2fnNormalize[ lsonKey ]( lson );
+      }
+    }
+
+    lson.props = undefined;
+    lson.when = undefined;
+    lson.transition = undefined;
+
+
   }
 
 
@@ -6175,16 +6757,22 @@ function fix_stopPropagation() {
       checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
     },
 
+    data: function ( lson ) {
+
+      checkAndThrowErrorAttrAsTake( "data", lson.data );
+
+    },
     /*
     * normalize the `lson`
     */
     props: function( lson ) {
 
-      var prop2val = lson.props,
-      prop, val,
-      longhandPropS, longhandProp, shorthandVal,
-      multipleTypePropMatchDetails,curMultipleMax,
-      i, len;
+      var
+        prop2val = lson.props,
+        prop, val,
+        longhandPropS, longhandProp, shorthandVal,
+        multipleTypePropMatchDetails,curMultipleMax,
+        i, len;
 
 
       if ( lson.props === undefined ) {
@@ -6258,7 +6846,6 @@ function fix_stopPropagation() {
 
       var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
 
-
       for ( eventType in eventType2_fnCallbackS_ ) {
         fnCallbackS = eventType2_fnCallbackS_[ eventType ];
         checkAndThrowErrorAttrAsTake( "when." + eventType,
@@ -6267,25 +6854,8 @@ function fix_stopPropagation() {
       }
     }
   },
-/*
-data: function ( lson ) {
-// normalize color here
-
-var key2value = lson.data;
-
-for ( var key in key2value ) {
-
-
-if ()
-
-}
-
-
-},
-*/
 
   transition: function( lson ) {
-
 
     if ( lson.transition === undefined ) {
       lson.transition = {};
@@ -6329,36 +6899,15 @@ if ()
             checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
             transitionArgKey2val  );
 
-            /*transitionArgKeyS = [];
-            for ( transitionArgKey in transitionArgKey2val ) {
-              transitionArgKeyS.push( transitionArgKey );
-            }*/
-            //LAID.$meta.set( lson, "keys", "transition." + transitionProp, transitionArgKeyS );
           }
-
         }
       }
     }
   },
 
-  many: function ( lson ) {
-
-    if ( lson.many !== undefined ) {
-      var many = lson.many;
-      checkAndThrowErrorAttrAsTake( "many", many );
-
-      key2fnNormalize.inherit( many );
-      key2fnNormalize.props( many );
-      key2fnNormalize.transition( many );
-      key2fnNormalize.states( many );
-
-    }
-  },
-
-  states: function( lson ) {
+  states: function( lson, isMany ) {
 
     if ( lson.states !== undefined ) {
-
 
       var stateName2state = lson.states, state;
       checkAndThrowErrorAttrAsTake( "states",  stateName2state );
@@ -6373,9 +6922,11 @@ if ()
 
         checkAndThrowErrorAttrAsTake( "states." + stateName, state );
 
-        key2fnNormalize.props( state );
-        key2fnNormalize.when( state );
-        key2fnNormalize.transition( state );
+        if ( !isMany ) {
+          key2fnNormalize.props( state );
+          key2fnNormalize.when( state );
+          key2fnNormalize.transition( state );
+        } 
 
       }
     }
@@ -6386,14 +6937,45 @@ if ()
 
     if ( lson.children !== undefined ) {
 
-
       var childName2childLson = lson.children;
+      checkAndThrowErrorAttrAsTake( "children",  childName2childLson );
 
       for ( var childName in childName2childLson ) {
 
-        _normalize( childName2childLson[ childName ], true );
+        normalize( childName2childLson[ childName ], true );
 
       }
+    }
+  },
+
+  many: function ( lson )  {
+
+    if ( lson.many !== undefined ) {
+
+      var many = lson.many;
+
+      checkAndThrowErrorAttrAsTake( "many", many );
+
+      if ( !many.states ) {
+        many.states = {};
+      }
+
+      many.states.root = {
+      
+        formation: many.formation,
+        sort: many.sort,
+        ascending: many.ascending,
+        filter: many.filter
+
+      };
+
+      many.formation = undefined;
+      many.sort = undefined;
+      many.ascending = undefined;
+      many.filter = undefined;
+
+      key2fnNormalize.states( many, true );
+
     }
   }
 };
@@ -6637,15 +7219,15 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
       insertedPart = insertedPartS[ i ];
-      insertedPart.level.parentLevel.part.node.appendChild(
+      insertedPart.level.parentLevel.$part.node.appendChild(
         insertedPart.node );  
     }
-
+    
     LAID.$insertedPartS = [];
 
     for ( i = 0, len = removedPartS.length; i < len; i++ ) {
       removedPart = removedPartS[ i ];
-      removedPart.level.parentLevel.part.node.removeChild(
+      removedPart.level.parentLevel.$part.node.removeChild(
         removedPart.node );
     }
 
@@ -6654,7 +7236,6 @@ if (!Array.prototype.indexOf) {
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
       renderDirtyPart = renderDirtyPartS[ x ];
-
 
       travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
       normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
@@ -6755,7 +7336,7 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
-      renderNewLevel.part.$isInitiallyRendered = true;
+      renderNewLevel.$part.$isInitiallyRendered = true;
       loadAttrVal = renderNewLevel.$attr2attrVal.load;
       
       if ( ( loadAttrVal ) &&
@@ -6889,8 +7470,9 @@ if (!Array.prototype.indexOf) {
   "use strict";
   LAID.$solve = function () {
 
-    
+    console.log("foo");
     if ( !LAID.$isSolving ) {
+      console.log("bar");
 
       var 
         ret,
@@ -6908,23 +7490,35 @@ if (!Array.prototype.indexOf) {
         isSolveRecalculationComplete = false;
 
         ret = LAID.$solveForNew();
-        if ( ret !== 2 ) {
+
+        if ( ret < 2 ) {
           isSolveProgressed = true;
-          isSolveNewComplete = ( ret === 0 );
         }
           
         ret = LAID.$solveForRecalculation();
-        if ( ret !== 2 ) {
+        if ( ret < 2 ) {
           isSolveProgressed = true;
-          isSolveRecalculationComplete = ( ret === 0 );
         }
-        
+
         executeStateInstallation();
+
+        // The reason we cannot use `ret` to confirm
+        // completion and not `ret` is because during solving
+        // for recalculation new levels could have been
+        // added ((from many.rows), and during execution
+        //  of state installation new recalculations or
+        // levels could have been created 
+
+        isSolveRecalculationComplete =
+          LAID.$recalculateDirtyLevelS.length === 0;
+        isSolveNewComplete =
+          LAID.$newLevelS.length === 0;
 
         if ( !isSolveProgressed ) {
           if ( isSolveHaltedForOneLoop ) {
             break;
           } else {
+
             isSolveHaltedForOneLoop = true;
           }
         } else {
@@ -6938,7 +7532,6 @@ if (!Array.prototype.indexOf) {
       }
 
       LAID.$isSolving = false;
-
       LAID.$render();
 
     }
@@ -7007,17 +7600,23 @@ if (!Array.prototype.indexOf) {
       isSolveProgressed,
       isSolveProgressedOnce = false,
       newLevelS = LAID.$newLevelS,
+      newLevel,
       solvedLevelS = [];
 
+    if ( !newLevelS.length ) {
+      return 3;
+    }
     //LAID.$isSolvingNewLevels = true;
 
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
-        if ( newLevelS[ i ].$inheritAndReproduce() ) {
+        newLevel = newLevelS[ i ];
+        if ( newLevel.$inherit() ) {
+          newLevel.$identifyAndReproduce()
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
-          solvedLevelS.push( newLevelS[ i ] );
+          solvedLevelS.push( newLevel );
           LAID.$arrayUtils.removeAtIndex( newLevelS, i );
           i--;
         }
@@ -7047,12 +7646,14 @@ if (!Array.prototype.indexOf) {
     var 
       i,
       isSolveProgressed,
-      isSolveProgressedOnce = true,
+      isSolveProgressedOnce = false,
       ret,
       recalculateDirtyLevelS = LAID.$recalculateDirtyLevelS;
       
+    if ( !recalculateDirtyLevelS.length ) {
+      return 3;
+    }
 
-    //console.log("recalculate");
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
@@ -7068,6 +7669,7 @@ if (!Array.prototype.indexOf) {
       }
     
     } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
+
 
     return recalculateDirtyLevelS.length === 0 ?  0 :
       isSolveProgressedOnce ? 1 : 2;

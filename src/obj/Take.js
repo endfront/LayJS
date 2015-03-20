@@ -844,6 +844,56 @@
     return this;
   };
 
+  LAID.Take.prototype.filterFetch = function ( index, attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( index instanceof LAID.Take ) {
+      this.$mergePathAndProps( index );
+
+      if ( attr instanceof LAID.Take ) {
+        this.$mergePathAndProps( attr );
+        this.executable = function () {
+          return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index.execute( this ),
+            attr.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index.execute( this ),
+            attr
+          );
+        }
+      }
+    } else if ( attr instanceof LAID.Take ) {
+      this.$mergePathAndProps( attr );
+      this.executable = function () {
+        return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index,
+            attr.execute( this )
+          );
+      }
+
+    } else {
+      this.executable = function () {
+        return LAID.$filterUtils.fetch(
+            oldExecutable.call( this ),
+            index,
+            attr
+          );
+      }
+    }
+
+    return this;
+
+  };
+
   /*
   * Call custom function with arguments, where arguments
   * can be LAID.Take objects.

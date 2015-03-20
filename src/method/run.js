@@ -7,6 +7,8 @@
 
     ( new LAID.Level( "/", rootLson, undefined ) ).$init();
 
+    LAID.$solve();
+
     window.onresize = updateSize;
 
   };

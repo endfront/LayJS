@@ -5,12 +5,14 @@
   var reservedNameS = [ 
     "root", "transition", "data", "when", "load",
     "",
-    "many", "formation", "sort", "ascending", "rows", "row", "filter" 
+    "many", "formation", "sort", "ascending",
+    "rows", "row", "filter", "args", "all"
   ];
 
   LAID.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
-  		return ( /^[\w\-]+$/ ).test( levelName );
+  		return ( /^[\w\-]+$/ ).test( levelName ) &&
+        ( reservedNameS.indexOf( levelName ) === -1 );
   	},
   	/*
   	* Rules of a state name:
@@ -19,9 +21,16 @@
   	* (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
   	*/
   	stateName: function ( stateName ) {
-  		 return ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
-		    ( reservedNameS.
-    		indexOf( stateName ) === -1 );
+  		 return (
+       ( ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
+		    ( 
+          ( reservedNameS.indexOf( stateName ) === -1 ) ||
+          stateName === "root"
+        )
+      )
+       || 
+       ( stateName.startsWith("formation:"))
+       );
   	},
   	expanderAttr: function ( attr ) {
   		var expanderAttrS = [
@@ -29,7 +38,7 @@
          "videoSources", "audioSources", "videoTracks", "audioTracks",
           "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
 			    "data", "when", "transition", "type", "inherit", "states", "observe"
-			     ];
+			];
 			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
 			 var nonStateAttrPrefixS = [ "data", "when", "transition" ];
 
@@ -55,9 +64,7 @@
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
      		( attr[ 0 ] !== "$") &&
-        ( [ "load", "formation", "sort",
-            "ascending", "rows", "filter"
-          ].indexOf( attr ) === -1 )
+        ( reservedNameS.indexOf( attr ) === -1 )
        );
   	},
 
