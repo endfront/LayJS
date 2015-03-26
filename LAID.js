@@ -152,8 +152,10 @@ bottom: -0.25em;
 
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
-    this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
-    this.renderCall = level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
+    this.isEventReadonlyAttr =
+      LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
+    this.renderCall =
+      level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
 
     this.takerAttrValS = [];
 
@@ -218,15 +220,10 @@ bottom: -0.25em;
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
 
-    if ( this.attr === "rows" ) {
-      val = { level: this.level, rows: val };
-    }
+
     this.val = val;
 
-    if ( ( !LAID.identical( val, this.prevVal ) ) && 
-      !( LAID.$checkIsValidUtils.nan( val ) &&
-       LAID.$checkIsValidUtils.nan( this.prevVal ) )
-      ) {
+    if ( !LAID.identical( val, this.prevVal ) ) {
 
       if ( this.val instanceof LAID.Take ) {
         this.takeNot();
@@ -291,11 +288,13 @@ bottom: -0.25em;
 
     var
       isDirty = false,
-      reCalc,
+      recalcVal,
       level = this.level,
+      attr = this.attr,
       i, len;
+      
 
-// /    console.log("update", this.attr );
+    //console.log("update", level.path, attr, this.val );
 
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
@@ -310,28 +309,32 @@ bottom: -0.25em;
 
       }
 
-      reCalc = this.val.execute( this.level );
-      if ( reCalc !== this.calcVal ) {
+      recalcVal = this.val.execute( this.level );
+      if ( !LAID.identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
-        this.calcVal = reCalc;
+        this.calcVal = recalcVal;
       }
     } else {
-      if ( this.val !== this.calcVal ) {
-        this.calcVal = this.val;
+      if ( !LAID.identical( this.val, this.calcVal ) ) {
         isDirty = true;
+        this.calcVal = this.val;
       }
+    }
+
+    if ( attr === "all" ) {
+      isDirty = true;
     }
 
 
     if ( !isDirty ) {
-      switch ( this.attr ) {
+      switch ( attr ) {
         case "input":
           this.transitionCalcVal = this.level.$part.node.value;
 
       }
     }
 
-    switch ( this.attr ) {
+    switch ( attr ) {
       case "scrollX":
         this.transitionCalcVal = this.level.$part.node.scrollLeft;
         isDirty = true;
@@ -343,23 +346,18 @@ bottom: -0.25em;
 
     if ( isDirty ) {
       var
-        attr = this.attr,
         stateName = getStateNameOfOnlyIf( attr ),
         whenEventType = getWhenEventTypeOfAttrWhen( attr ),
         transitionProp = getTransitionPropOfAttrTransition( attr );
-
-      /*if ( !this.transitionCalcVal && ( this.transitionCalcVal !== 0 ) ) {
-        this.transitionCalcVal = this.calcVal;
-      }*/
 
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
         this.takerAttrValS[ i ].requestRecalculation();
       }
-      
+
       if ( level.$derivedManyLevel ) {
-        level.$derivedManyLevel.$attr2attrVal.rows.requestRecalculation();
+        level.$derivedManyLevel.$attr2attrVal.$all.requestRecalculation();
       }
 
       if ( LAID.$isDataTravellingShock ) {
@@ -970,61 +968,6 @@ bottom: -0.25em;
 
 ( function () {
   "use strict";
-  LAID.Filter = function ( rowsWrapper ) {
-    this.rowsWrapper = rowsWrapper;
-  };
-  
-  LAID.Filter.prototype.eq = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.eq( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.neq = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.neq( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.gt = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.gt( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.gte = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.gte( this.rowsWrapper, val ) );
-  };
-  
-  LAID.Filter.prototype.lt = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.lt( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.lte = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.lte( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.regex = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.regex( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.contains = function ( val ) {
-  	return new LAID.Filter( LAID.$filterUtils.contains( this.rowsWrapper, val ) );
-  };
-
-  LAID.Filter.prototype.fn = function ( fnFilter ) {
-  	return new LAID.Filter( LAID.$filterUtils.fn( this.rowsWrapper, fnFilter ) );
-  };
-
-  LAID.Filter.prototype.fetch = function ( index, attr ) {
-  	return LAID.$filterUtils.fetch(
-  		this.rowsWrapper, index, attr );
-  };
-
-  LAID.Filter.prototype.end = function () {
-  	return this.rowsWrapper.rows;
-  };
-
-
- 
-})();
-
-( function () {
-  "use strict";
 
 
   
@@ -1058,6 +1001,7 @@ bottom: -0.25em;
     this.$row = row;
 
     this.$lson = lson;
+    this.$isNormalized = false;
     this.$isInherited = false;
 
     this.$attr2attrVal = {};
@@ -1174,8 +1118,8 @@ bottom: -0.25em;
   */
   LAID.Level.prototype.$inherit = function () {
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-
-    if ( !this.$derivedManyLevel ) {
+    if ( !this.$derivedManyLevel && !this.$isNormalized ) {
+      this.$isNormalized = true;
      LAID.$normalize( this.$lson, false );
     }
     // check if it contains anything to inherit from
@@ -1186,7 +1130,9 @@ bottom: -0.25em;
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-
+          if ( ref === this.path ) {
+            return false;
+          }
           level = ( new LAID.RelPath( ref ) ).resolve( this );
           if ( ( level === undefined ) || !level.$isInherited ) {
             return false;
@@ -1197,7 +1143,7 @@ bottom: -0.25em;
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-
+          
           level = ( new LAID.RelPath( ref ) ).resolve( this );
           inheritedAndNormalizedLson = level.$lson;
 
@@ -1214,20 +1160,18 @@ bottom: -0.25em;
       this.$lson = lson;
     }
 
-
-    
-
     this.$isInherited = true;
     return true;
+
 
   };
 
   LAID.Level.prototype.$identifyAndReproduce = function ( ) {
-    this.$isPart = this.$lson.$many === undefined;
+    this.$isPart = this.$lson.many === undefined;
 
     if ( this.$isPart ) {
       if ( !this.$derivedManyLevel ) {
-        LAID.$defaultize( this.$lson );
+        LAID.$defaultizePart( this.$lson );
       }
       this.$part = new LAID.$part( this );
       this.$part.$init();
@@ -1238,11 +1182,14 @@ bottom: -0.25em;
         this.addChildren( this.$lson.children );
       }
     } else {
-
       var partLson = this.$lson;
-      this.$lson = this.$lson.$many;
-      partLson.$many = undefined;
-      this.$many = new LAID.$many( this, partLson );
+      this.$lson = this.$lson.many;
+      // deference the "many" key from part lson
+      // so as to not to associate with the lson
+      // with a many creator
+      partLson.many = undefined;
+      LAID.$defaultizeMany( this.$lson );
+      this.$many = new LAID.Many( this, partLson );
       this.$many.$init();
       /*if ( this.$lson.rows ) {
         this.$lson.rows = {level: this, rows: this.$lson.rows};
@@ -1279,6 +1226,7 @@ bottom: -0.25em;
       prop2val = slson.props,
       when = slson.when,
       transition = slson.transition,
+      args = slson.args,
       i, len;
           
     if ( isPart ){ 
@@ -1322,6 +1270,13 @@ bottom: -0.25em;
         initAttrsObj(  "$$max.", slson.$$max, attr2val );
       }
     } else {
+      if ( args ) {
+        for ( var formationArg in args ) {
+          initAttrsObj( "args." + formationArg + ".",
+            args[ formationArg ], attr2val );        
+        }
+      }
+
       attr2val.formation = slson.formation;
       attr2val.sort = slson.sort;
       attr2val.ascending = slson.ascending;
@@ -1395,7 +1350,8 @@ bottom: -0.25em;
     }
 
     if ( !this.$isPart ) { // Many
-      attr2val.all = undefined;
+      attr2val.$all = [];
+      attr2val.$filtered = [];
       attr2val.rows = lson.rows;
       attr2val.$id = lson.$id;
     }
@@ -1646,6 +1602,17 @@ bottom: -0.25em;
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
 
+    if ( this.path === "/" ) {
+      if ( this.$attr2attrVal.width.val !==
+        this.$lson.states.root.props.width ) {
+        throw "LAID Error: Width of root level unchangeable";
+      }
+      if ( this.$attr2attrVal.height.val !==
+        this.$lson.states.root.props.height ) {
+        throw "LAID Error: Height of root level unchangeable";
+      }
+    }
+  
     //console.log("LAID INFO: new state", this.path, this.$stateS );
 
   };
@@ -1786,7 +1753,7 @@ bottom: -0.25em;
   "use strict";
 
 
-  LAID.$many = function ( level, partLson ) {
+  LAID.Many = function ( level, partLson ) {
 
     this.level = level;
     this.$partLson = partLson;
@@ -1795,10 +1762,11 @@ bottom: -0.25em;
 
     this.$id = level.$lson.$id;
     this.$id2level = {};
+    this.$allLevelS = [];
 
   };
 
-  LAID.$many.prototype.$init = function () {
+  LAID.Many.prototype.$init = function () {
 
     var
       states = this.$partLson.states || ( this.$partLson.states = {} ),
@@ -1816,13 +1784,19 @@ bottom: -0.25em;
         formationName2state[ formationName ];
     }
 
-    LAID.$defaultize( this.$partLson );
+    LAID.$defaultizePart( this.$partLson );
 
   };
 
-  LAID.$many.prototype.filter = function () {
+  LAID.Many.prototype.queryAll = function () {
 
-    return new LAID.Filter( this.$attr2attrVal.rows.calcVal );
+    return new LAID.Query( this.$allLevelS );
+  };
+
+  LAID.Many.prototype.queryFiltered = function () {
+
+    return new LAID.Query( 
+      this.level.$attr2attrVal.filter.calcVal );
   };
 
   /*
@@ -1830,9 +1804,9 @@ bottom: -0.25em;
   * (1) Creating new levels in accordance to new rows
   * (2) Updating existing levels in accordance to changes in changed rows
   */
-  LAID.$many.prototype.$updateRows = function () {
+  LAID.Many.prototype.$updateRows = function () {
   	var 
-  		rowS = this.level.$attr2attrVal.rows.calcVal.rows,
+  		rowS = this.level.$attr2attrVal.rows.calcVal,
   		row,
   		id,
   		level,
@@ -1844,8 +1818,6 @@ bottom: -0.25em;
 
     sortRows( rowS, this.level.$attr2attrVal.sort.calcVal );
 
-
-
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
   		id = row[ this.$id ];
@@ -1856,10 +1828,14 @@ bottom: -0.25em;
   		} else if ( !level ) {
   			level = new LAID.Level( this.level.path + ":" + id,
   			 this.$partLson, parentLevel, this.level, row );
+
   			parentLevel.$childLevelS.push( level );
   			id2level[ id ] = level;
+        this.$allLevelS.push( level );
 
         level.$createAttrVal( "$i", i + 1 );
+        level.$createAttrVal( "$f", i + 1 );
+
         level.$init();
         level.$identifyAndReproduce();
 
@@ -1868,6 +1844,8 @@ bottom: -0.25em;
   		} else {
         // update row
         level.$attr2attrVal.$i.update( i + 1 );
+        level.$attr2attrVal.$f.update( i + 1 );
+
 
   		}
 
@@ -1892,49 +1870,36 @@ bottom: -0.25em;
       }
     }
 
+    this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    this.$updateFormation();
-
+    this.$updateFilter();
 
   	LAID.$solve();
 
   };
 
-  LAID.$many.prototype.$updateFormation = function ( ) {
+  LAID.Many.prototype.$updateFilter = function ( ) {
+
+    
+
+    var filteredPartS =
+      this.level.$attr2attrVal.filter.calcVal;
 
 
-/*    var
-      formationObj = this.$formationName2obj[ 
-        this.$attr2attrVal.formation.calcVal ],
-      id, level,
-      formationProp2val = formationObj.props,
-      formationProp, formationPropVal, attrVal;
+    this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    for ( id in id2level ) {
-      level = id2level[ id ];
-      for ( formationProp in formationProp2val ) {
-        formationPropVal = formationProp2val[ formationProp ];
-        attrVal = formationProp2val;
-        if ( !attrVal ) {
-          level.$createAttrVal( formationProp, formationPropVal  );
-          attrVal = level.$attr2attrVal.formationProp;
-          attrVal.isFormationProp = true;
-        }
-        level.$attr2attrVal.
-      }
-    }
-  */
-
+    for ( var i = 0,.. update $f here)
 
   };
 
-  LAID.$many.prototype.$removeLevel = function ( level ) {
+  LAID.Many.prototype.$removeLevel = function ( level ) {
 
     this.$id2level[ id ] = null;
+    LAID.$arrayUtils.remove( this.$partLevelS, level );
 
   };
 
-  LAID.$many.prototype.$updateSort = function () {
+  LAID.Many.prototype.$updateSort = function () {
     var
       sort = this.level.$attr2attrVal.sort.calcVal,
       rowS = this.level.$attr2attrVal.rows.calcVal,
@@ -3079,6 +3044,94 @@ bottom: -0.25em;
 
 })();
 
+( function () {
+  "use strict";
+  LAID.Query = function ( partLevelS ) {
+    this.partLevelS = partLevelS;
+  };
+  
+  LAID.Query.prototype.filterEq = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.eq(
+        this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterNeq = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.neq(
+      this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterGt = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.gt(
+      this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterGte = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.gte(
+      this.partLevelS, attr, val ) );
+  };
+  
+  LAID.Query.prototype.filterLt = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.lt(
+      this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterLte = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.lte(
+      this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterRegex = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.regex(
+      this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterContains = function ( attr, val ) {
+  	return new LAID.Query( LAID.$filterUtils.contains(
+      this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterWithin = function ( attr, val ) {
+    return new LAID.Query( 
+      LAID.$filterUtils.within( this.partLevelS, attr, val ) );
+  };
+
+  LAID.Query.prototype.filterFn = function ( fnFilter ) {
+  	return new LAID.Query( LAID.$filterUtils.fn(
+      this.partLevelS, fnFilter ) );
+  };
+
+  LAID.Query.prototype.foldMin = function ( attr, val ) {
+    return LAID.$foldUtils.min( this.partLevelS, attr, val );
+  };
+
+  LAID.Query.prototype.foldMax = function ( attr, val ) {
+    return LAID.$foldUtils.max( this.partLevelS, attr, val );
+  };
+
+  LAID.Query.prototype.foldSum = function ( attr, val ) {
+    return LAID.$foldUtils.sum( this.partLevelS, attr, val );
+  };
+
+  LAID.Query.prototype.foldFn = function ( fnFold, acc ) {
+    return LAID.$foldUtils.fn( this.partLevelS, fnFold, acc );
+  };
+
+
+  LAID.Query.prototype.fetch = function ( index, attr ) {
+  	return LAID.$queryUtils.fetch(
+  		this.partLevelS, index, attr );
+  };
+  LAID.Query.prototype.length = function () {
+    return this.partLevelS.length;
+  };
+  LAID.Query.prototype.end = function () {
+  	return this.partLevelS;
+  };
+
+
+ 
+})();
+
 (function () {
   "use strict";
 
@@ -3328,6 +3381,25 @@ bottom: -0.25em;
     return this;
   };
 
+  LAID.Take.prototype.identical = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return LAID.identical( oldExecutable.call( this ),
+          val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return LAID.identical( oldExecutable.call( this ), val );
+      };
+    }
+    return this;
+  };
+
   LAID.Take.prototype.eq = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -3345,6 +3417,8 @@ bottom: -0.25em;
     }
     return this;
   };
+
+
 
   LAID.Take.prototype.neq = function ( val ) {
 
@@ -3986,7 +4060,9 @@ bottom: -0.25em;
     return this;
   };
 
-  LAID.Take.prototype.filterFetch = function ( index, attr ) {
+  LAID.Take.prototype.queryLength = LAID.Take.prototype.length;
+
+  LAID.Take.prototype.queryFetch = function ( index, attr ) {
 
     var oldExecutable = this.executable;
 
@@ -3996,7 +4072,7 @@ bottom: -0.25em;
       if ( attr instanceof LAID.Take ) {
         this.$mergePathAndProps( attr );
         this.executable = function () {
-          return LAID.$filterUtils.fetch(
+          return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index.execute( this ),
             attr.execute( this )
@@ -4005,7 +4081,7 @@ bottom: -0.25em;
 
       } else {
         this.executable = function () {
-          return LAID.$filterUtils.fetch(
+          return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index.execute( this ),
             attr
@@ -4015,7 +4091,7 @@ bottom: -0.25em;
     } else if ( attr instanceof LAID.Take ) {
       this.$mergePathAndProps( attr );
       this.executable = function () {
-        return LAID.$filterUtils.fetch(
+        return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index,
             attr.execute( this )
@@ -4024,10 +4100,62 @@ bottom: -0.25em;
 
     } else {
       this.executable = function () {
-        return LAID.$filterUtils.fetch(
+        return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index,
             attr
+          );
+      }
+    }
+
+    return this;
+
+  };
+
+  LAID.Take.prototype.filterEq = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAID.Take ) {
+      this.$mergePathAndProps( attr );
+
+      if ( val instanceof LAID.Take ) {
+        this.$mergePathAndProps( val );
+        this.executable = function () {
+          return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+      this.executable = function () {
+        return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+
+    } else {
+      this.executable = function () {
+        console.log(LAID.level("/Option").$attr2attrVal);
+
+        return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr,
+            val
           );
       }
     }
@@ -4487,17 +4615,25 @@ return this;
 ( function() {
   "use strict";
 
+  function takeColor ( color ) {
+
+    return LAID.color( color );
+
+  }
 
   LAID.color = function ( colorName ) {
 
+    if ( colorName instanceof LAID.Take ) {
+        return new LAID.Take( takeColor ).fn( colorName );
+    } else {
+        var colorValue = colorName2colorValue[ colorName ];
+        if ( colorValue === undefined ) {
+          throw ("LAID Error: Color name: " + colorName +  " not found." );
+        }
+        else {
+          return new LAID.Color( 'rgb', colorValue, 1 );
 
-    var colorValue = colorName2colorValue[ colorName ];
-    if ( colorValue === undefined ) {
-      throw ("LAID Error: Color name: " + colorName +  " not found." );
-    }
-    else {
-      return new LAID.Color( 'rgb', colorValue, 1 );
-
+        }
     }
 
   };
@@ -4720,10 +4856,273 @@ return this;
 
 ( function () {
   "use strict";
-  LAID.identical = function ( v1,  v2 ) {
-    return v1 === v2;
+  
+  // source: chai.js (https://github.com/chaijs/deep-eql)
+  /*!
+	* deep-eql
+	* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
+	* MIT Licensed
+	*/
 
+  /**
+	 * Assert super-strict (egal) equality between
+	 * two objects of any type.
+	 *
+	 * @param {Mixed} a
+	 * @param {Mixed} b
+	 * @param {Array} memoised (optional)
+	 * @return {Boolean} equal match
+	 */
+
+  LAID.identical = function ( a, b ) {
+  	return deepEqual( a, b, undefined );
   };
+
+  	/*!
+	* Module dependencies
+	*/
+
+	function type (x) {
+		return LAID.type(x);
+	}
+
+	
+  function deepEqual(a,b,m) {
+  	var
+  		typeA = type( a ),
+  		typeB = type( b );
+
+  	if ( sameValue( a, b ) ) {
+			return true;
+		} else if ( typeA !== typeB ) {
+			return false;
+		} else if ( "color" === typeA ) {
+			return colorEqual(a, b);
+		} else if ('date' === typeA ) {
+			return dateEqual(a, b);
+		} else if ('regexp' === typeA) {
+			return regexpEqual(a, b);
+		} else if (Buffer.isBuffer(a)) {
+			return bufferEqual(a, b);
+		} else if ('arguments' === typeA) {
+			return argumentsEqual(a, b, m);
+		} else if (('object' !== typeA && 'object' !== typeB)
+		&& ('array' !== typeA && 'array' !== typeB)) {
+			return sameValue(a, b);
+		} else {
+			return objectEqual(a, b, m);
+		}
+  }
+
+	/*!
+	* Buffer.isBuffer browser shim
+	*/
+
+	var Buffer;
+	try { Buffer = require('buffer').Buffer; }
+	catch(ex) {
+	Buffer = {};
+	Buffer.isBuffer = function() { return false; }
+	}
+
+	/*!
+	* Primary Export
+	*/
+
+
+
+	/*!
+	* Strict (egal) equality test. Ensures that NaN always
+	* equals NaN and `-0` does not equal `+0`.
+	*
+	* @param {Mixed} a
+	* @param {Mixed} b
+	* @return {Boolean} equal match
+	*/
+
+	function sameValue(a, b) {
+		if (a === b) return a !== 0 || 1 / a === 1 / b;
+		return a !== a && b !== b;
+	}
+
+
+	/*!
+	* Compare two Date objects by asserting that
+	* the time values are equal using `saveValue`.
+	*
+	* @param {Date} a
+	* @param {Date} b
+	* @return {Boolean} result
+	*/
+
+	function dateEqual(a, b) {
+		if ('date' !== type(b)) return false;
+		return sameValue(a.getTime(), b.getTime());
+	}
+
+
+	function colorEqual (a, b) {
+		return type(b) === "color" && a.equals(b);		
+	}
+
+	/*!
+	* Compare two regular expressions by converting them
+	* to string and checking for `sameValue`.
+	*
+	* @param {RegExp} a
+	* @param {RegExp} b
+	* @return {Boolean} result
+	*/
+
+	function regexpEqual(a, b) {
+		if ('regexp' !== type(b)) return false;
+		return sameValue(a.toString(), b.toString());
+	}
+
+	/*!
+	* Assert deep equality of two `arguments` objects.
+	* Unfortunately, these must be sliced to arrays
+	* prior to test to ensure no bad behavior.
+	*
+	* @param {Arguments} a
+	* @param {Arguments} b
+	* @param {Array} memoize (optional)
+	* @return {Boolean} result
+	*/
+
+	function argumentsEqual(a, b, m) {
+		if ('arguments' !== type(b)) return false;
+		a = [].slice.call(a);
+		b = [].slice.call(b);
+		return deepEqual(a, b, m);
+	}
+
+	/*!
+	* Get enumerable properties of a given object.
+	*
+	* @param {Object} a
+	* @return {Array} property names
+	*/
+
+	function enumerable(a) {
+		var res = [];
+		for (var key in a) res.push(key);
+		return res;
+	}
+
+	/*!
+	* Simple equality for flat iterable objects
+	* such as Arrays or Node.js buffers.
+	*
+	* @param {Iterable} a
+	* @param {Iterable} b
+	* @return {Boolean} result
+	*/
+
+	function iterableEqual(a, b) {
+		if (a.length !==  b.length) return false;
+
+		var i = 0;
+		var match = true;
+
+		for (; i < a.length; i++) {
+		if (a[i] !== b[i]) {
+		  match = false;
+		  break;
+		}
+		}
+
+		return match;
+	}
+
+	/*!
+	* Extension to `iterableEqual` specifically
+	* for Node.js Buffers.
+	*
+	* @param {Buffer} a
+	* @param {Mixed} b
+	* @return {Boolean} result
+	*/
+
+	function bufferEqual(a, b) {
+		if (!Buffer.isBuffer(b)) return false;
+		return iterableEqual(a, b);
+	}
+
+	/*!
+	* Block for `objectEqual` ensuring non-existing
+	* values don't get in.
+	*
+	* @param {Mixed} object
+	* @return {Boolean} result
+	*/
+
+	function isValue(a) {
+		return a !== null && a !== undefined;
+	}
+
+	/*!
+	* Recursively check the equality of two objects.
+	* Once basic sameness has been established it will
+	* defer to `deepEqual` for each enumerable key
+	* in the object.
+	*
+	* @param {Mixed} a
+	* @param {Mixed} b
+	* @return {Boolean} result
+	*/
+
+	function objectEqual(a, b, m) {
+		if (!isValue(a) || !isValue(b)) {
+			return false;
+		}
+
+		if (a.prototype !== b.prototype) {
+			return false;
+		}
+
+		var i;
+		if (m) {
+			for (i = 0; i < m.length; i++) {
+		 	 if ((m[i][0] === a && m[i][1] === b)
+		 	 ||  (m[i][0] === b && m[i][1] === a)) {
+		 	   return true;
+		 	 }
+			}
+		} else {
+			m = [];
+		}
+
+		try {
+			var ka = enumerable(a);
+			var kb = enumerable(b);
+		} catch (ex) {
+			return false;
+		}
+
+		ka.sort();
+		kb.sort();
+
+		if (!iterableEqual(ka, kb)) {
+			return false;
+		}
+
+		m.push([ a, b ]);
+
+		var key;
+		for (i = ka.length - 1; i >= 0; i--) {
+			key = ka[i];
+			if (!deepEqual(a[key], b[key], m)) {
+			  return false;
+			}
+		}
+
+		return true;
+	}
+
+
+
+
 })();
 (function() {
   "use strict";
@@ -4753,9 +5152,9 @@ return this;
   "use strict";
 
 
-  function takeRGBA ( h, s, l, a ) {
+  function takeRGBA ( r, g, b, a ) {
 
-    var color = new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
+    return new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
 
   }
 
@@ -4851,7 +5250,7 @@ return this;
   '[object Function]':    'function',
   '[object Array]':     'array',
   '[object Date]':      'date',
-  '[object RegExp]':    'regExp',
+  '[object RegExp]':    'regexp',
   '[object Object]':    'object',
   '[object Error]':     'error'
 };
@@ -4860,6 +5259,10 @@ return this;
   LAID.type = function( obj ) {
     if ( obj === null ) {
       return obj + "";
+    } else if ( obj instanceof LAID.Color ) {
+      return "color";
+    } else if ( obj instanceof LAID.Take ) {
+      return "take";
     }
     // Support: Android < 4.0, iOS < 6 (functionish RegExp)
     return typeof obj === "object" || typeof obj === "function" ?
@@ -5214,6 +5617,42 @@ return this;
 ( function () {
   "use strict";
 
+  var essentialProp2defaultValue;
+
+  LAID.$defaultizeMany = function ( lson ) {
+    
+    var
+      essentialProp,
+      rootStateProps = lson.states.root.props;
+    
+    
+    /* Filling in the defaults here for root lson */
+    for ( essentialProp in essentialProp2defaultValue ) {
+      if ( rootStateProps[ essentialProp ] === undefined ) {
+        rootStateProps[ essentialProp ] =
+          essentialProp2defaultValue[ essentialProp ];
+      }
+    }
+
+    
+
+
+  };
+
+  essentialProp2defaultValue = {
+    filter:  new LAID.Take( "", "$all" ),
+    sort: null,
+    formation: "onebelow",
+    ascending: true
+    
+  };
+
+
+})();
+
+( function () {
+  "use strict";
+
   var
     essentialProp2defaultValue,
     lazyProp2defaultValue,
@@ -5228,7 +5667,7 @@ return this;
     takeTopToCenterY,
     takeTopToBottom;
 
-  LAID.$defaultize = function ( lson ) {
+  LAID.$defaultizePart = function ( lson ) {
     var
       essentialProp,
       rootState = lson.states.root,
@@ -5638,98 +6077,78 @@ function fix_stopPropagation() {
 	"use strict";
 
 	LAID.$filterUtils = {
-		eq: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val === curVal;
-				}, rowsWrapper.rows )
-			}
+		eq: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) === val;
+				}, partLevelS );
 		},
-		neq: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val !== curVal;
-				}, rowsWrapper.rows )
-			}
+		
+		neq: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) !== val;
+				}, partLevelS );
+			
 		},
-		gt: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val > curVal;
-				}, rowsWrapper.rows )
-			}
+		gt: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) > val;
+				}, partLevelS );
+			
 		},
-		gte: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val >= curVal;
-				}, rowsWrapper.rows )
-			}
+		gte: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return cpart.attr( attr )>= val;
+				}, partLevelS );
+			
 		},
-		lt: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val < curVal;
-				}, rowsWrapper.rows )
-			}
+		lt: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) < val;
+				}, partLevelS );
+			
 		},
-		lte: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val <= curVal;
-				}, rowsWrapper.rows )
-			}
+		lte: function ( partLevelS, attr, val ) {
+			return  filter( function ( part ) {
+					return part.attr( attr ) <= val;
+				}, partLevelS );
+			
 		},
-		regex: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val.test( curVal );
-				}, rowsWrapper.rows )
-			}
+		regex: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return val.test( part.attr( attr ) );
+				}, partLevelS );
+			
 		},
-		contains: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val.indexOf( curVal ) !== -1;
-				}, rowsWrapper.rows )
-			}
+		contains: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ).indexOf( val ) !== -1;
+				}, partLevelS );
+			
 		},
-		fn: function ( rowsWrapper, fnFilter ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( fnFilter , rowsWrapper.rows )
-			}
+		within: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return val.indexOf( part.attr( attr ) ) !== -1;
+				}, partLevelS );
+			
 		},
-		fetch: function ( rowsWrapper, index, attr ) {
-			var 
-		    row = rowsWrapper.rows[ index - 1 ],
-	      many = rowsWrapper.level.$many,
-        id = many.$id,
-        idVal = row[ id ];
 
-			return many.$id2level[ idVal ].$getAttrVal( attr ).calcVal;
-
+		fn: function ( partLevelS, fnFilter ) {
+			return filter( fnFilter , partLevelS );
+			
 		}
+		
 
 	};
 
-	function filter ( fnFilter, rowS ) {
-		var filteredRowS = [];
-		for ( var i = 0, len = rowS.length, row; i < len; i++ ) {
-			row = rowS[ i ];
-			if ( fnFilter( row ) ) {
-				filteredRowS.push( row );
+	function filter ( fnFilter, partLevelS ) {
+		var filteredPartLevelS = [];
+		for ( var i = 0, len = partLevelS.length, partLevel; i < len; i++ ) {
+			partLevel = partLevelS[ i ];
+			if ( fnFilter( partLevel ) ) {
+				filteredPartLevelS.push( partLevel );
 			} 
 		}
-		return filteredRowS;
+		return filteredPartLevelS;
 	}
 
 })();
@@ -5787,6 +6206,53 @@ function fix_stopPropagation() {
         return prop;
       }
     };
+})();
+
+( function () {
+  "use strict";
+
+  LAID.$foldlUtils = {
+    min: function ( partLevelS, attr, val ) {
+      return fold( function ( part, acc ) {
+        var val = part.attr( attr );
+          if ( ( acc === undefined ) || ( val < acc ) ) {
+            return val;
+          } else {
+            return acc;
+          }
+        }, undefined, partLevelS ); 
+    },
+    max: function ( partLevelS, attr, val ) {
+      return fold( function ( part, acc ) {
+        var val = part.attr( attr );
+          if ( ( acc === undefined ) || ( val > acc ) ) {
+            return val;
+          } else {
+            return acc;
+          }
+        }, undefined, partLevelS ); 
+    },
+    sum: function ( partLevelS, attr, val ) {
+      return fold( function ( part, acc ) {
+        return acc + part.attr( attr );
+        }, 0, partLevelS ); 
+    },
+
+    
+    fn: function ( partLevelS, fnFold, acc ) {
+      return fold( fnFold, acc, partLevelS );      
+    },
+  
+
+  };
+
+  function fold ( fnFold, acc, partLevelS ) {
+    for ( var i = 0, len = partLevelS.length; i < len; i++ ) {
+      acc = fnFold( partLevelS[ i ], acc );
+    }
+    return acc;
+  }
+
 })();
 
 // LAID has taken the below source from 'tmaeda1981jp'
@@ -6014,14 +6480,17 @@ function fix_stopPropagation() {
       var i,
           result,
           argSLength = arguments.length,
-          argS = Array.prototype.slice.call(arguments);
+          argS = Array.prototype.slice.call(arguments),
+          arg;
 
         try {
           // result contians the formattable string
           result = argS[ 0 ];
           for ( i = 1; i < argSLength; i++ ) {
+            arg = argS[ i ];
             if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
-              result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+              arg = arg instanceof LAID.Color ? arg.stringify() : arg; 
+              result = new Formatter(RegExp.$1).format(result, arg );
             }
           }
           return result;
@@ -6046,30 +6515,77 @@ function fix_stopPropagation() {
 					LAID.take(function(){
 						var i = this.attr("$i");
 						if ( i === 2 ) {
-							return this.$many.filter().fetch(
+							return this.many().query().fetch(
 								1, "bottom" );
 						} else {
-							console.log(this.$many.filter().fetch( 
-								i - 1, "formation:onebelow.bottom" ));
-							return LAID.filter( rows ).fetch( 
+	
+							return this.many().query().fetch( 
 								i - 1, "formation:onebelow.bottom" );
 						}
 
 					}).fn( LAID.take("*", "all" ) ).add( 
-				 	LAID.take("*", "data.formationGap")),
+				 	LAID.take("*", "args.onebelow.gap")),
 			}
 		},
 		"totheright": {
 			onlyif: LAID.take( "*", "formation" ).eq( "totheright" ).and(
 				LAID.take("", "$i").neq(1)),
-		
+			
 			props: {
-				right: LAID.take( "*", "rows" ).filterFetch( 
-					LAID.take("", "$i").subtract(1),
-					"formation:totheright.right"
-				 ).add(LAID.take("*", "data.formationGap")),
+				left: 
+					LAID.take(function(){
+						var i = this.attr("$i");
+						if ( i === 2 ) {
+							return this.many().query().fetch(
+								1, "right" );
+						} else {
+	
+							return this.many().query().fetch( 
+								i - 1, "formation:totheright.right" );
+						}
+
+					}).fn( LAID.take("*", "all" ) ).add( 
+				 	LAID.take("*", "args.totheright.gap")),
 			}
 		},
+		"grid": {
+			onlyif: LAID.take( "*", "formation" ).eq( "grid" ).and(
+				LAID.take("", "$i").neq(1)),
+			
+			props: {
+				left: 
+					LAID.take(function(){
+						var i = this.attr("$i");
+						var numColumns = this.many().attr("args.grid.columns");
+						var newRow = ! ( ( i - 1 ) % numColumns );
+						var hgap = this.many().attr("args.grid.hgap");
+
+						if ( ( i === 2 ) && !newRow ) {
+							return this.many().filter().fetch(
+								1, "right" ) + hgap;
+						} else if ( newRow ) {
+							return 0;
+						} else {
+							return this.many().filter().fetch( 
+								i - 1, "formation:totheright.right" ) + hgap;
+						
+						}
+					}).fn( LAID.take("*", "all" ) ),
+				top:
+					LAID.take(function(){
+						var i = this.attr("$i");
+						var numColumns = this.many().attr("args.grid.columns");
+						var nthRow =  Math.floor( i  / numColumns );
+						var vgap = this.many().attr("args.grid.vgap");
+
+						return this.many.filter().fn(function( curRow ){
+							return curRow
+						})
+						
+					}).fn( LAID.take("*", "all" ) )
+
+			}
+		}
 	};
 })();
 ( function () {
@@ -6177,6 +6693,7 @@ function fix_stopPropagation() {
         into.sort = from.sort || into.sort;
         into.ascending = from.ascending || into.ascending;
         into.filter = from.filter || into.filter;
+        key2fnInherit.args( into, from );
 
       } else {
         if ( from.props !== undefined ) {
@@ -6373,19 +6890,46 @@ function fix_stopPropagation() {
 
       rows: function( intoLson, fromLson ) {
 
-        var intoLsonRowS, fromLsonRowS;
-        intoLsonRowS = intoLson.rows;
-        fromLsonRowS = fromLson.rows;
+        var
+          intoLsonRowS = intoLson.rows,
+          fromLsonRowS = fromLson.rows,
+          fromLsonRow;
 
+        if ( intoLsonRowS ) {
+          intoLson.rows = new Array( fromLsonRowS.length );
+          intoLsonRowS = intoLson.rows;
+          for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
 
-        intoLson.rows = new Array( fromLsonRowS.length );
-        intoLsonRowS = intoLson.rows;
-        for ( var i = 0, len = fromLsonRowS.length, fromLsonRow; i < len; i++ )  {
+            fromLsonRow = fromLsonRowS[ i ];
+            intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
+              LAID.$clone( fromLsonRow ) : fromLsonRow;
 
-          fromLsonRow = fromLsonRowS[ i ];
-          intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ? LAID.$clone( fromLsonRow ) : fromLsonRow;
-
+          }
         }
+
+      },
+
+      args: function ( intoLson, fromLson ) {
+
+        var
+          formationArg,
+          intoArgs = intoLson.args,
+          fromArgs = fromLson.args;
+
+
+        if ( fromArgs ) {
+          if ( !intoArgs ) {
+            intoArgs = intoLson.args = {};
+          }
+          for ( formationArg in fromArgs ) {
+            if ( !intoArgs[ formationArg  ] ) {
+              intoArgs[ formationArg ] = {};
+            } 
+            inheritSingleLevelObject( intoArgs, fromArgs, formationArg );
+            
+          }
+        }
+
 
       },
 
@@ -6670,7 +7214,7 @@ function fix_stopPropagation() {
       }
       obj[ key ] = undefined;
 
-    } else if ( type === "object" && !( val instanceof LAID.Color ) && !( val instanceof LAID.Take ) ) {
+    } else if ( type === "object" ) {
 
       for ( var subKey in val ) {
 
@@ -6965,7 +7509,8 @@ function fix_stopPropagation() {
         formation: many.formation,
         sort: many.sort,
         ascending: many.ascending,
-        filter: many.filter
+        filter: many.filter,
+        args: many.args
 
       };
 
@@ -6973,11 +7518,31 @@ function fix_stopPropagation() {
       many.sort = undefined;
       many.ascending = undefined;
       many.filter = undefined;
+      many.args = undefined;
 
       key2fnNormalize.states( many, true );
 
     }
+  },
+
+  // formation args (Many)
+  args: function ( lson ) {
+    if ( lson.args ) {
+      var
+        args = lson.args,
+        formationArg;
+
+      checkAndThrowErrorAttrAsTake( "args", args );
+
+      for ( formationArg in args ) {
+        checkAndThrowErrorAttrAsTake( "args." + formationArg,
+          args[ formationArg ] );
+      }
+
+
+    }
   }
+
 };
 
 }());
@@ -7136,6 +7701,26 @@ if (!Array.prototype.indexOf) {
           return i < 0;
         };
   }
+
+})();
+
+( function () {
+  "use strict";
+
+  LAID.$queryUtils = {
+    
+    fetch: function ( partLevelS, index, attr ) {
+      
+      if ( index === 0 ) {
+        throw "LAID Warning: Filter indexing begins from 1";
+      } 
+      return partLevelS[ index - 1 ].$getAttrVal( attr ).calcVal;
+
+    }
+
+  };
+
+  
 
 })();
 
@@ -7470,9 +8055,7 @@ if (!Array.prototype.indexOf) {
   "use strict";
   LAID.$solve = function () {
 
-    console.log("foo");
     if ( !LAID.$isSolving ) {
-      console.log("bar");
 
       var 
         ret,
@@ -7528,7 +8111,18 @@ if (!Array.prototype.indexOf) {
       } while ( !( isSolveNewComplete && isSolveRecalculationComplete ) );
 
       if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
-        throw "LAID Error: Circular/Undefined Reference Encountered";      
+        var msg = "LAID Error: Circular/Undefined Reference Encountered [";
+        if ( !isSolveNewComplete ) {
+          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].path;
+        } else {
+          var uninstantiableLevel = LAID.$recalculateDirtyLevelS[ 0 ];
+          msg += "Uninstantiable Attr: " +
+             uninstantiableLevel.$recalculateDirtyAttrValS[ 0 ].attr +
+            " (Level: " + uninstantiableLevel.path  + ")";
+        } 
+        msg += "]";
+        throw msg;
+
       }
 
       LAID.$isSolving = false;
@@ -7613,7 +8207,7 @@ if (!Array.prototype.indexOf) {
       for ( i = 0; i < newLevelS.length; i++ ) {
         newLevel = newLevelS[ i ];
         if ( newLevel.$inherit() ) {
-          newLevel.$identifyAndReproduce()
+          newLevel.$identifyAndReproduce();
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
           solvedLevelS.push( newLevel );

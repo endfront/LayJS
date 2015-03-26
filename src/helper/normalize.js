@@ -90,7 +90,7 @@
       }
       obj[ key ] = undefined;
 
-    } else if ( type === "object" && !( val instanceof LAID.Color ) && !( val instanceof LAID.Take ) ) {
+    } else if ( type === "object" ) {
 
       for ( var subKey in val ) {
 
@@ -385,7 +385,8 @@
         formation: many.formation,
         sort: many.sort,
         ascending: many.ascending,
-        filter: many.filter
+        filter: many.filter,
+        args: many.args
 
       };
 
@@ -393,11 +394,31 @@
       many.sort = undefined;
       many.ascending = undefined;
       many.filter = undefined;
+      many.args = undefined;
 
       key2fnNormalize.states( many, true );
 
     }
+  },
+
+  // formation args (Many)
+  args: function ( lson ) {
+    if ( lson.args ) {
+      var
+        args = lson.args,
+        formationArg;
+
+      checkAndThrowErrorAttrAsTake( "args", args );
+
+      for ( formationArg in args ) {
+        checkAndThrowErrorAttrAsTake( "args." + formationArg,
+          args[ formationArg ] );
+      }
+
+
+    }
   }
+
 };
 
 }());

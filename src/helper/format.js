@@ -223,14 +223,17 @@
       var i,
           result,
           argSLength = arguments.length,
-          argS = Array.prototype.slice.call(arguments);
+          argS = Array.prototype.slice.call(arguments),
+          arg;
 
         try {
           // result contians the formattable string
           result = argS[ 0 ];
           for ( i = 1; i < argSLength; i++ ) {
+            arg = argS[ i ];
             if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
-              result = new Formatter(RegExp.$1).format(result, argS[ i ] );
+              arg = arg instanceof LAID.Color ? arg.stringify() : arg; 
+              result = new Formatter(RegExp.$1).format(result, arg );
             }
           }
           return result;

@@ -186,6 +186,25 @@
     return this;
   };
 
+  LAID.Take.prototype.identical = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+
+      this.executable = function () {
+        return LAID.identical( oldExecutable.call( this ),
+          val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return LAID.identical( oldExecutable.call( this ), val );
+      };
+    }
+    return this;
+  };
+
   LAID.Take.prototype.eq = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -203,6 +222,8 @@
     }
     return this;
   };
+
+
 
   LAID.Take.prototype.neq = function ( val ) {
 
@@ -844,7 +865,9 @@
     return this;
   };
 
-  LAID.Take.prototype.filterFetch = function ( index, attr ) {
+  LAID.Take.prototype.queryLength = LAID.Take.prototype.length;
+
+  LAID.Take.prototype.queryFetch = function ( index, attr ) {
 
     var oldExecutable = this.executable;
 
@@ -854,7 +877,7 @@
       if ( attr instanceof LAID.Take ) {
         this.$mergePathAndProps( attr );
         this.executable = function () {
-          return LAID.$filterUtils.fetch(
+          return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index.execute( this ),
             attr.execute( this )
@@ -863,7 +886,7 @@
 
       } else {
         this.executable = function () {
-          return LAID.$filterUtils.fetch(
+          return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index.execute( this ),
             attr
@@ -873,7 +896,7 @@
     } else if ( attr instanceof LAID.Take ) {
       this.$mergePathAndProps( attr );
       this.executable = function () {
-        return LAID.$filterUtils.fetch(
+        return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index,
             attr.execute( this )
@@ -882,10 +905,62 @@
 
     } else {
       this.executable = function () {
-        return LAID.$filterUtils.fetch(
+        return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
             index,
             attr
+          );
+      }
+    }
+
+    return this;
+
+  };
+
+  LAID.Take.prototype.filterEq = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAID.Take ) {
+      this.$mergePathAndProps( attr );
+
+      if ( val instanceof LAID.Take ) {
+        this.$mergePathAndProps( val );
+        this.executable = function () {
+          return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAID.Take ) {
+      this.$mergePathAndProps( val );
+      this.executable = function () {
+        return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+
+    } else {
+      this.executable = function () {
+        console.log(LAID.level("/Option").$attr2attrVal);
+
+        return LAID.$filterUtils.eq(
+            oldExecutable.call( this ),
+            attr,
+            val
           );
       }
     }

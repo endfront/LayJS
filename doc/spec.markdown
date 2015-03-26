@@ -47,8 +47,9 @@ LAID involves writing LSON (Layout Syntax Object Notation)
               sort: array | string,
               ascending: boolean,
               filter: LAID.takeMany,
-              $id: string (constant),
+              $id: string / null (constant),
               rows: array,
+              args: obj,
 
               load: function,
 
@@ -58,6 +59,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
                   sort: array | string,
                   ascending: boolean,
                   filter: LAID.takeMany,
+                  args: obj
                 }
               }
 
@@ -648,13 +650,6 @@ Defaults:
     - $observe
       This can only be set once using a non-take value with the LSON.
 
-    - $id
-      The name of the unique key which is reponsible for id for each row in `rows` for `Many`.
-
-    - $i
-      Index of a (`Many`) derived `Level` with respect to other `Level`s derived
-      in the `Many`, as decided by the `sort` and `ascending` keys.
-
     - $dataTravelling (`boolean`)
 
     - $dataTravelDelta (`number`)
@@ -662,27 +657,35 @@ Defaults:
     - $dataTravelLevel ('LAID.Level')
 
     - $naturalWidth (`number`)
-    Width of the part occupied by text if its a text element, image if its an image element,
-    otherwise if a view then the width occupied by the children parts.
+      Width of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the width occupied by the children parts.
 
     - $naturalHeight (`number`)
-    Height of the part occupied by text if its a text element, image if its an image element,
-    otherwise if a view then the height occupied by the children parts.
+      Height of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the height occupied by the children parts.
 
     - $absoluteX (`number`)
-    Position in pixels of the left of the element relative to the root level ( irrespective of the amount scrolled horizontally ).
+      Position in pixels of the left of the element relative to the root level ( irrespective of the amount scrolled horizontally ).
 
     - $absoluteY (`number`)
-    Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
+      Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
 
     - $numberOfChildren (`number`)
-    Number of the direct descendant parts of the given part.
+      Number of the direct descendant parts of the given part.
 
-    < !--
-    - $numberOfDisplayedChildren (`number`)
-    Number of the direct descendant parts of the given part which have display set to true.
-    -- >
+    - $all
+      All the parts within a `Many` type `Level`.
+
+    - $id
+      The name of the unique key which is reponsible for id for each row in `rows` for `Many`.
+
+    - $i
+      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` and `ascending` keys.
+    
+    - $f
+      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` and `ascending` keys.
+    
+
+
 
     - $focused (`boolean`)
 
@@ -837,7 +840,9 @@ LAID.Take methods
   - (these return booleans) match, test (for regex)
   - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
   - (many) filterEq, filterNeq, filterGt, filterLt, filterLte, filterGte, filterRegex,
-  filterContains, filterFn, filterFetch, filterEnd
+  filterContains, filterWithin, filterFn,
+  foldMax, foldMin, foldSum, foldFn,
+   fetch, length
 
 
   takes one argument, either:
@@ -859,7 +864,7 @@ LAID.Take methods
   )
 
   LAID.take(manyLevelPath, "many").filterGt("age", 10).filterLt(
-  "age", LAID.take(level, attr))
+  "age", LAID.take(level, attr)).length()
 
 
 

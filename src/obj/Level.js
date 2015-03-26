@@ -33,6 +33,7 @@
     this.$row = row;
 
     this.$lson = lson;
+    this.$isNormalized = false;
     this.$isInherited = false;
 
     this.$attr2attrVal = {};
@@ -149,8 +150,8 @@
   */
   LAID.Level.prototype.$inherit = function () {
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-
-    if ( !this.$derivedManyLevel ) {
+    if ( !this.$derivedManyLevel && !this.$isNormalized ) {
+      this.$isNormalized = true;
      LAID.$normalize( this.$lson, false );
     }
     // check if it contains anything to inherit from
@@ -161,7 +162,9 @@
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-
+          if ( ref === this.path ) {
+            return false;
+          }
           level = ( new LAID.RelPath( ref ) ).resolve( this );
           if ( ( level === undefined ) || !level.$isInherited ) {
             return false;
@@ -172,7 +175,7 @@
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-
+          
           level = ( new LAID.RelPath( ref ) ).resolve( this );
           inheritedAndNormalizedLson = level.$lson;
 
@@ -189,20 +192,18 @@
       this.$lson = lson;
     }
 
-
-    
-
     this.$isInherited = true;
     return true;
+
 
   };
 
   LAID.Level.prototype.$identifyAndReproduce = function ( ) {
-    this.$isPart = this.$lson.$many === undefined;
+    this.$isPart = this.$lson.many === undefined;
 
     if ( this.$isPart ) {
       if ( !this.$derivedManyLevel ) {
-        LAID.$defaultize( this.$lson );
+        LAID.$defaultizePart( this.$lson );
       }
       this.$part = new LAID.$part( this );
       this.$part.$init();
@@ -213,11 +214,14 @@
         this.addChildren( this.$lson.children );
       }
     } else {
-
       var partLson = this.$lson;
-      this.$lson = this.$lson.$many;
-      partLson.$many = undefined;
-      this.$many = new LAID.$many( this, partLson );
+      this.$lson = this.$lson.many;
+      // deference the "many" key from part lson
+      // so as to not to associate with the lson
+      // with a many creator
+      partLson.many = undefined;
+      LAID.$defaultizeMany( this.$lson );
+      this.$many = new LAID.Many( this, partLson );
       this.$many.$init();
       /*if ( this.$lson.rows ) {
         this.$lson.rows = {level: this, rows: this.$lson.rows};
@@ -254,6 +258,7 @@
       prop2val = slson.props,
       when = slson.when,
       transition = slson.transition,
+      args = slson.args,
       i, len;
           
     if ( isPart ){ 
@@ -297,6 +302,13 @@
         initAttrsObj(  "$$max.", slson.$$max, attr2val );
       }
     } else {
+      if ( args ) {
+        for ( var formationArg in args ) {
+          initAttrsObj( "args." + formationArg + ".",
+            args[ formationArg ], attr2val );        
+        }
+      }
+
       attr2val.formation = slson.formation;
       attr2val.sort = slson.sort;
       attr2val.ascending = slson.ascending;
@@ -370,7 +382,8 @@
     }
 
     if ( !this.$isPart ) { // Many
-      attr2val.all = undefined;
+      attr2val.$all = [];
+      attr2val.$filtered = [];
       attr2val.rows = lson.rows;
       attr2val.$id = lson.$id;
     }
@@ -621,6 +634,17 @@
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
 
+    if ( this.path === "/" ) {
+      if ( this.$attr2attrVal.width.val !==
+        this.$lson.states.root.props.width ) {
+        throw "LAID Error: Width of root level unchangeable";
+      }
+      if ( this.$attr2attrVal.height.val !==
+        this.$lson.states.root.props.height ) {
+        throw "LAID Error: Height of root level unchangeable";
+      }
+    }
+  
     //console.log("LAID INFO: new state", this.path, this.$stateS );
 
   };

@@ -10,7 +10,7 @@
   '[object Function]':    'function',
   '[object Array]':     'array',
   '[object Date]':      'date',
-  '[object RegExp]':    'regExp',
+  '[object RegExp]':    'regexp',
   '[object Object]':    'object',
   '[object Error]':     'error'
 };
@@ -19,6 +19,10 @@
   LAID.type = function( obj ) {
     if ( obj === null ) {
       return obj + "";
+    } else if ( obj instanceof LAID.Color ) {
+      return "color";
+    } else if ( obj instanceof LAID.Take ) {
+      return "take";
     }
     // Support: Android < 4.0, iOS < 6 (functionish RegExp)
     return typeof obj === "object" || typeof obj === "function" ?

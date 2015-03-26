@@ -2,7 +2,7 @@
   "use strict";
 
 
-  LAID.$many = function ( level, partLson ) {
+  LAID.Many = function ( level, partLson ) {
 
     this.level = level;
     this.$partLson = partLson;
@@ -11,10 +11,11 @@
 
     this.$id = level.$lson.$id;
     this.$id2level = {};
+    this.$allLevelS = [];
 
   };
 
-  LAID.$many.prototype.$init = function () {
+  LAID.Many.prototype.$init = function () {
 
     var
       states = this.$partLson.states || ( this.$partLson.states = {} ),
@@ -32,13 +33,19 @@
         formationName2state[ formationName ];
     }
 
-    LAID.$defaultize( this.$partLson );
+    LAID.$defaultizePart( this.$partLson );
 
   };
 
-  LAID.$many.prototype.filter = function () {
+  LAID.Many.prototype.queryAll = function () {
 
-    return new LAID.Filter( this.$attr2attrVal.rows.calcVal );
+    return new LAID.Query( this.$allLevelS );
+  };
+
+  LAID.Many.prototype.queryFiltered = function () {
+
+    return new LAID.Query( 
+      this.level.$attr2attrVal.filter.calcVal );
   };
 
   /*
@@ -46,9 +53,9 @@
   * (1) Creating new levels in accordance to new rows
   * (2) Updating existing levels in accordance to changes in changed rows
   */
-  LAID.$many.prototype.$updateRows = function () {
+  LAID.Many.prototype.$updateRows = function () {
   	var 
-  		rowS = this.level.$attr2attrVal.rows.calcVal.rows,
+  		rowS = this.level.$attr2attrVal.rows.calcVal,
   		row,
   		id,
   		level,
@@ -60,8 +67,6 @@
 
     sortRows( rowS, this.level.$attr2attrVal.sort.calcVal );
 
-
-
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
   		id = row[ this.$id ];
@@ -72,10 +77,14 @@
   		} else if ( !level ) {
   			level = new LAID.Level( this.level.path + ":" + id,
   			 this.$partLson, parentLevel, this.level, row );
+
   			parentLevel.$childLevelS.push( level );
   			id2level[ id ] = level;
+        this.$allLevelS.push( level );
 
         level.$createAttrVal( "$i", i + 1 );
+        level.$createAttrVal( "$f", i + 1 );
+
         level.$init();
         level.$identifyAndReproduce();
 
@@ -84,6 +93,8 @@
   		} else {
         // update row
         level.$attr2attrVal.$i.update( i + 1 );
+        level.$attr2attrVal.$f.update( i + 1 );
+
 
   		}
 
@@ -108,49 +119,36 @@
       }
     }
 
+    this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    this.$updateFormation();
-
+    this.$updateFilter();
 
   	LAID.$solve();
 
   };
 
-  LAID.$many.prototype.$updateFormation = function ( ) {
+  LAID.Many.prototype.$updateFilter = function ( ) {
+
+    
+
+    var filteredPartS =
+      this.level.$attr2attrVal.filter.calcVal;
 
 
-/*    var
-      formationObj = this.$formationName2obj[ 
-        this.$attr2attrVal.formation.calcVal ],
-      id, level,
-      formationProp2val = formationObj.props,
-      formationProp, formationPropVal, attrVal;
+    this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    for ( id in id2level ) {
-      level = id2level[ id ];
-      for ( formationProp in formationProp2val ) {
-        formationPropVal = formationProp2val[ formationProp ];
-        attrVal = formationProp2val;
-        if ( !attrVal ) {
-          level.$createAttrVal( formationProp, formationPropVal  );
-          attrVal = level.$attr2attrVal.formationProp;
-          attrVal.isFormationProp = true;
-        }
-        level.$attr2attrVal.
-      }
-    }
-  */
-
+    for ( var i = 0,.. update $f here)
 
   };
 
-  LAID.$many.prototype.$removeLevel = function ( level ) {
+  LAID.Many.prototype.$removeLevel = function ( level ) {
 
     this.$id2level[ id ] = null;
+    LAID.$arrayUtils.remove( this.$partLevelS, level );
 
   };
 
-  LAID.$many.prototype.$updateSort = function () {
+  LAID.Many.prototype.$updateSort = function () {
     var
       sort = this.level.$attr2attrVal.sort.calcVal,
       rowS = this.level.$attr2attrVal.rows.calcVal,

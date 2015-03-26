@@ -1,17 +1,25 @@
 ( function() {
   "use strict";
 
+  function takeColor ( color ) {
+
+    return LAID.color( color );
+
+  }
 
   LAID.color = function ( colorName ) {
 
+    if ( colorName instanceof LAID.Take ) {
+        return new LAID.Take( takeColor ).fn( colorName );
+    } else {
+        var colorValue = colorName2colorValue[ colorName ];
+        if ( colorValue === undefined ) {
+          throw ("LAID Error: Color name: " + colorName +  " not found." );
+        }
+        else {
+          return new LAID.Color( 'rgb', colorValue, 1 );
 
-    var colorValue = colorName2colorValue[ colorName ];
-    if ( colorValue === undefined ) {
-      throw ("LAID Error: Color name: " + colorName +  " not found." );
-    }
-    else {
-      return new LAID.Color( 'rgb', colorValue, 1 );
-
+        }
     }
 
   };

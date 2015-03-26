@@ -86,6 +86,13 @@ LAID.run({
                 LAID.take("", "data.sampleList").contains(
                 LAID.take("", "data.threePointFive")),
 
+              sampleObjIdenticalObj: LAID.take("", "data.sampleObj").identical(
+                {foo: "bar"}
+              ),
+              sampleObjIdenticalTakeSampleObj:
+                LAID.take("", "data.sampleObj").identical( 
+                  LAID.take("", "data.sampleObj")
+              ),
 
               fiveEqFive: LAID.take("", "data.five").eq(5),
               fiveEqStrFive: LAID.take("", "data.five").eq("5"),
@@ -561,6 +568,17 @@ QUnit.test( "LAID.Take.contains()", function( assert ) {
   assert.ok( LAID.level("/Body/Content").attr("data.containsTakeThree") );
   assert.ok( LAID.level("/Body/Content").attr(
     "data.containsTakeThreePointFive") );
+
+});
+  
+QUnit.test( "LAID.Take.identical()", function( assert ) {
+
+  assert.ok( LAID.level("/Body/Content").attr("data.sampleObjIdenticalObj"),
+    "non-take");
+  assert.ok( LAID.level("/Body/Content").attr(
+    "data.sampleObjIdenticalTakeSampleObj"),
+    "take");
+
 
 });
 

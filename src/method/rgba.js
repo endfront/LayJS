@@ -2,9 +2,9 @@
   "use strict";
 
 
-  function takeRGBA ( h, s, l, a ) {
+  function takeRGBA ( r, g, b, a ) {
 
-    var color = new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
+    return new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
 
   }
 

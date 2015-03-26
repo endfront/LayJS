@@ -20,7 +20,7 @@
       for ( i = 0; i < newLevelS.length; i++ ) {
         newLevel = newLevelS[ i ];
         if ( newLevel.$inherit() ) {
-          newLevel.$identifyAndReproduce()
+          newLevel.$identifyAndReproduce();
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
           solvedLevelS.push( newLevel );

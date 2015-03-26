@@ -2,98 +2,78 @@
 	"use strict";
 
 	LAID.$filterUtils = {
-		eq: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val === curVal;
-				}, rowsWrapper.rows )
-			}
+		eq: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) === val;
+				}, partLevelS );
 		},
-		neq: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val !== curVal;
-				}, rowsWrapper.rows )
-			}
+		
+		neq: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) !== val;
+				}, partLevelS );
+			
 		},
-		gt: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val > curVal;
-				}, rowsWrapper.rows )
-			}
+		gt: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) > val;
+				}, partLevelS );
+			
 		},
-		gte: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val >= curVal;
-				}, rowsWrapper.rows )
-			}
+		gte: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return cpart.attr( attr )>= val;
+				}, partLevelS );
+			
 		},
-		lt: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val < curVal;
-				}, rowsWrapper.rows )
-			}
+		lt: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ) < val;
+				}, partLevelS );
+			
 		},
-		lte: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val <= curVal;
-				}, rowsWrapper.rows )
-			}
+		lte: function ( partLevelS, attr, val ) {
+			return  filter( function ( part ) {
+					return part.attr( attr ) <= val;
+				}, partLevelS );
+			
 		},
-		regex: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val.test( curVal );
-				}, rowsWrapper.rows )
-			}
+		regex: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return val.test( part.attr( attr ) );
+				}, partLevelS );
+			
 		},
-		contains: function ( rowsWrapper, val ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( function ( curVal ) {
-					return val.indexOf( curVal ) !== -1;
-				}, rowsWrapper.rows )
-			}
+		contains: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return part.attr( attr ).indexOf( val ) !== -1;
+				}, partLevelS );
+			
 		},
-		fn: function ( rowsWrapper, fnFilter ) {
-			return {
-				level: rowsWrapper.level,
-				rows: filter( fnFilter , rowsWrapper.rows )
-			}
+		within: function ( partLevelS, attr, val ) {
+			return filter( function ( part ) {
+					return val.indexOf( part.attr( attr ) ) !== -1;
+				}, partLevelS );
+			
 		},
-		fetch: function ( rowsWrapper, index, attr ) {
-			var 
-		    row = rowsWrapper.rows[ index - 1 ],
-	      many = rowsWrapper.level.$many,
-        id = many.$id,
-        idVal = row[ id ];
 
-			return many.$id2level[ idVal ].$getAttrVal( attr ).calcVal;
-
+		fn: function ( partLevelS, fnFilter ) {
+			return filter( fnFilter , partLevelS );
+			
 		}
+		
 
 	};
 
-	function filter ( fnFilter, rowS ) {
-		var filteredRowS = [];
-		for ( var i = 0, len = rowS.length, row; i < len; i++ ) {
-			row = rowS[ i ];
-			if ( fnFilter( row ) ) {
-				filteredRowS.push( row );
+	function filter ( fnFilter, partLevelS ) {
+		var filteredPartLevelS = [];
+		for ( var i = 0, len = partLevelS.length, partLevel; i < len; i++ ) {
+			partLevel = partLevelS[ i ];
+			if ( fnFilter( partLevel ) ) {
+				filteredPartLevelS.push( partLevel );
 			} 
 		}
-		return filteredRowS;
+		return filteredPartLevelS;
 	}
 
 })();

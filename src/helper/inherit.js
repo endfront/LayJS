@@ -38,6 +38,7 @@
         into.sort = from.sort || into.sort;
         into.ascending = from.ascending || into.ascending;
         into.filter = from.filter || into.filter;
+        key2fnInherit.args( into, from );
 
       } else {
         if ( from.props !== undefined ) {
@@ -234,19 +235,46 @@
 
       rows: function( intoLson, fromLson ) {
 
-        var intoLsonRowS, fromLsonRowS;
-        intoLsonRowS = intoLson.rows;
-        fromLsonRowS = fromLson.rows;
+        var
+          intoLsonRowS = intoLson.rows,
+          fromLsonRowS = fromLson.rows,
+          fromLsonRow;
 
+        if ( intoLsonRowS ) {
+          intoLson.rows = new Array( fromLsonRowS.length );
+          intoLsonRowS = intoLson.rows;
+          for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
 
-        intoLson.rows = new Array( fromLsonRowS.length );
-        intoLsonRowS = intoLson.rows;
-        for ( var i = 0, len = fromLsonRowS.length, fromLsonRow; i < len; i++ )  {
+            fromLsonRow = fromLsonRowS[ i ];
+            intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
+              LAID.$clone( fromLsonRow ) : fromLsonRow;
 
-          fromLsonRow = fromLsonRowS[ i ];
-          intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ? LAID.$clone( fromLsonRow ) : fromLsonRow;
-
+          }
         }
+
+      },
+
+      args: function ( intoLson, fromLson ) {
+
+        var
+          formationArg,
+          intoArgs = intoLson.args,
+          fromArgs = fromLson.args;
+
+
+        if ( fromArgs ) {
+          if ( !intoArgs ) {
+            intoArgs = intoLson.args = {};
+          }
+          for ( formationArg in fromArgs ) {
+            if ( !intoArgs[ formationArg  ] ) {
+              intoArgs[ formationArg ] = {};
+            } 
+            inheritSingleLevelObject( intoArgs, fromArgs, formationArg );
+            
+          }
+        }
+
 
       },
 

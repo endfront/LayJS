@@ -2,9 +2,7 @@
   "use strict";
   LAID.$solve = function () {
 
-    console.log("foo");
     if ( !LAID.$isSolving ) {
-      console.log("bar");
 
       var 
         ret,
@@ -60,7 +58,18 @@
       } while ( !( isSolveNewComplete && isSolveRecalculationComplete ) );
 
       if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
-        throw "LAID Error: Circular/Undefined Reference Encountered";      
+        var msg = "LAID Error: Circular/Undefined Reference Encountered [";
+        if ( !isSolveNewComplete ) {
+          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].path;
+        } else {
+          var uninstantiableLevel = LAID.$recalculateDirtyLevelS[ 0 ];
+          msg += "Uninstantiable Attr: " +
+             uninstantiableLevel.$recalculateDirtyAttrValS[ 0 ].attr +
+            " (Level: " + uninstantiableLevel.path  + ")";
+        } 
+        msg += "]";
+        throw msg;
+
       }
 
       LAID.$isSolving = false;

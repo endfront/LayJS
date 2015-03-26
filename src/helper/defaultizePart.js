@@ -15,7 +15,7 @@
     takeTopToCenterY,
     takeTopToBottom;
 
-  LAID.$defaultize = function ( lson ) {
+  LAID.$defaultizePart = function ( lson ) {
     var
       essentialProp,
       rootState = lson.states.root,

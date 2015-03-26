@@ -9,7 +9,7 @@ var springTransition = {
 };
 
 
-var x =( {
+var x = ( {
   data: {
     lang: "en",
     menu: false
@@ -297,7 +297,7 @@ var x =( {
                 text: LAID.take({
                   "en": "color: %s",
                   "zh": "颜色: %s"
-                }).i18nFormat(LAID.take("", "backgroundColor").colorStringify())
+                }).i18nFormat(LAID.take("", "backgroundColor"))
               },
             }
           }
@@ -410,37 +410,78 @@ var x =( {
 LAID.run({
   children: {
     "Option" : {
+      data: {
+        colorR: 255,
+        colorName: "red"
+      },
       props: {
 
-    
-        width:LAID.take("../", 'width').subtract(20),
+      
+        width:LAID.take("../", 'width'),
         height:120,
-        backgroundColor: LAID.color("blue"),
-        centerX: LAID.take("../","width").divide(2),
-        backgroundColor:LAID.color("blue"),
+        //centerX: LAID.take("../","width").divide(2),
         textColor:LAID.take("", "backgroundColor").colorInvert(),
-//        text: "hlrlo world" 
         text: LAID.take("", "row.title")
-
       },
-      many:{
-        data: {
-          formationGap: 10
+      transition: {
+        all: springTransition
+      },
+      states: {
+        "small": {
+          onlyif: LAID.take("/", "width").lt(300),
+          props: {
+            width:120
+          }
         },
-        formation: "onebelow",
-        $id: "id",
-        rows: [
-          {id:1, title:"first"},
-          {id:2, title:"second"},
-          {id:3, title:"third"}
+        "complete": {
+          onlyif: LAID.take("", "row.complete"),
+          props: {
+            backgroundColor: LAID.color("green")
+          }
+        },
+        "incomplete": {
+          onlyif: LAID.take("", "row.complete").not(),
+          props: {
+            backgroundColor: LAID.color("red")
+          }
 
-        ]
+        }
+      },
+      many: {
+        args: {
+          onebelow: {
+            gap: 10
+          },
+          totheright: {
+            gap: 10
+          },
+          grid: {
+            columns: 3 
+          }
+        },
+        $id: "id",
+        formation: "onebelow",
+        filter: LAID.take("", "$all").filterEq("complete", true),
+        rows: [
+          {id:1, title: "first", complete: false },
+          {id:2, title: "second", complete: true },
+          {id:3, title: "third", complete: false },
+          {id:4, title: "fourth", complete: false },
+          {id:5, title: "fifth", complete: true }
+        ],
+        states: {
+          "small": {
+            onlyif: LAID.take("/", "width").lt(300),
+            formation: "totheright"
+          }
+        }
       }
     }
   }
         
 })
  
+
 
 var w = ({
   props: {
@@ -460,7 +501,7 @@ var w = ({
         "on": {
           onlyif: LAID.take("", "data.on"),
           props: {
-              bottom: 700
+            bottom: 700
           }
         }
       }

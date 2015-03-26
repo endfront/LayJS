@@ -26,8 +26,10 @@
 
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
-    this.isEventReadonlyAttr = LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
-    this.renderCall = level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
+    this.isEventReadonlyAttr =
+      LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
+    this.renderCall =
+      level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
 
     this.takerAttrValS = [];
 
@@ -92,15 +94,10 @@
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
 
-    if ( this.attr === "rows" ) {
-      val = { level: this.level, rows: val };
-    }
+
     this.val = val;
 
-    if ( ( !LAID.identical( val, this.prevVal ) ) && 
-      !( LAID.$checkIsValidUtils.nan( val ) &&
-       LAID.$checkIsValidUtils.nan( this.prevVal ) )
-      ) {
+    if ( !LAID.identical( val, this.prevVal ) ) {
 
       if ( this.val instanceof LAID.Take ) {
         this.takeNot();
@@ -165,11 +162,13 @@
 
     var
       isDirty = false,
-      reCalc,
+      recalcVal,
       level = this.level,
+      attr = this.attr,
       i, len;
+      
 
-// /    console.log("update", this.attr );
+    //console.log("update", level.path, attr, this.val );
 
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
@@ -184,28 +183,32 @@
 
       }
 
-      reCalc = this.val.execute( this.level );
-      if ( reCalc !== this.calcVal ) {
+      recalcVal = this.val.execute( this.level );
+      if ( !LAID.identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
-        this.calcVal = reCalc;
+        this.calcVal = recalcVal;
       }
     } else {
-      if ( this.val !== this.calcVal ) {
-        this.calcVal = this.val;
+      if ( !LAID.identical( this.val, this.calcVal ) ) {
         isDirty = true;
+        this.calcVal = this.val;
       }
+    }
+
+    if ( attr === "all" ) {
+      isDirty = true;
     }
 
 
     if ( !isDirty ) {
-      switch ( this.attr ) {
+      switch ( attr ) {
         case "input":
           this.transitionCalcVal = this.level.$part.node.value;
 
       }
     }
 
-    switch ( this.attr ) {
+    switch ( attr ) {
       case "scrollX":
         this.transitionCalcVal = this.level.$part.node.scrollLeft;
         isDirty = true;
@@ -217,23 +220,18 @@
 
     if ( isDirty ) {
       var
-        attr = this.attr,
         stateName = getStateNameOfOnlyIf( attr ),
         whenEventType = getWhenEventTypeOfAttrWhen( attr ),
         transitionProp = getTransitionPropOfAttrTransition( attr );
-
-      /*if ( !this.transitionCalcVal && ( this.transitionCalcVal !== 0 ) ) {
-        this.transitionCalcVal = this.calcVal;
-      }*/
 
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
         this.takerAttrValS[ i ].requestRecalculation();
       }
-      
+
       if ( level.$derivedManyLevel ) {
-        level.$derivedManyLevel.$attr2attrVal.rows.requestRecalculation();
+        level.$derivedManyLevel.$attr2attrVal.$all.requestRecalculation();
       }
 
       if ( LAID.$isDataTravellingShock ) {
