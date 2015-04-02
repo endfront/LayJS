@@ -2,6 +2,8 @@
   "use strict";
 
 
+  
+
   LAID.Many = function ( level, partLson ) {
 
     this.level = level;
@@ -32,6 +34,8 @@
       states[ "formation:" + formationName ] =
         formationName2state[ formationName ];
     }
+
+    states.formation = LAID.$displayNoneFormationState;
 
     LAID.$defaultizePart( this.$partLson );
 
@@ -83,7 +87,7 @@
         this.$allLevelS.push( level );
 
         level.$createAttrVal( "$i", i + 1 );
-        level.$createAttrVal( "$f", i + 1 );
+        level.$createAttrVal( "$f", -1 );
 
         level.$init();
         level.$identifyAndReproduce();
@@ -93,7 +97,7 @@
   		} else {
         // update row
         level.$attr2attrVal.$i.update( i + 1 );
-        level.$attr2attrVal.$f.update( i + 1 );
+        level.$attr2attrVal.$f.update( -1 );
 
 
   		}
@@ -121,7 +125,7 @@
 
     this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    this.$updateFilter();
+    this.level.$attr2attrVal.filter.requestRecalculation();
 
   	LAID.$solve();
 
@@ -129,15 +133,31 @@
 
   LAID.Many.prototype.$updateFilter = function ( ) {
 
-    
+    var 
+      allLevelS = this.$allLevelS,
+      filteredLevelS = this.level.$attr2attrVal.filter.calcVal;
 
-    var filteredPartS =
-      this.level.$attr2attrVal.filter.calcVal;
+    for ( 
+      var i = 0, len = allLevelS.length;
+      i < len;
+      i++
+     ) {
+      allLevelS[ i ].$attr2attrVal.$f.update( -1 );
+    }
+    for ( 
+      var f = 0, len = filteredLevelS.length;
+      f < len;
+      f++
+     ) {
+      filteredLevelS[ f ].$attr2attrVal.$f.update( f + 1 );
+    }
 
 
+    this.level.$attr2attrVal.$filtered.update( filteredLevelS );
     this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    for ( var i = 0,.. update $f here)
+
+    LAID.$solve();
 
   };
 

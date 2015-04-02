@@ -32,13 +32,13 @@
 
 
   defaultCss = "position:absolute;display:block;margin:0;padding:0;" +
-  "box-sizing:border-box;-moz-box-sizing:border-box;" +
-  "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
-  "overflow-x:hidden;overflow-y:hidden;" +
-  "-webkit-overflow-scrolling:touch;";
+    "box-sizing:border-box;-moz-box-sizing:border-box;" +
+    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
+    "overflow-x:hidden;overflow-y:hidden;" +
+    "-webkit-overflow-scrolling:touch;";
 
-  defaultTextCss = defaultCss + "font-size:16px;" +
-  "font-family:sans-serif;color:black;";
+  defaultTextCss = defaultCss +
+    "font-family:inherit;";
 
   inputType2tag = {
     button: "button",
@@ -106,11 +106,12 @@
   * parent for the attr
   */
   LAID.$part.prototype.$findChildWithMaxOfAttr =
-   function ( attr, attrValIndependentOf, attrChildIndepedentOf ) {
+   function ( attr, attrValIndependentOf ) {
     var
        curMaxVal, curMaxLevel,
        childLevel, childLevelAttrVal,
-       attrValChildIndepedentOf;
+       attrValChildIndepedentOf,
+       attrChildIndepedentOf = attr;
     for ( var i = 0,
          childLevelS = this.level.$childLevelS,
         len = childLevelS.length;
@@ -126,7 +127,6 @@
           (  ( !attrValChildIndepedentOf ) ||
             ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
                attrValIndependentOf )  ) ) ) {
-
         if ( curMaxLevel === undefined ) {
           curMaxLevel = childLevel;
           curMaxVal = childLevelAttrVal.calcVal;
@@ -191,7 +191,7 @@
       this.$updateNaturalWidthFromText();
     } else {
       this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-      attr2attrVal.$naturalWidth, "width" );
+      attr2attrVal.$naturalWidth );
       attr2attrVal.$naturalWidth.update(
           this.$naturalWidthLevel ?
          ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
@@ -208,7 +208,7 @@
       this.$updateNaturalHeightFromText();
     } else {
       this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-      attr2attrVal.$naturalHeight, "height");
+      attr2attrVal.$naturalHeight);
 
       attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
@@ -227,7 +227,7 @@
     if ( attr2attrVal.$naturalWidth &&
       ( this.level.path !== "/" ) &&
       ! LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal ) &&
-      ! childLevel.$attr2attrVal.width.checkIsDependentOnAttrVal(
+      ! childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
         attr2attrVal.$naturalWidth)
       ) {
 
@@ -246,7 +246,7 @@
           // Find the child with the next largest right
           // This could be the same child level
           this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          attr2attrVal.$naturalWidth, "width");
+          attr2attrVal.$naturalWidth );
         }
       } else {
         if ( childLevel.$attr2attrVal.right.calcVal >
@@ -271,7 +271,7 @@
     if ( attr2attrVal.$naturalHeight &&
         ( this.level.path !== "/" ) &&
        !LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal ) &&
-       !( childLevel.$attr2attrVal.height.checkIsDependentOnAttrVal(
+       !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
          attr2attrVal.$naturalHeight) )
        ) {
 
@@ -289,7 +289,7 @@
           // Find the child with the next largest bottom
           // This could be the same child level
           this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          attr2attrVal.$naturalHeight, "height");
+          attr2attrVal.$naturalHeight );
         }
       } else {
         if ( childLevel.$attr2attrVal.bottom.calcVal >
@@ -529,6 +529,22 @@
     }
   }
 
+  function computePxOrString( attrVal, defaultVal ) {
+    var transitionCalcVal =
+      attrVal && attrVal.transitionCalcVal;
+    return ( transitionCalcVal === undefined ) ?
+        defaultVal : ( typeof transitionCalcVal === "number" ?
+        ( transitionCalcVal + "px" ) : transitionCalcVal );
+  }
+
+  function computeColorOrString( attrVal, defaultVal ) {
+    var transitionCalcVal =
+      attrVal && attrVal.transitionCalcVal;
+    return ( transitionCalcVal === undefined ) ?
+        defaultVal : ( transitionCalcVal instanceof LAID.Color ?
+        transitionCalcVal.stringify() : transitionCalcVal );
+  }
+  
 
   // Below we will customize prototypical functions
   // using conditionals. As per the results from
@@ -536,7 +552,8 @@
   // http://jsperf.com/dynamic-modification-of-prototype-chain
   // this will make no difference
 
-  // The renderable prop can be accessed via `part.$renderFn_<prop>`
+  // The renderable prop can be
+  // accessed via `part.$renderFn_<prop>`
 
 
   if ( isGpuAccelerated ) {
@@ -607,9 +624,6 @@
   LAID.$part.prototype.$renderFn_origin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
 
-      console.log("origin!", ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
-      ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
-      ( ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0.5 ) * 100 ) + "%");
     this.node.style[ cssPrefix + "transform-origin" ] =
     ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
@@ -644,8 +658,10 @@
   };
 
   LAID.$part.prototype.$renderFn_display = function () {
-    this.node.style.display = this.level.$attr2attrVal.display ?
-    "block" : "none";
+    this.node.style.display = 
+      this.level.$attr2attrVal.display.transitionCalcVal ?
+      "block" : "none";
+
   };
 
   LAID.$part.prototype.$renderFn_zIndex = function () {
@@ -664,11 +680,13 @@
   };
 
   LAID.$part.prototype.$renderFn_overflowX = function () {
-    this.node.style.overflowX = this.level.$attr2attrVal.overflowX.transitionCalcVal;
+    this.node.style.overflowX =
+      this.level.$attr2attrVal.overflowX.transitionCalcVal;
   };
 
   LAID.$part.prototype.$renderFn_overflowY = function () {
-    this.node.style.overflowY = this.level.$attr2attrVal.overflowY.transitionCalcVal;
+    this.node.style.overflowY =
+      this.level.$attr2attrVal.overflowY.transitionCalcVal;
   };
 
   LAID.$part.prototype.$renderFn_cursor = function () {
@@ -691,28 +709,26 @@
     this.node.style.backgroundRepeat = this.level.$attr2attrVal.backgroundColor.transitionCalcVal;
   };
 
-  LAID.$part.prototype.$renderFn_backgroundSize = function () {
-    var backgroundSizeX = this.level.$attr2attrVal.backgroundSizeX,
-    backgroundSizeY = this.level.$attr2attrVal.backgroundSizeY;
 
+  LAID.$part.prototype.$renderFn_backgroundSize = function () {
+    
     this.node.style.backgroundSize =
-    (  ( backgroundSizeX !== undefined &&
-       backgroundSizeX.transitionCalcVal !== undefined ) ?
-        backgroundSizeX.transitionCalcVal + "px " : "auto " ) +
-    (  ( backgroundSizeY !== undefined &&
-      backgroundSizeY.transitionCalcVal !== undefined ) ?
-       backgroundSizeY.transitionCalcVal + "px" : "auto" );
+      computePxOrString( 
+        this.level.$attr2attrVal.backgroundSizeX, "auto" ) +
+      " " +
+      computePxOrString(
+        this.level.$attr2attrVal.backgroundSizeY, "auto" );
 
   };
 
   LAID.$part.prototype.$renderFn_backgroundPosition = function () {
     this.node.style.backgroundPosition =
-    ( this.level.$attr2attrVal.backgroundPositionX !== undefined ?
-       this.level.$attr2attrVal.backgroundPositionX.transitionCalcVal : 0 ) +
-    "px " +
-    ( this.level.$attr2attrVal.backgroundPositionY !== undefined ?
-       this.level.$attr2attrVal.backgroundPositionY.transitionCalcVal : 0 ) +
-    "px" ;
+      computePxOrString(
+        this.level.$attr2attrVal.backgroundPositionX, "0px" ) +
+         " " +
+      computePxOrString(
+        this.level.$attr2attrVal.backgroundPositionX, "0px" );
+    
   };
 
   LAID.$part.prototype.$renderFn_boxShadows = function () {
@@ -862,17 +878,26 @@
   };
 
   LAID.$part.prototype.$renderFn_textSize = function () {
-    this.node.style.fontSize = this.level.$attr2attrVal.textSize.transitionCalcVal + "px";
+   
+    this.node.style.fontSize =
+      computePxOrString( 
+        this.level.$attr2attrVal.textSize,
+        "");
   };
   LAID.$part.prototype.$renderFn_textFamily = function () {
-    this.node.style.fontFamily = this.level.$attr2attrVal.textFamily.transitionCalcVal;
+    this.node.style.fontFamily =
+      this.level.$attr2attrVal.textFamily.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_textWeight = function () {
 
-    this.node.style.fontWeight = this.level.$attr2attrVal.textWeight.transitionCalcVal;
+    this.node.style.fontWeight =
+      this.level.$attr2attrVal.textWeight.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_textColor = function () {
-    this.node.style.color = this.level.$attr2attrVal.textColor.transitionCalcVal.stringify();
+    this.node.style.color = 
+      computeColorOrString( 
+        this.level.$attr2attrVal.textColor,
+        "");
   };
 
 
@@ -883,7 +908,7 @@
     i, len;
     for ( i = 1, len = attr2attrVal[ "$$max.textShadows" ].calcVal; i <= len; i++ ) {
       s +=
-      (  attr2attrVal["textShadow" + i + "Color" ].transitionCalcVal.stringify() ) + " " +
+      (  attr2attrVal["textShadows" + i + "Color" ].transitionCalcVal.stringify() ) + " " +
       ( attr2attrVal["textShadows" + i + "X" ].transitionCalcVal + "px " ) +
       ( attr2attrVal["textShadows" + i + "Y" ].transitionCalcVal + "px " ) +
       ( attr2attrVal["textShadows" + i + "Blur" ].transitionCalcVal  + "px" );
@@ -909,15 +934,22 @@
     this.node.style.textAlign = this.level.$attr2attrVal.textAlign.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_textLetterSpacing = function () {
-    var textLetterSpacing = this.level.$attr2attrVal.textLetterSpacing;
-    this.node.style.letterSpacing = textLetterSpacing !== undefined && textLetterSpacing.transitionCalcVal !== undefined ?
-      textLetterSpacing.transitionCalcVal + "px" : "normal";
+    this.node.style.letterSpacing = computePxOrString( 
+        this.level.$attr2attrVal.textLetterSpacing,
+        "normal" ) ;
   };
   LAID.$part.prototype.$renderFn_textWordSpacing = function () {
-    var textWordSpacing = this.level.$attr2attrVal.textWordSpacing;
-    this.node.style.WordSpacing = textWordSpacing !== undefined && textWordSpacing.transitionCalcVal !== undefined ?
-    textWordSpacing.transitionCalcVal + "px" : "normal";
+    this.node.style.wordSpacing = computePxOrString( 
+        this.level.$attr2attrVal.textWordSpacing,
+        "normal" );
   };
+  LAID.$part.prototype.$renderFn_textLineHeight = function () {
+    
+    this.node.style.lineHeight = computePxOrString( 
+        this.level.$attr2attrVal.textLineHeight,
+        "normal" );
+  }
+
   LAID.$part.prototype.$renderFn_textOverflow = function () {
     this.node.style.textOverflow = this.level.$attr2attrVal.textOverflow.transitionCalcVal;
   };
@@ -925,7 +957,17 @@
     this.node.style.textIndent = this.level.$attr2attrVal.textIndent.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textWhitespace = function () {
-    this.node.style.whitespace = this.level.$attr2attrVal.textWhitespace.transitionCalcVal;
+    this.node.style.whitespace =
+      this.level.$attr2attrVal.textWhitespace.transitionCalcVal;
+  };
+  LAID.$part.prototype.$renderFn_textSmoothing = function () {
+    this.node.style[ cssPrefix + "font-smoothing" ] =
+     this.level.$attr2attrVal.textSmoothing.transitionCalcVal;
+  };
+  LAID.$part.prototype.$renderFn_textRendering = function () {
+    this.node.style[ cssPrefix + "text-rendering" ] =
+      this.node.style[ "text-rendering" ] =
+      this.level.$attr2attrVal.textRendering.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_textPaddingTop = function () {
     this.node.style.paddingTop = this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";

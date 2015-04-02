@@ -7,13 +7,12 @@
     
     var
       essentialProp,
-      rootStateProps = lson.states.root.props;
-    
-    
+      rootState = lson.states.root;
+        
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
-      if ( rootStateProps[ essentialProp ] === undefined ) {
-        rootStateProps[ essentialProp ] =
+      if ( rootState[ essentialProp ] === undefined ) {
+        rootState[ essentialProp ] =
           essentialProp2defaultValue[ essentialProp ];
       }
     }

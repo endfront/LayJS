@@ -142,8 +142,12 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        //console.log("render call: ", renderCallS[ i ],
-        // renderDirtyPart.level.path );
+        var fnRender =
+          renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ];
+        if ( !fnRender ) {
+          throw "LAID Error: Inexistent prop: '" +
+           renderCallS[ i ] + "'"; 
+        }
         renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
       }
 

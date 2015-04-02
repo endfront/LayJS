@@ -19,7 +19,7 @@
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
         newLevel = newLevelS[ i ];
-        if ( newLevel.$inherit() ) {
+        if ( newLevel.$normalizeAndInherit() ) {
           newLevel.$identifyAndReproduce();
           isSolveProgressed = true;
           isSolveProgressedOnce = true;

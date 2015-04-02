@@ -10,7 +10,9 @@
     if  ( relativePath === "" ) {
       this.me = true;
 
-    } else if ( relativePath === "*" ) { 
+    } else if ( 
+      ( relativePath === "*" ) ||
+      ( relativePath === "many" ) ) { 
       this.many = true;
 
     } else {

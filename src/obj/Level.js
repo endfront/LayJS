@@ -2,8 +2,6 @@
   "use strict";
 
 
-  
-
 
   LAID.Level = function ( path, lson, parent, derivedManyLevel, row ) {
 
@@ -84,7 +82,8 @@
 
   LAID.Level.prototype.many = function () {
 
-    return this.$derivedManyLevel && this.$derivedManyLevel.$many;
+    return this.$derivedManyLevel &&
+     this.$derivedManyLevel.$many;
    
   };
 
@@ -148,7 +147,7 @@
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
   */
-  LAID.Level.prototype.$inherit = function () {
+  LAID.Level.prototype.$normalizeAndInherit = function () {
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
     if ( !this.$derivedManyLevel && !this.$isNormalized ) {
       this.$isNormalized = true;
@@ -602,8 +601,15 @@
       }
     }
   
-  LAID.$arrayUtils.remove( sortedStateS, "root" );
-  sortedStateS.unshift("root");
+    LAID.$arrayUtils.remove( sortedStateS, "root" );
+    sortedStateS.unshift("root");
+
+    // Push the "formation" state to the end of the
+    // list of states for maximum priority.
+    if ( sortedStateS.indexOf( "formation" ) !== -1 ) {
+      LAID.$arrayUtils.remove( sortedStateS, "formation" );
+      sortedStateS.push( "formation" );
+    }
 
   };
 

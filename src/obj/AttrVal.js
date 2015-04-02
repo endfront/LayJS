@@ -168,6 +168,7 @@
       i, len;
       
 
+
     //console.log("update", level.path, attr, this.val );
 
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
@@ -195,7 +196,7 @@
       }
     }
 
-    if ( attr === "all" ) {
+    if ( attr === "$all" || attr === "$filtered" ) {
       isDirty = true;
     }
 
@@ -232,6 +233,9 @@
 
       if ( level.$derivedManyLevel ) {
         level.$derivedManyLevel.$attr2attrVal.$all.requestRecalculation();
+        if ( level.$attr2attrVal.$f.calcVal !== -1 ) {
+         level.$derivedManyLevel.$attr2attrVal.$filtered.requestRecalculation();
+       }
       }
 
       if ( LAID.$isDataTravellingShock ) {
@@ -309,8 +313,6 @@
         level.$part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
         level.$part.$updateTransitionProp( transitionProp );
-      } else if ( attr === "rows" ) {
-        level.$many.$updateRows();
       } else {  
 
         switch( attr ) {
@@ -324,6 +326,13 @@
               level.parentLevel.$part.$updateNaturalHeightFromChild( level );
             }
             break;
+          case "rows":
+            level.$many.$updateRows();
+            break;
+          case "filter":
+            level.$many.$updateFilter();        
+            break;
+
         }
       }
     }

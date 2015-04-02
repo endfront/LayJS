@@ -954,9 +954,8 @@
       }
 
     } else {
-      this.executable = function () {
-        console.log(LAID.level("/Option").$attr2attrVal);
 
+      this.executable = function () {
         return LAID.$filterUtils.eq(
             oldExecutable.call( this ),
             attr,

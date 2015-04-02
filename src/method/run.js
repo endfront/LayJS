@@ -4,6 +4,12 @@
   LAID.run =  function ( rootLson ) {
 
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
+    LAID.$displayNoneFormationState = {
+      onlyif: LAID.take("","$f").eq(-1),
+      props: {
+        display:false
+      }
+    };
 
     ( new LAID.Level( "/", rootLson, undefined ) ).$init();
 

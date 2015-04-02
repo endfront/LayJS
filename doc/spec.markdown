@@ -133,6 +133,23 @@ The keys within `props` are predefined
 
 ##### List of all possible props
 
+Prioritizing numbers:
+There exist some CSS properties which
+take either a number (in pixels) or
+a string.
+An example would be "background-position"
+which can be "10px" or "center".
+Within LAID, both types are accepted as well,
+however to ensure transitionability the input
+must be numerical. Therefore it is still
+possible to use "center", "auto", "10%", and
+other such CSS strings where the input is
+not in pixels, however if there is a motive
+in changing the value through a state change
+alongwith with a transition then numerical
+values should be provided.
+
+
 Defaults:
 
 - display
@@ -315,10 +332,10 @@ Defaults:
     image: string (Default: none),
     attachment: string (CSS background-attachment) (Default: "scroll"),
     repeat: string (CSS background-repeat) (Default: true),
-    positionX: number (Default: 0),
-    positionY: number (Default: 0),
-    sizeX: number (Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2),
-    sizeY: number (Default: "auto" (can be invoked using `undefined` value), note: no transition between the 2)
+    positionX: string (CSS background-position-x) [non-transitionable] / number (in pixels) (Default: 0),
+    positionY: string (CSS background-position-y) [non-transitionable] / number (in pixels) (Default: 0),
+    sizeX: string (CSS background-size-x) [non-transitionable] / number (in pixels) (Default: "auto"),
+    sizeY: string (CSS background-size-y) [non-transitionable] / number (in pixels) (Default: "auto")
    }
 
 
@@ -390,12 +407,12 @@ Defaults:
 - textSize
   in pixels
   `number`
-  Default: 13
+  Default: "medium"
 
 - textFamily
   `string`
   CSS font-family
-  Default: 'sans-serif'
+  Default: 'inherit'
 
 - textWeight
   `string`
@@ -404,7 +421,7 @@ Defaults:
 
 - textColor
   `LAID.Color`
-  Default: "black"
+  Default: "inherit"
 
 
 - textShadows
@@ -443,16 +460,23 @@ Defaults:
 
 
 - textLetterSpacing
-  `number` / `undefined`
-  In pixels. undefined for initial (native) letter spacing.
-  Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
+  `number` / `string`  
+  `number`: In pixels.  
+  `string`: CSS letter-spacing [non-transitionable]
+  Default: 'normal'
 
 
 - textWordSpacing
-  `number` / `undefined`
-  In pixels. undefined for initial (native) word spacing.
-  Default: "normal" (can be invoked using `undefined` value, note: no transition between the 2)
+  `number` / `string`  
+  `number`: In pixels.  
+  `string`: CSS word-spacing [non-transitionable]
+  Default: 'normal'
 
+- textLineHeight
+  `number` / `string`
+  `number`: In pixels.  
+  `string`: CSS line-height [non-transitionable]
+  Default: 'normal'
 
 - textOverflow
   `string`
@@ -469,6 +493,15 @@ Defaults:
   CSS white-space
   Default: 'normal'
 
+- textSmoothing
+  `string`
+  CSS font-smoothing
+  Default: "auto"
+
+- textRendering
+  `string`
+  CSS text-rendering
+  Default: "auto"
 
 - textPadding
   `number`
@@ -476,7 +509,6 @@ Defaults:
   Border box padding.
   Shorthand for `textPaddingTop`, `textPaddingRight`, `textPaddingBottom` and `textPaddingLeft`
   Default: 0
-
 
 - inputLabel
   `string`
