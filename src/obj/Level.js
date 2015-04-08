@@ -158,7 +158,7 @@
       lson = { type: "none" };
       refS = this.$lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
-
+        
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
           if ( ref === this.path ) {
@@ -183,11 +183,12 @@
            inheritedAndNormalizedLson = ref;
         }
 
-        LAID.$inherit( lson, inheritedAndNormalizedLson, false, false, false );
+        LAID.$inherit( lson, inheritedAndNormalizedLson,
+         false, false, false );
       }
 
       LAID.$inherit( lson, this.$lson, false, false );
-
+      
       this.$lson = lson;
     }
 

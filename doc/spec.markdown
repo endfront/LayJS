@@ -94,7 +94,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
     "canvas"
     "svg"
     ( inputs ...)
-    "input:singleline"
+    "input:line"
     "input:multiline"
     "input:button"
     "input:select"
@@ -305,6 +305,9 @@ Defaults:
   CSS overflow property
   Default: 'hidden'
 
+- overflow
+  `undefined`
+  shorthand for `overflowX` and `overflowY`
 
 - scrollX
   `number`
@@ -474,9 +477,9 @@ Defaults:
 
 - textLineHeight
   `number` / `string`
-  `number`: In pixels.  
+  `number`: In em.  
   `string`: CSS line-height [non-transitionable]
-  Default: 'normal'
+  Default: 1
 
 - textOverflow
   `string`
@@ -530,7 +533,6 @@ Defaults:
 - inputAutocomplete
   `boolean`
   Default: true
-
 
 - inputAutocorrect
   `boolean`

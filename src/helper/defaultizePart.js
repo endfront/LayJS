@@ -93,12 +93,13 @@
       }
     }
 
-    if ( rootStateProps.text !== undefined ) {
+    if ( rootStateProps.text !== undefined &&
+        ( lson.$type === undefined || lson.$type === "none" ) ) {
       lson.$type = "text";
-    } else if ( lson.type === undefined ) {
+    } else if ( lson.$type === undefined ) {
       lson.$type = "none";
-    } else if ( lson.type.startsWith( "input:" ) ) {
-      lson.$inputType = lson.type.slice( ( "input:" ).length );
+    } else if ( lson.$type.startsWith( "input:" ) ) {
+      lson.$inputType = lson.$type.slice( ( "input:" ).length );
     }
 
 
@@ -193,13 +194,12 @@
     cursor: "auto",
     backgroundColor: LAID.transparent(),
     backgroundImage: "none",
-    backgroundAttachmented: "scroll",
+    backgroundAttachment: "scroll",
     backgroundRepeat: true,
     backgroundPositionX: 0,
     backgroundPositionY: 0,
     backgroundSizeX: "auto",
     backgroundSizeY: "auto",
-
 
     cornerRadiusTopLeft: 0,
     cornerRadiusTopRight: 0,
@@ -233,7 +233,7 @@
     textAlign: "start",
     textLetterSpacing: "normal",
     textWordSpacing: "normal",
-    textLineHeight: "normal",
+    textLineHeight: 1,
     textOverflow: "clip",
     textIndent: 0,
     textWhitespace: "normal",
@@ -260,7 +260,6 @@
     videoMuted: false,
     videoPreload: "auto",
     videoPoster: null,
-
 
     audioControls: true,
     audioLoop: false,

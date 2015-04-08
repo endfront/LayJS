@@ -38,7 +38,7 @@
     "-webkit-overflow-scrolling:touch;";
 
   defaultTextCss = defaultCss +
-    "font-family:inherit;";
+    "font-family:inherit;line-height:1em";
 
   inputType2tag = {
     button: "button",
@@ -70,25 +70,33 @@
 
   };
 
+  function getInputType ( type ) {
+    return type.startsWith( "input:" ) &&
+      type.slice( "input:".length );
+
+  }
 
   LAID.$part.prototype.$init = function () {
 
     var
       levelType = this.level.$lson.$type,
-      inputType = this.level.$lson.$inputType,
-      inputTypeTag = inputType2tag[ inputType ];
+      inputType = getInputType( levelType ),
+      inputTag;
 
     if ( this.level.path === "/" ) {
       this.node = document.body;
-    } else if ( inputType !== undefined ) {
-      if ( inputTypeTag !== undefined ) {
-        this.node = document.createElement( inputTypeTag );
+    } else if ( inputType ) {
+      inputTag = inputType2tag[ inputType ];
+      if ( inputTag ) {
+        this.node = document.createElement( inputTag );
       } else {
+        inputType = inputType === "line" ? "text" : inputType;        
         this.node = document.createElement( "input" );
-        this.node.type = inputType;
+        this.node.type = inputType; 
       }
     } else {
-      this.node = document.createElement( ( ( levelType === "none" ) ||
+      this.node = document.createElement(
+       ( ( levelType === "none" ) ||
        ( levelType === "text" ) ) ? "div" :
         ( levelType === "image" ?
          "img" : levelType ) );
@@ -311,7 +319,8 @@
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalWidth ) {
+    if ( attr2attrVal.$naturalWidth &&
+      attr2attrVal.text ) {
 
         this.$naturalWidthTextMode = true;
         this.$addNormalRenderDirtyAttrVal( attr2attrVal.text );
@@ -328,15 +337,22 @@
     }
   };
 
-  LAID.$part.prototype.$updateNaturalHeightFromText = function () {
+  LAID.$part.prototype.$updateNaturalHeightFromText = function (arg) {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalHeight) {
+    if ( attr2attrVal.$naturalHeight &&
+      attr2attrVal.text ) {
       this.$naturalHeightTextMode = true;
+      if ( !attr2attrVal.text) {
+        console.log("fuck", this.level.path);
+      
+      }
+
       this.$addNormalRenderDirtyAttrVal( attr2attrVal.text );
 
       if ( attr2attrVal.scrollY !== undefined ) {
+
         this.$addNormalRenderDirtyAttrVal( attr2attrVal.scrollY );
       }
       // temporarily (for current recalculate) cycle
@@ -537,6 +553,14 @@
         ( transitionCalcVal + "px" ) : transitionCalcVal );
   }
 
+  function computeEmOrString( attrVal, defaultVal ) {
+    var transitionCalcVal =
+      attrVal && attrVal.transitionCalcVal;
+    return ( transitionCalcVal === undefined ) ?
+        defaultVal : ( typeof transitionCalcVal === "number" ?
+        ( transitionCalcVal + "em" ) : transitionCalcVal );
+  }
+
   function computeColorOrString( attrVal, defaultVal ) {
     var transitionCalcVal =
       attrVal && attrVal.transitionCalcVal;
@@ -633,14 +657,19 @@
 
 
   LAID.$part.prototype.$renderFn_perspective = function () {
-    this.node.style[ cssPrefix + "perspective" ] = this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
+    this.node.style[ cssPrefix + "perspective" ] =
+     this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
   };
 
   LAID.$part.prototype.$renderFn_perspectiveOrigin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
     this.node.style[ cssPrefix + "perspective-origin" ] =
-    ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 ) + "% " +
-    ( attr2attrVal.perspectiveOriginY.transitionCalcVal * 100 ) + "%";
+    ( attr2attrVal.perspectiveOriginX ?
+     ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 )
+      : 0 ) + "% " +
+    ( attr2attrVal.perspectiveOriginY ?
+     ( attr2attrVal.perspectiveOriginY.transitionCalcVal * 100 )
+      : 0 ) + "%";
   };
 
   LAID.$part.prototype.$renderFn_backfaceVisibility = function () {
@@ -798,58 +827,74 @@
   };
 
   LAID.$part.prototype.$renderFn_cornerRadiusTopLeft = function () {
-    this.node.style.borderTopLeftRadius = this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
+    this.node.style.borderTopLeftRadius =
+     this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_cornerRadiusTopRight = function () {
-    this.node.style.borderTopRightRadius = this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
+    this.node.style.borderTopRightRadius =
+      this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_cornerRadiusBottomRight = function () {
-    this.node.style.borderBottomRightRadius = this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
+    this.node.style.borderBottomRightRadius =
+      this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
-    this.node.style.borderBottomLeftRadius = this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
+    this.node.style.borderBottomLeftRadius =
+      this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
   };
 
 
 
   LAID.$part.prototype.$renderFn_borderTopStyle = function () {
-    this.node.style.borderTopStyle = this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
+    this.node.style.borderTopStyle =
+      this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_borderRightStyle = function () {
-    this.node.style.borderRightStyle = this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
+    this.node.style.borderRightStyle =
+      this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_borderBottomStyle = function () {
-    this.node.style.borderBottomStyle = this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
+    this.node.style.borderBottomStyle =
+      this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_borderLeftStyle = function () {
-    this.node.style.borderLeftStyle = this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
+    this.node.style.borderLeftStyle =
+      this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
   };
 
 
   LAID.$part.prototype.$renderFn_borderTopColor = function () {
-    this.node.style.borderTopColor = this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
+    this.node.style.borderTopColor =
+      this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
   };
   LAID.$part.prototype.$renderFn_borderRightColor = function () {
-    this.node.style.borderRightColor = this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
+    this.node.style.borderRightColor =
+      this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
   };
   LAID.$part.prototype.$renderFn_borderBottomColor = function () {
-    this.node.style.borderBottomColor = this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
+    this.node.style.borderBottomColor =
+      this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
   };
   LAID.$part.prototype.$renderFn_borderLeftColor = function () {
-    this.node.style.borderLeftColor = this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
+    this.node.style.borderLeftColor =
+      this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
   };
 
   LAID.$part.prototype.$renderFn_borderTopWidth = function () {
-    this.node.style.borderTopWidth = this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
+    this.node.style.borderTopWidth =
+      this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_borderRightWidth = function () {
-    this.node.style.borderRightWidth = this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
+    this.node.style.borderRightWidth =
+      this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_borderBottomWidth = function () {
-    this.node.style.borderBottomWidth = this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
+    this.node.style.borderBottomWidth =
+      this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_borderLeftWidth = function () {
-    this.node.style.borderLeftWidth = this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
+    this.node.style.borderLeftWidth =
+      this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
   };
 
 
@@ -881,8 +926,7 @@
    
     this.node.style.fontSize =
       computePxOrString( 
-        this.level.$attr2attrVal.textSize,
-        "");
+        this.level.$attr2attrVal.textSize );
   };
   LAID.$part.prototype.$renderFn_textFamily = function () {
     this.node.style.fontFamily =
@@ -896,8 +940,7 @@
   LAID.$part.prototype.$renderFn_textColor = function () {
     this.node.style.color = 
       computeColorOrString( 
-        this.level.$attr2attrVal.textColor,
-        "");
+        this.level.$attr2attrVal.textColor );
   };
 
 
@@ -935,19 +978,16 @@
   };
   LAID.$part.prototype.$renderFn_textLetterSpacing = function () {
     this.node.style.letterSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textLetterSpacing,
-        "normal" ) ;
+        this.level.$attr2attrVal.textLetterSpacing ) ;
   };
   LAID.$part.prototype.$renderFn_textWordSpacing = function () {
     this.node.style.wordSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textWordSpacing,
-        "normal" );
+        this.level.$attr2attrVal.textWordSpacing );
   };
   LAID.$part.prototype.$renderFn_textLineHeight = function () {
     
-    this.node.style.lineHeight = computePxOrString( 
-        this.level.$attr2attrVal.textLineHeight,
-        "normal" );
+    this.node.style.lineHeight = computeEmOrString( 
+        this.level.$attr2attrVal.textLineHeight );
   }
 
   LAID.$part.prototype.$renderFn_textOverflow = function () {
@@ -970,16 +1010,20 @@
       this.level.$attr2attrVal.textRendering.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_textPaddingTop = function () {
-    this.node.style.paddingTop = this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
+    this.node.style.paddingTop =
+      this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textPaddingRight = function () {
-    this.node.style.paddingRight = this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
+    this.node.style.paddingRight =
+      this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textPaddingBottom = function () {
-    this.node.style.paddingBottom = this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
+    this.node.style.paddingBottom =
+      this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textPaddingLeft = function () {
-    this.node.style.paddingLeft = this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
+    this.node.style.paddingLeft =
+      this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
   };
 
 

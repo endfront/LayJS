@@ -402,7 +402,7 @@ bottom: -0.25em;
             level.$part.$updateAbsoluteY();
             break;
           default:
-            if ( attr.startsWith( "textPadding" ) )  {
+            if ( attr.startsWith( "text" ) )  {
               level.$part.$updateNaturalWidthFromText();
               level.$part.$updateNaturalHeightFromText();          
             } 
@@ -1135,7 +1135,7 @@ bottom: -0.25em;
       lson = { type: "none" };
       refS = this.$lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
-
+        
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
           if ( ref === this.path ) {
@@ -1160,11 +1160,12 @@ bottom: -0.25em;
            inheritedAndNormalizedLson = ref;
         }
 
-        LAID.$inherit( lson, inheritedAndNormalizedLson, false, false, false );
+        LAID.$inherit( lson, inheritedAndNormalizedLson,
+         false, false, false );
       }
 
       LAID.$inherit( lson, this.$lson, false, false );
-
+      
       this.$lson = lson;
     }
 
@@ -1992,7 +1993,7 @@ bottom: -0.25em;
     "-webkit-overflow-scrolling:touch;";
 
   defaultTextCss = defaultCss +
-    "font-family:inherit;";
+    "font-family:inherit;line-height:1em";
 
   inputType2tag = {
     button: "button",
@@ -2024,25 +2025,33 @@ bottom: -0.25em;
 
   };
 
+  function getInputType ( type ) {
+    return type.startsWith( "input:" ) &&
+      type.slice( "input:".length );
+
+  }
 
   LAID.$part.prototype.$init = function () {
 
     var
       levelType = this.level.$lson.$type,
-      inputType = this.level.$lson.$inputType,
-      inputTypeTag = inputType2tag[ inputType ];
+      inputType = getInputType( levelType ),
+      inputTag;
 
     if ( this.level.path === "/" ) {
       this.node = document.body;
-    } else if ( inputType !== undefined ) {
-      if ( inputTypeTag !== undefined ) {
-        this.node = document.createElement( inputTypeTag );
+    } else if ( inputType ) {
+      inputTag = inputType2tag[ inputType ];
+      if ( inputTag ) {
+        this.node = document.createElement( inputTag );
       } else {
+        inputType = inputType === "line" ? "text" : inputType;        
         this.node = document.createElement( "input" );
-        this.node.type = inputType;
+        this.node.type = inputType; 
       }
     } else {
-      this.node = document.createElement( ( ( levelType === "none" ) ||
+      this.node = document.createElement(
+       ( ( levelType === "none" ) ||
        ( levelType === "text" ) ) ? "div" :
         ( levelType === "image" ?
          "img" : levelType ) );
@@ -2265,7 +2274,8 @@ bottom: -0.25em;
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalWidth ) {
+    if ( attr2attrVal.$naturalWidth &&
+      attr2attrVal.text ) {
 
         this.$naturalWidthTextMode = true;
         this.$addNormalRenderDirtyAttrVal( attr2attrVal.text );
@@ -2282,15 +2292,22 @@ bottom: -0.25em;
     }
   };
 
-  LAID.$part.prototype.$updateNaturalHeightFromText = function () {
+  LAID.$part.prototype.$updateNaturalHeightFromText = function (arg) {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalHeight) {
+    if ( attr2attrVal.$naturalHeight &&
+      attr2attrVal.text ) {
       this.$naturalHeightTextMode = true;
+      if ( !attr2attrVal.text) {
+        console.log("fuck", this.level.path);
+      
+      }
+
       this.$addNormalRenderDirtyAttrVal( attr2attrVal.text );
 
       if ( attr2attrVal.scrollY !== undefined ) {
+
         this.$addNormalRenderDirtyAttrVal( attr2attrVal.scrollY );
       }
       // temporarily (for current recalculate) cycle
@@ -2491,6 +2508,14 @@ bottom: -0.25em;
         ( transitionCalcVal + "px" ) : transitionCalcVal );
   }
 
+  function computeEmOrString( attrVal, defaultVal ) {
+    var transitionCalcVal =
+      attrVal && attrVal.transitionCalcVal;
+    return ( transitionCalcVal === undefined ) ?
+        defaultVal : ( typeof transitionCalcVal === "number" ?
+        ( transitionCalcVal + "em" ) : transitionCalcVal );
+  }
+
   function computeColorOrString( attrVal, defaultVal ) {
     var transitionCalcVal =
       attrVal && attrVal.transitionCalcVal;
@@ -2587,14 +2612,19 @@ bottom: -0.25em;
 
 
   LAID.$part.prototype.$renderFn_perspective = function () {
-    this.node.style[ cssPrefix + "perspective" ] = this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
+    this.node.style[ cssPrefix + "perspective" ] =
+     this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
   };
 
   LAID.$part.prototype.$renderFn_perspectiveOrigin = function () {
     var attr2attrVal = this.level.$attr2attrVal;
     this.node.style[ cssPrefix + "perspective-origin" ] =
-    ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 ) + "% " +
-    ( attr2attrVal.perspectiveOriginY.transitionCalcVal * 100 ) + "%";
+    ( attr2attrVal.perspectiveOriginX ?
+     ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 )
+      : 0 ) + "% " +
+    ( attr2attrVal.perspectiveOriginY ?
+     ( attr2attrVal.perspectiveOriginY.transitionCalcVal * 100 )
+      : 0 ) + "%";
   };
 
   LAID.$part.prototype.$renderFn_backfaceVisibility = function () {
@@ -2752,58 +2782,74 @@ bottom: -0.25em;
   };
 
   LAID.$part.prototype.$renderFn_cornerRadiusTopLeft = function () {
-    this.node.style.borderTopLeftRadius = this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
+    this.node.style.borderTopLeftRadius =
+     this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_cornerRadiusTopRight = function () {
-    this.node.style.borderTopRightRadius = this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
+    this.node.style.borderTopRightRadius =
+      this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_cornerRadiusBottomRight = function () {
-    this.node.style.borderBottomRightRadius = this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
+    this.node.style.borderBottomRightRadius =
+      this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
-    this.node.style.borderBottomLeftRadius = this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
+    this.node.style.borderBottomLeftRadius =
+      this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
   };
 
 
 
   LAID.$part.prototype.$renderFn_borderTopStyle = function () {
-    this.node.style.borderTopStyle = this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
+    this.node.style.borderTopStyle =
+      this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_borderRightStyle = function () {
-    this.node.style.borderRightStyle = this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
+    this.node.style.borderRightStyle =
+      this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_borderBottomStyle = function () {
-    this.node.style.borderBottomStyle = this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
+    this.node.style.borderBottomStyle =
+      this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_borderLeftStyle = function () {
-    this.node.style.borderLeftStyle = this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
+    this.node.style.borderLeftStyle =
+      this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
   };
 
 
   LAID.$part.prototype.$renderFn_borderTopColor = function () {
-    this.node.style.borderTopColor = this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
+    this.node.style.borderTopColor =
+      this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
   };
   LAID.$part.prototype.$renderFn_borderRightColor = function () {
-    this.node.style.borderRightColor = this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
+    this.node.style.borderRightColor =
+      this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
   };
   LAID.$part.prototype.$renderFn_borderBottomColor = function () {
-    this.node.style.borderBottomColor = this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
+    this.node.style.borderBottomColor =
+      this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
   };
   LAID.$part.prototype.$renderFn_borderLeftColor = function () {
-    this.node.style.borderLeftColor = this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
+    this.node.style.borderLeftColor =
+      this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
   };
 
   LAID.$part.prototype.$renderFn_borderTopWidth = function () {
-    this.node.style.borderTopWidth = this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
+    this.node.style.borderTopWidth =
+      this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_borderRightWidth = function () {
-    this.node.style.borderRightWidth = this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
+    this.node.style.borderRightWidth =
+      this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_borderBottomWidth = function () {
-    this.node.style.borderBottomWidth = this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
+    this.node.style.borderBottomWidth =
+      this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_borderLeftWidth = function () {
-    this.node.style.borderLeftWidth = this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
+    this.node.style.borderLeftWidth =
+      this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
   };
 
 
@@ -2835,8 +2881,7 @@ bottom: -0.25em;
    
     this.node.style.fontSize =
       computePxOrString( 
-        this.level.$attr2attrVal.textSize,
-        "");
+        this.level.$attr2attrVal.textSize );
   };
   LAID.$part.prototype.$renderFn_textFamily = function () {
     this.node.style.fontFamily =
@@ -2850,8 +2895,7 @@ bottom: -0.25em;
   LAID.$part.prototype.$renderFn_textColor = function () {
     this.node.style.color = 
       computeColorOrString( 
-        this.level.$attr2attrVal.textColor,
-        "");
+        this.level.$attr2attrVal.textColor );
   };
 
 
@@ -2889,19 +2933,16 @@ bottom: -0.25em;
   };
   LAID.$part.prototype.$renderFn_textLetterSpacing = function () {
     this.node.style.letterSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textLetterSpacing,
-        "normal" ) ;
+        this.level.$attr2attrVal.textLetterSpacing ) ;
   };
   LAID.$part.prototype.$renderFn_textWordSpacing = function () {
     this.node.style.wordSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textWordSpacing,
-        "normal" );
+        this.level.$attr2attrVal.textWordSpacing );
   };
   LAID.$part.prototype.$renderFn_textLineHeight = function () {
     
-    this.node.style.lineHeight = computePxOrString( 
-        this.level.$attr2attrVal.textLineHeight,
-        "normal" );
+    this.node.style.lineHeight = computeEmOrString( 
+        this.level.$attr2attrVal.textLineHeight );
   }
 
   LAID.$part.prototype.$renderFn_textOverflow = function () {
@@ -2924,16 +2965,20 @@ bottom: -0.25em;
       this.level.$attr2attrVal.textRendering.transitionCalcVal;
   };
   LAID.$part.prototype.$renderFn_textPaddingTop = function () {
-    this.node.style.paddingTop = this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
+    this.node.style.paddingTop =
+      this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textPaddingRight = function () {
-    this.node.style.paddingRight = this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
+    this.node.style.paddingRight =
+      this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textPaddingBottom = function () {
-    this.node.style.paddingBottom = this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
+    this.node.style.paddingBottom =
+      this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
   };
   LAID.$part.prototype.$renderFn_textPaddingLeft = function () {
-    this.node.style.paddingLeft = this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
+    this.node.style.paddingLeft =
+      this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
   };
 
 
@@ -5828,12 +5873,13 @@ return this;
       }
     }
 
-    if ( rootStateProps.text !== undefined ) {
+    if ( rootStateProps.text !== undefined &&
+        ( lson.$type === undefined || lson.$type === "none" ) ) {
       lson.$type = "text";
-    } else if ( lson.type === undefined ) {
+    } else if ( lson.$type === undefined ) {
       lson.$type = "none";
-    } else if ( lson.type.startsWith( "input:" ) ) {
-      lson.$inputType = lson.type.slice( ( "input:" ).length );
+    } else if ( lson.$type.startsWith( "input:" ) ) {
+      lson.$inputType = lson.$type.slice( ( "input:" ).length );
     }
 
 
@@ -5928,13 +5974,12 @@ return this;
     cursor: "auto",
     backgroundColor: LAID.transparent(),
     backgroundImage: "none",
-    backgroundAttachmented: "scroll",
+    backgroundAttachment: "scroll",
     backgroundRepeat: true,
     backgroundPositionX: 0,
     backgroundPositionY: 0,
     backgroundSizeX: "auto",
     backgroundSizeY: "auto",
-
 
     cornerRadiusTopLeft: 0,
     cornerRadiusTopRight: 0,
@@ -5968,7 +6013,7 @@ return this;
     textAlign: "start",
     textLetterSpacing: "normal",
     textWordSpacing: "normal",
-    textLineHeight: "normal",
+    textLineHeight: 1,
     textOverflow: "clip",
     textIndent: 0,
     textWhitespace: "normal",
@@ -5995,7 +6040,6 @@ return this;
     videoMuted: false,
     videoPreload: "auto",
     videoPoster: null,
-
 
     audioControls: true,
     audioLoop: false,
@@ -6285,7 +6329,9 @@ function fix_stopPropagation() {
           return multipleTypePropMatchDetails[ 1 ];
         }
 
-        renderCall = LAID.$shorthandPropsUtils.getShorthandPropCenteralized( prop );
+        renderCall = 
+          LAID.$shorthandPropsUtils.getShorthandPropCenteralized(
+            prop );
         if ( renderCall !== undefined ) {
           return renderCall;
         }
@@ -8043,24 +8089,37 @@ if (!Array.prototype.indexOf) {
 
   shorthandProp2_longhandPropS_ = {
 
-    positional: [ "left",
-    "top",
-    "z",
-    "shiftX", "shiftY",
-    "scaleX", "scaleY", "scaleZ",
-    "rotateX", "rotateY", "rotateZ",
-    "skewX", "skewY"
+    positional:[
+      "left",
+      "top",
+      "z",
+      "shiftX", "shiftY",
+      "scaleX", "scaleY", "scaleZ",
+      "rotateX", "rotateY", "rotateZ",
+      "skewX", "skewY"
     ],
-    origin: [ "originX", "originY" ],
-    backgroundPosition: [ "backgroundPositionX", "backgroundPositionY" ],
-    backgroundSize: [ "backgroundSizeX", "backgroundSizeY" ],
+    overflow: [
+      "overflowX", "overflowY" ],
+    backgroundPosition: [
+      "backgroundPositionX", "backgroundPositionY" ],
+    backgroundSize: [
+      "backgroundSizeX", "backgroundSizeY" ],
 
-
-    borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
-    borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
-    borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
-    textPadding: [ "textPaddingTop", "textPaddingRight", "textPaddingBottom", "textPaddingLeft" ],
-    cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ]
+    borderWidth: [
+      "borderTopWidth", "borderRightWidth",
+       "borderBottomWidth", "borderLeftWidth" ],
+    borderColor: [
+      "borderTopColor", "borderRightColor",
+       "borderBottomColor", "borderLeftColor" ],
+    borderStyle: [
+      "borderTopStyle", "borderRightStyle",
+       "borderBottomStyle", "borderLeftStyle" ],
+    textPadding: [
+      "textPaddingTop", "textPaddingRight",
+       "textPaddingBottom", "textPaddingLeft" ],
+    cornerRadius: [
+      "cornerRadiusTopLeft", "cornerRadiusTopRight",
+       "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ]
 
   };
 
@@ -8069,14 +8128,15 @@ if (!Array.prototype.indexOf) {
   // for each shorthand property
 
   centeralizedShorthandPropS = [
-    "positional", "origin", "backgroundPosition", "backgroundSize"
+    "positional", "origin",
+    "backgroundPosition", "backgroundSize"
   ];
 
   longhandPropS = ( function () {
     var
-    longhandPropS = [],
-    shorthandProp,
-    i, len;
+      longhandPropS = [],
+      shorthandProp,
+      i, len;
 
     for ( shorthandProp in shorthandProp2_longhandPropS_ ) {
       longhandPropS = longhandPropS.concat( shorthandProp2_longhandPropS_[ shorthandProp ] );

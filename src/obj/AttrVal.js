@@ -276,7 +276,7 @@
             level.$part.$updateAbsoluteY();
             break;
           default:
-            if ( attr.startsWith( "textPadding" ) )  {
+            if ( attr.startsWith( "text" ) )  {
               level.$part.$updateNaturalWidthFromText();
               level.$part.$updateNaturalHeightFromText();          
             } 

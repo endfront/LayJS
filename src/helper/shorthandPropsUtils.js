@@ -8,24 +8,37 @@
 
   shorthandProp2_longhandPropS_ = {
 
-    positional: [ "left",
-    "top",
-    "z",
-    "shiftX", "shiftY",
-    "scaleX", "scaleY", "scaleZ",
-    "rotateX", "rotateY", "rotateZ",
-    "skewX", "skewY"
+    positional:[
+      "left",
+      "top",
+      "z",
+      "shiftX", "shiftY",
+      "scaleX", "scaleY", "scaleZ",
+      "rotateX", "rotateY", "rotateZ",
+      "skewX", "skewY"
     ],
-    origin: [ "originX", "originY" ],
-    backgroundPosition: [ "backgroundPositionX", "backgroundPositionY" ],
-    backgroundSize: [ "backgroundSizeX", "backgroundSizeY" ],
+    overflow: [
+      "overflowX", "overflowY" ],
+    backgroundPosition: [
+      "backgroundPositionX", "backgroundPositionY" ],
+    backgroundSize: [
+      "backgroundSizeX", "backgroundSizeY" ],
 
-
-    borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ],
-    borderColor: [ "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor" ],
-    borderStyle: [ "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle" ],
-    textPadding: [ "textPaddingTop", "textPaddingRight", "textPaddingBottom", "textPaddingLeft" ],
-    cornerRadius: [ "cornerRadiusTopLeft", "cornerRadiusTopRight", "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ]
+    borderWidth: [
+      "borderTopWidth", "borderRightWidth",
+       "borderBottomWidth", "borderLeftWidth" ],
+    borderColor: [
+      "borderTopColor", "borderRightColor",
+       "borderBottomColor", "borderLeftColor" ],
+    borderStyle: [
+      "borderTopStyle", "borderRightStyle",
+       "borderBottomStyle", "borderLeftStyle" ],
+    textPadding: [
+      "textPaddingTop", "textPaddingRight",
+       "textPaddingBottom", "textPaddingLeft" ],
+    cornerRadius: [
+      "cornerRadiusTopLeft", "cornerRadiusTopRight",
+       "cornerRadiusBottomRight", "cornerRadiusBottomLeft" ]
 
   };
 
@@ -34,14 +47,15 @@
   // for each shorthand property
 
   centeralizedShorthandPropS = [
-    "positional", "origin", "backgroundPosition", "backgroundSize"
+    "positional", "origin",
+    "backgroundPosition", "backgroundSize"
   ];
 
   longhandPropS = ( function () {
     var
-    longhandPropS = [],
-    shorthandProp,
-    i, len;
+      longhandPropS = [],
+      shorthandProp,
+      i, len;
 
     for ( shorthandProp in shorthandProp2_longhandPropS_ ) {
       longhandPropS = longhandPropS.concat( shorthandProp2_longhandPropS_[ shorthandProp ] );
