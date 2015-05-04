@@ -4,6 +4,8 @@
   var
     essentialProp2defaultValue,
     lazyProp2defaultValue,
+    takeNaturalWidthInput,
+    takeNaturalHeightInput,
     fnPosToCenter,
     fnPosToEdge,
     takeLeft,
@@ -14,6 +16,7 @@
     takeLeftToRight,
     takeTopToCenterY,
     takeTopToBottom;
+
 
   LAID.$defaultizePart = function ( lson ) {
     var
@@ -100,6 +103,14 @@
       lson.$type = "none";
     } else if ( lson.$type.startsWith( "input:" ) ) {
       lson.$inputType = lson.$type.slice( ( "input:" ).length );
+      if ( rootStateProps.width ===
+       essentialProp2defaultValue.width ) {
+        rootStateProps.width = takeNaturalWidthInput;
+      }
+      if ( rootStateProps.height ===
+       essentialProp2defaultValue.height ) {
+        rootStateProps.height = takeNaturalHeightInput;
+      }
     }
 
 
@@ -132,12 +143,19 @@
 */
 
 
+  
+
   essentialProp2defaultValue = {
     width:  new LAID.Take( "", "$naturalWidth" ),
     height:  new LAID.Take( "", "$naturalHeight" ),
     top: 0,
     left: 0
   };
+
+  takeNaturalHeightInput =
+    new LAID.Take( "", "$naturalHeightInput");
+  takeNaturalWidthInput =
+    new LAID.Take( "", "$naturalWidthInput");
 
   fnPosToCenter = function( pos, dim ) {
     return pos + ( dim / 2 );

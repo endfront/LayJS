@@ -415,7 +415,7 @@ Defaults:
 - textFamily
   `string`
   CSS font-family
-  Default: 'inherit'
+  Default: "inherit"
 
 - textWeight
   `string`

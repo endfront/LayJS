@@ -37,8 +37,7 @@
 
     //LAID.$isSolvingNewLevels = false;
 
-
-    return newLevelS.length === 0 ?  0 :
+    return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
    
   };

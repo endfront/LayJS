@@ -9,6 +9,8 @@
   var readonlyAttr2defaultVal = {
     $naturalWidth: null,
     $naturalHeight: null,
+    $naturalWidthInput: null,
+    $naturalHeightInput: null,
     $absoluteX: null,
     $absoluteY: null,
     $numberOfChildren: null,

@@ -108,7 +108,7 @@ LAID.run({
                   }
                 },
                 "Input": {
-                  $type: "input:line",
+                  $type: "input:multiline",
                   props: {
                     zIndex:1,
                     width: LAID.take("../", "width"),

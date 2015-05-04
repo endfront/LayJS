@@ -205,7 +205,7 @@
       if ( !this.$derivedManyLevel ) {
         LAID.$defaultizePart( this.$lson );
       }
-      this.$part = new LAID.$part( this );
+      this.$part = new LAID.Part( this );
       this.$part.$init();
       if ( this.path !== "/" ) {
         LAID.$insertedPartS.push( this.$part );
@@ -335,17 +335,22 @@
       }
     }
 
+    if ( this.$isPart && this.$part.$isInputText ) {
+      observableReadonlyS = observableReadonlyS ?
+        observableReadonlyS.push( "$input" ) : [ "$input" ];
+    }
+
     if ( observableReadonlyS ) {
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
         observableReadonly = observableReadonlyS[ i ];
         this.$createLazyAttr( observableReadonly );
-        this.$attr2attrVal[ observableReadonly ].give( LAID.$emptyAttrVal );
+        this.$attr2attrVal[ observableReadonly ].give(
+          LAID.$emptyAttrVal );
       }
     }
 
     this.$initNonStateProjectedAttrs();
     this.$updateStates();
-
 
   };
 
@@ -428,9 +433,7 @@
       this.$attr2attrVal[ attr ].update( this.$lson[ attr ] );
 
     } else if ( readonlyDefaultVal !== undefined ) {
-
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
           case "$numberOfChildren":
@@ -441,6 +444,12 @@
             break;
           case "$naturalHeight":
             this.$part.$updateNaturalHeight();
+            break;
+          case "$naturalWidthInput":
+            this.$part.$updateNaturalWidthInput();
+            break;
+          case "$naturalHeightInput":
+            this.$part.$updateNaturalHeightInput();
             break;
           case "$absoluteX":
             this.$part.$updateAbsoluteX();

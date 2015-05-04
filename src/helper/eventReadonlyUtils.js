@@ -1,6 +1,18 @@
 ( function(){
   "use strict";
 
+  var $inputEvent2fn = {
+    click: function () {
+      this.$changeAttrVal( "$input", this.$part.node.value );
+    },
+    change: function () {
+      this.$changeAttrVal( "$input", this.$part.node.value );
+    },
+    keydown: function () {
+      this.$changeAttrVal( "$input", this.$part.node.value );
+    }
+  };
+
   var eventReadonly2_eventType2fnHandler_ = {
     $hovered: {
       mouseover: function () {
@@ -37,42 +49,47 @@
     },
     $scrolledX: {
       scroll: function () {
-        this.$changeAttrVal( "$scrolledX", this.$part.node.scrollTop );
+        this.$changeAttrVal( "$scrolledX",
+          this.$part.node.scrollTop );
+      }
+    },
+    $scrolledY: {
+      scroll: function () {
+        this.$changeAttrVal( "$scrolledY",
+         this.$part.node.scrollLeft );
       }
     },
     $cursorX: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorX", this.$part.node.offsetX );
+        this.$changeAttrVal( "$cursorX",
+          this.$part.node.offsetX );
       }
     },
     $cursorY: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorY", this.$part.node.offsetY );
+        this.$changeAttrVal( "$cursorY",
+          this.$part.node.offsetY );
       }
     },
-    $input: {
-      click: function () {
-        this.$changeAttrVal( "$input", this.$part.node.value );
-      },
-      change: function () {
-        this.$changeAttrVal( "$input", this.$part.node.value );
-      },
-      keydown: function () {
-        this.$changeAttrVal( "$input", this.$part.node.value );
-      }
-    },
+    $input: $inputEvent2fn,
+    $naturalWidthInput: $inputEvent2fn,
+    $naturalHeightInput: $inputEvent2fn,
+
+    
 
     $inputChecked: {
       change: function () {
         this.$changeAttrVal( "$inputChecked", this.checked );
       }
     }
+
   };
 
 
   LAID.$eventReadonlyUtils = {
     checkIsEventReadonlyAttr: function ( attr ) {
-      return eventReadonly2_eventType2fnHandler_[ attr ] !== undefined;
+      return eventReadonly2_eventType2fnHandler_[ attr ] !==
+        undefined;
     },
     getEventType2fnHandler: function ( attr ) {
       return eventReadonly2_eventType2fnHandler_[ attr ];

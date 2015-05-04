@@ -164,6 +164,8 @@
       isDirty = false,
       recalcVal,
       level = this.level,
+      part = level.$part,
+      many = level.$many,
       attr = this.attr,
       i, len;
       
@@ -201,21 +203,29 @@
     }
 
 
-    if ( !isDirty ) {
-      switch ( attr ) {
-        case "input":
-          this.transitionCalcVal = this.level.$part.node.value;
-
-      }
-    }
 
     switch ( attr ) {
       case "scrollX":
-        this.transitionCalcVal = this.level.$part.node.scrollLeft;
+        this.transitionCalcVal =
+          this.level.$part.node.scrollLeft;
+        if ( level.$attr2attrVal.$scrolledX ) {
+          this.$changeAttrVal( "$scrolledX",
+           this.calcVal );
+        }
         isDirty = true;
       case "scrollY":
-        this.transitionCalcVal = this.level.$part.node.scrollTop;
+        this.transitionCalcVal =
+          this.level.$part.node.scrollTop;
+        if ( level.$attr2attrVal.$scrolledY ) {
+          this.$changeAttrVal( "$scrolledY",
+           this.calcVal );
+        }
         isDirty = true;
+      case "input":
+        if ( level.$attr2attrVal.$input ) {
+          this.$changeAttrVal( "$input",
+           this.calcVal );
+        }
     }
 
 
@@ -240,7 +250,7 @@
 
       if ( LAID.$isDataTravellingShock ) {
 
-        level.$part.$addTravelRenderDirtyAttrVal( this );
+        part.$addTravelRenderDirtyAttrVal( this );
 
       }
 
@@ -250,41 +260,70 @@
 
 
         if ( !LAID.$isDataTravellingShock ) {
-          level.$part.$addNormalRenderDirtyAttrVal( this );
+          part.$addNormalRenderDirtyAttrVal( this );
         }
 
         switch ( attr ) {
           case "text":
-            level.$part.$updateNaturalWidthFromText();
-            level.$part.$updateNaturalHeightFromText();
+            part.$updateNaturalWidthFromText();
+            part.$updateNaturalHeightFromText();
+            break;
+          case "$input":
+            part.$updateNaturalWidthInput();
+            part.$updateNaturalHeightInput();
             break;
           case "width":
-            if ( level.$attr2attrVal.text !== undefined ) {
-              level.$part.$updateNaturalHeightFromText();
+            if ( this.level.$attr2attrVal.text ) {
+              part.$updateNaturalHeightFromText();
+            } else if ( part.$isInputText ) {
+              part.$updateNaturalHeightInput();
             }
             break;
           case "left":
-            level.$part.$updateAbsoluteX();
+            part.$updateAbsoluteX();
             break;
           case "shiftX":
-            level.$part.$updateAbsoluteX();
+            part.$updateAbsoluteX();
             break;
           case "top":
-            level.$part.$updateAbsoluteY();
+            part.$updateAbsoluteY();
             break;
           case "shiftY":
-            level.$part.$updateAbsoluteY();
+            part.$updateAbsoluteY();
             break;
           default:
             if ( attr.startsWith( "text" ) )  {
-              level.$part.$updateNaturalWidthFromText();
-              level.$part.$updateNaturalHeightFromText();          
+                
+              var childLevelS = level.$childLevelS;
+
+
+              if ( childLevelS ) {
+                // A CSS text styling inherit taking
+                // place must have all the children
+                // levels (parts) notified.
+                for ( var i = 0, len = childLevelS.length,
+                    childPart;
+                    i < len; i++ ) {
+                  childPart = childLevelS[ i ].$part;
+                  if ( childPart ) {
+                    childPart.$updateNaturalWidthFromText();
+                    childPart.$updateNaturalHeightFromText();
+                    childPart.$updateNaturalWidthInput();
+                    childPart.$updateNaturalHeightInput(); 
+                  }
+                }
+              } else {
+                part.$updateNaturalWidthFromText();
+                part.$updateNaturalHeightFromText();
+                part.$updateNaturalWidthInput();
+                part.$updateNaturalHeightInput(); 
+              }     
             } 
         }
 
         // In case there exists a transition
         // for the given prop then update it
-        level.$part.$updateTransitionProp( attr );
+        part.$updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
@@ -310,9 +349,9 @@
           }
         }
       } else if ( whenEventType !== "" ) {
-        level.$part.$updateWhenEventType( whenEventType );
+        part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        level.$part.$updateTransitionProp( transitionProp );
+        part.$updateTransitionProp( transitionProp );
       } else {  
 
         switch( attr ) {
@@ -327,12 +366,11 @@
             }
             break;
           case "rows":
-            level.$many.$updateRows();
+            many.$updateRows();
             break;
           case "filter":
-            level.$many.$updateFilter();        
+            many.$updateFilter();        
             break;
-
         }
       }
     }
@@ -442,8 +480,6 @@
   };
 
   LAID.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
-
-
 
     if ( !attrVal ) {
       return false;
