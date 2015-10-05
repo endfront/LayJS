@@ -23,6 +23,7 @@
       essentialProp,
       rootState = lson.states.root,
       rootStateProps = rootState.props,
+      rootStateWhen = rootState.when,
       rootStateTransition = rootState.transition,
       props,
       states = lson.states,
@@ -30,7 +31,7 @@
       prop,
       when, transition, metaMax, maxProp,
       eventType, transitionProp;
-    
+
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootStateProps[ essentialProp ] === undefined ) {
@@ -66,7 +67,7 @@
        }
 
         for ( prop in props ) {
-          
+
           if ( ( rootStateProps[ prop ] === undefined ) &&
               ( lazyProp2defaultValue[ prop ] !== undefined )
             ) {
@@ -84,8 +85,8 @@
       }
 
       for ( eventType in when ) {
-        if ( !lson.when[ eventType ] ) {
-          lson.when[ eventType ] = [];
+        if ( !rootStateWhen[ eventType ] ) {
+          rootStateWhen[ eventType ] = [];
         }
       }
 
@@ -112,8 +113,6 @@
         rootStateProps.height = takeNaturalHeightInput;
       }
     }
-
-
 
   };
 /*

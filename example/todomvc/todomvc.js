@@ -1,7 +1,7 @@
 
 
 
-LAID.run({
+var x = ({
   data: {
     responsiveWidth: 550,
     gray230: LAID.rgb(230,230,230)
@@ -251,5 +251,43 @@ LAID.run({
         
 });
  
+
+LAID.run({
+  children: {
+    "Box": {
+      props: {
+        height: 200,
+        width: LAID.take("/", "width"),
+        backgroundColor: LAID.color("red"),
+        overflowY: "scroll",
+        scrollY: 100
+      },
+      children: {
+        "Long": {
+          props: {
+            height: 1000,
+            width: LAID.take("../", "width").divide(2),
+            backgroundColor: LAID.color("blue"),
+            centerX: LAID.take("../", "centerX"),
+            text: "Hello World<br>Here",
+            textColor: LAID.color("white")
+
+          }
+        }
+      }
+
+    }
+  }
+
+});
+
+
+
+
+
+
+
+
+
 
 

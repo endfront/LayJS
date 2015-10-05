@@ -13,8 +13,8 @@
     if ( !newLevelS.length ) {
       return 3;
     }
-    //LAID.$isSolvingNewLevels = true;
-
+    
+    
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
@@ -35,11 +35,10 @@
       solvedLevelS[ i ].$initAllAttrs();
     }
 
-    //LAID.$isSolvingNewLevels = false;
 
     return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
    
-  };
+  }
 
 })();

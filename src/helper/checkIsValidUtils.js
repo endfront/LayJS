@@ -18,7 +18,7 @@
   	* Rules of a state name:
   	* (1) Must only contain alphanumeric characters, the underscore ("_"), or the hyphen ("-")
   	* (2) Must contain atleast one character
-  	* (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
+  	* (3) Must not be a reserved name with the exception of "root"
   	*/
   	stateName: function ( stateName ) {
   		 return (

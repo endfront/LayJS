@@ -9,7 +9,7 @@ var springTransition = {
 };
 
 
-var x = ( {
+LAID.run ( {
   data: {
     lang: "en",
     menu: false
@@ -28,7 +28,7 @@ var x = ( {
     },
     "Menu": {
       props: {
-        height:LAID.take("../", "height"),
+        height:LAID.take("/", "height"),
         width:300,
         backgroundColor:LAID.color("gainsboro"),
         zIndex:1
@@ -55,8 +55,8 @@ var x = ( {
 
     "Content": {
       props: {
-        width:LAID.take("../", "width"),
-        height:LAID.take("../", "height")
+        width:LAID.take("/", "width"),
+        height:LAID.take("/", "height")
       },
       transition: {
         left: springTransition
@@ -83,9 +83,9 @@ var x = ( {
               props: {
                 left: 30,
                 centerY: LAID.take( "../", "height").divide(2),
-                width:LAID.take("Wrapper", "width").add(20),
-                height:LAID.take("Wrapper", "height").add(20),
-                cornerRadius:100
+           
+               width:LAID.take("", "$naturalWidth").add(20),
+                height:LAID.take("", "$naturalHeight").add(20),
               },
               states: {
                 "hidden": {

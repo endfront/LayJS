@@ -19,6 +19,7 @@
 
         normalize( lson, true );
         normalizedExternalLsonS.push( lson );
+
       }
 
     } else {      
@@ -36,9 +37,11 @@
       lson.states = {};
     }
 
+
+    /* TODO: Throw warning
     if ( lson.states.root ) {
       throw "LAID Error: State name 'root' is reserved.";
-    }
+    }*/
 
     lson.states.root = {
       props: lson.props,
@@ -175,6 +178,10 @@
 
     $observe: function ( lson ) {
       checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
+    },
+
+    load: function ( lson ) {
+
     },
 
     data: function ( lson ) {

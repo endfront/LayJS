@@ -106,7 +106,7 @@ bottom: -0.25em;
     $recalculateDirtyLevelS: [],
     $renderDirtyPartS: [],
     $prevFrameTime: 0,
-    //$uninitialized: {},
+
     $isClogged:false,
     $isSolving: false,
     $isRequestedForAnimationFrame: false,
@@ -1092,6 +1092,8 @@ bottom: -0.25em;
 
     return this.$part.node;
   };
+
+
 
   LAID.Level.prototype.many = function () {
 
@@ -5643,7 +5645,7 @@ return this;
   	* Rules of a state name:
   	* (1) Must only contain alphanumeric characters, the underscore ("_"), or the hyphen ("-")
   	* (2) Must contain atleast one character
-  	* (3) Must not be any of the following: {"root", "transition", "data", "when", "state"}
+  	* (3) Must not be a reserved name with the exception of "root"
   	*/
   	stateName: function ( stateName ) {
   		 return (
@@ -5947,6 +5949,7 @@ return this;
       essentialProp,
       rootState = lson.states.root,
       rootStateProps = rootState.props,
+      rootStateWhen = rootState.when,
       rootStateTransition = rootState.transition,
       props,
       states = lson.states,
@@ -5954,7 +5957,7 @@ return this;
       prop,
       when, transition, metaMax, maxProp,
       eventType, transitionProp;
-    
+
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootStateProps[ essentialProp ] === undefined ) {
@@ -5990,7 +5993,7 @@ return this;
        }
 
         for ( prop in props ) {
-          
+
           if ( ( rootStateProps[ prop ] === undefined ) &&
               ( lazyProp2defaultValue[ prop ] !== undefined )
             ) {
@@ -6008,8 +6011,8 @@ return this;
       }
 
       for ( eventType in when ) {
-        if ( !lson.when[ eventType ] ) {
-          lson.when[ eventType ] = [];
+        if ( !rootStateWhen[ eventType ] ) {
+          rootStateWhen[ eventType ] = [];
         }
       }
 
@@ -6036,8 +6039,6 @@ return this;
         rootStateProps.height = takeNaturalHeightInput;
       }
     }
-
-
 
   };
 /*
@@ -7435,6 +7436,7 @@ function fix_stopPropagation() {
 
         normalize( lson, true );
         normalizedExternalLsonS.push( lson );
+
       }
 
     } else {      
@@ -7452,9 +7454,11 @@ function fix_stopPropagation() {
       lson.states = {};
     }
 
+
+    /* TODO: Throw warning
     if ( lson.states.root ) {
       throw "LAID Error: State name 'root' is reserved.";
-    }
+    }*/
 
     lson.states.root = {
       props: lson.props,
@@ -7591,6 +7595,10 @@ function fix_stopPropagation() {
 
     $observe: function ( lson ) {
       checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
+    },
+
+    load: function ( lson ) {
+
     },
 
     data: function ( lson ) {
@@ -8515,8 +8523,8 @@ if (!Array.prototype.indexOf) {
     if ( !newLevelS.length ) {
       return 3;
     }
-    //LAID.$isSolvingNewLevels = true;
-
+    
+    
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
@@ -8537,12 +8545,11 @@ if (!Array.prototype.indexOf) {
       solvedLevelS[ i ].$initAllAttrs();
     }
 
-    //LAID.$isSolvingNewLevels = false;
 
     return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
    
-  };
+  }
 
 })();
 

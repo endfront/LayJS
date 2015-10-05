@@ -115,7 +115,7 @@ More about inheritance in inherit section of this document.
 ### LSON.$interface
 
   If set to true, the level will not render.
-  (Primary usage for such a level exists during inheritance)
+  (Primary usage for such a level exists soley for inheritance)
 
 
 ### data
@@ -154,7 +154,7 @@ Defaults:
 
 - display
   `boolean`
-  Default: 0
+  Default: true
 
 - width
   `number`
