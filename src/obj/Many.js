@@ -1,9 +1,6 @@
 (function() {
   "use strict";
 
-
-  
-
   LAID.Many = function ( level, partLson ) {
 
     this.level = level;
@@ -13,7 +10,10 @@
 
     this.$id = level.$lson.$id;
     this.$id2level = {};
+    this.$id2row = {};
     this.$allLevelS = [];
+    this.$loaded = false;
+
 
   };
 
@@ -28,7 +28,7 @@
     if ( this.$id === undefined ) {
 
     }
-    
+
     // initiate formations
     for ( formationName in formationName2state ) {
       states[ "formation:" + formationName ] =
@@ -38,6 +38,8 @@
     states.formation = LAID.$displayNoneFormationState;
 
     LAID.$defaultizePart( this.$partLson );
+
+    LAID.$newManyS.push( this );
 
   };
 
@@ -50,6 +52,31 @@
 
     return new LAID.Query( 
       this.level.$attr2attrVal.filter.calcVal );
+  };
+
+  LAID.Many.prototype.rowsChange = function ( newRowS ) {
+
+    this.level.$attr2attrVal.rows.update( newRowS );
+    LAID.$solve();
+  };
+
+  LAID.Many.prototype.rowsMore = function ( newRowS ) {
+    var
+      curRowS = this.level.$attr2attrVal.rows.calcVal;
+
+    for ( var i = 0; i < newRowS.length; i++ ) {
+      curRowS.push( newRowS[ i ] );
+    }
+
+    this.level.$attr2attrVal.rows.requestRecalculation();
+    
+    LAID.$solve();
+
+  };
+
+  LAID.Many.prototype.rowsCommit = function ( newRowS ) {
+
+    // TODO: complete
   };
 
   /*
@@ -67,6 +94,7 @@
       updatedLevelS = [],
       newLevelS = [],
       id2level = this.$id2level,
+      id2row = this.$id2row,
       i, len;
 
     sortRows( rowS, this.level.$attr2attrVal.sort.calcVal );
@@ -80,17 +108,20 @@
         continue;
   		} else if ( !level ) {
   			level = new LAID.Level( this.level.path + ":" + id,
-  			 this.$partLson, parentLevel, this.level, row );
+  			 this.$partLson, parentLevel, this, row, id );
+        // the level has already been normalized
+        // while LAID was parsing the "many" level
+        level.$isNormalized = true;
 
   			parentLevel.$childLevelS.push( level );
   			id2level[ id ] = level;
+        id2row[ id ] = row;
         this.$allLevelS.push( level );
 
         level.$createAttrVal( "$i", i + 1 );
         level.$createAttrVal( "$f", -1 );
 
         level.$init();
-        level.$identifyAndReproduce();
 
         newLevelS.push( level );
 
@@ -98,7 +129,6 @@
         // update row
         level.$attr2attrVal.$i.update( i + 1 );
         level.$attr2attrVal.$f.update( -1 );
-
 
   		}
 
@@ -111,11 +141,6 @@
     LAID.$solve();
 
 
-    for ( i = 0, len = newLevelS.length; i < len; i++ ) {
-      newLevelS[ i ].$initAllAttrs();
-
-    }
-
     for ( id in id2level ) {
       level = id2level[ id ];
       if ( updatedLevelS.indexOf( level ) === -1 ) {
@@ -127,15 +152,17 @@
 
     this.level.$attr2attrVal.filter.requestRecalculation();
 
-  	LAID.$solve();
+    this.$updateFilter();
+
+    LAID.$solve();
 
   };
 
   LAID.Many.prototype.$updateFilter = function ( ) {
 
-    var 
+    var  
       allLevelS = this.$allLevelS,
-      filteredLevelS = this.level.$attr2attrVal.filter.calcVal;
+      filteredLevelS = this.level.$attr2attrVal.filter.calcVal || [];
 
     for ( 
       var i = 0, len = allLevelS.length;
@@ -151,7 +178,6 @@
      ) {
       filteredLevelS[ f ].$attr2attrVal.$f.update( f + 1 );
     }
-
 
     this.level.$attr2attrVal.$filtered.update( filteredLevelS );
     this.level.$attr2attrVal.$all.update( this.$allLevelS );

@@ -40,7 +40,7 @@
     if ( this.me ) {
       return referenceLevel;
     } else if ( this.many ) { 
-      return referenceLevel.$derivedManyLevel;
+      return referenceLevel.$derivedMany.level;
     } else {
       if ( this.absolute ) {
           return LAID.$path2level[ this.absolutePath ];

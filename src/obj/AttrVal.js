@@ -24,6 +24,9 @@
     this.transition = undefined;
     this.isTransitionable = false;
 
+    this.isForceRecalculate = false;
+
+
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr =
@@ -93,17 +96,15 @@
   Returns true if the value is different,
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
-
-
+     
     this.val = val;
-
     if ( !LAID.identical( val, this.prevVal ) ) {
-
       if ( this.val instanceof LAID.Take ) {
         this.takeNot();
       }
 
       this.isTaken = false;
+      
       this.requestRecalculation();
 
       return true;
@@ -116,12 +117,23 @@
   * Request the level corresponding to the given AttrVal
   * to recalculate this AttrVal.
   */
-  LAID.AttrVal.prototype.requestRecalculation = function ( ) {
+  LAID.AttrVal.prototype.requestRecalculation = function () {
     this.isRecalculateRequired = true;
     if ( this.level ) { // check for empty level
       this.level.$addRecalculateDirtyAttrVal( this );
     }
   };
+
+  /*
+  * Force the level corresponding to the given AttrVal
+  * to recalculate this AttrVal.
+  */
+  LAID.AttrVal.prototype.forceRecalculation = function () {
+
+    this.isForceRecalculate = true;
+    this.requestRecalculation();
+  };
+
 
   LAID.AttrVal.prototype.checkIsTransitionable = function () {
 
@@ -167,8 +179,7 @@
       part = level.$part,
       many = level.$many,
       attr = this.attr,
-      i, len;
-      
+      i, len; 
 
 
     //console.log("update", level.path, attr, this.val );
@@ -202,30 +213,39 @@
       isDirty = true;
     }
 
-
+    if ( this.isForceRecalculate ) {
+      isDirty = true;
+    }
 
     switch ( attr ) {
       case "scrollX":
-        this.transitionCalcVal =
-          this.level.$part.node.scrollLeft;
+         this.transitionCalcVal =
+             this.level.$part.node.scrollLeft;      
         if ( level.$attr2attrVal.$scrolledX ) {
-          this.$changeAttrVal( "$scrolledX",
+          level.$changeAttrVal( "$scrolledX",
            this.calcVal );
         }
         isDirty = true;
+        break;
       case "scrollY":
-        this.transitionCalcVal =
-          this.level.$part.node.scrollTop;
+         this.transitionCalcVal =
+             this.level.$part.node.scrollTop;
         if ( level.$attr2attrVal.$scrolledY ) {
-          this.$changeAttrVal( "$scrolledY",
+          level.$changeAttrVal( "$scrolledY",
            this.calcVal );
         }
         isDirty = true;
+        break;
+      case "rows":
+        isDirty = true;
+        break;
       case "input":
         if ( level.$attr2attrVal.$input ) {
-          this.$changeAttrVal( "$input",
+          level.$changeAttrVal( "$input",
            this.calcVal );
         }
+        isDirty = true;
+        break;
     }
 
 
@@ -241,10 +261,10 @@
         this.takerAttrValS[ i ].requestRecalculation();
       }
 
-      if ( level.$derivedManyLevel ) {
-        level.$derivedManyLevel.$attr2attrVal.$all.requestRecalculation();
+      if ( level.$derivedMany ) {
+        level.$derivedMany.level.$attr2attrVal.$all.requestRecalculation();
         if ( level.$attr2attrVal.$f.calcVal !== -1 ) {
-         level.$derivedManyLevel.$attr2attrVal.$filtered.requestRecalculation();
+         level.$derivedMany.level.$attr2attrVal.$filtered.requestRecalculation();
        }
       }
 
@@ -265,17 +285,18 @@
 
         switch ( attr ) {
           case "text":
-            part.$updateNaturalWidthFromText();
             part.$updateNaturalHeightFromText();
+            part.$updateNaturalWidthFromText();
             break;
           case "$input":
             part.$updateNaturalWidthInput();
             part.$updateNaturalHeightInput();
             break;
           case "width":
-            if ( this.level.$attr2attrVal.text ) {
+            if ( level.$attr2attrVal.text ) {
               part.$updateNaturalHeightFromText();
-            } else if ( part.$isInputText ) {
+              
+            } else if ( part.isInputText ) {
               part.$updateNaturalHeightInput();
             }
             break;
@@ -291,13 +312,18 @@
           case "shiftY":
             part.$updateAbsoluteY();
             break;
+        
+
           default:
-            if ( attr.startsWith( "text" ) )  {
-                
+            var checkIfAttrNotAffectTextDimesion  = function ( attr ) {
+              return ( ["textDecoration", "textColor"] ).indexOf( attr ) !== -1;
+            }
+            if ( attr.startsWith( "text" ) &&
+              !checkIfAttrNotAffectTextDimesion( attr ) )  {
+              
               var childLevelS = level.$childLevelS;
 
-
-              if ( childLevelS ) {
+              if ( childLevelS.length ) {
                 // A CSS text styling inherit taking
                 // place must have all the children
                 // levels (parts) notified.
@@ -357,23 +383,48 @@
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
-             level.parentLevel.$part.$updateNaturalWidthFromChild( level );
+             level.parentLevel.$part.
+              $updateNaturalWidthFromChild( level );
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
-              level.parentLevel.$part.$updateNaturalHeightFromChild( level );
+              level.parentLevel.$part.
+                $updateNaturalHeightFromChild( level );
+
             }
             break;
           case "rows":
             many.$updateRows();
             break;
           case "filter":
-            many.$updateFilter();        
+            many.$updateFilter();  
+            break;
+          case "$naturalWidth":
+            if ( this.level.$attr2attrVal.scrollX ) {
+              var self = this;
+              setTimeout(function(){
+                self.level.$attr2attrVal.scrollX.
+                  requestRecalculation();
+                LAID.$solve();
+              });
+            }
+            break;
+          case "$naturalHeight":
+
+            if ( this.level.$attr2attrVal.scrollY ) {
+              var self = this;
+              setTimeout(function(){
+                self.level.$attr2attrVal.scrollY.
+                  requestRecalculation();
+                LAID.$solve();
+              });
+            }
             break;
         }
       }
     }
+    this.isForceRecalculate = false;
     this.isRecalculateRequired = false;
     return true;
   };
@@ -392,7 +443,8 @@
            eventType2fnHandler[ eventType ].bind( this.level );
           LAID.$eventUtils.add( this.level.$part.node, eventType, fnBoundHandler );
 
-          this.eventReadonlyEventType2boundFnHandler[ eventType ] = fnBoundHandler;
+          this.eventReadonlyEventType2boundFnHandler[ eventType ] =
+           fnBoundHandler;
         }
       }
     }
@@ -408,9 +460,10 @@
          eventType,
          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
-          fnBoundHandler = eventReadonlyEventType2boundFnHandler[ eventType ];
+          fnBoundHandler = this.eventReadonlyEventType2boundFnHandler[ eventType ];
           LAID.$eventUtils.remove( this.level.$part.node, eventType, fnBoundHandler );
-          this.eventReadonlyEventType2boundFnHandler[ eventType ] = undefined;
+          this.eventReadonlyEventType2boundFnHandler[ eventType ] =
+           undefined;
         }
       }
     }
@@ -507,6 +560,8 @@
       }
     }
   };
+
+  
 
 
 

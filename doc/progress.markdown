@@ -2,24 +2,28 @@
 
 
 Current:
+  - /*this.transitionCalcVal =
+          this.level.$part.node.scrollLeft;*/
+    to be pushed into transition animation logic
   - Textarea
+  - LAID.level.remove() for input node
+  - Many.load not working
 
   many:
-  - LAID.Many
-  - Cache most recently used state combinations for Many
-  - lson.type
-  - Add "$i" index for Many to spec
-  - LAID.takeMany
-  - Refine formation spec (including for creating formations)
+  - userSelect not working
+  - sorting rows
+  - lson.type ??
 
-Completion:
-  - todoMVC
-  - Upload to github (with new .git object)
-  - hacker news
+  spec:
+  - Add "$i" index for Many to spec
+  - Refine formation spec (including for creating formations)
+  - add LAID.level.changeNativeInput/ScrollX/Y() to spec
 
 
 
 Future:
+  - rowsCommit
+  - Cache most recently used state combinations for Many
   - takes across forbidden objects such as "when", "transition", etc
   - update spec to have quotes around state names
   - natural width and height dependent upon the rotation of Z axis of children.

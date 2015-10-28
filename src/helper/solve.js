@@ -1,7 +1,7 @@
 ( function () {
   "use strict";
   LAID.$solve = function () {
-
+    
     if ( !LAID.$isSolving ) {
 
       var 

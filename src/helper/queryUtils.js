@@ -12,10 +12,18 @@
         return undefined;
 
       } else {
-       return partLevelS[ index - 1 ].$getAttrVal( attr ).calcVal;
+        if ( !partLevelS[ index - 1 ] ) {
+          return null;
+        } else {
+          return partLevelS[ index - 1 ].$getAttrVal( attr ).calcVal;
+        }
       }
 
-    }
+    },
+
+   /* fetchAll: function ( partLevelS ) {
+      return partLevelS;
+    } */
 
   };
 

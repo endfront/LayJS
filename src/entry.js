@@ -106,6 +106,7 @@ bottom: -0.25em;
     $recalculateDirtyLevelS: [],
     $renderDirtyPartS: [],
     $prevFrameTime: 0,
+    $newManyS: [],
 
     $isClogged:false,
     $isSolving: false,
@@ -117,7 +118,7 @@ bottom: -0.25em;
     $dataTravelDelta: 0.0,
     $dataTravellingLevel: undefined,
     $dataTravellingAttrInitialVal: undefined,
-    $dataTravellingAttrVal: undefined,
+    $dataTravellingAttrVal: undefined
 
 
   };

@@ -4,7 +4,7 @@
 
 
   var isGpuAccelerated, cssPrefix, allStyles,
-  defaultCss, defaultTextCss, inputType2tag;
+  defaultCss, inputType2tag;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -35,10 +35,9 @@
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
     "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "overflow-x:hidden;overflow-y:hidden;" +
-    "-webkit-overflow-scrolling:touch;";
-
-  defaultTextCss = defaultCss +
-    "font-family:inherit;line-height:1em";
+    "-webkit-overflow-scrolling:touch;" + 
+    "font-family:inherit;line-height:1em;" +
+    "outline:none;border:none";
 
   inputType2tag = {
     button: "button",
@@ -51,6 +50,9 @@
 
     this.level = level;
     this.node = undefined;
+    this.isInitiallyRendered = false;
+    this.isInputText = false;
+    this.inputDivNode = undefined;
 
     this.$naturalWidthTextMode = false;
     this.$naturalHeightTextMode = false;
@@ -68,10 +70,6 @@
 
     this.$absoluteY = undefined;
     this.$absoluteX = undefined;
-
-    this.$isInputText = false;
-
-    this.$isInitiallyRendered = false;
 
 
   };
@@ -95,13 +93,13 @@
       inputTag = inputType2tag[ inputType ];
       if ( inputTag ) {
         if ( inputTag === "textarea" ) {
-          this.$isInputText = true;
+          this.isInputText = true;
         }
         this.node = document.createElement( inputTag );
       } else {
         if ( inputType === "line" ) {
           inputType = "text";
-          this.$isInputText = true;          
+          this.isInputText = true;          
         }
         this.node = document.createElement( "input" );
         this.node.type = inputType;
@@ -114,14 +112,24 @@
         ( levelType === "image" ?
          "img" : levelType ) );
     }
-    this.node.style.cssText = ( levelType === "text" ) ? defaultTextCss : defaultCss;
+    this.node.style.cssText = defaultCss;
 
+    if ( this.isInputText ) {
+      this.inputDivNode = document.createElement("div");
+      this.node.style.cssText = defaultCss;
+
+    }
     if ( this.level.$lson.$interface ) {
       this.node.style.visibility = "hidden";
     }
   };
 
 
+  function checkIfLevelIsDisplayed ( level ) {
+    var attrValDisplay = level.$attr2attrVal.display;
+    return !attrValDisplay || attrValDisplay.calcVal;
+
+  }
   /*
   * Additional constraint of not being dependent upon
   * parent for the attr
@@ -138,23 +146,27 @@
         len = childLevelS.length;
          i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
-      attrValChildIndepedentOf =
-        childLevel.$attr2attrVal[ attrChildIndepedentOf ];
+      if ( childLevel.$isPart ) {
+        if ( checkIfLevelIsDisplayed( childLevel ) ) {
+          childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
+          attrValChildIndepedentOf =
+            childLevel.$attr2attrVal[ attrChildIndepedentOf ];
 
-      if (
-          ( childLevelAttrVal !== undefined ) &&
-          ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
-          (  ( !attrValChildIndepedentOf ) ||
-            ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
-               attrValIndependentOf )  ) ) ) {
-        if ( curMaxLevel === undefined ) {
-          curMaxLevel = childLevel;
-          curMaxVal = childLevelAttrVal.calcVal;
-        } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
-          curMaxLevel = childLevel;
-        }
+          if (
+              ( childLevelAttrVal !== undefined ) &&
+              ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
+              (  ( !attrValChildIndepedentOf ) ||
+                ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
+                   attrValIndependentOf )  ) ) ) {
+            if ( curMaxLevel === undefined ) {
+              curMaxLevel = childLevel;
+              curMaxVal = childLevelAttrVal.calcVal;
+            } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
+              curMaxLevel = childLevel;
+            }
+          }
       }
+     }
     }
     return curMaxLevel;
   };
@@ -206,20 +218,22 @@
 
   LAID.Part.prototype.$updateNaturalWidth = function () {
     var attr2attrVal = this.level.$attr2attrVal
-    if ( this.level.path === "/" ) {
-      attr2attrVal.$naturalWidth.update( window.innerWidth );
+    if ( attr2attrVal.$naturalWidth ) {
+      if ( this.level.path === "/" ) {
+        attr2attrVal.$naturalWidth.update( window.innerWidth );
 
-    } else if ( this.level.$attr2attrVal.text ) {
-     
-      this.$updateNaturalWidthFromText();
-    } else {
-      this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-      attr2attrVal.$naturalWidth );
-      attr2attrVal.$naturalWidth.update(
-          this.$naturalWidthLevel ?
-         ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
-         0
-      );
+      } else if ( this.level.$attr2attrVal.text ) {
+       
+        this.$updateNaturalWidthFromText();
+      } else {
+        this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
+        attr2attrVal.$naturalWidth );
+        attr2attrVal.$naturalWidth.update(
+            this.$naturalWidthLevel ?
+           ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
+           0
+        );
+      }
     }
   };
 
@@ -227,34 +241,38 @@
 
   LAID.Part.prototype.$updateNaturalHeight = function () {
     var attr2attrVal = this.level.$attr2attrVal
-    if ( this.level.path === "/" ) {
-      attr2attrVal.$naturalHeight.update( window.innerHeight );
-    } else if ( this.level.$attr2attrVal.text ) {
-      this.$updateNaturalHeightFromText();
-    } else {
-      this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-      attr2attrVal.$naturalHeight);
+    if (attr2attrVal.$naturalHeight ) {
+      if ( this.level.path === "/" ) {
+        attr2attrVal.$naturalHeight.update( window.innerHeight );
+      } else if ( this.level.$attr2attrVal.text ) {
+        this.$updateNaturalHeightFromText();
+      } else {
+        this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
+        attr2attrVal.$naturalHeight);
 
-      attr2attrVal.$naturalHeight.update(
-          this.$naturalHeightLevel ?
-         ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
-         0
-      );
+        attr2attrVal.$naturalHeight.update(
+            this.$naturalHeightLevel ?
+           ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
+           0
+        );
+      }
     }
   };
-
 
 
   LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
+
     if ( attr2attrVal.$naturalWidth &&
       ( this.level.path !== "/" ) &&
-      ! LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal ) &&
-      ! childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
-        attr2attrVal.$naturalWidth)
-      ) {
+      ! (LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal )) &&
+      ! (childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
+        attr2attrVal.$naturalWidth)) &&
+        (checkIfLevelIsDisplayed(childLevel) )
+        ) {
+
 
       if ( this.$naturalWidthLevel === undefined ) {
         this.$naturalWidthLevel = childLevel;
@@ -295,10 +313,10 @@
 
     if ( attr2attrVal.$naturalHeight &&
         ( this.level.path !== "/" ) &&
-       !LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal ) &&
+       !(LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal )) &&
        !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
-         attr2attrVal.$naturalHeight) )
-       ) {
+         attr2attrVal.$naturalHeight) ) &&
+         (checkIfLevelIsDisplayed(childLevel) ) ) {
 
       if ( this.$naturalHeightLevel === undefined ) {
         this.$naturalHeightLevel = childLevel;
@@ -323,7 +341,6 @@
           }
         }
 
-
       attr2attrVal.$naturalHeight.update(
           this.$naturalHeightLevel ?
           ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
@@ -342,12 +359,10 @@
 
         this.$naturalWidthInputMode = true;
 
-        attr2attrVal.$input.requestRecalculation();
-
-        if ( attr2attrVal.scrollX !== undefined ) {
-          
-            attr2attrVal.scrollX.requestRecalculation();
+        if ( !this.$naturalHeightInputMode ) {
+          attr2attrVal.$input.forceRecalculation();
         }
+
         // temporarily (for current recalculate) cycle
         // set the value to 0. This is only
         // as a render cycle is required for learning
@@ -359,18 +374,17 @@
 
   LAID.Part.prototype.$updateNaturalHeightInput = function () {
 
+
     var attr2attrVal = this.level.$attr2attrVal;
 
     if ( attr2attrVal.$naturalHeightInput ) {
 
         this.$naturalHeightInputMode = true;
 
-        attr2attrVal.$input.requestRecalculation();
-
-        if ( attr2attrVal.scrollY !== undefined ) {
-          
-            attr2attrVal.scrollY.requestRecalculation();
+        if ( !this.$naturalWidthInputMode ) {
+          attr2attrVal.$input.forceRecalculation();
         }
+
         // temporarily (for current recalculate) cycle
         // set the value to 0. This is only
         // as a render cycle is required for learning
@@ -388,22 +402,22 @@
 
         this.$naturalWidthTextMode = true;
 
-        attr2attrVal.text.requestRecalculation();
-
-        if ( attr2attrVal.scrollX !== undefined ) {
-          
-            attr2attrVal.scrollX.requestRecalculation();
+        if ( !this.$naturalHeightTextMode ) {
+          attr2attrVal.text.forceRecalculation();
         }
+
         // temporarily (for current recalculate) cycle
         // set the value to 0. This is only
         // as a render cycle is required for learning
         // the natural width
         attr2attrVal.$naturalWidth.update( 0 );
 
+
+
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeightFromText = function (arg) {
+  LAID.Part.prototype.$updateNaturalHeightFromText = function ( arg ) {
 
     var attr2attrVal = this.level.$attr2attrVal;
 
@@ -412,12 +426,10 @@
 
       this.$naturalHeightTextMode = true;
 
-      attr2attrVal.text.requestRecalculation();
-  
-
-      if ( attr2attrVal.scrollY !== undefined ) {
-          attr2attrVal.scrollY.requestRecalculation();
+      if ( !this.$naturalWidthTextMode ) {
+        attr2attrVal.text.forceRecalculation();
       }
+
       // temporarily (for current recalculate) cycle
       // set the value to 0. This is only
       // as a render cycle is required for learning
@@ -488,7 +500,7 @@
   LAID.Part.prototype.$updateTransitionProp = function ( transitionProp ) {
 
 
-    if ( this.$isInitiallyRendered ) {
+    if ( this.isInitiallyRendered ) {
 
       var
         attr2attrVal = this.level.$attr2attrVal,
@@ -750,11 +762,30 @@
   };
 
   LAID.Part.prototype.$renderFn_display = function () {
-    this.node.style.display = 
-      this.level.$attr2attrVal.display.transitionCalcVal ?
-      "block" : "none";
+    var parentLevel = this.level.parentLevel;
+    if ( parentLevel ) {
+      if ( parentLevel.$part ) {
+        parentLevel.$part.$updateNaturalWidth();
+        parentLevel.$part.$updateNaturalHeight();
+
+      }
+    }
+    recurseVisibilityNode( this.node,
+        this.level.$attr2attrVal.display.transitionCalcVal ?
+        "visible" : "hidden"  );
 
   };
+
+  function recurseVisibilityNode( node, visibility ) {
+    if ( node && node.style ) {
+      var childNodeS = node.childNodes;
+      node.style.visibility = visibility;
+
+      for ( var i = 0, len = childNodeS.length; i < len; i++ ) {
+        recurseVisibilityNode( childNodeS[ i ], visibility );
+      }
+    }
+  }
 
   LAID.Part.prototype.$renderFn_zIndex = function () {
 
@@ -971,50 +1002,66 @@
   /* Text Related */
 
   LAID.Part.prototype.$renderFn_text = function () {
+    
     if ( this.$naturalWidthTextMode ) {
+
       this.node.style.display = "inline";
       this.node.style.width = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
 
-      this.level.$changeAttrVal( "$naturalWidth", this.node.getBoundingClientRect().width );
+      this.level.$changeAttrVal( "$naturalWidth",
+       this.node.getBoundingClientRect().width );
       this.node.style.display = "block";
       this.$naturalWidthTextMode = false;
     }
     if ( this.$naturalHeightTextMode ) {
+
       this.node.style.height = "auto";
       this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      this.level.$changeAttrVal( "$naturalHeight", this.node.getBoundingClientRect().height );
+      this.level.$changeAttrVal( "$naturalHeight",
+       this.node.getBoundingClientRect().height );
       this.$naturalHeightTextMode = false;
     }
 
-    this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
+    this.node.innerHTML =
+     this.level.$attr2attrVal.text.transitionCalcVal;
 
   };
+
 
   LAID.Part.prototype.$renderFn_$input = function () {
 
     var
-      divNode = document.createElement( "div" ),
-      inputVal = this.level.$attr2attrVal.$input.transitionCalcVal;
-    divNode.style = this.node.style;
-    if ( this.$naturalWidthTextMode ) {
+      divNode = this.inputDivNode,
+      attr2attrVal = this.level.$attr2attrVal,
+      inputVal = attr2attrVal.$input.transitionCalcVal;
+    
+
+    divNode.style.cssText = this.node.style.cssText;
+    divNode.style.visibility = "hidden";
+    divNode.style.overflow = "visible";
+    //this.inputDivNode.style.zIndex = "-1";
+
+
+
+    if ( this.$naturalWidthInputMode ) {
       divNode.style.display = "inline";
       divNode.style.width = "auto";
       divNode.innerHTML = inputVal;
 
-      this.level.$changeAttrVal( "$naturalWidth",
+      this.level.$changeAttrVal( "$naturalWidthInput",
        divNode.getBoundingClientRect().width );
       divNode.style.display = "block";
-      this.$naturalWidthTextMode = false;
+      this.$naturalWidthInputMode = false;
     }
-    if ( this.$naturalHeightTextMode ) {
+    if ( this.$naturalHeightInputMode ) {
       divNode.style.height = "auto";
       // If empty we will subsitute with a space character
       // as we wouldn't want the height to resolve to 0
-      divNode.innerHTML = inputVal || " ";
-      this.level.$changeAttrVal( "$naturalHeight",
+      divNode.innerHTML = inputVal || ".";
+      this.level.$changeAttrVal( "$naturalHeightInput",
         divNode.getBoundingClientRect().height );
-      this.$naturalHeightTextMode = false;
+      this.$naturalHeightInputMode = false;
     }
 
     this.node.value = inputVal;
@@ -1096,7 +1143,7 @@
     this.node.style.textIndent = this.level.$attr2attrVal.textIndent.transitionCalcVal + "px";
   };
   LAID.Part.prototype.$renderFn_textWhitespace = function () {
-    this.node.style.whitespace =
+    this.node.style.whiteSpace =
       this.level.$attr2attrVal.textWhitespace.transitionCalcVal;
   };
   LAID.Part.prototype.$renderFn_textSmoothing = function () {

@@ -3,7 +3,7 @@
 
 
 
-  LAID.Level = function ( path, lson, parent, derivedManyLevel, row ) {
+  LAID.Level = function ( path, lson, parent, derivedMany, row, id ) {
 
     this.path = path;
     this.parentLevel = parent; // parent Level
@@ -20,15 +20,19 @@
     // Many object.
     this.$many = undefined;
 
-    // If the Level is derived from a Many Level
-    // then this.$derivedManyLevel will hold
-    // a reference to the level
-    this.$derivedManyLevel = derivedManyLevel;
+    // If the Level is derived from a Many
+    // then this.$derivedMany will hold
+    // a reference to the Many
+    this.$derivedMany = derivedMany;
 
     // If the Level is derived from a Many Level
     // this will contain the row information will
     // be contained within below
     this.$row = row;
+
+    // If the Level is derived from a Many Level
+    // this will be the id by which it is referenced
+    this.$id = id;
 
     this.$lson = lson;
     this.$isNormalized = false;
@@ -57,15 +61,13 @@
     // If so then we can proceed doing nothing as
     // the level already has its LSON inherited
     // through its derived many level.
-  
-    if ( !this.$derivedManyLevel ) { 
-      if ( !LAID.$isClogged ) {
-        LAID.$newLevelS.push( this );
-        
-      } else {
-        LAID.$cloggedLevelS.push( this );
-      }
-    } 
+    
+    if ( !LAID.$isClogged ) {
+      LAID.$newLevelS.push( this );
+    } else {
+      LAID.$cloggedLevelS.push( this );
+    }
+   
 
   };
 
@@ -80,13 +82,43 @@
     return this.$part.node;
   };
 
-
-
   LAID.Level.prototype.many = function () {
 
-    return this.$derivedManyLevel &&
-     this.$derivedManyLevel.$many;
-   
+    return this.$derivedMany;
+  };
+
+  LAID.Level.prototype.rowsChange = function ( newRowS ) {
+
+    if ( !this.$isPart ) {
+      this.$many.rowsChange( newRowS );
+    }
+  };
+
+
+  LAID.Level.prototype.rowsMore = function ( newRowS ) {
+
+    if ( !this.$isPart ) {
+      this.$many.rowsMore( newRowS );
+    }
+  };
+
+  LAID.Level.prototype.rowsCommit = function ( newRowS ) {
+
+    if ( !this.$isPart ) {
+      this.$many.rowsCommit( newRowS );
+    }
+  };
+
+  LAID.Level.prototype.queryAll = function () {
+    if ( !this.$isPart ) {
+      return this.$many.queryAll();
+    }
+  };
+
+  LAID.Level.prototype.queryFiltered = function () {
+    if ( !this.$isPart ) {
+      return this.$many.queryFiltered();
+    }
   };
 
   LAID.Level.prototype.addChildren = function ( name2lson ) {
@@ -138,8 +170,8 @@
         parentPart.$updateNaturalHeight();
       }
 
-      if ( this.$derivedManyLevel ) {
-        this.$derivedManyLevel.$many.$removeLevel( this );
+      if ( this.$derivedMany ) {
+        this.$derivedMany.$removeLevel( this );
       }
 
     }
@@ -150,10 +182,11 @@
   * to another level not being present or started as yet)
   */
   LAID.Level.prototype.$normalizeAndInherit = function () {
+
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-    if ( !this.$derivedManyLevel && !this.$isNormalized ) {
+    if ( !this.$isNormalized ) {
       this.$isNormalized = true;
-     LAID.$normalize( this.$lson, false );
+      LAID.$normalize( this.$lson, false );
     }
     // check if it contains anything to inherit from
     if ( this.$lson.$inherit !== undefined ) { 
@@ -202,9 +235,10 @@
 
   LAID.Level.prototype.$identifyAndReproduce = function ( ) {
     this.$isPart = this.$lson.many === undefined;
+//    console.log(this.path, this.$lson);
 
     if ( this.$isPart ) {
-      if ( !this.$derivedManyLevel ) {
+      if ( !this.$derivedMany ) {
         LAID.$defaultizePart( this.$lson );
       }
       this.$part = new LAID.Part( this );
@@ -293,7 +327,7 @@
 
       for ( eventType in when ) {
         fnCallbackS = when[ eventType ];
-        initAttrsArray(  "when." + eventType, fnCallbackS, attr2val );
+        initAttrsArray( "when." + eventType, fnCallbackS, attr2val );
       }
 
       if ( slson.$$num !== undefined ) {
@@ -322,9 +356,11 @@
   LAID.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableReadonlyS = this.$lson.$observe,
+      observableReadonlyS = this.$lson.$observe ?
+       this.$lson.$observe : [],
       observableReadonly, i, len;
     
+
    
     if ( this.path === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
@@ -337,12 +373,22 @@
       }
     }
 
-    if ( this.$isPart && this.$part.$isInputText ) {
-      observableReadonlyS = observableReadonlyS ?
-        observableReadonlyS.push( "$input" ) : [ "$input" ];
-    }
+    if ( this.$isPart ) {
+      if ( this.$lson.states.root.props.scrollX ) {
+        observableReadonlyS.push( "$naturalWidth" );
+      }
+      if ( this.$lson.states.root.props.scrollY ) {
+        observableReadonlyS.push( "$naturalHeight" );
+      }
+      
+      if ( this.$part.isInputText ) {
+        observableReadonlyS.push( "$input" );
 
-    if ( observableReadonlyS ) {
+      }
+    }
+    
+
+    if ( observableReadonlyS.length ) {
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
         observableReadonly = observableReadonlyS[ i ];
         this.$createLazyAttr( observableReadonly );
@@ -353,6 +399,7 @@
 
     this.$initNonStateProjectedAttrs();
     this.$updateStates();
+
 
   };
 
@@ -366,7 +413,7 @@
 
     initAttrsObj( "data.", lson.data, attr2val );
 
-    if ( this.$derivedManyLevel ) {
+    if ( this.$derivedMany ) {
       initAttrsObj( "row.", this.$row, attr2val );
       this.$row = undefined;
     }
@@ -391,7 +438,7 @@
     if ( !this.$isPart ) { // Many
       attr2val.$all = [];
       attr2val.$filtered = [];
-      attr2val.rows = lson.rows;
+      attr2val.rows = lson.rows || [];
       attr2val.$id = lson.$id;
     }
 
@@ -521,6 +568,24 @@
     return true;
   };
 
+
+  LAID.Level.prototype.$delayFIndexAttrVal = function () {
+    var
+      fIndexAttrVal = this.$attr2attrVal.$f,
+      recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS,
+      fIndexAttrValIndex;
+
+    if ( fIndexAttrVal ) {
+      fIndexAttrValIndex = recalculateDirtyAttrValS.indexOf( fIndexAttrVal );
+      if ( fIndexAttrValIndex !== -1 ) {
+        LAID.$arrayUtils.removeAtIndex(
+          recalculateDirtyAttrValS,
+         fIndexAttrValIndex );
+        recalculateDirtyAttrValS.push( fIndexAttrVal );
+      }
+    }
+
+  };
   /*
   * Solve by recalculating each attr within the
   * level which requires recalculation
@@ -537,10 +602,12 @@
 
     do {
       isSolveProgressed = false;
+      this.$delayFIndexAttrVal();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
+        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
 //        console.log( "\trecalculate", this.path, isSolveProgressed,
-  //    recalculateDirtyAttrValS[ i ] );
+ //       recalculateDirtyAttrValS[ i ] );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -578,19 +645,19 @@
       attr2val = {},
       stringHashedStates2_cachedAttr2val_;
   // Refer to the central cache for Many levels
-   stringHashedStates2_cachedAttr2val_ = this.$derivedManyLevel ?
-      this.$derivedManyLevel.stringHashedStates2_cachedAttr2val_ :
-      this.stringHashedStates2_cachedAttr2val_;
+   stringHashedStates2_cachedAttr2val_ = this.$derivedMany ?
+      this.$derivedMany.$stringHashedStates2_cachedAttr2val_ :
+      this.$stringHashedStates2_cachedAttr2val_;
     
     this.$sortStates();
     var stringHashedStates = this.$stateS.join( "&" );
-    if ( this.$stringHashedStates2_cachedAttr2val_[
+    if ( stringHashedStates2_cachedAttr2val_[
      stringHashedStates ] === undefined ) {
       convertSLSONtoAttr2Val( this.$generateSLSON(), attr2val, this.$isPart);
-      this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
+      stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
         attr2val;
     }
-    return this.$stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
+    return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
   
 
   };
@@ -671,11 +738,8 @@
   LAID.Level.prototype.attr = function ( attr ) {
 
     if ( this.$attr2attrVal[ attr ] ) {
-      
-      if ( attr === "rows" ) {
-        return this.$attr2attrVal[ attr ].calcVal.rows;
-      } 
-        return this.$attr2attrVal[ attr ].calcVal;
+       
+      return this.$attr2attrVal[ attr ].calcVal;
 
     } else if ( this.$createLazyAttr( attr ) ) {
 
@@ -689,6 +753,31 @@
     this.$changeAttrVal( "data." + dataKey, value );
   };
 
+  LAID.Level.prototype.row = function ( rowKey, value ) {
+    if ( this.$derivedMany ) {
+      this.$changeAttrVal( "row." + rowKey, value );
+      this.$derivedMany.$id2row[ this.$id ][rowKey] = value;
+      this.$derivedMany.level.$attr2attrVal.rows.requestRecalculation();
+    }
+  };
+
+  LAID.Level.prototype.changeNativeInput = function ( value ) {
+    var self = this;
+    // Set timeout to make sure "evenReadonlyUtils.js"
+    // updates strictly before the change of input
+    setTimeout(function(){
+      self.$changeAttrVal("$input", value );      
+    })
+  };
+
+  LAID.Level.prototype.changeNativeScrollX = function ( value ) {
+    this.$changeAttrVal( "$scrollX", value );
+  };
+
+  LAID.Level.prototype.changeNativeScrollY = function ( value ) {
+    this.$changeAttrVal( "$scrollY", value );
+  };
+
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
     if ( !this.$attr2attrVal[ attr ] ) {
       this.$createLazyAttr( attr );
@@ -700,7 +789,7 @@
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    this.$attr2attrVal[ attr ].update( val, false );
+    this.$attr2attrVal[ attr ].update( val );
     if ( !LAID.$isRendering ) {
       LAID.$solve();
     } else {

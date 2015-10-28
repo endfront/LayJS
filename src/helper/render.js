@@ -32,6 +32,8 @@
       dataTravellingDelta = LAID.$dataTravelDelta,
       renderDirtyPartS = LAID.$renderDirtyPartS,
       renderDirtyPart,
+      newManyS = LAID.$newManyS,
+      newMany,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal,
       normalRenderDirtyAttrValS,
@@ -46,7 +48,11 @@
     for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
       insertedPart = insertedPartS[ i ];
       insertedPart.level.parentLevel.$part.node.appendChild(
-        insertedPart.node );  
+        insertedPart.node );
+      if ( insertedPart.isInputText ) {
+        insertedPart.level.parentLevel.$part.node.appendChild(
+          insertedPart.inputDivNode );
+      }  
     }
     
     LAID.$insertedPartS = [];
@@ -124,13 +130,16 @@
 
       }
 
-      // If "text" is to be rendered, it must be
+      // If "text" or "$input" is to be rendered, it must be
       // rendered last to be able to bear knowledge
       // of the most recent (render) changes to text props
       // such as text padding, text size, and other text props
       // which can affect the dimensions of the part
       if ( LAID.$arrayUtils.remove( renderCallS, "text" ) ) {
         renderCallS.push( "text" );
+      }
+      if ( LAID.$arrayUtils.remove( renderCallS, "$input" ) ) {
+        renderCallS.push( "$input" );
       }
 
       // And scroll positions must be affected later
@@ -158,7 +167,7 @@
         x--;
       }
 
-      if ( !renderDirtyPart.$isInitiallyRendered ) {
+      if ( !renderDirtyPart.isInitiallyRendered ) {
         LAID.$arrayUtils.pushUnique( renderNewLevelS, renderDirtyPart.level );
       }
 
@@ -166,14 +175,29 @@
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
-      renderNewLevel.$part.$isInitiallyRendered = true;
+      renderNewLevel.$part.isInitiallyRendered = true;
       loadAttrVal = renderNewLevel.$attr2attrVal.load;
       
+      if ( renderNewLevel.parentLevel ) {
+        if ( renderNewLevel.parentLevel.node().style.visibility === "hidden") {
+          renderNewLevel.node().style.visibility = "hidden";
+        }
+      }     
       if ( ( loadAttrVal ) &&
         ( typeof loadAttrVal.calcVal === "function" ) ) {
           loadAttrVal.calcVal.call( renderNewLevel );
       }
     }
+
+    for ( i = 0, len = newManyS.length; i < len; i++ ) {
+      newMany = newManyS[ i ];
+      loadAttrVal = newMany.level.$attr2attrVal.load;
+      if ( ( loadAttrVal ) &&
+        ( typeof loadAttrVal.calcVal === "function" ) ) {
+          loadAttrVal.calcVal.call( newMany.level );
+      }
+    }
+    LAID.$newManyS = [];
 
     LAID.$isRequestedForAnimationFrame = false;
 

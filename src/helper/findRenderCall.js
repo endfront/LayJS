@@ -17,6 +17,10 @@
       renderCall,
       multipleTypePropMatchDetails;
 
+    if ( prop === "$input" ) {
+      return prop;
+    }
+
     if ( !LAID.$checkIsValidUtils.propAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
       LAID.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {

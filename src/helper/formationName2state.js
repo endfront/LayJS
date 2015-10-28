@@ -10,7 +10,6 @@
 				top: LAID.take("*", "$filtered").queryFetch(
 					LAID.take("", "$f").subtract(1), "bottom"
 					).add(LAID.take("*", "args.onebelow.gap" )),
-			
 			}
 		},
 		"totheright": {

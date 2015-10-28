@@ -9,7 +9,6 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
   LAID.run()
   LAID.level()
-  LAID.many()
   LAID.part()
   LAID.take()
   LAID.filter()
@@ -46,7 +45,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
               formation: string,
               sort: array | string,
               ascending: boolean,
-              filter: LAID.takeMany,
+              filter: LAID.take,
               $id: string / null (constant),
               rows: array,
               args: obj,
@@ -58,8 +57,10 @@ LAID involves writing LSON (Layout Syntax Object Notation)
                   formation: string,
                   sort: array | string,
                   ascending: boolean,
-                  filter: LAID.takeMany,
-                  args: obj
+                  filter: LAID.take,
+                  args: obj,
+                  install,
+                  uninstall
                 }
               }
 
@@ -876,7 +877,7 @@ LAID.Take methods
   - (many) filterEq, filterNeq, filterGt, filterLt, filterLte, filterGte, filterRegex,
   filterContains, filterWithin, filterFn,
   foldMax, foldMin, foldSum, foldFn,
-   fetch, length
+   queryFetch, length
 
 
   takes one argument, either:
@@ -1090,7 +1091,7 @@ would essentially compile to:
 ### LAID references
 
   - Root
-    ''
+    '/'
 
   - Direct
     '/Rankings/Winners/Stats'
@@ -1100,7 +1101,7 @@ would essentially compile to:
     '../'
 
   - Current
-    '.'
+    ''
 
   - Special
       - '' ('.')
@@ -1169,12 +1170,12 @@ LAID.run({
 ### Many
 
   Related methods:
-    - rows()
+    - rowsChange()
     - rowsMore()
-    - rowsCommit()
+    - rowsCommit() [coming soon]
 
 
-  LAID.start({
+  LAID.run({
       "BioData": {
         width: LAID.take('Person'),
         children: {
@@ -1219,17 +1220,17 @@ example:
 
 can be changed
   
-  LAID.many('/BioData/Person').rows([
+  LAID.level('/BioData/Person').rowsChange([
   {_id:'01010', name: 'Robb Stark', age: 32}])
 
 more can be added by:
 
-  LAID.many('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
+  LAID.level('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
 
 
-or committed (facebook react style)
+or committed (facebook react style) [coming soon]
 
-  LAID.many('/BioData/Person').rowsCommit( [
+  LAID.level('/BioData/Person').rowsCommit( [
     {_id:'00423', name:'Eddard Stark', age: 50},
     {_id:'08383', name:'Tyrion Lannister', age: 40},
     {_id:'01919', name:'Joffrey Baratheon', age: 16},
@@ -1245,22 +1246,15 @@ All built-in formations:
   - "totheright"
   - "grid"
 
-Formations can be added on the go, using `LAID.formattion()`,
+Formations can be added on the go, using `LAID.formation()`,
 with a unique formation name and formation object to it.
 An example of the "onebelow" formation:
 
-(1) "bottom" formation
-
-  // TODO: fill in
-
-
-
-
-(2) "grid" formation
-
-for grid (note that the width and height cannot be used effectively for a grid)
-
-  // TODO: fill in
+  { 
+    top: LAID.take("*", "$filtered").queryFetch(
+      LAID.take("", "$f").subtract(1), "bottom"
+      ).add(LAID.take("*", "args.onebelow.gap" )),
+  }
 
 
 

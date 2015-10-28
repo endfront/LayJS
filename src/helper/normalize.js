@@ -7,6 +7,7 @@
     fnEdgeToPos,
     takeWidth,
     takeHeight,
+    takeFilterAll,
     key2fnNormalize;
 
   
@@ -33,34 +34,39 @@
       lsonKey,
       rootLson = lson;
 
-    if ( !lson.states ) {
-      lson.states = {};
-    }
+    if ( !lson.$$normalized ) {
 
-
-    /* TODO: Throw warning
-    if ( lson.states.root ) {
-      throw "LAID Error: State name 'root' is reserved.";
-    }*/
-
-    lson.states.root = {
-      props: lson.props,
-      when: lson.when,
-      transition: lson.transition
-    };
-
-    for ( lsonKey in lson ) {
-      if ( lsonKey !== "children" || isRecursive ) {
-        if ( !key2fnNormalize[ lsonKey ] ) {
-          throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
-        }
-        key2fnNormalize[ lsonKey ]( lson );
+      if ( !lson.states ) {
+        lson.states = {};
       }
-    }
 
-    lson.props = undefined;
-    lson.when = undefined;
-    lson.transition = undefined;
+
+      if ( lson.states.root ) {
+        throw "LAID Error: State name 'root' is reserved.";
+      }
+
+      lson.states.root = {
+        props: lson.props,
+        when: lson.when,
+        transition: lson.transition
+      };
+
+      for ( lsonKey in lson ) {
+        if ( lsonKey !== "children" || isRecursive ) {
+          if ( !key2fnNormalize[ lsonKey ] ) {
+            throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
+          }
+          key2fnNormalize[ lsonKey ]( lson );
+        }
+      }
+
+      lson.props = undefined;
+      lson.when = undefined;
+      lson.transition = undefined;
+
+      lson.$$normalized = true;
+
+    }
 
 
   }
@@ -131,7 +137,7 @@
 
   takeWidth = new LAID.Take( "", "width" );
   takeHeight = new LAID.Take( "", "height" );
-
+  takeFilterAll = new LAID.Take("", "$all");
 
 
 
@@ -181,7 +187,7 @@
     },
 
     load: function ( lson ) {
-
+      // do nothing
     },
 
     data: function ( lson ) {
@@ -392,7 +398,7 @@
         formation: many.formation,
         sort: many.sort,
         ascending: many.ascending,
-        filter: many.filter,
+        filter: many.filter || takeFilterAll,
         args: many.args
 
       };

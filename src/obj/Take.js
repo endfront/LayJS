@@ -396,7 +396,15 @@
 
   LAID.Take.prototype.index = LAID.Take.prototype.key;
 
+  LAID.Take.prototype.length = function ( val ) {
+    var oldExecutable = this.executable;
 
+    this.executable = function () {
+      return oldExecutable.call( this ).length;
+    };
+
+    return this;
+  };
 
 
   LAID.Take.prototype.min = function ( val ) {

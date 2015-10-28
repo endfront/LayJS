@@ -8,7 +8,7 @@
     change: function () {
       this.$changeAttrVal( "$input", this.$part.node.value );
     },
-    keydown: function () {
+    keyup: function () {
       this.$changeAttrVal( "$input", this.$part.node.value );
     }
   };
