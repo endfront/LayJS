@@ -14,6 +14,11 @@
       return false;
     },
 
+    /* Prepend element, if preset already then remove and prepend */
+    prependUnique: function ( elementS, element ) {
+      LAID.$arrayUtils.remove( elementS, element );
+      elementS.unshift( element );
+    },
 
     /*
     * Remove from array if element exists in it
@@ -41,7 +46,15 @@
     /* Clone array at a single level */
     cloneSingleLevel: function ( elementS ) {
       return elementS.slice( 0 );
+    },
+
+    /*Swap element at index a with index b */
+    swap: function ( elementS, a, b ) {
+      var tmp = elementS[ a ];
+      elementS[ a ] = elementS[ b ];
+      elementS[ b ] = tmp;
     }
+
   };
 
 

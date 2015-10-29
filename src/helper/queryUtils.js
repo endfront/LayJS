@@ -9,6 +9,7 @@
       if ( index < 1 ) {
         console.error(
           "LAID Warning: Filter indexing begins from 1" );
+          console.log(index);
         return undefined;
 
       } else {

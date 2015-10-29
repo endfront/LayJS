@@ -7,9 +7,19 @@
 				LAID.take("", "$f").gt(1)),
 			
 			props: {
-				top: LAID.take("*", "$filtered").queryFetch(
-					LAID.take("", "$f").subtract(1), "bottom"
-					).add(LAID.take("*", "args.onebelow.gap" )),
+				top: LAID.take(function( filterLevelS, gap ){
+						var f = this.attr("$f");
+						if ( f > 1 ) {
+							return filterLevelS[ f-1 ].attr("bottom") + gap;
+						} else {
+							return 0;
+						}
+						
+					}).fn( LAID.take("*", "$filtered" ),
+					 LAID.take("*", "args.onebelow.gap") )
+				//top: LAID.take("*", "$filtered").queryFetch(
+			//		LAID.take("", "$f").subtract(1), "bottom"
+				//	).add(LAID.take("*", "args.onebelow.gap" )),
 			}
 		},
 		"totheright": {

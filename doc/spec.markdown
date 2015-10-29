@@ -1250,11 +1250,7 @@ Formations can be added on the go, using `LAID.formation()`,
 with a unique formation name and formation object to it.
 An example of the "onebelow" formation:
 
-  { 
-    top: LAID.take("*", "$filtered").queryFetch(
-      LAID.take("", "$f").subtract(1), "bottom"
-      ).add(LAID.take("*", "args.onebelow.gap" )),
-  }
+  // TODO: fill
 
 
 

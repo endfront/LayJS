@@ -152,7 +152,9 @@ bottom: -0.25em;
     this.isTransitionable = false;
 
     this.isForceRecalculate = false;
-
+    // if the attr is of "<state>.onlyif"
+    // the below will store the state name <state>
+    this.onlyIfStateName = getStateNameOfOnlyIf( attr );
 
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
@@ -321,7 +323,6 @@ bottom: -0.25em;
         // skip a round of solving to
         // let the other attrvals complete calculation
         return false;
-
       }
 
       recalcVal = this.val.execute( this.level );
@@ -336,8 +337,10 @@ bottom: -0.25em;
       }
     }
 
+
+
     if ( attr === "$all" || attr === "$filtered" ) {
-      isDirty = true;
+      //isDirty = true;
     }
 
     if ( this.isForceRecalculate ) {
@@ -378,7 +381,7 @@ bottom: -0.25em;
 
     if ( isDirty ) {
       var
-        stateName = getStateNameOfOnlyIf( attr ),
+        stateName = this.onlyIfStateName,
         whenEventType = getWhenEventTypeOfAttrWhen( attr ),
         transitionProp = getTransitionPropOfAttrTransition( attr );
 
@@ -391,7 +394,9 @@ bottom: -0.25em;
       if ( level.$derivedMany ) {
         level.$derivedMany.level.$attr2attrVal.$all.requestRecalculation();
         if ( level.$attr2attrVal.$f.calcVal !== -1 ) {
-         level.$derivedMany.level.$attr2attrVal.$filtered.requestRecalculation();
+         if ( attr !== "top" ) {
+           level.$derivedMany.level.$attr2attrVal.$filtered.requestRecalculation();
+         }
        }
       }
 
@@ -1153,7 +1158,7 @@ bottom: -0.25em;
 
   LAID.Level.prototype.many = function () {
 
-    return this.$derivedMany;
+    return this.$derivedMany && this.$derivedMany.level;
   };
 
   LAID.Level.prototype.rowsChange = function ( newRowS ) {
@@ -1638,12 +1643,24 @@ bottom: -0.25em;
   };
 
 
-  LAID.Level.prototype.$delayFIndexAttrVal = function () {
+  /*
+  * Prioritize the recalculation of AttrVals of such
+  * that onlyif AttrVals (i.e. <state>.onlyif)
+  * appear first in order
+  */
+  LAID.Level.prototype.$prioritizeRecalculateOrder = function () {
     var
-      fIndexAttrVal = this.$attr2attrVal.$f,
       recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS,
-      fIndexAttrValIndex;
+      recalculateDirtyAttrVal;
 
+    for ( var i = 0, len = recalculateDirtyAttrValS.length;
+        i < len; i++ ) {
+      recalculateDirtyAttrVal = recalculateDirtyAttrValS[ i ];
+      if ( recalculateDirtyAttrVal.onlyIfStateName ) {
+        LAID.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
+      }
+    }
+    /*
     if ( fIndexAttrVal ) {
       fIndexAttrValIndex = recalculateDirtyAttrValS.indexOf( fIndexAttrVal );
       if ( fIndexAttrValIndex !== -1 ) {
@@ -1652,7 +1669,7 @@ bottom: -0.25em;
          fIndexAttrValIndex );
         recalculateDirtyAttrValS.push( fIndexAttrVal );
       }
-    }
+    }*/
 
   };
   /*
@@ -1671,9 +1688,9 @@ bottom: -0.25em;
 
     do {
       isSolveProgressed = false;
-      this.$delayFIndexAttrVal();
+      this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
+//        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
 //        console.log( "\trecalculate", this.path, isSolveProgressed,
  //       recalculateDirtyAttrValS[ i ] );
@@ -1869,6 +1886,7 @@ bottom: -0.25em;
   LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {
 
     LAID.$arrayUtils.pushUnique( this.$recalculateDirtyAttrValS, attrVal );
+    
     LAID.$arrayUtils.pushUnique( LAID.$recalculateDirtyLevelS, this );
 
   };
@@ -5806,6 +5824,11 @@ return this;
       return false;
     },
 
+    /* Prepend element, if preset already then remove and prepend */
+    prependUnique: function ( elementS, element ) {
+      LAID.$arrayUtils.remove( elementS, element );
+      elementS.unshift( element );
+    },
 
     /*
     * Remove from array if element exists in it
@@ -5833,7 +5856,15 @@ return this;
     /* Clone array at a single level */
     cloneSingleLevel: function ( elementS ) {
       return elementS.slice( 0 );
+    },
+
+    /*Swap element at index a with index b */
+    swap: function ( elementS, a, b ) {
+      var tmp = elementS[ a ];
+      elementS[ a ] = elementS[ b ];
+      elementS[ b ] = tmp;
     }
+
   };
 
 
@@ -7053,9 +7084,19 @@ function fix_stopPropagation() {
 				LAID.take("", "$f").gt(1)),
 			
 			props: {
-				top: LAID.take("*", "$filtered").queryFetch(
-					LAID.take("", "$f").subtract(1), "bottom"
-					).add(LAID.take("*", "args.onebelow.gap" )),
+				top: LAID.take(function( filterLevelS, gap ){
+						var f = this.attr("$f");
+						if ( f > 1 ) {
+							return filterLevelS[ f-1 ].attr("bottom") + gap;
+						} else {
+							return 0;
+						}
+						
+					}).fn( LAID.take("*", "$filtered" ),
+					 LAID.take("*", "args.onebelow.gap") )
+				//top: LAID.take("*", "$filtered").queryFetch(
+			//		LAID.take("", "$f").subtract(1), "bottom"
+				//	).add(LAID.take("*", "args.onebelow.gap" )),
 			}
 		},
 		"totheright": {
@@ -8250,6 +8291,7 @@ if (!Array.prototype.indexOf) {
       if ( index < 1 ) {
         console.error(
           "LAID Warning: Filter indexing begins from 1" );
+          console.log(index);
         return undefined;
 
       } else {

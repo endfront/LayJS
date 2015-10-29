@@ -25,7 +25,9 @@
     this.isTransitionable = false;
 
     this.isForceRecalculate = false;
-
+    // if the attr is of "<state>.onlyif"
+    // the below will store the state name <state>
+    this.onlyIfStateName = getStateNameOfOnlyIf( attr );
 
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
@@ -194,7 +196,6 @@
         // skip a round of solving to
         // let the other attrvals complete calculation
         return false;
-
       }
 
       recalcVal = this.val.execute( this.level );
@@ -209,8 +210,10 @@
       }
     }
 
+
+
     if ( attr === "$all" || attr === "$filtered" ) {
-      isDirty = true;
+      //isDirty = true;
     }
 
     if ( this.isForceRecalculate ) {
@@ -251,7 +254,7 @@
 
     if ( isDirty ) {
       var
-        stateName = getStateNameOfOnlyIf( attr ),
+        stateName = this.onlyIfStateName,
         whenEventType = getWhenEventTypeOfAttrWhen( attr ),
         transitionProp = getTransitionPropOfAttrTransition( attr );
 
@@ -264,7 +267,9 @@
       if ( level.$derivedMany ) {
         level.$derivedMany.level.$attr2attrVal.$all.requestRecalculation();
         if ( level.$attr2attrVal.$f.calcVal !== -1 ) {
-         level.$derivedMany.level.$attr2attrVal.$filtered.requestRecalculation();
+         if ( attr !== "top" ) {
+           level.$derivedMany.level.$attr2attrVal.$filtered.requestRecalculation();
+         }
        }
       }
 

@@ -84,7 +84,7 @@
 
   LAID.Level.prototype.many = function () {
 
-    return this.$derivedMany;
+    return this.$derivedMany && this.$derivedMany.level;
   };
 
   LAID.Level.prototype.rowsChange = function ( newRowS ) {
@@ -569,12 +569,24 @@
   };
 
 
-  LAID.Level.prototype.$delayFIndexAttrVal = function () {
+  /*
+  * Prioritize the recalculation of AttrVals of such
+  * that onlyif AttrVals (i.e. <state>.onlyif)
+  * appear first in order
+  */
+  LAID.Level.prototype.$prioritizeRecalculateOrder = function () {
     var
-      fIndexAttrVal = this.$attr2attrVal.$f,
       recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS,
-      fIndexAttrValIndex;
+      recalculateDirtyAttrVal;
 
+    for ( var i = 0, len = recalculateDirtyAttrValS.length;
+        i < len; i++ ) {
+      recalculateDirtyAttrVal = recalculateDirtyAttrValS[ i ];
+      if ( recalculateDirtyAttrVal.onlyIfStateName ) {
+        LAID.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
+      }
+    }
+    /*
     if ( fIndexAttrVal ) {
       fIndexAttrValIndex = recalculateDirtyAttrValS.indexOf( fIndexAttrVal );
       if ( fIndexAttrValIndex !== -1 ) {
@@ -583,7 +595,7 @@
          fIndexAttrValIndex );
         recalculateDirtyAttrValS.push( fIndexAttrVal );
       }
-    }
+    }*/
 
   };
   /*
@@ -602,9 +614,9 @@
 
     do {
       isSolveProgressed = false;
-      this.$delayFIndexAttrVal();
+      this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
+//        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
 //        console.log( "\trecalculate", this.path, isSolveProgressed,
  //       recalculateDirtyAttrValS[ i ] );
@@ -800,6 +812,7 @@
   LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {
 
     LAID.$arrayUtils.pushUnique( this.$recalculateDirtyAttrValS, attrVal );
+    
     LAID.$arrayUtils.pushUnique( LAID.$recalculateDirtyLevelS, this );
 
   };
