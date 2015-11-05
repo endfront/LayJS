@@ -71,11 +71,10 @@
           this.$part.node.offsetY );
       }
     },
-    $input: $inputEvent2fn,
-    $naturalWidthInput: $inputEvent2fn,
-    $naturalHeightInput: $inputEvent2fn,
 
-    
+    $input: $inputEvent2fn,
+    /*$naturalWidth: $inputEvent2fn,
+    $naturalHeight: $inputEvent2fn,*/
 
     $inputChecked: {
       change: function () {

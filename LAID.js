@@ -100,6 +100,7 @@ bottom: -0.25em;
     $cloggedLevelS: [],
     $insertedPartS: [],
     $removedPartS: [],
+    
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
@@ -155,7 +156,6 @@ bottom: -0.25em;
     // if the attr is of "<state>.onlyif"
     // the below will store the state name <state>
     this.onlyIfStateName = getStateNameOfOnlyIf( attr );
-
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr =
@@ -337,10 +337,8 @@ bottom: -0.25em;
       }
     }
 
-
-
     if ( attr === "$all" || attr === "$filtered" ) {
-      //isDirty = true;
+      isDirty = true;
     }
 
     if ( this.isForceRecalculate ) {
@@ -421,15 +419,20 @@ bottom: -0.25em;
             part.$updateNaturalWidthFromText();
             break;
           case "$input":
+            console.log("AV $input")
+            part.$updateNaturalWidthInput();
+            part.$updateNaturalHeightInput();
+            break;
+          case "inputRows":
             part.$updateNaturalWidthInput();
             part.$updateNaturalHeightInput();
             break;
           case "width":
-            if ( level.$attr2attrVal.text ) {
+            if ( part.isInputText ) {
+              console.log("AV width")
+              part.$updateNaturalHeightInput();              
+            } else if ( level.$attr2attrVal.text ) {
               part.$updateNaturalHeightFromText();
-              
-            } else if ( part.isInputText ) {
-              part.$updateNaturalHeightInput();
             }
             break;
           case "left":
@@ -464,17 +467,24 @@ bottom: -0.25em;
                     i < len; i++ ) {
                   childPart = childLevelS[ i ].$part;
                   if ( childPart ) {
-                    childPart.$updateNaturalWidthFromText();
-                    childPart.$updateNaturalHeightFromText();
-                    childPart.$updateNaturalWidthInput();
-                    childPart.$updateNaturalHeightInput(); 
+                    if ( childPart.isInputText ) {
+                      childPart.$updateNaturalWidthInput(); 
+                      childPart.$updateNaturalHeightInput(); 
+                    } else {
+                      childPart.$updateNaturalWidthFromText();
+                      childPart.$updateNaturalHeightFromText();
+                    }
                   }
                 }
               } else {
-                part.$updateNaturalWidthFromText();
-                part.$updateNaturalHeightFromText();
-                part.$updateNaturalWidthInput();
-                part.$updateNaturalHeightInput(); 
+                console.log("AV", attr, level);
+                if ( part.isInputText ) {
+                  part.$updateNaturalWidthInput(); 
+                  part.$updateNaturalHeightInput(); 
+                } else {
+                  part.$updateNaturalWidthFromText();
+                  part.$updateNaturalHeightFromText();
+                }
               }     
             } 
         }
@@ -510,8 +520,18 @@ bottom: -0.25em;
         part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
         part.$updateTransitionProp( transitionProp );
+      } else if ( many ) {
+        if ( this.attr === "rows" ) {
+          many.$updateRows();
+        } else if ( attr === "filter" ) {
+          many.$updateFilter();
+        } else if ( attr === "sort" || attr === "ascending" ) {
+          many.$updateRows();
+        } else if ( attr.startsWith("args.") ) {
+          many.$updateFilteredPositioning();
+        }
+          
       } else {  
-
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
@@ -525,12 +545,6 @@ bottom: -0.25em;
                 $updateNaturalHeightFromChild( level );
 
             }
-            break;
-          case "rows":
-            many.$updateRows();
-            break;
-          case "filter":
-            many.$updateFilter();  
             break;
           case "$naturalWidth":
             if ( this.level.$attr2attrVal.scrollX ) {
@@ -565,6 +579,11 @@ bottom: -0.25em;
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
+        /*if ( !this.level.$part.isInputText &&
+            ( this.attr === "$naturalWidth" ||
+              this.attr === "$naturalHeight" ) ) {
+          return;
+        }*/
         // Given that a reference exists, add event listeners
         var
           eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
@@ -585,6 +604,11 @@ bottom: -0.25em;
   LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
     if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
+        /*if ( !this.level.$part.isInputText &&
+            ( this.attr === "$naturalWidth" ||
+              this.attr === "$naturalHeight" ) ) {
+          return;
+        }*/
         // Given that no reference exists, remove event listeners
         var
          eventType2fnHandler =
@@ -680,6 +704,8 @@ bottom: -0.25em;
         _relPath00attr_S = this.val._relPath00attr_S;
         for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
           takingLevel = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
+          // possbility of level having being removed
+          if ( !takingLevel ) { return false; }
           takingAttrVal = takingLevel.$getAttrVal( _relPath00attr_S[ i ][ 1 ] );
           if ( takingLevel &&
               takingAttrVal &&
@@ -1219,36 +1245,39 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.remove = function () {
-    
-    this.$remove();
-    LAID.$solve();
+      
+    if ( this.path === "/" ) {
+      console.error("LAID Error: Attempt to remove root level prohibited");
+    } else {
+      this.$remove();
+      LAID.$solve();
+    }
     
   };
 
   LAID.Level.prototype.$remove = function () {
-    if ( this.path === "/" ) {
-      console.error("LAID Warning: Attempt to remove root level prohibited");
-    } else {
-      var
-       parentLevel = this.parentLevel,
-       parentPart = parentLevel.$part;
 
-      LAID.$path2level[ this.path ] = undefined;
-      LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
-      LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
+    var
+     parentLevel = this.parentLevel,
+     parentPart = parentLevel.$part;
 
-      if ( parentPart.$naturalWidthLevel === this ) {
-        parentPart.$updateNaturalWidth();
-      }
-      if ( parentPart.$naturalHeightLevel === this ) {
-        parentPart.$updateNaturalHeight();
-      }
+    LAID.$path2level[ this.path ] = undefined;
+    LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
+   
+    LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
 
-      if ( this.$derivedMany ) {
-        this.$derivedMany.$removeLevel( this );
-      }
-
+    if ( parentPart.$naturalWidthLevel === this ) {
+      parentPart.$updateNaturalWidth();
     }
+    if ( parentPart.$naturalHeightLevel === this ) {
+      parentPart.$updateNaturalHeight();
+    }
+
+    if ( this.$derivedMany ) {
+      this.$derivedMany.$removeLevel( this );
+    }
+
+  
   };
 
   /*
@@ -1434,7 +1463,6 @@ bottom: -0.25em;
        this.$lson.$observe : [],
       observableReadonly, i, len;
     
-
    
     if ( this.path === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
@@ -1456,11 +1484,14 @@ bottom: -0.25em;
       }
       
       if ( this.$part.isInputText ) {
+        // since there is a high probability
+        // that the user will reference $input
+        // whilst using an input:line, input:textarea
+        // the "$input" property will observed
+        // by default
         observableReadonlyS.push( "$input" );
-
       }
     }
-    
 
     if ( observableReadonlyS.length ) {
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
@@ -1473,7 +1504,6 @@ bottom: -0.25em;
 
     this.$initNonStateProjectedAttrs();
     this.$updateStates();
-
 
   };
 
@@ -1489,8 +1519,17 @@ bottom: -0.25em;
 
     if ( this.$derivedMany ) {
       initAttrsObj( "row.", this.$row, attr2val );
+      attr2val[ "formation.top" ] = 0;
+      attr2val[ "formation.left" ] = 0;
       this.$row = undefined;
     }
+    /*
+    if ( this.$part && this.$part.isInputText ) {
+      attr2val[ "$naturalWidthInput" ] = 0;
+      attr2val[ "$naturalHeightInput" ] = 0;
+      attr2val[ "$naturalWidth" ] = LAID.$takeNaturalWidthInput;
+      attr2val[ "$naturalHeight" ] = LAID.$takeNaturalHeightInput;
+    }*/
 
     if ( lson.load !== undefined ) {
       attr2val.load = lson.load;
@@ -1559,20 +1598,19 @@ bottom: -0.25em;
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
-          case "$numberOfChildren":
-            this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
-              break;
           case "$naturalWidth":
-            this.$part.$updateNaturalWidth();
+            if ( this.$part.isInputText ) {
+              this.$part.$updateNaturalWidthInput();
+            } else {
+              this.$part.$updateNaturalWidth();
+            }
             break;
           case "$naturalHeight":
-            this.$part.$updateNaturalHeight();
-            break;
-          case "$naturalWidthInput":
-            this.$part.$updateNaturalWidthInput();
-            break;
-          case "$naturalHeightInput":
-            this.$part.$updateNaturalHeightInput();
+            if ( this.$part.isInputText ) {
+              this.$part.$updateNaturalHeightInput();
+            } else {
+              this.$part.$updateNaturalHeight();
+            }
             break;
           case "$absoluteX":
             this.$part.$updateAbsoluteX();
@@ -1581,6 +1619,12 @@ bottom: -0.25em;
             this.$part.$updateAbsoluteY();
             break;
         }
+      } else if ( ["$centerX",
+                   "$centerY",
+                    "$right",
+                     "$bottom" ].indexOf( attr )
+                      !== -1 ) {
+        this.$attr2attrVal[ attr ].update( LAID[ attr ] );
       } else {
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
       }
@@ -1690,10 +1734,9 @@ bottom: -0.25em;
       isSolveProgressed = false;
       this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-//        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
 //        console.log( "\trecalculate", this.path, isSolveProgressed,
- //       recalculateDirtyAttrValS[ i ] );
+  //      recalculateDirtyAttrValS[ i ] );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -1743,6 +1786,7 @@ bottom: -0.25em;
       stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
         attr2val;
     }
+
     return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
   
 
@@ -1804,6 +1848,13 @@ bottom: -0.25em;
 
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
+
+    if ( this.$derivedMany &&
+       !this.$derivedMany.level.
+        $attr2attrVal.filter.isRecalculateRequired ) {
+      this.setFormationXY( this.$part.$formationX,
+          this.$part.$formationY );
+    }
 
     if ( this.path === "/" ) {
       if ( this.$attr2attrVal.width.val !==
@@ -1875,12 +1926,43 @@ bottom: -0.25em;
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    this.$attr2attrVal[ attr ].update( val );
-    if ( !LAID.$isRendering ) {
-      LAID.$solve();
-    } else {
-      LAID.$isSolveRequiredOnRenderFinish = true;
+    if ( this.$attr2attrVal[ attr ] ) {
+      this.$attr2attrVal[ attr ].update( val );
+      if ( !LAID.$isRendering ) {
+        LAID.$solve();
+      } else {
+        LAID.$isSolveRequiredOnRenderFinish = true;
+      }
     }
+  };
+
+  LAID.Level.prototype.setFormationXY = function ( x, y ) {
+    console.log(" FM", this.path);
+    if ( x === undefined ) {
+      this.$changeAttrVal( "formation.left",
+        LAID.$formationState.props.left );
+      this.$changeAttrVal( "left",
+        LAID.$formationState.props.left );
+    } else {
+      this.$changeAttrVal( "formation.left", x );
+      this.$changeAttrVal( "left", x );
+    }
+    if ( y === undefined ) {
+      this.$changeAttrVal( "formation.top",
+        LAID.$formationState.props.top );
+      this.$changeAttrVal( "top",
+        LAID.$formationState.props.top );
+    } else {
+      this.$changeAttrVal( "formation.top", y );
+      this.$changeAttrVal( "top", y );
+    }
+
+    this.$attr2attrVal.top.requestRecalculation();
+    this.$attr2attrVal.left.requestRecalculation();
+
+    this.$part.$formationX = x;
+    this.$part.$formationY = y;
+ 
   };
 
   LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {
@@ -1989,7 +2071,7 @@ bottom: -0.25em;
     this.$id2level = {};
     this.$id2row = {};
     this.$allLevelS = [];
-    this.$loaded = false;
+    this.$isLoaded = false;
 
 
   };
@@ -1997,22 +2079,15 @@ bottom: -0.25em;
   LAID.Many.prototype.$init = function () {
 
     var
-      states = this.$partLson.states || ( this.$partLson.states = {} ),
-      formationName2state = LAID.$formationName2state,
-      formationName;
+      states = this.$partLson.states || ( this.$partLson.states = {} );
     
 
     if ( this.$id === undefined ) {
 
     }
 
-    // initiate formations
-    for ( formationName in formationName2state ) {
-      states[ "formation:" + formationName ] =
-        formationName2state[ formationName ];
-    }
-
-    states.formation = LAID.$displayNoneFormationState;
+    states.formationDisplayNone = LAID.$displayNoneFormationState;
+    states.formation = LAID.$formationState;
 
     LAID.$defaultizePart( this.$partLson );
 
@@ -2127,10 +2202,6 @@ bottom: -0.25em;
 
     this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    this.level.$attr2attrVal.filter.requestRecalculation();
-
-    this.$updateFilter();
-
     LAID.$solve();
 
   };
@@ -2159,15 +2230,39 @@ bottom: -0.25em;
     this.level.$attr2attrVal.$filtered.update( filteredLevelS );
     this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-
     LAID.$solve();
+
+    this.$updateFilteredPositioning();
+
+
+  };
+
+  LAID.Many.prototype.$updateFilteredPositioning = function () {
+
+    if ( this.$isLoaded ) {
+      var
+        filteredLevelS = this.level.$attr2attrVal.filter.calcVal || [],
+        formationFn = LAID.$formationName2fn[ this.level.$attr2attrVal.formation.calcVal ];
+
+      for ( 
+        var f = 1, len = filteredLevelS.length;
+        f < len;
+        f++
+       ) {
+        formationFn( f + 1, filteredLevelS[ f ], filteredLevelS );
+      }
+
+      LAID.$solve();
+    }
 
   };
 
   LAID.Many.prototype.$removeLevel = function ( level ) {
 
-    this.$id2level[ id ] = null;
-    LAID.$arrayUtils.remove( this.$partLevelS, level );
+    this.$id2level[ level.$id ] = null;
+    this.$id2row[ level.$id ] = null;
+
+    LAID.$arrayUtils.remove( this.$allLevelS, level );
 
   };
 
@@ -2262,6 +2357,9 @@ bottom: -0.25em;
     this.$absoluteY = undefined;
     this.$absoluteX = undefined;
 
+    this.$formationX = undefined;
+    this.$formationY = undefined;
+
 
   };
 
@@ -2308,8 +2406,8 @@ bottom: -0.25em;
     if ( this.isInputText ) {
       this.inputDivNode = document.createElement("div");
       this.node.style.cssText = defaultCss;
-
     }
+
     if ( this.level.$lson.$interface ) {
       this.node.style.visibility = "hidden";
     }
@@ -2546,7 +2644,7 @@ bottom: -0.25em;
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalWidthInput ) {
+    if ( attr2attrVal.$naturalWidth ) {
 
         this.$naturalWidthInputMode = true;
 
@@ -2558,7 +2656,7 @@ bottom: -0.25em;
         // set the value to 0. This is only
         // as a render cycle is required for learning
         // the natural width
-        attr2attrVal.$naturalWidthInput.update( 0 );
+        attr2attrVal.$naturalWidth.update( 0 );
 
     }
   };
@@ -2568,7 +2666,7 @@ bottom: -0.25em;
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalHeightInput ) {
+    if ( attr2attrVal.$naturalHeight ) {
 
         this.$naturalHeightInputMode = true;
 
@@ -2580,7 +2678,7 @@ bottom: -0.25em;
         // set the value to 0. This is only
         // as a render cycle is required for learning
         // the natural width
-        attr2attrVal.$naturalHeightInput.update( 0 );
+        attr2attrVal.$naturalHeight.update( 0 );
 
     }
   };
@@ -2692,7 +2790,10 @@ bottom: -0.25em;
 
 
     if ( this.isInitiallyRendered ) {
-
+      console.log( " x", this.level.path, transitionProp ); 
+      if ( this.level.$derivedMany ) {
+        console.log( " y", this.level.path, this.level.$derivedMany.$isLoaded );
+      }
       var
         attr2attrVal = this.level.$attr2attrVal,
         attr, attrVal,
@@ -2849,7 +2950,8 @@ bottom: -0.25em;
   if ( isGpuAccelerated ) {
 
 
-    LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
+    // TODO: optimize to enter matrix3d directly
+    LAID.Part.prototype.$renderFn_positional =   
     function () {
       var attr2attrVal = this.level.$attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
@@ -2939,7 +3041,8 @@ bottom: -0.25em;
   };
 
   LAID.Part.prototype.$renderFn_backfaceVisibility = function () {
-    this.node.style[ cssPrefix + "backface-visibility" ] = this.level.$attr2attrVal.perspective.transitionCalcVal;
+    this.node.style[ cssPrefix + "backface-visibility" ] =
+      this.level.$attr2attrVal.backfaceVisibility.transitionCalcVal;
   };
 
 
@@ -3233,14 +3336,12 @@ bottom: -0.25em;
     divNode.style.overflow = "visible";
     //this.inputDivNode.style.zIndex = "-1";
 
-
-
     if ( this.$naturalWidthInputMode ) {
       divNode.style.display = "inline";
       divNode.style.width = "auto";
       divNode.innerHTML = inputVal;
 
-      this.level.$changeAttrVal( "$naturalWidthInput",
+      this.level.$changeAttrVal( "$naturalWidth",
        divNode.getBoundingClientRect().width );
       divNode.style.display = "block";
       this.$naturalWidthInputMode = false;
@@ -3250,7 +3351,7 @@ bottom: -0.25em;
       // If empty we will subsitute with a space character
       // as we wouldn't want the height to resolve to 0
       divNode.innerHTML = inputVal || ".";
-      this.level.$changeAttrVal( "$naturalHeightInput",
+      this.level.$changeAttrVal( "$naturalHeight",
         divNode.getBoundingClientRect().height );
       this.$naturalHeightInputMode = false;
     }
@@ -5059,7 +5160,7 @@ return this;
       return new LinearTransition( duration, args );
     },
     "spring": function ( duration, args ) {
-      return new LAID.$SpringTransition( duration, args );
+      return new LAID.$springTransition( duration, args );
     },
     "cubic-bezier": function ( duration, args ) {
       return new CubicBezierTransition( duration, args );
@@ -5317,16 +5418,10 @@ return this;
 ( function () {
 	"use strict";
 
-	LAID.formation = function ( name, state ) {
-		state.onlyif = LAID.take("*", "formation").eq( name ).and(
-			LAID.take("", "$f").gt(1));
-
-		LAID.$formationName2state[ name ] = state;
+	LAID.formation = function ( name, fn ) {
+		LAID.$formationName2fn[ name ] = fn;
 
 	};
-
-
-
 
 })();
 (function() {
@@ -5695,13 +5790,7 @@ return this;
 
   LAID.run =  function ( rootLson ) {
 
-    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
-    LAID.$displayNoneFormationState = {
-      onlyif: LAID.take("","$f").eq(-1),
-      props: {
-        display:false
-      }
-    };
+    initiateRuntimeGlobals();
 
     ( new LAID.Level( "/", rootLson, undefined ) ).$init();
 
@@ -5711,6 +5800,35 @@ return this;
 
   };
 
+  function initiateRuntimeGlobals () {
+    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
+
+    LAID.$centerX = LAID.take("", "width").divide(2);
+    LAID.$centerY = LAID.take("", "height").divide(2);
+    LAID.$right = LAID.take("", "width");
+    LAID.$bottom = LAID.take("", "height");
+
+    /*
+    LAID.$takeNaturalHeightInput =
+      new LAID.Take( "", "$naturalHeightInput");
+    LAID.$takeNaturalWidthInput =
+      new LAID.Take( "", "$naturalWidthInput");
+    */
+
+    LAID.$displayNoneFormationState = {
+      onlyif: LAID.take("","$f").eq(-1),
+      props: {
+        display:false
+      }
+    };
+    LAID.$formationState = {
+      onlyif: LAID.take("", "$f").gt(1),
+      props: {
+        top: LAID.take("", "root.top"),
+        left: LAID.take("", "root.left")
+      }
+    };
+  }
 
   function updateSize () {
 
@@ -5889,7 +6007,8 @@ return this;
   var reservedNameS = [ 
     "root", "transition", "data", "when", "load",
     "",
-    "many", "formation", "sort", "ascending",
+    "many", "formation", "formationDisplayNone",
+     "sort", "ascending",
     "rows", "row", "filter", "args", "all"
   ];
 
@@ -6187,8 +6306,6 @@ return this;
   var
     essentialProp2defaultValue,
     lazyProp2defaultValue,
-    takeNaturalWidthInput,
-    takeNaturalHeightInput,
     fnPosToCenter,
     fnPosToEdge,
     takeLeft,
@@ -6287,6 +6404,7 @@ return this;
       lson.$type = "none";
     } else if ( lson.$type.startsWith( "input:" ) ) {
       lson.$inputType = lson.$type.slice( ( "input:" ).length );
+      /*
       if ( rootStateProps.width ===
        essentialProp2defaultValue.width ) {
         rootStateProps.width = takeNaturalWidthInput;
@@ -6294,7 +6412,8 @@ return this;
       if ( rootStateProps.height ===
        essentialProp2defaultValue.height ) {
         rootStateProps.height = takeNaturalHeightInput;
-      }
+      }*/
+
     }
 
   };
@@ -6333,11 +6452,6 @@ return this;
     top: 0,
     left: 0
   };
-
-  takeNaturalHeightInput =
-    new LAID.Take( "", "$naturalHeightInput");
-  takeNaturalWidthInput =
-    new LAID.Take( "", "$naturalWidthInput");
 
   fnPosToCenter = function( pos, dim ) {
     return pos + ( dim / 2 );
@@ -6543,11 +6657,10 @@ return this;
           this.$part.node.offsetY );
       }
     },
-    $input: $inputEvent2fn,
-    $naturalWidthInput: $inputEvent2fn,
-    $naturalHeightInput: $inputEvent2fn,
 
-    
+    $input: $inputEvent2fn,
+    /*$naturalWidth: $inputEvent2fn,
+    $naturalHeight: $inputEvent2fn,*/
 
     $inputChecked: {
       change: function () {
@@ -7078,74 +7191,17 @@ function fix_stopPropagation() {
 ( function () {
 	"use strict";
 
-	LAID.$formationName2state = {
-		"onebelow": {
-			onlyif: LAID.take( "*", "formation" ).eq( "onebelow" ).and(
-				LAID.take("", "$f").gt(1)),
-			
-			props: {
-				top: LAID.take(function( filterLevelS, gap ){
-						var f = this.attr("$f");
-						if ( f > 1 ) {
-							return filterLevelS[ f-1 ].attr("bottom") + gap;
-						} else {
-							return 0;
-						}
-						
-					}).fn( LAID.take("*", "$filtered" ),
-					 LAID.take("*", "args.onebelow.gap") )
-				//top: LAID.take("*", "$filtered").queryFetch(
-			//		LAID.take("", "$f").subtract(1), "bottom"
-				//	).add(LAID.take("*", "args.onebelow.gap" )),
-			}
+	LAID.$formationName2fn = {
+		onebelow: function ( f, filteredLevel, filteredLevelS ) {
+			filteredLevel.setFormationXY( undefined,
+				LAID.take(filteredLevelS[ f - 2 ].path, "bottom").add(
+					LAID.take("*", "args.onebelow.gap")) );
 		},
-		"totheright": {
-			onlyif: LAID.take( "*", "formation" ).eq( "totheright" ).and(
-				LAID.take("", "$f").gt(1)),
-			
-			props: {
-				left: LAID.take("*", "$filtered").queryFetch(
-					LAID.take("", "$f").subtract(1), "right"
-					).add(LAID.take("*", "args.totheright.gap" )),
-			}
-		},
-		"grid": {
-			onlyif: LAID.take( "*", "formation" ).eq( "grid" ).and(
-				LAID.take("", "$f").gt(1)),
-			
-			props: {
-				left: 
-					LAID.take(function(){
-						var f = this.attr("$f");
-						var numColumns = this.many().attr("args.grid.columns");
-						var newRow = ! ( ( f - 1 ) % numColumns );
-						var hgap = this.many().attr("args.grid.hgap");
-
-						if ( ( f === 2 ) && !newRow ) {
-							return this.many().filter().fetch(
-								1, "right" ) + hgap;
-						} else if ( newRow ) {
-							return 0;
-						} else {
-							return this.many().filter().fetch( 
-								f - 1, "formation:totheright.right" ) + hgap;
-						
-						}
-					}).fn( LAID.take("*", "$filtered" ) ),
-				top:
-					LAID.take(function(){
-						var f = this.attr("$f");
-						var numColumns = this.many().attr("args.grid.columns");
-						var nthRow =  Math.floor( f  / numColumns );
-						var vgap = this.many().attr("args.grid.vgap");
-
-						return this.many.filter().fn(function( curRow ){
-							return curRow
-						})
-						
-					}).fn( LAID.take("*", "$filtered" ) )
-
-			}
+		totheright: function ( f, filteredLevel, filteredLevelS ) {
+			filteredLevel.setFormationXY(
+				LAID.take(filteredLevelS[ f - 2 ].path, "right").add(
+					LAID.take("*", "args.totheright.gap")),
+					undefined );
 		}
 	};
 })();
@@ -7194,7 +7250,12 @@ function fix_stopPropagation() {
     $naturalHeightInput: null,
     $absoluteX: null,
     $absoluteY: null,
-    $numberOfChildren: null,
+    $centerX: 0,
+    $centerY: 0,
+    $right: 0,
+    $bottom: 0,
+
+    //$numberOfChildren: null,
     $dataTravelling: false,
     $dataTravelDelta: 0.0,
     $dataTravelLevel: null,
@@ -8369,7 +8430,6 @@ if (!Array.prototype.indexOf) {
 
 
   function render() {
-
     var
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
@@ -8425,7 +8485,6 @@ if (!Array.prototype.indexOf) {
 
       for ( y = 0; y < travelRenderDirtyAttrValS.length; y++ ) {
 
-
         travelRenderDirtyAttrVal = travelRenderDirtyAttrValS[ y ];
 
         if ( travelRenderDirtyAttrVal.isTransitionable ) {
@@ -8458,7 +8517,6 @@ if (!Array.prototype.indexOf) {
               transitionAttrVal( normalRenderDirtyAttrVal,
                  renderDirtyTransition.generateNext( timeFrameDiff ) );
 
-
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
                 renderDirtyTransition.done.call( renderDirtyPart.level );
@@ -8478,6 +8536,7 @@ if (!Array.prototype.indexOf) {
         }
 
       }
+
 
       // If "text" or "$input" is to be rendered, it must be
       // rendered last to be able to bear knowledge
@@ -8516,8 +8575,10 @@ if (!Array.prototype.indexOf) {
         x--;
       }
 
-      if ( !renderDirtyPart.isInitiallyRendered ) {
-        LAID.$arrayUtils.pushUnique( renderNewLevelS, renderDirtyPart.level );
+      if ( !renderDirtyPart.isInitiallyRendered &&
+         LAID.$renderDirtyPartS.indexOf( renderDirtyPart ) === -1 ) {
+        LAID.$arrayUtils.pushUnique( renderNewLevelS,
+         renderDirtyPart.level );
       }
 
     }
@@ -8540,6 +8601,8 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = newManyS.length; i < len; i++ ) {
       newMany = newManyS[ i ];
+      newMany.$isLoaded = true;
+      newMany.$updateFilteredPositioning();
       loadAttrVal = newMany.level.$attr2attrVal.load;
       if ( ( loadAttrVal ) &&
         ( typeof loadAttrVal.calcVal === "function" ) ) {
@@ -8557,7 +8620,6 @@ if (!Array.prototype.indexOf) {
       LAID.$render( curTimeFrame );
     }
   }
-
 
   function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
     if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
@@ -8833,7 +8895,6 @@ if (!Array.prototype.indexOf) {
       return 3;
     }
     
-    
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
@@ -8853,7 +8914,6 @@ if (!Array.prototype.indexOf) {
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
       solvedLevelS[ i ].$initAllAttrs();
     }
-
 
     return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
@@ -8912,7 +8972,7 @@ if (!Array.prototype.indexOf) {
   "use strict";
 
 
-  LAID.$SpringTransition = function( duration, args ) {
+  LAID.$springTransition = function( duration, args ) {
     this.curTime = 0;
     this.value = 0;
     this.friction = parseFloat( args.friction );
@@ -8923,7 +8983,7 @@ if (!Array.prototype.indexOf) {
     this.isComplete = false;
   };
 
-  LAID.$SpringTransition.prototype.generateNext = function ( delta ) {
+  LAID.$springTransition.prototype.generateNext = function ( delta ) {
     var
       finalVelocity, net1DVelocity, netFloat,
        netValueIsLow, netVelocityIsLow, stateAfter, stateBefore;
@@ -8951,7 +9011,7 @@ if (!Array.prototype.indexOf) {
     return this.value;
   };
 
-  LAID.$SpringTransition.prototype.checkIsComplete = function() {
+  LAID.$springTransition.prototype.checkIsComplete = function() {
     return this.isComplete;
   };
 

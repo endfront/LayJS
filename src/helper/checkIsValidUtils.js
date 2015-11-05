@@ -5,7 +5,8 @@
   var reservedNameS = [ 
     "root", "transition", "data", "when", "load",
     "",
-    "many", "formation", "sort", "ascending",
+    "many", "formation", "formationDisplayNone",
+     "sort", "ascending",
     "rows", "row", "filter", "args", "all"
   ];
 

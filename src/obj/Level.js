@@ -145,36 +145,39 @@
   };
 
   LAID.Level.prototype.remove = function () {
-    
-    this.$remove();
-    LAID.$solve();
+      
+    if ( this.path === "/" ) {
+      console.error("LAID Error: Attempt to remove root level prohibited");
+    } else {
+      this.$remove();
+      LAID.$solve();
+    }
     
   };
 
   LAID.Level.prototype.$remove = function () {
-    if ( this.path === "/" ) {
-      console.error("LAID Warning: Attempt to remove root level prohibited");
-    } else {
-      var
-       parentLevel = this.parentLevel,
-       parentPart = parentLevel.$part;
 
-      LAID.$path2level[ this.path ] = undefined;
-      LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
-      LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
+    var
+     parentLevel = this.parentLevel,
+     parentPart = parentLevel.$part;
 
-      if ( parentPart.$naturalWidthLevel === this ) {
-        parentPart.$updateNaturalWidth();
-      }
-      if ( parentPart.$naturalHeightLevel === this ) {
-        parentPart.$updateNaturalHeight();
-      }
+    LAID.$path2level[ this.path ] = undefined;
+    LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
+   
+    LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
 
-      if ( this.$derivedMany ) {
-        this.$derivedMany.$removeLevel( this );
-      }
-
+    if ( parentPart.$naturalWidthLevel === this ) {
+      parentPart.$updateNaturalWidth();
     }
+    if ( parentPart.$naturalHeightLevel === this ) {
+      parentPart.$updateNaturalHeight();
+    }
+
+    if ( this.$derivedMany ) {
+      this.$derivedMany.$removeLevel( this );
+    }
+
+  
   };
 
   /*
@@ -360,7 +363,6 @@
        this.$lson.$observe : [],
       observableReadonly, i, len;
     
-
    
     if ( this.path === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
@@ -382,11 +384,14 @@
       }
       
       if ( this.$part.isInputText ) {
+        // since there is a high probability
+        // that the user will reference $input
+        // whilst using an input:line, input:textarea
+        // the "$input" property will observed
+        // by default
         observableReadonlyS.push( "$input" );
-
       }
     }
-    
 
     if ( observableReadonlyS.length ) {
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
@@ -399,7 +404,6 @@
 
     this.$initNonStateProjectedAttrs();
     this.$updateStates();
-
 
   };
 
@@ -415,8 +419,17 @@
 
     if ( this.$derivedMany ) {
       initAttrsObj( "row.", this.$row, attr2val );
+      attr2val[ "formation.top" ] = 0;
+      attr2val[ "formation.left" ] = 0;
       this.$row = undefined;
     }
+    /*
+    if ( this.$part && this.$part.isInputText ) {
+      attr2val[ "$naturalWidthInput" ] = 0;
+      attr2val[ "$naturalHeightInput" ] = 0;
+      attr2val[ "$naturalWidth" ] = LAID.$takeNaturalWidthInput;
+      attr2val[ "$naturalHeight" ] = LAID.$takeNaturalHeightInput;
+    }*/
 
     if ( lson.load !== undefined ) {
       attr2val.load = lson.load;
@@ -485,20 +498,19 @@
       this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
-          case "$numberOfChildren":
-            this.$attr2attrVal[ attr ].update( this.$childLevelS.length );
-              break;
           case "$naturalWidth":
-            this.$part.$updateNaturalWidth();
+            if ( this.$part.isInputText ) {
+              this.$part.$updateNaturalWidthInput();
+            } else {
+              this.$part.$updateNaturalWidth();
+            }
             break;
           case "$naturalHeight":
-            this.$part.$updateNaturalHeight();
-            break;
-          case "$naturalWidthInput":
-            this.$part.$updateNaturalWidthInput();
-            break;
-          case "$naturalHeightInput":
-            this.$part.$updateNaturalHeightInput();
+            if ( this.$part.isInputText ) {
+              this.$part.$updateNaturalHeightInput();
+            } else {
+              this.$part.$updateNaturalHeight();
+            }
             break;
           case "$absoluteX":
             this.$part.$updateAbsoluteX();
@@ -507,6 +519,12 @@
             this.$part.$updateAbsoluteY();
             break;
         }
+      } else if ( ["$centerX",
+                   "$centerY",
+                    "$right",
+                     "$bottom" ].indexOf( attr )
+                      !== -1 ) {
+        this.$attr2attrVal[ attr ].update( LAID[ attr ] );
       } else {
         this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
       }
@@ -616,10 +634,9 @@
       isSolveProgressed = false;
       this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-//        console.log( "\trecalculate", this.path,recalculateDirtyAttrValS[i].attr);
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
 //        console.log( "\trecalculate", this.path, isSolveProgressed,
- //       recalculateDirtyAttrValS[ i ] );
+  //      recalculateDirtyAttrValS[ i ] );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -669,6 +686,7 @@
       stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
         attr2val;
     }
+
     return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
   
 
@@ -730,6 +748,13 @@
 
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
+
+    if ( this.$derivedMany &&
+       !this.$derivedMany.level.
+        $attr2attrVal.filter.isRecalculateRequired ) {
+      this.setFormationXY( this.$part.$formationX,
+          this.$part.$formationY );
+    }
 
     if ( this.path === "/" ) {
       if ( this.$attr2attrVal.width.val !==
@@ -801,12 +826,43 @@
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    this.$attr2attrVal[ attr ].update( val );
-    if ( !LAID.$isRendering ) {
-      LAID.$solve();
-    } else {
-      LAID.$isSolveRequiredOnRenderFinish = true;
+    if ( this.$attr2attrVal[ attr ] ) {
+      this.$attr2attrVal[ attr ].update( val );
+      if ( !LAID.$isRendering ) {
+        LAID.$solve();
+      } else {
+        LAID.$isSolveRequiredOnRenderFinish = true;
+      }
     }
+  };
+
+  LAID.Level.prototype.setFormationXY = function ( x, y ) {
+    console.log(" FM", this.path);
+    if ( x === undefined ) {
+      this.$changeAttrVal( "formation.left",
+        LAID.$formationState.props.left );
+      this.$changeAttrVal( "left",
+        LAID.$formationState.props.left );
+    } else {
+      this.$changeAttrVal( "formation.left", x );
+      this.$changeAttrVal( "left", x );
+    }
+    if ( y === undefined ) {
+      this.$changeAttrVal( "formation.top",
+        LAID.$formationState.props.top );
+      this.$changeAttrVal( "top",
+        LAID.$formationState.props.top );
+    } else {
+      this.$changeAttrVal( "formation.top", y );
+      this.$changeAttrVal( "top", y );
+    }
+
+    this.$attr2attrVal.top.requestRecalculation();
+    this.$attr2attrVal.left.requestRecalculation();
+
+    this.$part.$formationX = x;
+    this.$part.$formationY = y;
+ 
   };
 
   LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {

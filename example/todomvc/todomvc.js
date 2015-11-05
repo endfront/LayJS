@@ -1,6 +1,6 @@
 
 
-LAID.run({
+/*LAID.run({
   data: {
     responsiveWidth: 550,
     gray230: LAID.rgb(230,230,230)
@@ -212,13 +212,6 @@ LAID.run({
                 }
                 //filter: LAID.take("", "$all").filterEq("row.complete", true),
                 //rows:[{id:1, title: "first", complete: false }],
-                /*rows: [
-                  {id:1, title: "first", complete: false },
-                  {id:2, title: "second", complete: true },
-                  {id:3, title: "third", complete: false },
-                  {id:4, title: "fourth", complete: false },
-                  {id:5, title: "fifth", complete: true }
-                ],*/
                 
                 },
                 children: {
@@ -490,8 +483,75 @@ LAID.run({
     }
     
   }   
-});
+});*/
+
  
+LAID.run({
+  props: {
+    backgroundColor: LAID.color("gainsboro")
+  },
+  children: {
+    "Container": {
+      props: {
+        width: LAID.take("$naturalWidth"),
+        height: LAID.take("$naturalHeight"),
+        centerX: LAID.take("../", "width").divide(2),
+        centerY: LAID.take("../", "height").divide(2),
+        backgroundColor: LAID.color("pink")
+      },
+      children: {
+        "Person": {
+          props: {
+            width: 180,
+            centerX: LAID.take("../", "width").divide(2),
+            cursor: "default",
+            text: LAID.take("", "row.name"),
+            textPadding: 10,
+            textColor: LAID.color("black")
+
+          },
+          when: {
+            "click": [
+              function () {
+                this.many().rowsChange(
+                  [{id:2, name: "Alex" }]);
+              }
+            ]
+          },
+          transition: {
+            all: {
+              type: "linear",
+              duration: 1000
+            }
+          },
+          states: {
+            "hover": {
+              onlyif: LAID.take("","$hovered"),
+              props: {
+                textColor: LAID.color("gainsboro")
+              }
+            }
+          },
+          many: {
+            formation: "totheright",
+            args: {
+              totheright:{
+                gap:10
+              }
+            },
+            $id: "id",
+            rows: [
+              {id:1, name: "Boeing" },
+              {id:2, name: "NASA" },
+              {id:3, name: "Airbus" }
+            ],
+          }
+        }
+      }
+    
+    }
+  }
+})
 
 function updateLocalStorage () {
   var rows = LAID.level("/Container/TodosWrapper/Todo").attr("rows");

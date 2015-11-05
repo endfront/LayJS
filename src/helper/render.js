@@ -20,7 +20,6 @@
 
 
   function render() {
-
     var
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
@@ -76,7 +75,6 @@
 
       for ( y = 0; y < travelRenderDirtyAttrValS.length; y++ ) {
 
-
         travelRenderDirtyAttrVal = travelRenderDirtyAttrValS[ y ];
 
         if ( travelRenderDirtyAttrVal.isTransitionable ) {
@@ -109,7 +107,6 @@
               transitionAttrVal( normalRenderDirtyAttrVal,
                  renderDirtyTransition.generateNext( timeFrameDiff ) );
 
-
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
                 renderDirtyTransition.done.call( renderDirtyPart.level );
@@ -129,6 +126,7 @@
         }
 
       }
+
 
       // If "text" or "$input" is to be rendered, it must be
       // rendered last to be able to bear knowledge
@@ -167,8 +165,10 @@
         x--;
       }
 
-      if ( !renderDirtyPart.isInitiallyRendered ) {
-        LAID.$arrayUtils.pushUnique( renderNewLevelS, renderDirtyPart.level );
+      if ( !renderDirtyPart.isInitiallyRendered &&
+         LAID.$renderDirtyPartS.indexOf( renderDirtyPart ) === -1 ) {
+        LAID.$arrayUtils.pushUnique( renderNewLevelS,
+         renderDirtyPart.level );
       }
 
     }
@@ -191,6 +191,8 @@
 
     for ( i = 0, len = newManyS.length; i < len; i++ ) {
       newMany = newManyS[ i ];
+      newMany.$isLoaded = true;
+      newMany.$updateFilteredPositioning();
       loadAttrVal = newMany.level.$attr2attrVal.load;
       if ( ( loadAttrVal ) &&
         ( typeof loadAttrVal.calcVal === "function" ) ) {
@@ -208,7 +210,6 @@
       LAID.$render( curTimeFrame );
     }
   }
-
 
   function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
     if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {

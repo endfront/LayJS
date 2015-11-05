@@ -82,7 +82,7 @@ LAID.run ( {
             "MenuInvoke": {
               props: {
                 left: 30,
-                centerY: LAID.take( "../", "height").divide(2),
+                centerY: LAID.take( "../", "$centerY"),
            
                width:LAID.take("", "$naturalWidth").add(20),
                 height:LAID.take("", "$naturalHeight").add(20),
@@ -109,7 +109,6 @@ LAID.run ( {
                   }
                 },
 
-
                 "clicked": {
                   onlyif: LAID.take("", "$clicked"),
                   props: {
@@ -122,8 +121,8 @@ LAID.run ( {
               children: {
                 "Wrapper": {
                     props: {
-                      centerX: LAID.take("../", "width").divide(2),
-                      centerY: LAID.take("../", "height").divide(2),
+                      centerX: LAID.take("../", "$centerX"),
+                      centerY: LAID.take("../", "$centerY"),
                       width: LAID.take("", "$naturalWidth").max( LAID.take("", "$naturalHeight") ),
                       height: LAID.take("", "width"),
                       overflowX: "visible",
@@ -134,10 +133,10 @@ LAID.run ( {
                       "TopBar": {
                         $inherit: [ "/_SpringTransition" ],
                           data: {
-                            barDistance:LAID.take(function ( width, height, numBars) {
+                            barDistance: LAID.take(function ( width, height ) {
+                              var numBars = 3;
                               return (width - (numBars * height))/2;
-                            }).fn(LAID.take("", "width"),LAID.take("", "height"),
-                                  LAID.take("../", "$numberOfChildren"))
+                            }).fn(LAID.take("", "width"),LAID.take("", "height"))
                           },
                           props: {
                             width:18,
@@ -194,9 +193,8 @@ LAID.run ( {
                 isRotating: false
               },
               props: {
-                centerX: LAID.take("../", "width").divide(2),
+                centerX: LAID.take("../", "$centerX"),
                 text: "WOLPART",
-//                height:200,
                 textAlign: "center",
                 textColor: LAID.color( "white"),
                 textPadding:20,
@@ -278,7 +276,7 @@ LAID.run ( {
             "Option1": {
               props: {
                 width:LAID.take("../", 'width').subtract(20),
-                centerX: LAID.take("../","width").divide(2),
+                centerX: LAID.take("../","$centerX"),
                 height:120,
                 backgroundColor:LAID.color("blue"),
                text: LAID.take("Is data travelling? %s <br> Delta? %s").format( 

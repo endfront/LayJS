@@ -71,6 +71,9 @@
     this.$absoluteY = undefined;
     this.$absoluteX = undefined;
 
+    this.$formationX = undefined;
+    this.$formationY = undefined;
+
 
   };
 
@@ -117,8 +120,8 @@
     if ( this.isInputText ) {
       this.inputDivNode = document.createElement("div");
       this.node.style.cssText = defaultCss;
-
     }
+
     if ( this.level.$lson.$interface ) {
       this.node.style.visibility = "hidden";
     }
@@ -355,7 +358,7 @@
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalWidthInput ) {
+    if ( attr2attrVal.$naturalWidth ) {
 
         this.$naturalWidthInputMode = true;
 
@@ -367,7 +370,7 @@
         // set the value to 0. This is only
         // as a render cycle is required for learning
         // the natural width
-        attr2attrVal.$naturalWidthInput.update( 0 );
+        attr2attrVal.$naturalWidth.update( 0 );
 
     }
   };
@@ -377,7 +380,7 @@
 
     var attr2attrVal = this.level.$attr2attrVal;
 
-    if ( attr2attrVal.$naturalHeightInput ) {
+    if ( attr2attrVal.$naturalHeight ) {
 
         this.$naturalHeightInputMode = true;
 
@@ -389,7 +392,7 @@
         // set the value to 0. This is only
         // as a render cycle is required for learning
         // the natural width
-        attr2attrVal.$naturalHeightInput.update( 0 );
+        attr2attrVal.$naturalHeight.update( 0 );
 
     }
   };
@@ -501,7 +504,10 @@
 
 
     if ( this.isInitiallyRendered ) {
-
+      console.log( " x", this.level.path, transitionProp ); 
+      if ( this.level.$derivedMany ) {
+        console.log( " y", this.level.path, this.level.$derivedMany.$isLoaded );
+      }
       var
         attr2attrVal = this.level.$attr2attrVal,
         attr, attrVal,
@@ -658,7 +664,8 @@
   if ( isGpuAccelerated ) {
 
 
-    LAID.Part.prototype.$renderFn_positional =   // TODO: optimize to enter matrix3d directly
+    // TODO: optimize to enter matrix3d directly
+    LAID.Part.prototype.$renderFn_positional =   
     function () {
       var attr2attrVal = this.level.$attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
@@ -748,7 +755,8 @@
   };
 
   LAID.Part.prototype.$renderFn_backfaceVisibility = function () {
-    this.node.style[ cssPrefix + "backface-visibility" ] = this.level.$attr2attrVal.perspective.transitionCalcVal;
+    this.node.style[ cssPrefix + "backface-visibility" ] =
+      this.level.$attr2attrVal.backfaceVisibility.transitionCalcVal;
   };
 
 
@@ -1042,14 +1050,12 @@
     divNode.style.overflow = "visible";
     //this.inputDivNode.style.zIndex = "-1";
 
-
-
     if ( this.$naturalWidthInputMode ) {
       divNode.style.display = "inline";
       divNode.style.width = "auto";
       divNode.innerHTML = inputVal;
 
-      this.level.$changeAttrVal( "$naturalWidthInput",
+      this.level.$changeAttrVal( "$naturalWidth",
        divNode.getBoundingClientRect().width );
       divNode.style.display = "block";
       this.$naturalWidthInputMode = false;
@@ -1059,7 +1065,7 @@
       // If empty we will subsitute with a space character
       // as we wouldn't want the height to resolve to 0
       divNode.innerHTML = inputVal || ".";
-      this.level.$changeAttrVal( "$naturalHeightInput",
+      this.level.$changeAttrVal( "$naturalHeight",
         divNode.getBoundingClientRect().height );
       this.$naturalHeightInputMode = false;
     }

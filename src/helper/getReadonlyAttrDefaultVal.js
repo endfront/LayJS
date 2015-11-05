@@ -13,7 +13,12 @@
     $naturalHeightInput: null,
     $absoluteX: null,
     $absoluteY: null,
-    $numberOfChildren: null,
+    $centerX: 0,
+    $centerY: 0,
+    $right: 0,
+    $bottom: 0,
+
+    //$numberOfChildren: null,
     $dataTravelling: false,
     $dataTravelDelta: 0.0,
     $dataTravelLevel: null,

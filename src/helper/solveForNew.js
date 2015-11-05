@@ -14,7 +14,6 @@
       return 3;
     }
     
-    
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
@@ -34,7 +33,6 @@
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
       solvedLevelS[ i ].$initAllAttrs();
     }
-
 
     return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;

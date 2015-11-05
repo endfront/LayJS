@@ -29,7 +29,6 @@
     // the below will store the state name <state>
     this.onlyIfStateName = getStateNameOfOnlyIf( attr );
 
-
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr =
       LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
@@ -210,10 +209,8 @@
       }
     }
 
-
-
     if ( attr === "$all" || attr === "$filtered" ) {
-      //isDirty = true;
+      isDirty = true;
     }
 
     if ( this.isForceRecalculate ) {
@@ -294,15 +291,20 @@
             part.$updateNaturalWidthFromText();
             break;
           case "$input":
+            console.log("AV $input")
+            part.$updateNaturalWidthInput();
+            part.$updateNaturalHeightInput();
+            break;
+          case "inputRows":
             part.$updateNaturalWidthInput();
             part.$updateNaturalHeightInput();
             break;
           case "width":
-            if ( level.$attr2attrVal.text ) {
+            if ( part.isInputText ) {
+              console.log("AV width")
+              part.$updateNaturalHeightInput();              
+            } else if ( level.$attr2attrVal.text ) {
               part.$updateNaturalHeightFromText();
-              
-            } else if ( part.isInputText ) {
-              part.$updateNaturalHeightInput();
             }
             break;
           case "left":
@@ -337,17 +339,24 @@
                     i < len; i++ ) {
                   childPart = childLevelS[ i ].$part;
                   if ( childPart ) {
-                    childPart.$updateNaturalWidthFromText();
-                    childPart.$updateNaturalHeightFromText();
-                    childPart.$updateNaturalWidthInput();
-                    childPart.$updateNaturalHeightInput(); 
+                    if ( childPart.isInputText ) {
+                      childPart.$updateNaturalWidthInput(); 
+                      childPart.$updateNaturalHeightInput(); 
+                    } else {
+                      childPart.$updateNaturalWidthFromText();
+                      childPart.$updateNaturalHeightFromText();
+                    }
                   }
                 }
               } else {
-                part.$updateNaturalWidthFromText();
-                part.$updateNaturalHeightFromText();
-                part.$updateNaturalWidthInput();
-                part.$updateNaturalHeightInput(); 
+                console.log("AV", attr, level);
+                if ( part.isInputText ) {
+                  part.$updateNaturalWidthInput(); 
+                  part.$updateNaturalHeightInput(); 
+                } else {
+                  part.$updateNaturalWidthFromText();
+                  part.$updateNaturalHeightFromText();
+                }
               }     
             } 
         }
@@ -383,8 +392,18 @@
         part.$updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
         part.$updateTransitionProp( transitionProp );
+      } else if ( many ) {
+        if ( this.attr === "rows" ) {
+          many.$updateRows();
+        } else if ( attr === "filter" ) {
+          many.$updateFilter();
+        } else if ( attr === "sort" || attr === "ascending" ) {
+          many.$updateRows();
+        } else if ( attr.startsWith("args.") ) {
+          many.$updateFilteredPositioning();
+        }
+          
       } else {  
-
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
@@ -398,12 +417,6 @@
                 $updateNaturalHeightFromChild( level );
 
             }
-            break;
-          case "rows":
-            many.$updateRows();
-            break;
-          case "filter":
-            many.$updateFilter();  
             break;
           case "$naturalWidth":
             if ( this.level.$attr2attrVal.scrollX ) {
@@ -438,6 +451,11 @@
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
+        /*if ( !this.level.$part.isInputText &&
+            ( this.attr === "$naturalWidth" ||
+              this.attr === "$naturalHeight" ) ) {
+          return;
+        }*/
         // Given that a reference exists, add event listeners
         var
           eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
@@ -458,6 +476,11 @@
   LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
     if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
+        /*if ( !this.level.$part.isInputText &&
+            ( this.attr === "$naturalWidth" ||
+              this.attr === "$naturalHeight" ) ) {
+          return;
+        }*/
         // Given that no reference exists, remove event listeners
         var
          eventType2fnHandler =
@@ -553,6 +576,8 @@
         _relPath00attr_S = this.val._relPath00attr_S;
         for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
           takingLevel = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
+          // possbility of level having being removed
+          if ( !takingLevel ) { return false; }
           takingAttrVal = takingLevel.$getAttrVal( _relPath00attr_S[ i ][ 1 ] );
           if ( takingLevel &&
               takingAttrVal &&

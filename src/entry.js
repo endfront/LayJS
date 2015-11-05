@@ -100,6 +100,7 @@ bottom: -0.25em;
     $cloggedLevelS: [],
     $insertedPartS: [],
     $removedPartS: [],
+    
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],

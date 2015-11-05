@@ -562,7 +562,6 @@ Defaults:
 - imageUrl
   `string`
 
-
 - videoSources / audioSources
   This is a "multiple-type" and an "object-type" prop.
   [
@@ -703,10 +702,6 @@ Defaults:
     - $absoluteY (`number`)
       Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
-
-    - $numberOfChildren (`number`)
-      Number of the direct descendant parts of the given part.
-
     - $all
       All the parts within a `Many` type `Level`.
 
@@ -741,7 +736,6 @@ Defaults:
     - $inputChecked (`boolean`)
 
 
-
 ### LSON.$observe
 
   All read-only attributes except for:
@@ -752,25 +746,13 @@ Defaults:
     - $dataTravelDelta
     - $dataTravelLevel
 
-  such as "$hovered", "$focused", "$input", and
-  the others require 2 or more event listeners bound to the respective
-  DOM element. These event listeners are expensive to inculcate within
-  all Level Parts by default. Thus only if there exists a reference
-  to one of these read-only attributes within the LSON as a "take",
-  the event listeners will be activated. Albeit the issue lies when/if a
-  reference is made to one of these read-onlys using "Level.attr()",
-  since lexical parsing of internal functions is out of the question there
-  is no viable way for LAID to be aware and switch on the event listeners for
-  the corresponding read-only.
-  This is the purpose behind `$observe`, `$observe` takes in an array of strings,
-  where strings are references made to such read-onlys. Thus if a reference is
-  made within `observe` LAID will switch on the event listeners for the
+  such as "$hovered", "$focused" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these read-onlys using "Level.attr()", since lexical parsing of internal functions is out of the question there is no viable way for LAID to be aware and switch on the event listeners for the corresponding read-only.
+  This is the purpose behind `$observe`, `$observe` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$observe` LAID will switch on the event listeners for the
   read-only.
 
 ### LSON.many
 
 Type: `Object`
-
 
 
 ### LSON.states
@@ -1177,22 +1159,40 @@ LAID.run({
 
   LAID.run({
       "BioData": {
-        width: LAID.take('Person'),
         children: {
           "Person": {
+            data: {
+              onlyStarks: false
+            },
             many: {
               
-              formation:'grid',
+              formation:'onebelow',
               sort: ['name'],
               ascending: true, //default
+              args: {
+                onebelow: { gap: 2 }
+              },
               
               $id: "_id",
 
               rows: [
-                {_id:'00423', name:'Eddard Stark', age: 50},
-                {_id:'08383', name:'Tyrion Lannister', age: 40},
-                {_id:'01919', name:'Joffrey Baratheon', age: 16}
-              ]
+                {_id:'00423', name:'Eddard Stark',
+                  family:'Stark', age: 50},
+                {_id:'08383', name:'Tyrion Lannister',
+                  family:'Lannister', age: 40},
+                {_id:'07323', name:'Sansa Stark',
+                  family:'Stark', age: 42},  
+                {_id:'01919', name:'Joffrey Baratheon',
+                  family:'Baratheon', age: 16},
+                {_id:'01030', name:'Jamie Lannister',
+                  family:'Lannister', age: 32},
+              ],
+              states: {
+                "starks": {
+                  onlyif: LAID.take("", "data.onlyStarks"),
+                  filter: LAID.take("", "$all").filterEq("family", "Stark")
+                }
+              }
             }
           }
       }
@@ -1203,9 +1203,13 @@ LAID.run({
 
 
 $id: key which is id (cannot be changed)
-first: style of the first element
 sort: key (or multiple in order of sorting) to sort (can be changed) or it takes a function
 ascending: the order of the sort, true by default. False for descending.
+filter: the levels which pass the filter will be displayed,
+the others will be hidden. (note: levels derived of many
+will have their "display" automatically handled through
+this filter, and thus manually using the "display" prop within a
+many derived level is prohibited) 
 
 
 rows
@@ -1244,16 +1248,29 @@ formation:
 All built-in formations:
   - "onebelow"
   - "totheright"
-  - "grid"
+  - "grid" [coming soon]
+
+
+Formation Arguments:
+
+Arguments for formation are to be specified in the
+LSON key "many.args.< formation name >"
+Below are formation arguments for corresponding formations:
+
+  - "onebelow"
+    - gap: specifies the distance in pixels to be kept vertically between consecutive Levels
+  - "totheight"
+    - gap: specifies the distance in pixels to be kept horizontally between consecutive Levels
+
+
+Formation Creation:
+
 
 Formations can be added on the go, using `LAID.formation()`,
-with a unique formation name and formation object to it.
+with a unique formation name and formation function to it.
 An example of the "onebelow" formation:
 
-  // TODO: fill
-
-
-
+    // TODO: fill
 
 
 ### State Transition Object
@@ -1262,7 +1279,7 @@ Transitions for numeric prop-typed attributes.
 
   {
 
-    all: { duration: 100, transition: "spring", args: { tension: 100 } },
+    all: { duration: 100, type: "spring", args: { tension: 100 } },
     left: { duration: 200},
     top: { delay: 500 },
     opacity: { duration:2000, done: function(){ console.log("opaque") }  }
@@ -1277,6 +1294,23 @@ The key refers to an object with 5 possible keys:
     (iv) done ( function handler executed at the end of the transition )
     (v) args ( additional args )
 
+The type can one of the 3:
+  "linear"
+  "cubic-bezier"
+  "spring"
+
+The corresponding arguments provided within args are:
+  - "linear", "ease", "ease-in", "ease-out", "ease-in-out": no arguments
+  - "cubic-bezier"
+    - a: float between 0 and 1
+    - b: float between 0 and 1
+    - c: float between 0 and 1
+    - d: float between 0 and 1
+  - "spring"
+    - tension
+    - friction
+    - velocity (default: 0)
+    - threshold (default: 0.001)
 
 
 An attribute can be of 2 types:

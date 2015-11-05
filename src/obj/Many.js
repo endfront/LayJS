@@ -12,7 +12,7 @@
     this.$id2level = {};
     this.$id2row = {};
     this.$allLevelS = [];
-    this.$loaded = false;
+    this.$isLoaded = false;
 
 
   };
@@ -20,22 +20,15 @@
   LAID.Many.prototype.$init = function () {
 
     var
-      states = this.$partLson.states || ( this.$partLson.states = {} ),
-      formationName2state = LAID.$formationName2state,
-      formationName;
+      states = this.$partLson.states || ( this.$partLson.states = {} );
     
 
     if ( this.$id === undefined ) {
 
     }
 
-    // initiate formations
-    for ( formationName in formationName2state ) {
-      states[ "formation:" + formationName ] =
-        formationName2state[ formationName ];
-    }
-
-    states.formation = LAID.$displayNoneFormationState;
+    states.formationDisplayNone = LAID.$displayNoneFormationState;
+    states.formation = LAID.$formationState;
 
     LAID.$defaultizePart( this.$partLson );
 
@@ -150,10 +143,6 @@
 
     this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-    this.level.$attr2attrVal.filter.requestRecalculation();
-
-    this.$updateFilter();
-
     LAID.$solve();
 
   };
@@ -182,15 +171,39 @@
     this.level.$attr2attrVal.$filtered.update( filteredLevelS );
     this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
-
     LAID.$solve();
+
+    this.$updateFilteredPositioning();
+
+
+  };
+
+  LAID.Many.prototype.$updateFilteredPositioning = function () {
+
+    if ( this.$isLoaded ) {
+      var
+        filteredLevelS = this.level.$attr2attrVal.filter.calcVal || [],
+        formationFn = LAID.$formationName2fn[ this.level.$attr2attrVal.formation.calcVal ];
+
+      for ( 
+        var f = 1, len = filteredLevelS.length;
+        f < len;
+        f++
+       ) {
+        formationFn( f + 1, filteredLevelS[ f ], filteredLevelS );
+      }
+
+      LAID.$solve();
+    }
 
   };
 
   LAID.Many.prototype.$removeLevel = function ( level ) {
 
-    this.$id2level[ id ] = null;
-    LAID.$arrayUtils.remove( this.$partLevelS, level );
+    this.$id2level[ level.$id ] = null;
+    this.$id2row[ level.$id ] = null;
+
+    LAID.$arrayUtils.remove( this.$allLevelS, level );
 
   };
 
