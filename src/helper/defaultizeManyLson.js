@@ -3,7 +3,7 @@
 
   var essentialProp2defaultValue;
 
-  LAID.$defaultizeMany = function ( lson ) {
+  LAID.$defaultizeManyLson = function ( lson ) {
     
     var
       essentialProp,
@@ -16,17 +16,21 @@
           essentialProp2defaultValue[ essentialProp ];
       }
     }
-
-    
-
-
   };
 
   essentialProp2defaultValue = {
     filter:  new LAID.Take( "", "$all" ),
-    sort: null,
+    sort: [],
     formation: "onebelow",
-    ascending: true
+    rows: [],
+    fargs: {
+      onebelow: {
+        gap: 0
+      },
+      totheright: {
+        gap: 0
+      }
+    }
     
   };
 

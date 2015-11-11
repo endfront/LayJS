@@ -5,54 +5,57 @@
 
   LAID.Level = function ( path, lson, parent, derivedMany, row, id ) {
 
-    this.path = path;
+    this.pathName = path;
+    this.lson = lson;
+
     this.parentLevel = parent; // parent Level
+    this.attr2attrVal = {};
+
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
-    this.$isPart = undefined;
+    this.isPart = undefined;
 
-    // If the Level is a Many (i.e this.$isPart is false)
-    // then this.$many will hold a reference to the corresponding
+    // If the Level is a Many (i.e this.isPart is false)
+    // then this.many will hold a reference to the corresponding
     // Many object.
-    this.$part = undefined;
-    // If the Level is a Many (i.e this.$isPart is false)
-    // then this.$many will hold a reference to the corresponding
+    this.part = undefined;
+    // If the Level is a Many (i.e this.isPart is false)
+    // then this.many will hold a reference to the corresponding
     // Many object.
-    this.$many = undefined;
+    this.many = undefined;
+
 
     // If the Level is derived from a Many
-    // then this.$derivedMany will hold
+    // then this.derivedMany will hold
     // a reference to the Many
-    this.$derivedMany = derivedMany;
+    this.derivedMany = derivedMany;
+
+    // If the Level is derived from a Many Level
+    // this will be the id by which it is referenced
+    this.id = id;
 
     // If the Level is derived from a Many Level
     // this will contain the row information will
     // be contained within below
-    this.$row = row;
+    this.row = row;
 
-    // If the Level is derived from a Many Level
-    // this will be the id by which it is referenced
-    this.$id = id;
+    this.isNormalized = false;
+    this.isInherited = false;
 
-    this.$lson = lson;
-    this.$isNormalized = false;
-    this.$isInherited = false;
+    this.recalculateDirtyAttrValS = [];
 
-    this.$attr2attrVal = {};
-    this.$recalculateDirtyAttrValS = [];
+    this.childLevelS = [];
 
-    this.$childLevelS = [];
-
-    this.$stateS = [ "root" ];
-    this.$stringHashedStates2_cachedAttr2val_ =  {};
-    this.$newlyInstalledStateS = [];
-    this.$newlyUninstalledStateS = [];
+    this.stateS = [ "root" ];
+    this.stringHashedStates2_cachedAttr2val_ =  {};
+    this.newlyInstalledStateS = [];
+    this.newlyUninstalledStateS = [];
 
   };
 
   LAID.Level.prototype.$init = function () {
 
-    LAID.$path2level[ this.path ] = this;
+    LAID.$pathName2level[ this.pathName ] = this;
 
     // Check is this is many derived level,
     // if it is not then add it to the queue
@@ -68,7 +71,6 @@
       LAID.$cloggedLevelS.push( this );
     }
    
-
   };
 
 
@@ -77,47 +79,166 @@
     return ( new LAID.RelPath( relativePath ) ).resolve( this );
   };
 
+  LAID.Level.prototype.parent = function () {
+    return this.parentLevel;
+  };
+
+  LAID.Level.prototype.path = function () {
+    return this.pathName;
+  };
+
+
   LAID.Level.prototype.node = function () {
 
-    return this.$part.node;
+    return this.isPart && this.part.node;
   };
 
-  LAID.Level.prototype.many = function () {
+  LAID.Level.prototype.attr = function ( attr ) {
 
-    return this.$derivedMany && this.$derivedMany.level;
+    if ( this.attr2attrVal[ attr ] ) {
+       
+      return this.attr2attrVal[ attr ].calcVal;
+
+    } else if ( this.$createLazyAttr( attr ) ) {
+
+        LAID.$solve();
+        return this.attr2attrVal[ attr ].calcVal;
+
+    } 
   };
 
-  LAID.Level.prototype.rowsChange = function ( newRowS ) {
+  LAID.Level.prototype.data = function ( dataKey, value ) {
+    this.$changeAttrVal( "data." + dataKey, value );
+  };
 
-    if ( !this.$isPart ) {
-      this.$many.rowsChange( newRowS );
+  LAID.Level.prototype.row = function ( rowKey, value ) {
+    if ( this.derivedMany ) {
+      this.$changeAttrVal( "row." + rowKey, value );
+      this.derivedMany.id2row[ this.id ][ rowKey ] = value;
+      this.derivedMany.level.attr2attrVal.rows.requestRecalculation();
     }
   };
 
+  LAID.Level.prototype.changeNativeInput = function ( value ) {
+    var self = this;
+    // Set timeout to make sure "evenReadonlyUtils.js"
+    // updates strictly before the change of input
+    setTimeout(function(){
+      self.$changeAttrVal( "$input", value );      
+    })
+  };
 
-  LAID.Level.prototype.rowsMore = function ( newRowS ) {
+  LAID.Level.prototype.changeNativeScrollX = function ( value ) {
+    this.$changeAttrVal( "$scrollX", value );
+  };
 
-    if ( !this.$isPart ) {
-      this.$many.rowsMore( newRowS );
-    }
+  LAID.Level.prototype.changeNativeScrollY = function ( value ) {
+    this.$changeAttrVal( "$scrollY", value );
+  };
+
+  LAID.Level.prototype.manyLevel = function () {
+
+    return this.derivedMany && this.derivedMany.level;
   };
 
   LAID.Level.prototype.rowsCommit = function ( newRowS ) {
 
-    if ( !this.$isPart ) {
-      this.$many.rowsCommit( newRowS );
+    if ( !this.isPart ) {
+      this.many.rowsCommit( newRowS );
     }
   };
 
+  LAID.Level.prototype.rowsMore = function ( newRowS ) {
+
+    if ( !this.isPart ) {
+      this.many.rowsMore( newRowS );
+    }
+  };
+
+  LAID.Level.prototype.rowDelete = function ( id ) {
+
+    if ( !this.isPart ) {
+      this.many.rowsDelete( id );
+    }
+  };
+
+  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
+    var attrVal;
+    if ( LAID.$isDataTravelling ) {
+      console.error("LAID Warning: Existence of another unfinished data travel");
+    } else {
+      attrVal = this.attr2attrVal[ "data." + dataKey ];
+      if ( attrVal === undefined ) {
+        console.error ("LAID Warning: Inexistence of data key for data travel");
+      }
+      LAID.$isDataTravelling = true;
+      LAID.level("/").attr2attrVal.$dataTravelling.update( true );
+      LAID.$dataTravellingLevel = this;
+      LAID.level("/").attr2attrVal.$dataTravelLevel.update( this );
+      LAID.$dataTravellingAttrInitialVal = attrVal.val;
+      LAID.$dataTravellingAttrVal = attrVal;
+
+      LAID.$isDataTravellingShock = true;
+      attrVal.update( finalVal );
+      LAID.$solve();
+      LAID.$isDataTravellingShock = false;
+
+    }
+  };
+
+  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
+    } else if ( this !== LAID.$dataTravellingLevel ){
+      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
+    } else {
+      if ( LAID.$dataTravelDelta !== delta ) {
+        LAID.$dataTravelDelta = delta;
+        LAID.level("/").attr2attrVal.$dataTravelDelta.update( delta );
+        LAID.$render();
+      }
+    }
+  };
+
+  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
+    } else {
+
+      LAID.$isDataTravelling = false;
+      LAID.level("/").attr2attrVal.$dataTravelling.update( false );
+      LAID.$dataTravellingLevel = undefined;
+      LAID.level("/").attr2attrVal.$dataTravelLevel.update( null );
+      LAID.$dataTravelDelta = 0.0;
+      LAID.level("/").attr2attrVal.$dataTravelDelta.update( 0.0 );
+
+
+      // clear out attrvalues which are data travelling
+      LAID.$clearDataTravellingAttrVals();
+      if ( !isArrived ) {
+        LAID.$dataTravellingAttrVal.update(
+          LAID.$dataTravellingAttrInitialVal );
+        LAID.$solve();
+
+      } else {
+
+      }
+
+      LAID.$render();
+    }
+  };
+
+
+
   LAID.Level.prototype.queryAll = function () {
-    if ( !this.$isPart ) {
-      return this.$many.queryAll();
+    if ( !this.isPart ) {
+      return this.many.queryAll();
     }
   };
 
   LAID.Level.prototype.queryFiltered = function () {
-    if ( !this.$isPart ) {
-      return this.$many.queryFiltered();
+    if ( !this.isPart ) {
+      return this.many.queryFiltered();
     }
   };
 
@@ -131,13 +252,13 @@
           throw ( "LAID Error: Invalid Level Name: " + name );
         }
 
-        childPath = this.path + ( this.path === "/" ? "" : "/" ) + name;
-        if ( LAID.$path2level[ childPath ] !== undefined ) {
+        childPath = this.pathName + ( this.pathName === "/" ? "" : "/" ) + name;
+        if ( LAID.$pathName2level[ childPath ] !== undefined ) {
           throw ( "LAID Error: Level already exists with path: " + childPath );
         }
         childLevel = new LAID.Level( childPath, name2lson[ name ], this );
-        this.$childLevelS.push( childLevel );
         childLevel.$init();
+        this.childLevelS.push( childLevel );
 
       }
       LAID.$solve();
@@ -146,7 +267,7 @@
 
   LAID.Level.prototype.remove = function () {
       
-    if ( this.path === "/" ) {
+    if ( this.pathName === "/" ) {
       console.error("LAID Error: Attempt to remove root level prohibited");
     } else {
       this.$remove();
@@ -159,23 +280,21 @@
 
     var
      parentLevel = this.parentLevel,
-     parentPart = parentLevel.$part;
+     parentPart = parentLevel.part;
 
-    LAID.$path2level[ this.path ] = undefined;
-    LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
-   
-    LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
 
-    if ( parentPart.$naturalWidthLevel === this ) {
-      parentPart.$updateNaturalWidth();
+    LAID.$pathName2level[ this.pathName ] = undefined;
+    LAID.$arrayUtils.remove( parentLevel.childLevelS, this );
+    
+    if ( this.isPart ) {
+      this.part.remove();
+      if ( this.derivedMany ) {
+        this.derivedMany.removeLevel( this.level );
+      }
+    } else {
+      this.many.remove();
     }
-    if ( parentPart.$naturalHeightLevel === this ) {
-      parentPart.$updateNaturalHeight();
-    }
-
-    if ( this.$derivedMany ) {
-      this.$derivedMany.$removeLevel( this );
-    }
+    
 
   
   };
@@ -187,23 +306,23 @@
   LAID.Level.prototype.$normalizeAndInherit = function () {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-    if ( !this.$isNormalized ) {
-      this.$isNormalized = true;
-      LAID.$normalize( this.$lson, false );
+    if ( !this.isNormalized ) {
+      this.isNormalized = true;
+      LAID.$normalize( this.lson, false );
     }
     // check if it contains anything to inherit from
-    if ( this.$lson.$inherit !== undefined ) { 
+    if ( this.lson.$inherit !== undefined ) { 
       lson = { type: "none" };
-      refS = this.$lson.$inherit;
+      refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
         
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-          if ( ref === this.path ) {
+          if ( ref === this.pathName ) {
             return false;
           }
           level = ( new LAID.RelPath( ref ) ).resolve( this );
-          if ( ( level === undefined ) || !level.$isInherited ) {
+          if ( ( level === undefined ) || !level.isInherited ) {
             return false;
           }
         }
@@ -214,7 +333,7 @@
         if ( typeof ref === "string" ) { // pathname reference
           
           level = ( new LAID.RelPath( ref ) ).resolve( this );
-          inheritedAndNormalizedLson = level.$lson;
+          inheritedAndNormalizedLson = level.lson;
 
         } else { // object reference
            LAID.$normalize( ref, true );
@@ -225,45 +344,43 @@
          false, false, false );
       }
 
-      LAID.$inherit( lson, this.$lson, false, false );
+      LAID.$inherit( lson, this.lson, false, false );
       
-      this.$lson = lson;
+      this.lson = lson;
     }
 
-    this.$isInherited = true;
+    this.isInherited = true;
     return true;
 
 
   };
 
   LAID.Level.prototype.$identifyAndReproduce = function ( ) {
-    this.$isPart = this.$lson.many === undefined;
-//    console.log(this.path, this.$lson);
+    this.isPart = this.lson.many === undefined;
+//    console.log(this.pathName, this.lson);
 
-    if ( this.$isPart ) {
-      if ( !this.$derivedMany ) {
-        LAID.$defaultizePart( this.$lson );
+    if ( this.isPart ) {
+      if ( !this.derivedMany ) {
+        LAID.$defaultizePartLson( this.lson );
       }
-      this.$part = new LAID.Part( this );
-      this.$part.$init();
-      if ( this.path !== "/" ) {
-        LAID.$insertedPartS.push( this.$part );
-      }
-      if ( this.$lson.children !== undefined ) {
-        this.addChildren( this.$lson.children );
+      this.part = new LAID.Part( this );
+      this.part.init();
+      
+      if ( this.lson.children !== undefined ) {
+        this.addChildren( this.lson.children );
       }
     } else {
-      var partLson = this.$lson;
-      this.$lson = this.$lson.many;
+      var partLson = this.lson;
+      this.lson = this.lson.many;
       // deference the "many" key from part lson
       // so as to not to associate with the lson
       // with a many creator
       partLson.many = undefined;
-      LAID.$defaultizeMany( this.$lson );
-      this.$many = new LAID.Many( this, partLson );
-      this.$many.$init();
-      /*if ( this.$lson.rows ) {
-        this.$lson.rows = {level: this, rows: this.$lson.rows};
+      LAID.$defaultizeManyLson( this.lson );
+      this.many = new LAID.Many( this, partLson );
+      this.many.init();
+      /*if ( this.lson.rows ) {
+        this.lson.rows = {level: this, rows: this.lson.rows};
       }*/
     }
   };
@@ -297,7 +414,7 @@
       prop2val = slson.props,
       when = slson.when,
       transition = slson.transition,
-      args = slson.args,
+      fargs = slson.fargs,
       i, len;
           
     if ( isPart ){ 
@@ -341,17 +458,21 @@
         initAttrsObj(  "$$max.", slson.$$max, attr2val );
       }
     } else {
-      if ( args ) {
-        for ( var formationArg in args ) {
-          initAttrsObj( "args." + formationArg + ".",
-            args[ formationArg ], attr2val );        
+      if ( fargs ) {
+        for ( var formationFarg in fargs ) {
+          initAttrsObj( "fargs." + formationFarg + ".",
+            fargs[ formationFarg ], attr2val );        
         }
       }
 
       attr2val.formation = slson.formation;
-      attr2val.sort = slson.sort;
-      attr2val.ascending = slson.ascending;
       attr2val.filter = slson.filter;
+      attr2val[ "$$num.sort" ] = slson.sort.length;
+
+      for ( i = 0, len = slson.sort.length; i < len; i++ ) {
+        initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[ i ],
+         attr2val );
+      }
       
     }
   }
@@ -359,12 +480,12 @@
   LAID.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableReadonlyS = this.$lson.$observe ?
-       this.$lson.$observe : [],
+      observableReadonlyS = this.lson.$observe ?
+       this.lson.$observe : [],
       observableReadonly, i, len;
     
    
-    if ( this.path === "/" ) {
+    if ( this.pathName === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
         "$dataTravelLevel", "$dataTravelDelta" ];
       if ( observableReadonlyS ) {
@@ -375,15 +496,15 @@
       }
     }
 
-    if ( this.$isPart ) {
-      if ( this.$lson.states.root.props.scrollX ) {
+    if ( this.isPart ) {
+      if ( this.lson.states.root.props.scrollX ) {
         observableReadonlyS.push( "$naturalWidth" );
       }
-      if ( this.$lson.states.root.props.scrollY ) {
+      if ( this.lson.states.root.props.scrollY ) {
         observableReadonlyS.push( "$naturalHeight" );
       }
       
-      if ( this.$part.isInputText ) {
+      if ( this.part.isInputText ) {
         // since there is a high probability
         // that the user will reference $input
         // whilst using an input:line, input:textarea
@@ -397,7 +518,7 @@
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
         observableReadonly = observableReadonlyS[ i ];
         this.$createLazyAttr( observableReadonly );
-        this.$attr2attrVal[ observableReadonly ].give(
+        this.attr2attrVal[ observableReadonly ].give(
           LAID.$emptyAttrVal );
       }
     }
@@ -411,28 +532,17 @@
 
     var 
       key, val, stateName, state,
-      states = this.$lson.states,
-      lson = this.$lson,
+      states = this.lson.states,
+      lson = this.lson,
       attr2val = {};
 
     initAttrsObj( "data.", lson.data, attr2val );
 
-    if ( this.$derivedMany ) {
-      initAttrsObj( "row.", this.$row, attr2val );
+    if ( this.derivedMany ) {
+      initAttrsObj( "row.", this.row, attr2val );
       attr2val[ "formation.top" ] = 0;
       attr2val[ "formation.left" ] = 0;
-      this.$row = undefined;
-    }
-    /*
-    if ( this.$part && this.$part.isInputText ) {
-      attr2val[ "$naturalWidthInput" ] = 0;
-      attr2val[ "$naturalHeightInput" ] = 0;
-      attr2val[ "$naturalWidth" ] = LAID.$takeNaturalWidthInput;
-      attr2val[ "$naturalHeight" ] = LAID.$takeNaturalHeightInput;
-    }*/
-
-    if ( lson.load !== undefined ) {
-      attr2val.load = lson.load;
+      this.row = undefined;
     }
 
     for ( stateName in states ) {
@@ -448,7 +558,7 @@
         }
     }
 
-    if ( !this.$isPart ) { // Many
+    if ( !this.isPart ) { // Many
       attr2val.$all = [];
       attr2val.$filtered = [];
       attr2val.rows = lson.rows || [];
@@ -464,9 +574,9 @@
     var attr, val, attrVal;
     for ( attr in attr2val ) {
       val = attr2val[ attr ];
-      attrVal = this.$attr2attrVal[ attr ];
+      attrVal = this.attr2attrVal[ attr ];
       if ( ( attrVal === undefined ) ) {
-        attrVal = this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+        attrVal = this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
       }
       attrVal.update( val );
 
@@ -475,7 +585,7 @@
 
   LAID.Level.prototype.$createAttrVal = function ( attr, val ) {
 
-    ( this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this ) ).update( val );
+    ( this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this ) ).update( val );
 
   };
 
@@ -491,32 +601,32 @@
 
     if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
       attr ) !== -1 ) {
-      this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-      this.$attr2attrVal[ attr ].update( this.$lson[ attr ] );
+      this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+      this.attr2attrVal[ attr ].update( this.lson[ attr ] );
 
     } else if ( readonlyDefaultVal !== undefined ) {
-      this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+      this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
           case "$naturalWidth":
-            if ( this.$part.isInputText ) {
-              this.$part.$updateNaturalWidthInput();
+            if ( this.part.isInputText ) {
+              this.part.updateNaturalWidthInput();
             } else {
-              this.$part.$updateNaturalWidth();
+              this.part.updateNaturalWidth();
             }
             break;
           case "$naturalHeight":
-            if ( this.$part.isInputText ) {
-              this.$part.$updateNaturalHeightInput();
+            if ( this.part.isInputText ) {
+              this.part.updateNaturalHeightInput();
             } else {
-              this.$part.$updateNaturalHeight();
+              this.part.updateNaturalHeight();
             }
             break;
           case "$absoluteX":
-            this.$part.$updateAbsoluteX();
+            this.part.updateAbsoluteX();
             break;
           case "$absoluteY":
-            this.$part.$updateAbsoluteY();
+            this.part.updateAbsoluteY();
             break;
         }
       } else if ( ["$centerX",
@@ -524,9 +634,9 @@
                     "$right",
                      "$bottom" ].indexOf( attr )
                       !== -1 ) {
-        this.$attr2attrVal[ attr ].update( LAID[ attr ] );
+        this.attr2attrVal[ attr ].update( LAID[ attr ] );
       } else {
-        this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
+        this.attr2attrVal[ attr ].update( readonlyDefaultVal );
       }
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
@@ -536,7 +646,7 @@
           return false;
         } else {
           splitAttrLsonComponentS = attr.split( "." );
-          if ( this.$lson.states === undefined ) {
+          if ( this.lson.states === undefined ) {
             return false;
           } else {
             firstAttrLsonComponent = splitAttrLsonComponentS[ 0 ];
@@ -544,7 +654,7 @@
             // Get down to state level
             if ( LAID.$checkIsValidUtils.stateName(
              firstAttrLsonComponent ) ) {
-              attrLsonComponentObj = this.$lson.states[ firstAttrLsonComponent ];
+              attrLsonComponentObj = this.lson.states[ firstAttrLsonComponent ];
             } else {
               return false;
             }
@@ -576,8 +686,8 @@
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-              this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-              this.$attr2attrVal[ attr ].update( attrLsonComponentObj );
+              this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+              this.attr2attrVal[ attr ].update( attrLsonComponentObj );
             }
           }
         }
@@ -594,7 +704,7 @@
   */
   LAID.Level.prototype.$prioritizeRecalculateOrder = function () {
     var
-      recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS,
+      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS,
       recalculateDirtyAttrVal;
 
     for ( var i = 0, len = recalculateDirtyAttrValS.length;
@@ -628,15 +738,15 @@
     var i,
       isSolveProgressed,
       isSolveProgressedOnce = false,
-      recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS;
+      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS;
 
     do {
       isSolveProgressed = false;
       this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-//        console.log( "\trecalculate", this.path, isSolveProgressed,
-  //      recalculateDirtyAttrValS[ i ] );
+   //     console.log( "\trecalculate", this.pathName, isSolveProgressed,
+  //        recalculateDirtyAttrValS[ i ].attr );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -658,9 +768,9 @@
   LAID.Level.prototype.$undefineStateProjectedAttrs = function() {
 
     var attr;
-    for ( attr in this.$attr2attrVal ) {
-      if ( this.$attr2attrVal[ attr ].isStateProjectedAttr ) {
-        this.$attr2attrVal[ attr ].update( undefined );
+    for ( attr in this.attr2attrVal ) {
+      if ( this.attr2attrVal[ attr ].isStateProjectedAttr ) {
+        this.attr2attrVal[ attr ].update( undefined );
       }
     }
   };
@@ -674,15 +784,15 @@
       attr2val = {},
       stringHashedStates2_cachedAttr2val_;
   // Refer to the central cache for Many levels
-   stringHashedStates2_cachedAttr2val_ = this.$derivedMany ?
-      this.$derivedMany.$stringHashedStates2_cachedAttr2val_ :
-      this.$stringHashedStates2_cachedAttr2val_;
+   stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
+      this.derivedMany.levelStringHashedStates2_cachedAttr2val_ :
+      this.stringHashedStates2_cachedAttr2val_;
     
     this.$sortStates();
-    var stringHashedStates = this.$stateS.join( "&" );
+    var stringHashedStates = this.stateS.join( "&" );
     if ( stringHashedStates2_cachedAttr2val_[
      stringHashedStates ] === undefined ) {
-      convertSLSONtoAttr2Val( this.$generateSLSON(), attr2val, this.$isPart);
+      convertSLSONtoAttr2Val( this.$generateSLSON(), attr2val, this.isPart);
       stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
         attr2val;
     }
@@ -692,31 +802,30 @@
 
   };
 
+  /*
+  * TODO: fill in details of priority
+  */
   LAID.Level.prototype.$sortStates = function ( stateS ) {
 
     var
-      sortedStateS = this.$stateS.sort(),
+      sortedStateS = this.stateS.sort(),
       i, len, sortedState;
 
-    for ( i = 0, len = sortedStateS.length; i < len; i++ ) {
-      sortedState = sortedStateS[ i ];
-      if ( sortedState.startsWith( "formation:") ) {
-        LAID.$arrayUtils.removeAtIndex( sortedStateS, i );
-        // ensure "formation:" states get lowest priority
-        // behind "root". "root" will be demoted to the 0th
-        // index only after this change.
-        sortedStateS.unshift( sortedState );
-        break;
-      }
+    // Push the "formation" state to second after the "root"
+    // state for 2nd lowest priority
+    if ( sortedStateS.indexOf( "formation" ) !== -1 ) {
+      LAID.$arrayUtils.remove( sortedStateS, "formation" );
+      sortedStateS.unshift( "formation" );
     }
-  
+
+    // Push the "root" state to the start for least priority
     LAID.$arrayUtils.remove( sortedStateS, "root" );
     sortedStateS.unshift("root");
 
-    // Push the "formation" state to the end of the
+    // Push the "formationDisplayNone" state to the end of the
     // list of states for maximum priority.
-    if ( sortedStateS.indexOf( "formation" ) !== -1 ) {
-      LAID.$arrayUtils.remove( sortedStateS, "formation" );
+    if ( sortedStateS.indexOf( "formationDisplayNone" ) !== -1 ) {
+      LAID.$arrayUtils.remove( sortedStateS, "formationDisplayNone" );
       sortedStateS.push( "formation" );
     }
 
@@ -732,9 +841,9 @@
     this.$sortStates();
 
     var slson = {}, attr2val;
-    for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
-      LAID.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ],
-        !this.$isPart, true, true );
+    for ( var i = 0, len = this.stateS.length; i < len; i++ ) {
+      LAID.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
+        !this.isPart, true, true );
     }
 
     return slson;
@@ -749,95 +858,51 @@
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
 
-    if ( this.$derivedMany &&
-       !this.$derivedMany.level.
-        $attr2attrVal.filter.isRecalculateRequired ) {
-      this.setFormationXY( this.$part.$formationX,
-          this.$part.$formationY );
+    if ( this.derivedMany &&
+       !this.derivedMany.level.
+        attr2attrVal.filter.isRecalculateRequired &&
+        this.attr2attrVal.$f && this.attr2attrVal.$f.calcVal !== 1 ) {
+      this.$setFormationXY( this.part.formationX,
+          this.part.formationY );
     }
 
-    if ( this.path === "/" ) {
-      if ( this.$attr2attrVal.width.val !==
-        this.$lson.states.root.props.width ) {
+    if ( this.pathName === "/" ) {
+      if ( this.attr2attrVal.width.val !==
+        this.lson.states.root.props.width ) {
         throw "LAID Error: Width of root level unchangeable";
       }
-      if ( this.$attr2attrVal.height.val !==
-        this.$lson.states.root.props.height ) {
+      if ( this.attr2attrVal.height.val !==
+        this.lson.states.root.props.height ) {
         throw "LAID Error: Height of root level unchangeable";
       }
     }
+
   
-    //console.log("LAID INFO: new state", this.path, this.$stateS );
+    //console.log("LAID INFO: new state", this.pathName, this.stateS );
 
   };
 
 
-  LAID.Level.prototype.attr = function ( attr ) {
-
-    if ( this.$attr2attrVal[ attr ] ) {
-       
-      return this.$attr2attrVal[ attr ].calcVal;
-
-    } else if ( this.$createLazyAttr( attr ) ) {
-
-        LAID.$solve();
-        return this.$attr2attrVal[ attr ].calcVal;
-
-    } 
-  };
-
-  LAID.Level.prototype.data = function ( dataKey, value ) {
-    this.$changeAttrVal( "data." + dataKey, value );
-  };
-
-  LAID.Level.prototype.row = function ( rowKey, value ) {
-    if ( this.$derivedMany ) {
-      this.$changeAttrVal( "row." + rowKey, value );
-      this.$derivedMany.$id2row[ this.$id ][rowKey] = value;
-      this.$derivedMany.level.$attr2attrVal.rows.requestRecalculation();
-    }
-  };
-
-  LAID.Level.prototype.changeNativeInput = function ( value ) {
-    var self = this;
-    // Set timeout to make sure "evenReadonlyUtils.js"
-    // updates strictly before the change of input
-    setTimeout(function(){
-      self.$changeAttrVal("$input", value );      
-    })
-  };
-
-  LAID.Level.prototype.changeNativeScrollX = function ( value ) {
-    this.$changeAttrVal( "$scrollX", value );
-  };
-
-  LAID.Level.prototype.changeNativeScrollY = function ( value ) {
-    this.$changeAttrVal( "$scrollY", value );
-  };
+  
 
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
-    if ( !this.$attr2attrVal[ attr ] ) {
+    if ( !this.attr2attrVal[ attr ] ) {
       this.$createLazyAttr( attr );
       LAID.$solve();
     }
-    return this.$attr2attrVal[ attr ];
+    return this.attr2attrVal[ attr ];
 
   };
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    if ( this.$attr2attrVal[ attr ] ) {
-      this.$attr2attrVal[ attr ].update( val );
-      if ( !LAID.$isRendering ) {
-        LAID.$solve();
-      } else {
-        LAID.$isSolveRequiredOnRenderFinish = true;
-      }
+    if ( this.attr2attrVal[ attr ] ) {
+      this.attr2attrVal[ attr ].update( val );
+      LAID.$solve();
     }
   };
 
-  LAID.Level.prototype.setFormationXY = function ( x, y ) {
-    console.log(" FM", this.path);
+  LAID.Level.prototype.$setFormationXY = function ( x, y ) {
     if ( x === undefined ) {
       this.$changeAttrVal( "formation.left",
         LAID.$formationState.props.left );
@@ -857,92 +922,21 @@
       this.$changeAttrVal( "top", y );
     }
 
-    this.$attr2attrVal.top.requestRecalculation();
-    this.$attr2attrVal.left.requestRecalculation();
+    this.attr2attrVal.top.requestRecalculation();
+    this.attr2attrVal.left.requestRecalculation();
 
-    this.$part.$formationX = x;
-    this.$part.$formationY = y;
+    this.part.formationX = x;
+    this.part.formationY = y;
  
   };
 
-  LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {
+  LAID.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.pushUnique( this.$recalculateDirtyAttrValS, attrVal );
-    
+    LAID.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$recalculateDirtyLevelS, this );
 
   };
 
-  
-
-
-
-  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
-    var attrVal;
-    if ( LAID.$isDataTravelling ) {
-      console.error("LAID Warning: Existence of another unfinished data travel");
-    } else {
-      attrVal = this.$attr2attrVal[ "data." + dataKey ];
-      if ( attrVal === undefined ) {
-        console.error ("LAID Warning: Inexistence of data key for data travel");
-      }
-      LAID.$isDataTravelling = true;
-      LAID.level("/").$attr2attrVal.$dataTravelling.update( true );
-      LAID.$dataTravellingLevel = this;
-      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( this );
-      LAID.$dataTravellingAttrInitialVal = attrVal.val;
-      LAID.$dataTravellingAttrVal = attrVal;
-
-      LAID.$isDataTravellingShock = true;
-      attrVal.update( finalVal );
-      LAID.$solve();
-      LAID.$isDataTravellingShock = false;
-
-    }
-  };
-
-  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
-    if ( !LAID.$isDataTravelling ) {
-      console.error( "LAID Warning: Inexistence of a data travel" );
-    } else if ( this !== LAID.$dataTravellingLevel ){
-      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
-    } else {
-      if ( LAID.$dataTravelDelta !== delta ) {
-        LAID.$dataTravelDelta = delta;
-        LAID.level("/").$attr2attrVal.$dataTravelDelta.update( delta );
-        LAID.$render();
-      }
-    }
-  };
-
-  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
-    if ( !LAID.$isDataTravelling ) {
-      console.error( "LAID Warning: Inexistence of a data travel" );
-    } else {
-
-      LAID.$isDataTravelling = false;
-      LAID.level("/").$attr2attrVal.$dataTravelling.update( false );
-      LAID.$dataTravellingLevel = undefined;
-      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( null );
-      LAID.$dataTravelDelta = 0.0;
-      LAID.level("/").$attr2attrVal.$dataTravelDelta.update( 0.0 );
-
-
-      // clear out attrvalues which are data travelling
-      LAID.$clearDataTravellingAttrVals();
-      if ( !isArrived ) {
-        LAID.$dataTravellingAttrVal.update(
-          LAID.$dataTravellingAttrInitialVal );
-        LAID.$solve();
-
-      } else {
-
-      }
-
-
-      LAID.$render();
-    }
-  };
 
 
   

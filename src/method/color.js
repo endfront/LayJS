@@ -12,6 +12,7 @@
     if ( colorName instanceof LAID.Take ) {
         return new LAID.Take( takeColor ).fn( colorName );
     } else {
+        colorName = colorName.toLowerCase();
         var colorValue = colorName2colorValue[ colorName ];
         if ( colorValue === undefined ) {
           throw ("LAID Error: Color name: " + colorName +  " not found." );

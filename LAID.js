@@ -94,13 +94,15 @@ bottom: -0.25em;
 
   window.laid = window.LAID = {
 
-    version: 1,
+    // version is a method in order
+    // to maintain the consistency of
+    // only method accesses from the user
+    version: function(){ return 1; },
 
-    $path2level: {},
-    $cloggedLevelS: [],
-    $insertedPartS: [],
-    $removedPartS: [],
     
+    $pathName2level: {},
+    $cloggedLevelS: [],
+
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
@@ -120,6 +122,7 @@ bottom: -0.25em;
     $dataTravellingLevel: undefined,
     $dataTravellingAttrInitialVal: undefined,
     $dataTravellingAttrVal: undefined
+
 
 
   };
@@ -161,7 +164,7 @@ bottom: -0.25em;
     this.isEventReadonlyAttr =
       LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall =
-      level && ( level.$isPart ) && ( LAID.$findRenderCall( attr ) );
+      level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
 
     this.takerAttrValS = [];
 
@@ -211,7 +214,7 @@ bottom: -0.25em;
       return true;
     } else {
       var prefix = attr.slice( 0, i );
-      return ( ( [ "when", "transition", "$$num", "$$max" ] ).indexOf(
+      return ( ( [ "when", "transition", "fargs", "sort", "$$num", "$$max" ] ).indexOf(
          prefix ) !== -1 );
     }
   }
@@ -227,7 +230,7 @@ bottom: -0.25em;
   LAID.AttrVal.prototype.update = function ( val ) {
      
     this.val = val;
-    if ( !LAID.identical( val, this.prevVal ) ) {
+    if ( !LAID.$identical( val, this.prevVal ) ) {
       if ( this.val instanceof LAID.Take ) {
         this.takeNot();
       }
@@ -249,7 +252,7 @@ bottom: -0.25em;
   LAID.AttrVal.prototype.requestRecalculation = function () {
     this.isRecalculateRequired = true;
     if ( this.level ) { // check for empty level
-      this.level.$addRecalculateDirtyAttrVal( this );
+      this.level.addRecalculateDirtyAttrVal( this );
     }
   };
 
@@ -305,13 +308,12 @@ bottom: -0.25em;
       isDirty = false,
       recalcVal,
       level = this.level,
-      part = level.$part,
-      many = level.$many,
+      part = level.part,
+      many = level.many,
       attr = this.attr,
       i, len; 
 
-
-    //console.log("update", level.path, attr, this.val );
+    //console.log("update", level.pathName, attr, this.val );
 
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
@@ -326,12 +328,12 @@ bottom: -0.25em;
       }
 
       recalcVal = this.val.execute( this.level );
-      if ( !LAID.identical( recalcVal, this.calcVal ) ) {
+      if ( !LAID.$identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = recalcVal;
       }
     } else {
-      if ( !LAID.identical( this.val, this.calcVal ) ) {
+      if ( !LAID.$identical( this.val, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = this.val;
       }
@@ -348,8 +350,8 @@ bottom: -0.25em;
     switch ( attr ) {
       case "scrollX":
          this.transitionCalcVal =
-             this.level.$part.node.scrollLeft;      
-        if ( level.$attr2attrVal.$scrolledX ) {
+             this.level.part.node.scrollLeft;      
+        if ( level.attr2attrVal.$scrolledX ) {
           level.$changeAttrVal( "$scrolledX",
            this.calcVal );
         }
@@ -357,23 +359,23 @@ bottom: -0.25em;
         break;
       case "scrollY":
          this.transitionCalcVal =
-             this.level.$part.node.scrollTop;
-        if ( level.$attr2attrVal.$scrolledY ) {
+             this.level.part.node.scrollTop;
+        if ( level.attr2attrVal.$scrolledY ) {
           level.$changeAttrVal( "$scrolledY",
+           this.calcVal );
+        }
+        isDirty = true;
+        break;
+      case "input":
+        if ( level.attr2attrVal.$input ) {
+          level.$changeAttrVal( "$input",
            this.calcVal );
         }
         isDirty = true;
         break;
       case "rows":
         isDirty = true;
-        break;
-      case "input":
-        if ( level.$attr2attrVal.$input ) {
-          level.$changeAttrVal( "$input",
-           this.calcVal );
-        }
-        isDirty = true;
-        break;
+        break; 
     }
 
 
@@ -389,18 +391,16 @@ bottom: -0.25em;
         this.takerAttrValS[ i ].requestRecalculation();
       }
 
-      if ( level.$derivedMany ) {
-        level.$derivedMany.level.$attr2attrVal.$all.requestRecalculation();
-        if ( level.$attr2attrVal.$f.calcVal !== -1 ) {
-         if ( attr !== "top" ) {
-           level.$derivedMany.level.$attr2attrVal.$filtered.requestRecalculation();
-         }
+      if ( level.derivedMany ) {
+        level.derivedMany.level.attr2attrVal.$all.requestRecalculation();
+        if ( level.attr2attrVal.$f.calcVal !== -1 ) {
+          level.derivedMany.level.attr2attrVal.$filtered.requestRecalculation();
        }
       }
 
       if ( LAID.$isDataTravellingShock ) {
 
-        part.$addTravelRenderDirtyAttrVal( this );
+        part.addTravelRenderDirtyAttrVal( this );
 
       }
 
@@ -410,53 +410,57 @@ bottom: -0.25em;
 
 
         if ( !LAID.$isDataTravellingShock ) {
-          part.$addNormalRenderDirtyAttrVal( this );
+          part.addNormalRenderDirtyAttrVal( this );
         }
 
         switch ( attr ) {
           case "text":
-            part.$updateNaturalHeightFromText();
-            part.$updateNaturalWidthFromText();
+            part.updateNaturalHeightFromText();
+            part.updateNaturalWidthFromText();
             break;
           case "$input":
-            console.log("AV $input")
-            part.$updateNaturalWidthInput();
-            part.$updateNaturalHeightInput();
+            part.updateNaturalWidthInput();
+            part.updateNaturalHeightInput();
             break;
           case "inputRows":
-            part.$updateNaturalWidthInput();
-            part.$updateNaturalHeightInput();
+            part.updateNaturalWidthInput();
+            part.updateNaturalHeightInput();
             break;
           case "width":
             if ( part.isInputText ) {
-              console.log("AV width")
-              part.$updateNaturalHeightInput();              
-            } else if ( level.$attr2attrVal.text ) {
-              part.$updateNaturalHeightFromText();
+              part.updateNaturalHeightInput();              
+            } else if ( level.attr2attrVal.text ) {
+              part.updateNaturalHeightFromText();
             }
             break;
           case "left":
-            part.$updateAbsoluteX();
+            part.updateAbsoluteX();
             break;
           case "shiftX":
-            part.$updateAbsoluteX();
+            part.updateAbsoluteX();
             break;
           case "top":
-            part.$updateAbsoluteY();
+            part.updateAbsoluteY();
             break;
           case "shiftY":
-            part.$updateAbsoluteY();
+            part.updateAbsoluteY();
             break;
         
 
           default:
             var checkIfAttrNotAffectTextDimesion  = function ( attr ) {
-              return ( ["textDecoration", "textColor"] ).indexOf( attr ) !== -1;
+              return 
+                ( ( [ "textDecoration",
+                  "textColor", "textSmoothing" ] ).indexOf(
+                 attr ) !== -1 )
+                ||
+                attr.startsWith("textShadow");
+
             }
             if ( attr.startsWith( "text" ) &&
               !checkIfAttrNotAffectTextDimesion( attr ) )  {
-              
-              var childLevelS = level.$childLevelS;
+
+              var childLevelS = level.childLevelS;
 
               if ( childLevelS.length ) {
                 // A CSS text styling inherit taking
@@ -465,92 +469,101 @@ bottom: -0.25em;
                 for ( var i = 0, len = childLevelS.length,
                     childPart;
                     i < len; i++ ) {
-                  childPart = childLevelS[ i ].$part;
+                  childPart = childLevelS[ i ].part;
                   if ( childPart ) {
                     if ( childPart.isInputText ) {
-                      childPart.$updateNaturalWidthInput(); 
-                      childPart.$updateNaturalHeightInput(); 
+                      childPart.updateNaturalWidthInput(); 
+                      childPart.updateNaturalHeightInput(); 
                     } else {
-                      childPart.$updateNaturalWidthFromText();
-                      childPart.$updateNaturalHeightFromText();
+                      childPart.updateNaturalWidthFromText();
+                      childPart.updateNaturalHeightFromText();
                     }
                   }
                 }
               } else {
-                console.log("AV", attr, level);
                 if ( part.isInputText ) {
-                  part.$updateNaturalWidthInput(); 
-                  part.$updateNaturalHeightInput(); 
+                  part.updateNaturalWidthInput(); 
+                  part.updateNaturalHeightInput(); 
                 } else {
-                  part.$updateNaturalWidthFromText();
-                  part.$updateNaturalHeightFromText();
+                  part.updateNaturalWidthFromText();
+                  part.updateNaturalHeightFromText();
                 }
               }     
-            } 
+            } else if ( ( attr === "borderTopWidth" ) ||
+              ( attr === "borderBottomWidth" ) ) {
+
+                part.updateNaturalHeightFromText();
+            } else if ( ( attr === "borderLeftWidth" ) ||
+              ( attr === "borderRightWidth" ) ) {
+              part.updateNaturalWidthFromText();
+              part.updateNaturalHeightFromText();
+            }
+
         }
 
         // In case there exists a transition
         // for the given prop then update it
-        part.$updateTransitionProp( attr );
+        part.updateTransitionProp( attr );
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
-          if ( LAID.$arrayUtils.pushUnique( level.$stateS, stateName ) ) {
+          if ( LAID.$arrayUtils.pushUnique( level.stateS, stateName ) ) {
             level.$updateStates();
             // remove from the list of uninstalled states (which may/may not be present within)
-            LAID.$arrayUtils.remove( level.$newlyUninstalledStateS, stateName );
+            LAID.$arrayUtils.remove( level.newlyUninstalledStateS, stateName );
             // add state to the list of newly installed states
-            LAID.$arrayUtils.pushUnique( level.$newlyInstalledStateS, stateName );
+            LAID.$arrayUtils.pushUnique( level.newlyInstalledStateS, stateName );
             // add level to the list of levels which have newly installed states
             LAID.$arrayUtils.pushUnique( LAID.$newlyInstalledStateLevelS, level );
           }
         } else { // remove state
-          if ( LAID.$arrayUtils.remove( level.$stateS, stateName ) ) {
+          if ( LAID.$arrayUtils.remove( level.stateS, stateName ) ) {
 
             level.$updateStates();
             // remove from the list of installed states (which may/may not be present within)
-            LAID.$arrayUtils.remove( level.$newlyInstalledStateS, stateName );
+            LAID.$arrayUtils.remove( level.newlyInstalledStateS, stateName );
             // add state to the list of newly uninstalled states
-            LAID.$arrayUtils.pushUnique( level.$newlyUninstalledStateS, stateName );
+            LAID.$arrayUtils.pushUnique( level.newlyUninstalledStateS, stateName );
             // add level to the list of levels which have newly uninstalled states
             LAID.$arrayUtils.pushUnique( LAID.$newlyUninstalledStateLevelS, level );
           }
         }
       } else if ( whenEventType !== "" ) {
-        part.$updateWhenEventType( whenEventType );
+        part.updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
-        part.$updateTransitionProp( transitionProp );
+        part.updateTransitionProp( transitionProp );
       } else if ( many ) {
         if ( this.attr === "rows" ) {
-          many.$updateRows();
+          many.updateRows();
         } else if ( attr === "filter" ) {
-          many.$updateFilter();
-        } else if ( attr === "sort" || attr === "ascending" ) {
-          many.$updateRows();
-        } else if ( attr.startsWith("args.") ) {
-          many.$updateFilteredPositioning();
+          many.updateFilter();
+        } else if ( attr.startsWith( "sort.") ) {
+          many.updateRows();
+        } else if ( attr.startsWith("args.") ||
+           attr === "formation" ) {
+          many.updateFilteredPositioning();
         }
           
       } else {  
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
-             level.parentLevel.$part.
-              $updateNaturalWidthFromChild( level );
+             level.parentLevel.part.
+              updateNaturalWidthFromChild( level );
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
-              level.parentLevel.$part.
-                $updateNaturalHeightFromChild( level );
+              level.parentLevel.part.
+                updateNaturalHeightFromChild( level );
 
             }
             break;
           case "$naturalWidth":
-            if ( this.level.$attr2attrVal.scrollX ) {
+            if ( this.level.attr2attrVal.scrollX ) {
               var self = this;
               setTimeout(function(){
-                self.level.$attr2attrVal.scrollX.
+                self.level.attr2attrVal.scrollX.
                   requestRecalculation();
                 LAID.$solve();
               });
@@ -558,10 +571,10 @@ bottom: -0.25em;
             break;
           case "$naturalHeight":
 
-            if ( this.level.$attr2attrVal.scrollY ) {
+            if ( this.level.attr2attrVal.scrollY ) {
               var self = this;
               setTimeout(function(){
-                self.level.$attr2attrVal.scrollY.
+                self.level.attr2attrVal.scrollY.
                   requestRecalculation();
                 LAID.$solve();
               });
@@ -579,7 +592,7 @@ bottom: -0.25em;
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
-        /*if ( !this.level.$part.isInputText &&
+        /*if ( !this.level.part.isInputText &&
             ( this.attr === "$naturalWidth" ||
               this.attr === "$naturalHeight" ) ) {
           return;
@@ -592,7 +605,7 @@ bottom: -0.25em;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
-          LAID.$eventUtils.add( this.level.$part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            fnBoundHandler;
@@ -604,7 +617,7 @@ bottom: -0.25em;
   LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
     if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
-        /*if ( !this.level.$part.isInputText &&
+        /*if ( !this.level.part.isInputText &&
             ( this.attr === "$naturalWidth" ||
               this.attr === "$naturalHeight" ) ) {
           return;
@@ -617,7 +630,7 @@ bottom: -0.25em;
          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = this.eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAID.$eventUtils.remove( this.level.$part.node, eventType, fnBoundHandler );
+          LAID.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            undefined;
         }
@@ -644,12 +657,12 @@ bottom: -0.25em;
           return false;
         }
 
-        if ( ( level.$attr2attrVal[ attr ] === undefined ) )  {
+        if ( ( level.attr2attrVal[ attr ] === undefined ) )  {
           level.$createLazyAttr( attr );
           return false;
         }
 
-        if ( level.$attr2attrVal[ attr ].isRecalculateRequired ) {
+        if ( level.attr2attrVal[ attr ].isRecalculateRequired ) {
           return false;
         }
       }
@@ -751,13 +764,48 @@ bottom: -0.25em;
 
   };
 
+  LAID.Color.prototype.getFormat = function () {
+    return this.format;
+  };
+
+  LAID.Color.prototype.getRed = function () {
+    return this.r;
+
+  };
+
+  LAID.Color.prototype.getGreen = function () {
+    return this.g;
+  };
+
+  LAID.Color.prototype.getBlue = function () {
+    return this.b;
+  };
+
+  LAID.Color.prototype.getHue = function () {
+    return this.h;
+  };
+
+  LAID.Color.prototype.getSaturation = function () {
+    return this.s;
+
+  };
+
+  LAID.Color.prototype.getLightness = function () {
+    return this.l;
+
+  };
+
+  LAID.Color.prototype.getAlpha = function () {
+    return this.a;
+  };
+
   LAID.Color.prototype.stringify = function () {
 
     var rgb, hsl;
     if ( isCss3ColorSupported ) {
 
       if ( this.format === "hsl" ) {
-        hsl = this.hsl();
+        hsl = this.getHsl();
         if ( this.a === 1 ) {
           return "hsl(" + hsl.h + "," + hsl.s + "," + hsl.l + ")";
         } else {
@@ -765,7 +813,7 @@ bottom: -0.25em;
         }
 
       } else {
-        rgb = this.rgb();
+        rgb = this.getRgb();
         if ( this.a === 1 ) {
           return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
         } else {
@@ -778,7 +826,7 @@ bottom: -0.25em;
       // for IE8 and legacy browsers
       // where rgb is the sole color
       // mode available
-      rgb = this.rgb();
+      rgb = this.getRgb();
       return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
 
     }
@@ -816,7 +864,7 @@ bottom: -0.25em;
 
   };
 
-  LAID.Color.prototype.rgb = function () {
+  LAID.Color.prototype.getRgb = function () {
     if ( this.format === "rgb" ) {
 
       return { r: this.r, g: this.g, b: this.b };
@@ -829,7 +877,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Color.prototype.hsl = function () {
+  LAID.Color.prototype.getHsl = function () {
     if ( this.format === "hsl" ) {
 
       return { h: this.h, s: this.s, l: this.l };
@@ -841,9 +889,9 @@ bottom: -0.25em;
   };
 
 
-  LAID.Color.prototype.rgba = function () {
+  LAID.Color.prototype.getRgba = function () {
 
-    var rgb = this.rgb();
+    var rgb = this.getRgb();
     rgb.a = this.a;
     return rgb;
 
@@ -851,9 +899,9 @@ bottom: -0.25em;
 
 
 
-  LAID.Color.prototype.hsla = function () {
+  LAID.Color.prototype.getHsla = function () {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.a = this.a;
     return hsl;
 
@@ -868,7 +916,7 @@ bottom: -0.25em;
     if ( this.format === "rgb" ) {
       this.r = val;
     } else {
-      var rgb = this.rgb();
+      var rgb = this.getRgb();
       var hsl = convertRgbToHsl( val, rgb.g, rgb.b );
       this.h = hsl.h;
       this.s = hsl.s;
@@ -882,7 +930,7 @@ bottom: -0.25em;
     if ( this.format === "rgb" ) {
       this.g = val;
     } else {
-      var rgb = this.rgb();
+      var rgb = this.getRgb();
       var hsl = convertRgbToHsl( rgb.r, val, rgb.b );
       this.h = hsl.h;
       this.s = hsl.s;
@@ -896,7 +944,7 @@ bottom: -0.25em;
     if ( this.format === "rgb" ) {
       this.b = val;
     } else {
-      var rgb = this.rgb();
+      var rgb = this.getRgb();
       var hsl = convertRgbToHsl( rgb.r, rgb.g, val );
       this.h = hsl.h;
       this.s = hsl.s;
@@ -910,7 +958,7 @@ bottom: -0.25em;
     if ( this.format === "hsl" ) {
       this.h = val;
     } else {
-      var hsl = this.hsl();
+      var hsl = this.getHsl();
       var rgb = convertHslToRgb( val, hsl.s, hsl.l );
       this.r = rgb.r;
       this.g = rgb.g;
@@ -924,7 +972,7 @@ bottom: -0.25em;
     if ( this.format === "hsl" ) {
       this.s = val;
     } else {
-      var hsl = this.hsl();
+      var hsl = this.getHsl();
       var rgb = convertHslToRgb( hsl.h, val, hsl.l );
       this.r = rgb.r;
       this.g = rgb.g;
@@ -938,7 +986,7 @@ bottom: -0.25em;
     if ( this.format === "hsl" ) {
       this.l = val;
     } else {
-      var hsl = this.hsl();
+      var hsl = this.getHsl();
       var rgb = convertHslToRgb( hsl.h, hsl.s, val );
       this.r = rgb.r;
       this.g = rgb.g;
@@ -956,7 +1004,7 @@ bottom: -0.25em;
 
   LAID.Color.prototype.darken = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.l = hsl.l - ( hsl.l * fraction );
     if ( this.format === "hsl" ) {
       this.l = hsl.l;
@@ -971,7 +1019,7 @@ bottom: -0.25em;
 
   LAID.Color.prototype.lighten = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.l = hsl.l + ( hsl.l * fraction );
     if ( this.format === "hsl" ) {
       this.l = hsl.l;
@@ -986,7 +1034,7 @@ bottom: -0.25em;
 
   LAID.Color.prototype.saturate = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.s = hsl.s + ( hsl.s * fraction );
     if ( this.format === "hsl" ) {
       this.s = hsl.s;
@@ -1001,7 +1049,7 @@ bottom: -0.25em;
 
   LAID.Color.prototype.desaturate = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.s = hsl.s - ( hsl.s * fraction );
     if ( this.format === "hsl" ) {
       this.s = hsl.s;
@@ -1017,7 +1065,7 @@ bottom: -0.25em;
 
   LAID.Color.prototype.invert = function ( ) {
 
-    var rgb = this.rgb();
+    var rgb = this.getRgb();
     rgb.r = 255 - rgb.r;
     rgb.g = 255 - rgb.g;
     rgb.b = 255 - rgb.b;
@@ -1105,54 +1153,57 @@ bottom: -0.25em;
 
   LAID.Level = function ( path, lson, parent, derivedMany, row, id ) {
 
-    this.path = path;
+    this.pathName = path;
+    this.lson = lson;
+
     this.parentLevel = parent; // parent Level
+    this.attr2attrVal = {};
+
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
-    this.$isPart = undefined;
+    this.isPart = undefined;
 
-    // If the Level is a Many (i.e this.$isPart is false)
-    // then this.$many will hold a reference to the corresponding
+    // If the Level is a Many (i.e this.isPart is false)
+    // then this.many will hold a reference to the corresponding
     // Many object.
-    this.$part = undefined;
-    // If the Level is a Many (i.e this.$isPart is false)
-    // then this.$many will hold a reference to the corresponding
+    this.part = undefined;
+    // If the Level is a Many (i.e this.isPart is false)
+    // then this.many will hold a reference to the corresponding
     // Many object.
-    this.$many = undefined;
+    this.many = undefined;
+
 
     // If the Level is derived from a Many
-    // then this.$derivedMany will hold
+    // then this.derivedMany will hold
     // a reference to the Many
-    this.$derivedMany = derivedMany;
+    this.derivedMany = derivedMany;
+
+    // If the Level is derived from a Many Level
+    // this will be the id by which it is referenced
+    this.id = id;
 
     // If the Level is derived from a Many Level
     // this will contain the row information will
     // be contained within below
-    this.$row = row;
+    this.row = row;
 
-    // If the Level is derived from a Many Level
-    // this will be the id by which it is referenced
-    this.$id = id;
+    this.isNormalized = false;
+    this.isInherited = false;
 
-    this.$lson = lson;
-    this.$isNormalized = false;
-    this.$isInherited = false;
+    this.recalculateDirtyAttrValS = [];
 
-    this.$attr2attrVal = {};
-    this.$recalculateDirtyAttrValS = [];
+    this.childLevelS = [];
 
-    this.$childLevelS = [];
-
-    this.$stateS = [ "root" ];
-    this.$stringHashedStates2_cachedAttr2val_ =  {};
-    this.$newlyInstalledStateS = [];
-    this.$newlyUninstalledStateS = [];
+    this.stateS = [ "root" ];
+    this.stringHashedStates2_cachedAttr2val_ =  {};
+    this.newlyInstalledStateS = [];
+    this.newlyUninstalledStateS = [];
 
   };
 
   LAID.Level.prototype.$init = function () {
 
-    LAID.$path2level[ this.path ] = this;
+    LAID.$pathName2level[ this.pathName ] = this;
 
     // Check is this is many derived level,
     // if it is not then add it to the queue
@@ -1168,7 +1219,6 @@ bottom: -0.25em;
       LAID.$cloggedLevelS.push( this );
     }
    
-
   };
 
 
@@ -1177,47 +1227,166 @@ bottom: -0.25em;
     return ( new LAID.RelPath( relativePath ) ).resolve( this );
   };
 
+  LAID.Level.prototype.parent = function () {
+    return this.parentLevel;
+  };
+
+  LAID.Level.prototype.path = function () {
+    return this.pathName;
+  };
+
+
   LAID.Level.prototype.node = function () {
 
-    return this.$part.node;
+    return this.isPart && this.part.node;
   };
 
-  LAID.Level.prototype.many = function () {
+  LAID.Level.prototype.attr = function ( attr ) {
 
-    return this.$derivedMany && this.$derivedMany.level;
+    if ( this.attr2attrVal[ attr ] ) {
+       
+      return this.attr2attrVal[ attr ].calcVal;
+
+    } else if ( this.$createLazyAttr( attr ) ) {
+
+        LAID.$solve();
+        return this.attr2attrVal[ attr ].calcVal;
+
+    } 
   };
 
-  LAID.Level.prototype.rowsChange = function ( newRowS ) {
+  LAID.Level.prototype.data = function ( dataKey, value ) {
+    this.$changeAttrVal( "data." + dataKey, value );
+  };
 
-    if ( !this.$isPart ) {
-      this.$many.rowsChange( newRowS );
+  LAID.Level.prototype.row = function ( rowKey, value ) {
+    if ( this.derivedMany ) {
+      this.$changeAttrVal( "row." + rowKey, value );
+      this.derivedMany.id2row[ this.id ][ rowKey ] = value;
+      this.derivedMany.level.attr2attrVal.rows.requestRecalculation();
     }
   };
 
+  LAID.Level.prototype.changeNativeInput = function ( value ) {
+    var self = this;
+    // Set timeout to make sure "evenReadonlyUtils.js"
+    // updates strictly before the change of input
+    setTimeout(function(){
+      self.$changeAttrVal( "$input", value );      
+    })
+  };
 
-  LAID.Level.prototype.rowsMore = function ( newRowS ) {
+  LAID.Level.prototype.changeNativeScrollX = function ( value ) {
+    this.$changeAttrVal( "$scrollX", value );
+  };
 
-    if ( !this.$isPart ) {
-      this.$many.rowsMore( newRowS );
-    }
+  LAID.Level.prototype.changeNativeScrollY = function ( value ) {
+    this.$changeAttrVal( "$scrollY", value );
+  };
+
+  LAID.Level.prototype.manyLevel = function () {
+
+    return this.derivedMany && this.derivedMany.level;
   };
 
   LAID.Level.prototype.rowsCommit = function ( newRowS ) {
 
-    if ( !this.$isPart ) {
-      this.$many.rowsCommit( newRowS );
+    if ( !this.isPart ) {
+      this.many.rowsCommit( newRowS );
     }
   };
 
+  LAID.Level.prototype.rowsMore = function ( newRowS ) {
+
+    if ( !this.isPart ) {
+      this.many.rowsMore( newRowS );
+    }
+  };
+
+  LAID.Level.prototype.rowDelete = function ( id ) {
+
+    if ( !this.isPart ) {
+      this.many.rowsDelete( id );
+    }
+  };
+
+  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
+    var attrVal;
+    if ( LAID.$isDataTravelling ) {
+      console.error("LAID Warning: Existence of another unfinished data travel");
+    } else {
+      attrVal = this.attr2attrVal[ "data." + dataKey ];
+      if ( attrVal === undefined ) {
+        console.error ("LAID Warning: Inexistence of data key for data travel");
+      }
+      LAID.$isDataTravelling = true;
+      LAID.level("/").attr2attrVal.$dataTravelling.update( true );
+      LAID.$dataTravellingLevel = this;
+      LAID.level("/").attr2attrVal.$dataTravelLevel.update( this );
+      LAID.$dataTravellingAttrInitialVal = attrVal.val;
+      LAID.$dataTravellingAttrVal = attrVal;
+
+      LAID.$isDataTravellingShock = true;
+      attrVal.update( finalVal );
+      LAID.$solve();
+      LAID.$isDataTravellingShock = false;
+
+    }
+  };
+
+  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
+    } else if ( this !== LAID.$dataTravellingLevel ){
+      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
+    } else {
+      if ( LAID.$dataTravelDelta !== delta ) {
+        LAID.$dataTravelDelta = delta;
+        LAID.level("/").attr2attrVal.$dataTravelDelta.update( delta );
+        LAID.$render();
+      }
+    }
+  };
+
+  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
+    if ( !LAID.$isDataTravelling ) {
+      console.error( "LAID Warning: Inexistence of a data travel" );
+    } else {
+
+      LAID.$isDataTravelling = false;
+      LAID.level("/").attr2attrVal.$dataTravelling.update( false );
+      LAID.$dataTravellingLevel = undefined;
+      LAID.level("/").attr2attrVal.$dataTravelLevel.update( null );
+      LAID.$dataTravelDelta = 0.0;
+      LAID.level("/").attr2attrVal.$dataTravelDelta.update( 0.0 );
+
+
+      // clear out attrvalues which are data travelling
+      LAID.$clearDataTravellingAttrVals();
+      if ( !isArrived ) {
+        LAID.$dataTravellingAttrVal.update(
+          LAID.$dataTravellingAttrInitialVal );
+        LAID.$solve();
+
+      } else {
+
+      }
+
+      LAID.$render();
+    }
+  };
+
+
+
   LAID.Level.prototype.queryAll = function () {
-    if ( !this.$isPart ) {
-      return this.$many.queryAll();
+    if ( !this.isPart ) {
+      return this.many.queryAll();
     }
   };
 
   LAID.Level.prototype.queryFiltered = function () {
-    if ( !this.$isPart ) {
-      return this.$many.queryFiltered();
+    if ( !this.isPart ) {
+      return this.many.queryFiltered();
     }
   };
 
@@ -1231,13 +1400,13 @@ bottom: -0.25em;
           throw ( "LAID Error: Invalid Level Name: " + name );
         }
 
-        childPath = this.path + ( this.path === "/" ? "" : "/" ) + name;
-        if ( LAID.$path2level[ childPath ] !== undefined ) {
+        childPath = this.pathName + ( this.pathName === "/" ? "" : "/" ) + name;
+        if ( LAID.$pathName2level[ childPath ] !== undefined ) {
           throw ( "LAID Error: Level already exists with path: " + childPath );
         }
         childLevel = new LAID.Level( childPath, name2lson[ name ], this );
-        this.$childLevelS.push( childLevel );
         childLevel.$init();
+        this.childLevelS.push( childLevel );
 
       }
       LAID.$solve();
@@ -1246,7 +1415,7 @@ bottom: -0.25em;
 
   LAID.Level.prototype.remove = function () {
       
-    if ( this.path === "/" ) {
+    if ( this.pathName === "/" ) {
       console.error("LAID Error: Attempt to remove root level prohibited");
     } else {
       this.$remove();
@@ -1259,23 +1428,21 @@ bottom: -0.25em;
 
     var
      parentLevel = this.parentLevel,
-     parentPart = parentLevel.$part;
+     parentPart = parentLevel.part;
 
-    LAID.$path2level[ this.path ] = undefined;
-    LAID.$arrayUtils.remove( parentLevel.$childLevelS, this );
-   
-    LAID.$arrayUtils.pushUnique( LAID.$removedPartS, this.$part );
 
-    if ( parentPart.$naturalWidthLevel === this ) {
-      parentPart.$updateNaturalWidth();
+    LAID.$pathName2level[ this.pathName ] = undefined;
+    LAID.$arrayUtils.remove( parentLevel.childLevelS, this );
+    
+    if ( this.isPart ) {
+      this.part.remove();
+      if ( this.derivedMany ) {
+        this.derivedMany.removeLevel( this.level );
+      }
+    } else {
+      this.many.remove();
     }
-    if ( parentPart.$naturalHeightLevel === this ) {
-      parentPart.$updateNaturalHeight();
-    }
-
-    if ( this.$derivedMany ) {
-      this.$derivedMany.$removeLevel( this );
-    }
+    
 
   
   };
@@ -1287,23 +1454,23 @@ bottom: -0.25em;
   LAID.Level.prototype.$normalizeAndInherit = function () {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-    if ( !this.$isNormalized ) {
-      this.$isNormalized = true;
-      LAID.$normalize( this.$lson, false );
+    if ( !this.isNormalized ) {
+      this.isNormalized = true;
+      LAID.$normalize( this.lson, false );
     }
     // check if it contains anything to inherit from
-    if ( this.$lson.$inherit !== undefined ) { 
+    if ( this.lson.$inherit !== undefined ) { 
       lson = { type: "none" };
-      refS = this.$lson.$inherit;
+      refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
         
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-          if ( ref === this.path ) {
+          if ( ref === this.pathName ) {
             return false;
           }
           level = ( new LAID.RelPath( ref ) ).resolve( this );
-          if ( ( level === undefined ) || !level.$isInherited ) {
+          if ( ( level === undefined ) || !level.isInherited ) {
             return false;
           }
         }
@@ -1314,7 +1481,7 @@ bottom: -0.25em;
         if ( typeof ref === "string" ) { // pathname reference
           
           level = ( new LAID.RelPath( ref ) ).resolve( this );
-          inheritedAndNormalizedLson = level.$lson;
+          inheritedAndNormalizedLson = level.lson;
 
         } else { // object reference
            LAID.$normalize( ref, true );
@@ -1325,45 +1492,43 @@ bottom: -0.25em;
          false, false, false );
       }
 
-      LAID.$inherit( lson, this.$lson, false, false );
+      LAID.$inherit( lson, this.lson, false, false );
       
-      this.$lson = lson;
+      this.lson = lson;
     }
 
-    this.$isInherited = true;
+    this.isInherited = true;
     return true;
 
 
   };
 
   LAID.Level.prototype.$identifyAndReproduce = function ( ) {
-    this.$isPart = this.$lson.many === undefined;
-//    console.log(this.path, this.$lson);
+    this.isPart = this.lson.many === undefined;
+//    console.log(this.pathName, this.lson);
 
-    if ( this.$isPart ) {
-      if ( !this.$derivedMany ) {
-        LAID.$defaultizePart( this.$lson );
+    if ( this.isPart ) {
+      if ( !this.derivedMany ) {
+        LAID.$defaultizePartLson( this.lson );
       }
-      this.$part = new LAID.Part( this );
-      this.$part.$init();
-      if ( this.path !== "/" ) {
-        LAID.$insertedPartS.push( this.$part );
-      }
-      if ( this.$lson.children !== undefined ) {
-        this.addChildren( this.$lson.children );
+      this.part = new LAID.Part( this );
+      this.part.init();
+      
+      if ( this.lson.children !== undefined ) {
+        this.addChildren( this.lson.children );
       }
     } else {
-      var partLson = this.$lson;
-      this.$lson = this.$lson.many;
+      var partLson = this.lson;
+      this.lson = this.lson.many;
       // deference the "many" key from part lson
       // so as to not to associate with the lson
       // with a many creator
       partLson.many = undefined;
-      LAID.$defaultizeMany( this.$lson );
-      this.$many = new LAID.Many( this, partLson );
-      this.$many.$init();
-      /*if ( this.$lson.rows ) {
-        this.$lson.rows = {level: this, rows: this.$lson.rows};
+      LAID.$defaultizeManyLson( this.lson );
+      this.many = new LAID.Many( this, partLson );
+      this.many.init();
+      /*if ( this.lson.rows ) {
+        this.lson.rows = {level: this, rows: this.lson.rows};
       }*/
     }
   };
@@ -1397,7 +1562,7 @@ bottom: -0.25em;
       prop2val = slson.props,
       when = slson.when,
       transition = slson.transition,
-      args = slson.args,
+      fargs = slson.fargs,
       i, len;
           
     if ( isPart ){ 
@@ -1441,17 +1606,21 @@ bottom: -0.25em;
         initAttrsObj(  "$$max.", slson.$$max, attr2val );
       }
     } else {
-      if ( args ) {
-        for ( var formationArg in args ) {
-          initAttrsObj( "args." + formationArg + ".",
-            args[ formationArg ], attr2val );        
+      if ( fargs ) {
+        for ( var formationFarg in fargs ) {
+          initAttrsObj( "fargs." + formationFarg + ".",
+            fargs[ formationFarg ], attr2val );        
         }
       }
 
       attr2val.formation = slson.formation;
-      attr2val.sort = slson.sort;
-      attr2val.ascending = slson.ascending;
       attr2val.filter = slson.filter;
+      attr2val[ "$$num.sort" ] = slson.sort.length;
+
+      for ( i = 0, len = slson.sort.length; i < len; i++ ) {
+        initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[ i ],
+         attr2val );
+      }
       
     }
   }
@@ -1459,12 +1628,12 @@ bottom: -0.25em;
   LAID.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableReadonlyS = this.$lson.$observe ?
-       this.$lson.$observe : [],
+      observableReadonlyS = this.lson.$observe ?
+       this.lson.$observe : [],
       observableReadonly, i, len;
     
    
-    if ( this.path === "/" ) {
+    if ( this.pathName === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
         "$dataTravelLevel", "$dataTravelDelta" ];
       if ( observableReadonlyS ) {
@@ -1475,15 +1644,15 @@ bottom: -0.25em;
       }
     }
 
-    if ( this.$isPart ) {
-      if ( this.$lson.states.root.props.scrollX ) {
+    if ( this.isPart ) {
+      if ( this.lson.states.root.props.scrollX ) {
         observableReadonlyS.push( "$naturalWidth" );
       }
-      if ( this.$lson.states.root.props.scrollY ) {
+      if ( this.lson.states.root.props.scrollY ) {
         observableReadonlyS.push( "$naturalHeight" );
       }
       
-      if ( this.$part.isInputText ) {
+      if ( this.part.isInputText ) {
         // since there is a high probability
         // that the user will reference $input
         // whilst using an input:line, input:textarea
@@ -1497,7 +1666,7 @@ bottom: -0.25em;
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
         observableReadonly = observableReadonlyS[ i ];
         this.$createLazyAttr( observableReadonly );
-        this.$attr2attrVal[ observableReadonly ].give(
+        this.attr2attrVal[ observableReadonly ].give(
           LAID.$emptyAttrVal );
       }
     }
@@ -1511,28 +1680,17 @@ bottom: -0.25em;
 
     var 
       key, val, stateName, state,
-      states = this.$lson.states,
-      lson = this.$lson,
+      states = this.lson.states,
+      lson = this.lson,
       attr2val = {};
 
     initAttrsObj( "data.", lson.data, attr2val );
 
-    if ( this.$derivedMany ) {
-      initAttrsObj( "row.", this.$row, attr2val );
+    if ( this.derivedMany ) {
+      initAttrsObj( "row.", this.row, attr2val );
       attr2val[ "formation.top" ] = 0;
       attr2val[ "formation.left" ] = 0;
-      this.$row = undefined;
-    }
-    /*
-    if ( this.$part && this.$part.isInputText ) {
-      attr2val[ "$naturalWidthInput" ] = 0;
-      attr2val[ "$naturalHeightInput" ] = 0;
-      attr2val[ "$naturalWidth" ] = LAID.$takeNaturalWidthInput;
-      attr2val[ "$naturalHeight" ] = LAID.$takeNaturalHeightInput;
-    }*/
-
-    if ( lson.load !== undefined ) {
-      attr2val.load = lson.load;
+      this.row = undefined;
     }
 
     for ( stateName in states ) {
@@ -1548,7 +1706,7 @@ bottom: -0.25em;
         }
     }
 
-    if ( !this.$isPart ) { // Many
+    if ( !this.isPart ) { // Many
       attr2val.$all = [];
       attr2val.$filtered = [];
       attr2val.rows = lson.rows || [];
@@ -1564,9 +1722,9 @@ bottom: -0.25em;
     var attr, val, attrVal;
     for ( attr in attr2val ) {
       val = attr2val[ attr ];
-      attrVal = this.$attr2attrVal[ attr ];
+      attrVal = this.attr2attrVal[ attr ];
       if ( ( attrVal === undefined ) ) {
-        attrVal = this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+        attrVal = this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
       }
       attrVal.update( val );
 
@@ -1575,7 +1733,7 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$createAttrVal = function ( attr, val ) {
 
-    ( this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this ) ).update( val );
+    ( this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this ) ).update( val );
 
   };
 
@@ -1591,32 +1749,32 @@ bottom: -0.25em;
 
     if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
       attr ) !== -1 ) {
-      this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-      this.$attr2attrVal[ attr ].update( this.$lson[ attr ] );
+      this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+      this.attr2attrVal[ attr ].update( this.lson[ attr ] );
 
     } else if ( readonlyDefaultVal !== undefined ) {
-      this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+      this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
       if ( readonlyDefaultVal === null ) {
         switch ( attr ) {
           case "$naturalWidth":
-            if ( this.$part.isInputText ) {
-              this.$part.$updateNaturalWidthInput();
+            if ( this.part.isInputText ) {
+              this.part.updateNaturalWidthInput();
             } else {
-              this.$part.$updateNaturalWidth();
+              this.part.updateNaturalWidth();
             }
             break;
           case "$naturalHeight":
-            if ( this.$part.isInputText ) {
-              this.$part.$updateNaturalHeightInput();
+            if ( this.part.isInputText ) {
+              this.part.updateNaturalHeightInput();
             } else {
-              this.$part.$updateNaturalHeight();
+              this.part.updateNaturalHeight();
             }
             break;
           case "$absoluteX":
-            this.$part.$updateAbsoluteX();
+            this.part.updateAbsoluteX();
             break;
           case "$absoluteY":
-            this.$part.$updateAbsoluteY();
+            this.part.updateAbsoluteY();
             break;
         }
       } else if ( ["$centerX",
@@ -1624,9 +1782,9 @@ bottom: -0.25em;
                     "$right",
                      "$bottom" ].indexOf( attr )
                       !== -1 ) {
-        this.$attr2attrVal[ attr ].update( LAID[ attr ] );
+        this.attr2attrVal[ attr ].update( LAID[ attr ] );
       } else {
-        this.$attr2attrVal[ attr ].update( readonlyDefaultVal );
+        this.attr2attrVal[ attr ].update( readonlyDefaultVal );
       }
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
@@ -1636,7 +1794,7 @@ bottom: -0.25em;
           return false;
         } else {
           splitAttrLsonComponentS = attr.split( "." );
-          if ( this.$lson.states === undefined ) {
+          if ( this.lson.states === undefined ) {
             return false;
           } else {
             firstAttrLsonComponent = splitAttrLsonComponentS[ 0 ];
@@ -1644,7 +1802,7 @@ bottom: -0.25em;
             // Get down to state level
             if ( LAID.$checkIsValidUtils.stateName(
              firstAttrLsonComponent ) ) {
-              attrLsonComponentObj = this.$lson.states[ firstAttrLsonComponent ];
+              attrLsonComponentObj = this.lson.states[ firstAttrLsonComponent ];
             } else {
               return false;
             }
@@ -1676,8 +1834,8 @@ bottom: -0.25em;
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-              this.$attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-              this.$attr2attrVal[ attr ].update( attrLsonComponentObj );
+              this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+              this.attr2attrVal[ attr ].update( attrLsonComponentObj );
             }
           }
         }
@@ -1694,7 +1852,7 @@ bottom: -0.25em;
   */
   LAID.Level.prototype.$prioritizeRecalculateOrder = function () {
     var
-      recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS,
+      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS,
       recalculateDirtyAttrVal;
 
     for ( var i = 0, len = recalculateDirtyAttrValS.length;
@@ -1728,15 +1886,15 @@ bottom: -0.25em;
     var i,
       isSolveProgressed,
       isSolveProgressedOnce = false,
-      recalculateDirtyAttrValS = this.$recalculateDirtyAttrValS;
+      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS;
 
     do {
       isSolveProgressed = false;
       this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-//        console.log( "\trecalculate", this.path, isSolveProgressed,
-  //      recalculateDirtyAttrValS[ i ] );
+   //     console.log( "\trecalculate", this.pathName, isSolveProgressed,
+  //        recalculateDirtyAttrValS[ i ].attr );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
           LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
@@ -1758,9 +1916,9 @@ bottom: -0.25em;
   LAID.Level.prototype.$undefineStateProjectedAttrs = function() {
 
     var attr;
-    for ( attr in this.$attr2attrVal ) {
-      if ( this.$attr2attrVal[ attr ].isStateProjectedAttr ) {
-        this.$attr2attrVal[ attr ].update( undefined );
+    for ( attr in this.attr2attrVal ) {
+      if ( this.attr2attrVal[ attr ].isStateProjectedAttr ) {
+        this.attr2attrVal[ attr ].update( undefined );
       }
     }
   };
@@ -1774,15 +1932,15 @@ bottom: -0.25em;
       attr2val = {},
       stringHashedStates2_cachedAttr2val_;
   // Refer to the central cache for Many levels
-   stringHashedStates2_cachedAttr2val_ = this.$derivedMany ?
-      this.$derivedMany.$stringHashedStates2_cachedAttr2val_ :
-      this.$stringHashedStates2_cachedAttr2val_;
+   stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
+      this.derivedMany.levelStringHashedStates2_cachedAttr2val_ :
+      this.stringHashedStates2_cachedAttr2val_;
     
     this.$sortStates();
-    var stringHashedStates = this.$stateS.join( "&" );
+    var stringHashedStates = this.stateS.join( "&" );
     if ( stringHashedStates2_cachedAttr2val_[
      stringHashedStates ] === undefined ) {
-      convertSLSONtoAttr2Val( this.$generateSLSON(), attr2val, this.$isPart);
+      convertSLSONtoAttr2Val( this.$generateSLSON(), attr2val, this.isPart);
       stringHashedStates2_cachedAttr2val_[ stringHashedStates ] =
         attr2val;
     }
@@ -1792,31 +1950,30 @@ bottom: -0.25em;
 
   };
 
+  /*
+  * TODO: fill in details of priority
+  */
   LAID.Level.prototype.$sortStates = function ( stateS ) {
 
     var
-      sortedStateS = this.$stateS.sort(),
+      sortedStateS = this.stateS.sort(),
       i, len, sortedState;
 
-    for ( i = 0, len = sortedStateS.length; i < len; i++ ) {
-      sortedState = sortedStateS[ i ];
-      if ( sortedState.startsWith( "formation:") ) {
-        LAID.$arrayUtils.removeAtIndex( sortedStateS, i );
-        // ensure "formation:" states get lowest priority
-        // behind "root". "root" will be demoted to the 0th
-        // index only after this change.
-        sortedStateS.unshift( sortedState );
-        break;
-      }
+    // Push the "formation" state to second after the "root"
+    // state for 2nd lowest priority
+    if ( sortedStateS.indexOf( "formation" ) !== -1 ) {
+      LAID.$arrayUtils.remove( sortedStateS, "formation" );
+      sortedStateS.unshift( "formation" );
     }
-  
+
+    // Push the "root" state to the start for least priority
     LAID.$arrayUtils.remove( sortedStateS, "root" );
     sortedStateS.unshift("root");
 
-    // Push the "formation" state to the end of the
+    // Push the "formationDisplayNone" state to the end of the
     // list of states for maximum priority.
-    if ( sortedStateS.indexOf( "formation" ) !== -1 ) {
-      LAID.$arrayUtils.remove( sortedStateS, "formation" );
+    if ( sortedStateS.indexOf( "formationDisplayNone" ) !== -1 ) {
+      LAID.$arrayUtils.remove( sortedStateS, "formationDisplayNone" );
       sortedStateS.push( "formation" );
     }
 
@@ -1832,9 +1989,9 @@ bottom: -0.25em;
     this.$sortStates();
 
     var slson = {}, attr2val;
-    for ( var i = 0, len = this.$stateS.length; i < len; i++ ) {
-      LAID.$inherit( slson, this.$lson.states[ this.$stateS[ i ] ],
-        !this.$isPart, true, true );
+    for ( var i = 0, len = this.stateS.length; i < len; i++ ) {
+      LAID.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
+        !this.isPart, true, true );
     }
 
     return slson;
@@ -1849,95 +2006,51 @@ bottom: -0.25em;
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
 
-    if ( this.$derivedMany &&
-       !this.$derivedMany.level.
-        $attr2attrVal.filter.isRecalculateRequired ) {
-      this.setFormationXY( this.$part.$formationX,
-          this.$part.$formationY );
+    if ( this.derivedMany &&
+       !this.derivedMany.level.
+        attr2attrVal.filter.isRecalculateRequired &&
+        this.attr2attrVal.$f && this.attr2attrVal.$f.calcVal !== 1 ) {
+      this.$setFormationXY( this.part.formationX,
+          this.part.formationY );
     }
 
-    if ( this.path === "/" ) {
-      if ( this.$attr2attrVal.width.val !==
-        this.$lson.states.root.props.width ) {
+    if ( this.pathName === "/" ) {
+      if ( this.attr2attrVal.width.val !==
+        this.lson.states.root.props.width ) {
         throw "LAID Error: Width of root level unchangeable";
       }
-      if ( this.$attr2attrVal.height.val !==
-        this.$lson.states.root.props.height ) {
+      if ( this.attr2attrVal.height.val !==
+        this.lson.states.root.props.height ) {
         throw "LAID Error: Height of root level unchangeable";
       }
     }
+
   
-    //console.log("LAID INFO: new state", this.path, this.$stateS );
+    //console.log("LAID INFO: new state", this.pathName, this.stateS );
 
   };
 
 
-  LAID.Level.prototype.attr = function ( attr ) {
-
-    if ( this.$attr2attrVal[ attr ] ) {
-       
-      return this.$attr2attrVal[ attr ].calcVal;
-
-    } else if ( this.$createLazyAttr( attr ) ) {
-
-        LAID.$solve();
-        return this.$attr2attrVal[ attr ].calcVal;
-
-    } 
-  };
-
-  LAID.Level.prototype.data = function ( dataKey, value ) {
-    this.$changeAttrVal( "data." + dataKey, value );
-  };
-
-  LAID.Level.prototype.row = function ( rowKey, value ) {
-    if ( this.$derivedMany ) {
-      this.$changeAttrVal( "row." + rowKey, value );
-      this.$derivedMany.$id2row[ this.$id ][rowKey] = value;
-      this.$derivedMany.level.$attr2attrVal.rows.requestRecalculation();
-    }
-  };
-
-  LAID.Level.prototype.changeNativeInput = function ( value ) {
-    var self = this;
-    // Set timeout to make sure "evenReadonlyUtils.js"
-    // updates strictly before the change of input
-    setTimeout(function(){
-      self.$changeAttrVal("$input", value );      
-    })
-  };
-
-  LAID.Level.prototype.changeNativeScrollX = function ( value ) {
-    this.$changeAttrVal( "$scrollX", value );
-  };
-
-  LAID.Level.prototype.changeNativeScrollY = function ( value ) {
-    this.$changeAttrVal( "$scrollY", value );
-  };
+  
 
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
-    if ( !this.$attr2attrVal[ attr ] ) {
+    if ( !this.attr2attrVal[ attr ] ) {
       this.$createLazyAttr( attr );
       LAID.$solve();
     }
-    return this.$attr2attrVal[ attr ];
+    return this.attr2attrVal[ attr ];
 
   };
 
   /* Manually change attr value */
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    if ( this.$attr2attrVal[ attr ] ) {
-      this.$attr2attrVal[ attr ].update( val );
-      if ( !LAID.$isRendering ) {
-        LAID.$solve();
-      } else {
-        LAID.$isSolveRequiredOnRenderFinish = true;
-      }
+    if ( this.attr2attrVal[ attr ] ) {
+      this.attr2attrVal[ attr ].update( val );
+      LAID.$solve();
     }
   };
 
-  LAID.Level.prototype.setFormationXY = function ( x, y ) {
-    console.log(" FM", this.path);
+  LAID.Level.prototype.$setFormationXY = function ( x, y ) {
     if ( x === undefined ) {
       this.$changeAttrVal( "formation.left",
         LAID.$formationState.props.left );
@@ -1957,92 +2070,21 @@ bottom: -0.25em;
       this.$changeAttrVal( "top", y );
     }
 
-    this.$attr2attrVal.top.requestRecalculation();
-    this.$attr2attrVal.left.requestRecalculation();
+    this.attr2attrVal.top.requestRecalculation();
+    this.attr2attrVal.left.requestRecalculation();
 
-    this.$part.$formationX = x;
-    this.$part.$formationY = y;
+    this.part.formationX = x;
+    this.part.formationY = y;
  
   };
 
-  LAID.Level.prototype.$addRecalculateDirtyAttrVal = function ( attrVal ) {
+  LAID.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.pushUnique( this.$recalculateDirtyAttrValS, attrVal );
-    
+    LAID.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$recalculateDirtyLevelS, this );
 
   };
 
-  
-
-
-
-  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
-    var attrVal;
-    if ( LAID.$isDataTravelling ) {
-      console.error("LAID Warning: Existence of another unfinished data travel");
-    } else {
-      attrVal = this.$attr2attrVal[ "data." + dataKey ];
-      if ( attrVal === undefined ) {
-        console.error ("LAID Warning: Inexistence of data key for data travel");
-      }
-      LAID.$isDataTravelling = true;
-      LAID.level("/").$attr2attrVal.$dataTravelling.update( true );
-      LAID.$dataTravellingLevel = this;
-      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( this );
-      LAID.$dataTravellingAttrInitialVal = attrVal.val;
-      LAID.$dataTravellingAttrVal = attrVal;
-
-      LAID.$isDataTravellingShock = true;
-      attrVal.update( finalVal );
-      LAID.$solve();
-      LAID.$isDataTravellingShock = false;
-
-    }
-  };
-
-  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
-    if ( !LAID.$isDataTravelling ) {
-      console.error( "LAID Warning: Inexistence of a data travel" );
-    } else if ( this !== LAID.$dataTravellingLevel ){
-      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
-    } else {
-      if ( LAID.$dataTravelDelta !== delta ) {
-        LAID.$dataTravelDelta = delta;
-        LAID.level("/").$attr2attrVal.$dataTravelDelta.update( delta );
-        LAID.$render();
-      }
-    }
-  };
-
-  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
-    if ( !LAID.$isDataTravelling ) {
-      console.error( "LAID Warning: Inexistence of a data travel" );
-    } else {
-
-      LAID.$isDataTravelling = false;
-      LAID.level("/").$attr2attrVal.$dataTravelling.update( false );
-      LAID.$dataTravellingLevel = undefined;
-      LAID.level("/").$attr2attrVal.$dataTravelLevel.update( null );
-      LAID.$dataTravelDelta = 0.0;
-      LAID.level("/").$attr2attrVal.$dataTravelDelta.update( 0.0 );
-
-
-      // clear out attrvalues which are data travelling
-      LAID.$clearDataTravellingAttrVals();
-      if ( !isArrived ) {
-        LAID.$dataTravellingAttrVal.update(
-          LAID.$dataTravellingAttrInitialVal );
-        LAID.$solve();
-
-      } else {
-
-      }
-
-
-      LAID.$render();
-    }
-  };
 
 
   
@@ -2063,125 +2105,151 @@ bottom: -0.25em;
   LAID.Many = function ( level, partLson ) {
 
     this.level = level;
-    this.$partLson = partLson;
+    this.partLson = partLson;
 
-	  this.$stringHashedStates2_cachedAttr2val_ =  {};
+    // "stringHashedStates2_cachedAttr2val_"
+    // for levels derived from the many
+    // Keeping this cache ensures thats
+    // each derived level (which could potentially
+    // large arbitrary number n) calculates
+    // only once.
+	  this.levelStringHashedStates2_cachedAttr2val_ = {};
 
-    this.$id = level.$lson.$id;
-    this.$id2level = {};
-    this.$id2row = {};
-    this.$allLevelS = [];
-    this.$isLoaded = false;
-
+    this.id = level.lson.id || "id";
+    this.id2level = {};
+    this.id2row = {};
+    this.allLevelS = [];
+    this.isLoaded = false;
 
   };
 
-  LAID.Many.prototype.$init = function () {
+  LAID.Many.prototype.init = function () {
 
     var
-      states = this.$partLson.states || ( this.$partLson.states = {} );
-    
+      states = this.partLson.states || ( this.partLson.states = {} );
 
-    if ( this.$id === undefined ) {
-
-    }
-
-    states.formationDisplayNone = LAID.$displayNoneFormationState;
+    states.formationDisplayNone =
+      LAID.$displayNoneFormationState;
     states.formation = LAID.$formationState;
 
-    LAID.$defaultizePart( this.$partLson );
+    LAID.$defaultizePartLson( this.partLson );
 
     LAID.$newManyS.push( this );
+
+    this.level.$createAttrVal( "$all", [] );
+    this.level.$createAttrVal( "$filtered", [] );
 
   };
 
   LAID.Many.prototype.queryAll = function () {
-
-    return new LAID.Query( this.$allLevelS );
+    return new LAID.Query( 
+       LAID.$arrayUtils.cloneSingleLevel(
+        this.allLevelS ) );
   };
 
   LAID.Many.prototype.queryFiltered = function () {
 
-    return new LAID.Query( 
-      this.level.$attr2attrVal.filter.calcVal );
+    return new LAID.Query(
+      LAID.$arrayUtils.cloneSingleLevel(
+        this.level.attr2attrVal.$filtered.calcVal ) );
   };
 
-  LAID.Many.prototype.rowsChange = function ( newRowS ) {
+  LAID.Many.prototype.rowsCommit = function ( newRowS ) {
 
-    this.level.$attr2attrVal.rows.update( newRowS );
+    this.level.attr2attrVal.rows.update( newRowS );
     LAID.$solve();
+
   };
 
   LAID.Many.prototype.rowsMore = function ( newRowS ) {
     var
-      curRowS = this.level.$attr2attrVal.rows.calcVal;
+      curRowS = this.level.attr2attrVal.rows.calcVal;
 
     for ( var i = 0; i < newRowS.length; i++ ) {
       curRowS.push( newRowS[ i ] );
     }
 
-    this.level.$attr2attrVal.rows.requestRecalculation();
+    this.level.attr2attrVal.rows.requestRecalculation();
     
     LAID.$solve();
 
   };
 
-  LAID.Many.prototype.rowsCommit = function ( newRowS ) {
 
-    // TODO: complete
-  };
+  function checkIfRowsIsNotObjectified ( rowS ) {
+    return rowS.length &&
+     ( typeof rowS[ 0 ] !== "object" );
+  }
+
+  function objectifyRows ( rowS ) {
+    var objectifiedRowS = [];
+    for ( var i = 0, len = rowS.length; i < len; i++ ) {
+      objectifiedRowS.push( { id:i+1, content: rowS[ i ] }); 
+    }
+    return objectifiedRowS;
+  }
 
   /*
   *	Update the rows by:
   * (1) Creating new levels in accordance to new rows
   * (2) Updating existing levels in accordance to changes in changed rows
   */
-  LAID.Many.prototype.$updateRows = function () {
+  LAID.Many.prototype.updateRows = function () {
   	var 
-  		rowS = this.level.$attr2attrVal.rows.calcVal,
+  		rowS = this.level.attr2attrVal.rows.calcVal,
   		row,
   		id,
   		level,
   		parentLevel = this.level.parentLevel,
       updatedLevelS = [],
       newLevelS = [],
-      id2level = this.$id2level,
-      id2row = this.$id2row,
+      id2level = this.id2level,
+      id2row = this.id2row,
+      rowKey, rowVal,
       i, len;
 
-    sortRows( rowS, this.level.$attr2attrVal.sort.calcVal );
+    if ( checkIfRowsIsNotObjectified ( rowS ) ) {
+      rowS = objectifyRows( rowS );
+    }
+    this.sort( rowS );
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
-  		id = row[ this.$id ];
-  		level = this.$id2level[ id ];
-      if ( level === null ) {
-        // deleted level
-        continue;
-  		} else if ( !level ) {
-  			level = new LAID.Level( this.level.path + ":" + id,
-  			 this.$partLson, parentLevel, this, row, id );
+  		id = row[ this.id ];
+      id2row[ id ] = row;
+  		level = this.id2level[ id ];
+      
+      if ( !level ) {
+        // create new level with row
+  			level = new LAID.Level( this.level.pathName + ":" + id,
+  			 this.partLson, parentLevel, this, row, id );
+        level.$init();
         // the level has already been normalized
         // while LAID was parsing the "many" level
-        level.$isNormalized = true;
+        level.isNormalized = true;
 
-  			parentLevel.$childLevelS.push( level );
+  			parentLevel.childLevelS.push( level );
   			id2level[ id ] = level;
         id2row[ id ] = row;
-        this.$allLevelS.push( level );
 
         level.$createAttrVal( "$i", i + 1 );
         level.$createAttrVal( "$f", -1 );
 
-        level.$init();
-
         newLevelS.push( level );
 
-  		} else {
-        // update row
-        level.$attr2attrVal.$i.update( i + 1 );
-        level.$attr2attrVal.$f.update( -1 );
+		  } else {
+        // update level with new row changes
+        level.attr2attrVal.$i.update( i + 1 );
+        level.attr2attrVal.$f.update( -1 );
 
+        for ( rowKey in row ) {
+          rowVal = row[ rowKey ];
+          if ( !level.attr2attrVal[ "row." + rowKey ] ) {
+            level.$createAttrVal( "row." + rowKey, rowVal );
+          } else {
+            level.$changeAttrVal( "row." + rowKey, rowVal );           
+          }
+        }
   		}
 
       updatedLevelS.push( level );
@@ -2200,55 +2268,66 @@ bottom: -0.25em;
       }
     }
 
-    this.level.$attr2attrVal.$all.update( this.$allLevelS );
 
     LAID.$solve();
 
+
+    this.level.attr2attrVal.$all.update( updatedLevelS );
+    this.level.attr2attrVal.$all.requestRecalculation();
+
+    LAID.$solve();
+
+
   };
 
-  LAID.Many.prototype.$updateFilter = function ( ) {
+  LAID.Many.prototype.updateFilter = function ( ) {
 
     var  
-      allLevelS = this.$allLevelS,
-      filteredLevelS = this.level.$attr2attrVal.filter.calcVal || [];
+      allLevelS = this.allLevelS,
+      filteredLevelS = this.level.attr2attrVal.filter.calcVal || [];
 
     for ( 
       var i = 0, len = allLevelS.length;
       i < len;
       i++
      ) {
-      allLevelS[ i ].$attr2attrVal.$f.update( -1 );
+      allLevelS[ i ].attr2attrVal.$f.update( -1 );
     }
     for ( 
       var f = 0, len = filteredLevelS.length;
       f < len;
       f++
      ) {
-      filteredLevelS[ f ].$attr2attrVal.$f.update( f + 1 );
+      filteredLevelS[ f ].attr2attrVal.$f.update( f + 1 );
     }
 
-    this.level.$attr2attrVal.$filtered.update( filteredLevelS );
-    this.level.$attr2attrVal.$all.update( this.$allLevelS );
+    this.level.attr2attrVal.$filtered.update( filteredLevelS );
 
     LAID.$solve();
 
-    this.$updateFilteredPositioning();
-
+    this.updateFilteredPositioning();
 
   };
 
-  LAID.Many.prototype.$updateFilteredPositioning = function () {
+  LAID.Many.prototype.updateFilteredPositioning = function () {
 
-    if ( this.$isLoaded ) {
+    if ( this.isLoaded ) {
       var
-        filteredLevelS = this.level.$attr2attrVal.filter.calcVal || [],
-        formationFn = LAID.$formationName2fn[ this.level.$attr2attrVal.formation.calcVal ];
+        filteredLevelS = this.level.attr2attrVal.filter.calcVal || [],
+        formationFn = LAID.$formationName2fn[
+          this.level.attr2attrVal.formation.calcVal ];
 
       for ( 
-        var f = 1, len = filteredLevelS.length;
+        var f = 1, len = filteredLevelS.length, filteredLevel;
         f < len;
         f++
        ) {
+        filteredLevel = filteredLevelS[ f ];
+        // if the level is not initialized then
+        // discontinue the filtered positioning
+        if ( !filteredLevel.part ) {
+          return;
+        }
         formationFn( f + 1, filteredLevelS[ f ], filteredLevelS );
       }
 
@@ -2257,30 +2336,71 @@ bottom: -0.25em;
 
   };
 
-  LAID.Many.prototype.$removeLevel = function ( level ) {
+  LAID.Many.prototype.removeLevel = function ( level ) {
 
-    this.$id2level[ level.$id ] = null;
-    this.$id2row[ level.$id ] = null;
+    this.id2level[ level.id ] = undefined;
+    this.id2row[ level.id ] = undefined;
 
-    LAID.$arrayUtils.remove( this.$allLevelS, level );
+    LAID.$arrayUtils.remove( this.allLevelS, level );
 
   };
 
-  LAID.Many.prototype.$updateSort = function () {
-    var
-      sort = this.level.$attr2attrVal.sort.calcVal,
-      rowS = this.level.$attr2attrVal.rows.calcVal,
-      sortedRowS = sortRows( rowsS, sort  );
+  LAID.Many.prototype.sort = function ( rowS ) {
+    var sortAttrPrefix,
+      attr2attrVal = this.level.attr2attrVal,
+      numSorts = attr2attrVal["$$num.sort"] ?
+        attr2attrVal["$$num.sort"].calcVal : 0,
+      sortDictS = [];
 
-    this.level.$attr2attrVal.rows.update( sortedRowS );
+    for ( var i=0; i<numSorts; i++ ) {
+      sortAttrPrefix = "sort." + ( i + 1 ) + ".";
+    
+      sortDictS.push(
+        { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
+        ascending:
+        attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+    }
 
+    rowS.sort( dynamicSortMultiple( sortDictS ) );
 
   };
 
   
-  function sortRows ( rowS ) {
-    return rowS;
-  };
+
+
+ 
+
+
+  // below code is taken from one of the responses
+  // to the stackoverflow question:
+  // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+  // source: http://stackoverflow.com/a/4760279
+
+  function dynamicSort( sortDict ) {
+    var key = sortDict.key,
+      sortOrder = sortDict.ascending ? 1 : -1;
+
+    return function (a,b) {
+        var result = (a[key] < b[key]) ? -1 : (a[key] > b[key]) ? 1 : 0;
+        return result * sortOrder;
+    }
+  }
+
+  function dynamicSortMultiple( sortDictS ) {
+    
+    return function (obj1, obj2) {
+        var i = 0, result = 0,
+        numberOfProperties = sortDictS.length;
+        /* try getting a different result from 0 (equal)
+         * as long as we have extra properties to compare
+         */
+        while(result === 0 && i < numberOfProperties) {
+            result = dynamicSort(sortDictS[i])(obj1, obj2);
+            i++;
+        }
+        return result;
+    }
+  }
 
 })();
 
@@ -2332,34 +2452,34 @@ bottom: -0.25em;
     option: "option"
   };
 
+
+  function stringifyPlusPx ( val ) {
+    return val + "px";
+  }
+  
+
   LAID.Part = function ( level ) {
 
     this.level = level;
     this.node = undefined;
     this.isInitiallyRendered = false;
     this.isInputText = false;
-    this.inputDivNode = undefined;
+    this.textSizeMeasureNode = undefined;
+    this.isInterface = false;
 
-    this.$naturalWidthTextMode = false;
-    this.$naturalHeightTextMode = false;
+    this.naturalWidthLevel = undefined;
+    this.naturalHeightLevel = undefined;
 
-    this.$naturalWidthInputMode = false;
-    this.$naturalHeightInputMode = false;
+    this.normalRenderDirtyAttrValS = [];
+    this.travelRenderDirtyAttrValS = [];
 
-    this.$naturalWidthLevel = undefined;
-    this.$naturalHeightLevel = undefined;
+    this.whenEventType2fnMainHandler = {};
 
-    this.$normalRenderDirtyAttrValS = [];
-    this.$travelRenderDirtyAttrValS = [];
+    this.absoluteY = undefined;
+    this.absoluteX = undefined;
 
-    this.$whenEventType2fnMainHandler = {};
-
-    this.$absoluteY = undefined;
-    this.$absoluteX = undefined;
-
-    this.$formationX = undefined;
-    this.$formationY = undefined;
-
+    this.formationX = undefined;
+    this.formationY = undefined;
 
   };
 
@@ -2369,14 +2489,14 @@ bottom: -0.25em;
 
   }
 
-  LAID.Part.prototype.$init = function () {
+  LAID.Part.prototype.init = function () {
 
     var
-      levelType = this.level.$lson.$type,
+      levelType = this.level.lson.$type,
       inputType = getInputType( levelType ),
-      inputTag;
+      inputTag, parentNode;
 
-    if ( this.level.path === "/" ) {
+    if ( this.level.pathName === "/" ) {
       this.node = document.body;
     } else if ( inputType ) {
       inputTag = inputType2tag[ inputType ];
@@ -2403,19 +2523,46 @@ bottom: -0.25em;
     }
     this.node.style.cssText = defaultCss;
 
-    if ( this.isInputText ) {
-      this.inputDivNode = document.createElement("div");
-      this.node.style.cssText = defaultCss;
+    if ( this.level.lson.$interface ) {
+      this.isInterface = true;
+      this.node.style.display = "none";
     }
 
-    if ( this.level.$lson.$interface ) {
-      this.node.style.visibility = "hidden";
+    if ( this.isInputText || levelType === "text" ) {
+      this.textSizeMeasureNode = document.createElement("div");
+      this.textSizeMeasureNode.style.cssText = defaultCss;
+      this.textSizeMeasureNode.style.visibility = "hidden";
+      this.textSizeMeasureNode.style.zIndex = "-9999";      
+      this.textSizeMeasureNode.style.height = "auto";
+      this.textSizeMeasureNode.style.overflow = "visible";
+      this.textSizeMeasureNode.style.borderStyle = "solid";
+      this.textSizeMeasureNode.style.borderColor = "transparent";
+
+
+    }
+
+    if ( this.level.pathName !== "/" ) {
+      parentNode = this.level.parentLevel.part.node;
+      parentNode.appendChild( this.node );
+      if ( this.textSizeMeasureNode ) {
+        parentNode.appendChild( this.textSizeMeasureNode );
+      }
     }
   };
 
+  LAID.Part.prototype.remove = function () {
+    if ( parentPart.naturalWidthLevel === this ) {
+      parentPart.updateNaturalWidth();
+    }
+    if ( parentPart.naturalHeightLevel === this ) {
+      parentPart.updateNaturalHeight();
+    }
+
+
+  };
 
   function checkIfLevelIsDisplayed ( level ) {
-    var attrValDisplay = level.$attr2attrVal.display;
+    var attrValDisplay = level.attr2attrVal.display;
     return !attrValDisplay || attrValDisplay.calcVal;
 
   }
@@ -2423,23 +2570,24 @@ bottom: -0.25em;
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Part.prototype.$findChildWithMaxOfAttr =
-   function ( attr, attrValIndependentOf ) {
+  LAID.Part.prototype.findChildWithMaxOfAttr =
+   function ( attr, attrChildIndepedentOf,
+      attrValIndependentOf ) {
     var
        curMaxVal, curMaxLevel,
        childLevel, childLevelAttrVal,
-       attrValChildIndepedentOf,
-       attrChildIndepedentOf = attr;
+       attrValChildIndepedentOf;
+
     for ( var i = 0,
-         childLevelS = this.level.$childLevelS,
+         childLevelS = this.level.childLevelS,
         len = childLevelS.length;
          i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      if ( childLevel.$isPart ) {
+      if ( childLevel.isPart && !childLevel.part.isInterface ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
-          childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
+          childLevelAttrVal = childLevel.attr2attrVal[ attr ];
           attrValChildIndepedentOf =
-            childLevel.$attr2attrVal[ attrChildIndepedentOf ];
+            childLevel.attr2attrVal[ attrChildIndepedentOf ];
 
           if (
               ( childLevelAttrVal !== undefined ) &&
@@ -2460,66 +2608,67 @@ bottom: -0.25em;
     return curMaxLevel;
   };
 
-  LAID.Part.prototype.$updateAbsoluteX = function () {
+  LAID.Part.prototype.updateAbsoluteX = function () {
 
     var 
-      attr2attrVal = this.level.$attr2attrVal,
+      attr2attrVal = this.level.attr2attrVal,
       relativeLeft = attr2attrVal.left.calcVal,
       shiftX = attr2attrVal.shiftX ? attr2attrVal.shiftX.calcVal : 0,
-      parentAbsoluteX = this.level.path !== "/" ? 
-        this.level.parentLevel.$part.$absoluteX : 0,
+      parentAbsoluteX = this.level.pathName !== "/" ? 
+        this.level.parentLevel.part.absoluteX : 0,
       absoluteX = relativeLeft + shiftX + parentAbsoluteX;
 
     if ( typeof absoluteX === "number" ) {
-      this.$absoluteX = absoluteX;
+      this.absoluteX = absoluteX;
       if ( attr2attrVal.$absoluteX ) {
-        attr2attrVal.$absoluteX.update( this.$absoluteX );
+        attr2attrVal.$absoluteX.update( this.absoluteX );
       }
-      for ( var i = 0, childLevelS = this.level.$childLevelS,
+      for ( var i = 0, childLevelS = this.level.childLevelS,
          len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].$isPart && childLevelS[ i ].$part.$updateAbsoluteX();
+        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteX();
       }
     }
   };
 
-  LAID.Part.prototype.$updateAbsoluteY = function () {
+  LAID.Part.prototype.updateAbsoluteY = function () {
 
     var 
-      attr2attrVal = this.level.$attr2attrVal,
+      attr2attrVal = this.level.attr2attrVal,
       relativeTop = attr2attrVal.top.calcVal,
       shiftY = attr2attrVal.shiftY ? attr2attrVal.shiftY.calcVal : 0,
-      parentAbsoluteY = this.level.path !== "/" ?
-        this.level.parentLevel.$part.$absoluteY : 0,
+      parentAbsoluteY = this.level.pathName !== "/" ?
+        this.level.parentLevel.part.absoluteY : 0,
       absoluteY = relativeTop + shiftY + parentAbsoluteY;
 
     if ( typeof absoluteY === "number" ) {
-      this.$absoluteY = absoluteY;
+      this.absoluteY = absoluteY;
       if ( attr2attrVal.$absoluteY ) {
-        attr2attrVal.$absoluteY.update( this.$absoluteY );
+        attr2attrVal.$absoluteY.update( this.absoluteY );
       }
-      for ( var i = 0, childLevelS = this.level.$childLevelS,
+      for ( var i = 0, childLevelS = this.level.childLevelS,
          len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].$isPart && childLevelS[ i ].$part.$updateAbsoluteY();
+        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteY();
       }
     }
   };
 
 
-  LAID.Part.prototype.$updateNaturalWidth = function () {
-    var attr2attrVal = this.level.$attr2attrVal
+  LAID.Part.prototype.updateNaturalWidth = function () {
+    var attr2attrVal = this.level.attr2attrVal
     if ( attr2attrVal.$naturalWidth ) {
-      if ( this.level.path === "/" ) {
+      if ( this.level.pathName === "/" ) {
         attr2attrVal.$naturalWidth.update( window.innerWidth );
 
-      } else if ( this.level.$attr2attrVal.text ) {
+      } else if ( this.level.attr2attrVal.text ) {
        
-        this.$updateNaturalWidthFromText();
+        this.updateNaturalWidthFromText();
       } else {
-        this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-        attr2attrVal.$naturalWidth );
+        this.naturalWidthLevel =
+          this.findChildWithMaxOfAttr( "right", "width",
+          attr2attrVal.$naturalWidth );
         attr2attrVal.$naturalWidth.update(
-            this.$naturalWidthLevel ?
-           ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
+            this.naturalWidthLevel ?
+           ( this.naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
            0
         );
       }
@@ -2528,20 +2677,21 @@ bottom: -0.25em;
 
 
 
-  LAID.Part.prototype.$updateNaturalHeight = function () {
-    var attr2attrVal = this.level.$attr2attrVal
+  LAID.Part.prototype.updateNaturalHeight = function () {
+    var attr2attrVal = this.level.attr2attrVal
     if (attr2attrVal.$naturalHeight ) {
-      if ( this.level.path === "/" ) {
+      if ( this.level.pathName === "/" ) {
         attr2attrVal.$naturalHeight.update( window.innerHeight );
-      } else if ( this.level.$attr2attrVal.text ) {
-        this.$updateNaturalHeightFromText();
+      } else if ( this.level.attr2attrVal.text ) {
+        this.updateNaturalHeightFromText();
       } else {
-        this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
+        this.naturalHeightLevel =
+          this.findChildWithMaxOfAttr( "bottom", "height",
         attr2attrVal.$naturalHeight);
 
         attr2attrVal.$naturalHeight.update(
-            this.$naturalHeightLevel ?
-           ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
+            this.naturalHeightLevel ?
+           ( this.naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
            0
         );
       }
@@ -2549,23 +2699,22 @@ bottom: -0.25em;
   };
 
 
-  LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
+  LAID.Part.prototype.updateNaturalWidthFromChild = function ( childLevel ) {
 
-    var attr2attrVal = this.level.$attr2attrVal;
-
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalWidth &&
-      ( this.level.path !== "/" ) &&
-      ! (LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal )) &&
-      ! (childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
+      ( this.level.pathName !== "/" ) &&
+      ! (LAID.$checkIsValidUtils.nan( childLevel.attr2attrVal.right.calcVal )) &&
+      ! (childLevel.attr2attrVal.width.checkIsDependentOnAttrVal(
         attr2attrVal.$naturalWidth)) &&
         (checkIfLevelIsDisplayed(childLevel) )
         ) {
 
 
-      if ( this.$naturalWidthLevel === undefined ) {
-        this.$naturalWidthLevel = childLevel;
-      } else if ( this.$naturalWidthLevel === childLevel ) {
+      if ( this.naturalWidthLevel === undefined ) {
+        this.naturalWidthLevel = childLevel;
+      } else if ( this.naturalWidthLevel === childLevel ) {
 
         // Check If the current child level responsible for the stretch
         // of the naturalWidth boundary, has receeded
@@ -2574,21 +2723,22 @@ bottom: -0.25em;
         // child element which has a higher right position
         // than the current child level responsible for the natural width
         if ( attr2attrVal.$naturalWidth.calcVal >
-           childLevel.$attr2attrVal.right.calcVal  ) {
+           childLevel.attr2attrVal.right.calcVal  ) {
           // Find the child with the next largest right
           // This could be the same child level
-          this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          attr2attrVal.$naturalWidth );
+          this.naturalWidthLevel =
+            this.findChildWithMaxOfAttr( "right", "width",
+            attr2attrVal.$naturalWidth );
         }
       } else {
-        if ( childLevel.$attr2attrVal.right.calcVal >
-          this.$naturalWidthLevel.$attr2attrVal.right.calcVal ) {
-            this.$naturalWidthLevel = childLevel;
+        if ( childLevel.attr2attrVal.right.calcVal >
+          this.naturalWidthLevel.attr2attrVal.right.calcVal ) {
+            this.naturalWidthLevel = childLevel;
         }
       }
       attr2attrVal.$naturalWidth.update(
-        this.$naturalWidthLevel ?
-        ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
+        this.naturalWidthLevel ?
+        ( this.naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
         0
       );
 
@@ -2596,20 +2746,20 @@ bottom: -0.25em;
   };
 
 
-  LAID.Part.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
+  LAID.Part.prototype.updateNaturalHeightFromChild = function ( childLevel ) {
 
-    var attr2attrVal = this.level.$attr2attrVal;
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalHeight &&
-        ( this.level.path !== "/" ) &&
-       !(LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal )) &&
-       !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
+        ( this.level.pathName !== "/" ) &&
+       !(LAID.$checkIsValidUtils.nan( childLevel.attr2attrVal.bottom.calcVal )) &&
+       !( childLevel.attr2attrVal.height.checkIsDependentOnAttrVal(
          attr2attrVal.$naturalHeight) ) &&
          (checkIfLevelIsDisplayed(childLevel) ) ) {
 
-      if ( this.$naturalHeightLevel === undefined ) {
-        this.$naturalHeightLevel = childLevel;
-      } else if ( this.$naturalHeightLevel === childLevel ) {
+      if ( this.naturalHeightLevel === undefined ) {
+        this.naturalHeightLevel = childLevel;
+      } else if ( this.naturalHeightLevel === childLevel ) {
         // Check If the current child level responsible for the stretch
           // of the naturalHeight boundary, has receeded
           // If this would be the case, then there is
@@ -2617,22 +2767,23 @@ bottom: -0.25em;
           // child element which has a higher bottom position
           // than the current child level responsible for the natural height
          if ( attr2attrVal.$naturalHeight.calcVal >
-           childLevel.$attr2attrVal.bottom.calcVal  ) {
+           childLevel.attr2attrVal.bottom.calcVal  ) {
           // Find the child with the next largest bottom
           // This could be the same child level
-          this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          attr2attrVal.$naturalHeight );
+          this.naturalHeightLevel =
+            this.findChildWithMaxOfAttr( "bottom", "height",
+           attr2attrVal.$naturalHeight );
         }
       } else {
-        if ( childLevel.$attr2attrVal.bottom.calcVal >
-          this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal ) {
-            this.$naturalHeightLevel = childLevel;
+        if ( childLevel.attr2attrVal.bottom.calcVal >
+          this.naturalHeightLevel.attr2attrVal.bottom.calcVal ) {
+            this.naturalHeightLevel = childLevel;
           }
         }
 
       attr2attrVal.$naturalHeight.update(
-          this.$naturalHeightLevel ?
-          ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
+          this.naturalHeightLevel ?
+          ( this.naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
           0
       );
     }
@@ -2640,122 +2791,181 @@ bottom: -0.25em;
 
   
 
-  LAID.Part.prototype.$updateNaturalWidthInput = function () {
 
-    var attr2attrVal = this.level.$attr2attrVal;
+  LAID.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
+    var dimensionAlteringAttr2fnStyle = {
+      textSize: stringifyPxOrString,
+      textFamily: null,
+      textWeight: null,
+      textAlign: null,
+      textLetterSpacing: stringifyEmOrString,
+      textWordSpacing: stringifyPxOrString,
+      textLineHeight: stringifyPxOrString,
+      textOverflow: null,
+      textIndent: stringifyPlusPx,
+      textWhitespace: null,
+      textRendering: null,
+      textPaddingTop: stringifyPlusPx,
+      textPaddingRight: stringifyPlusPx,
+      textPaddingBottom: stringifyPlusPx,
+      textPaddingLeft: stringifyPlusPx,
+      borderTopWidth: stringifyPlusPx,
+      borderRightWidth: stringifyPlusPx,
+      borderBottomWidth: stringifyPlusPx,
+      borderLeftWidth: stringifyPlusPx
+    };
+
+    var dimensionAlteringAttr2cssProp = {
+      textSize: "font-size",
+      textFamily: "font-family",
+      textWeight: "font-weight",
+      textAlign: "text-align",
+      textLetterSpacing: "letter-spacing",
+      textWordSpacing: "word-spacing",
+      textLineHeight: "line-height",
+      textOverflow: "text-overflow",
+      textIndent: "text-indent",
+      textWhitespace: "white-space",
+      textRendering: "text-rendering",
+      textPaddingTop: "padding-top",
+      textPaddingRight: "padding-right",
+      textPaddingBottom: "padding-bottom",
+      textPaddingLeft: "padding-left",
+      borderTopWidth: "border-top-width",
+      borderRightWidth: "border-right-width",
+      borderBottomWidth: "border-bottom-width",
+      borderLeftWidth: "border-left-width"
+    };
+
+
+    var
+      node = this.textSizeMeasureNode,
+      attr2attrVal = this.level.attr2attrVal,
+      dimensionAlteringAttr, fnStyle,
+      textRelatedAttrVal,
+      text = this.isInputText ? 
+        attr2attrVal.$input.calcVal :
+        attr2attrVal.text.calcVal;
+    
+    for ( dimensionAlteringAttr in
+       dimensionAlteringAttr2fnStyle ) {
+      textRelatedAttrVal = attr2attrVal[ 
+        dimensionAlteringAttr ];
+      if ( textRelatedAttrVal ) {
+
+        fnStyle = dimensionAlteringAttr2fnStyle[ 
+            dimensionAlteringAttr ];
+      
+        node.style[ 
+          dimensionAlteringAttr2cssProp[
+            dimensionAlteringAttr ] ] =
+            fnStyle === null ? textRelatedAttrVal.calcVal :
+              fnStyle( textRelatedAttrVal.calcVal );
+      }
+    }
 
     if ( attr2attrVal.$naturalWidth ) {
+      var initialWhitespace = node.style.whiteSpace;
+      node.style.whiteSpace = "nowrap";
+    }
 
-        this.$naturalWidthInputMode = true;
+    if ( isWidth ) {
+      node.style.display = "inline";
+      node.style.width = "auto";
+      node.innerHTML = text;
 
-        if ( !this.$naturalHeightInputMode ) {
-          attr2attrVal.$input.forceRecalculation();
-        }
-
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        attr2attrVal.$naturalWidth.update( 0 );
+      this.level.$changeAttrVal( "$naturalWidth",
+       node.offsetWidth );
+    } else {
+      node.style.display = "block";
+      node.style.width = attr2attrVal.width.calcVal + "px";
+      
+      // If empty we will subsitute with a space character
+      // as we wouldn't want the height to resolve to 0
+      node.innerHTML = text || " ";
+      this.level.$changeAttrVal( "$naturalHeight",
+        node.offsetHeight );
+    }
+    // restore whitespace
+    if ( attr2attrVal.$naturalWidth ) {
+      node.style.whiteSpace = initialWhitespace;
 
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeightInput = function () {
+  LAID.Part.prototype.updateNaturalWidthFromText = function () {
 
-
-    var attr2attrVal = this.level.$attr2attrVal;
-
-    if ( attr2attrVal.$naturalHeight ) {
-
-        this.$naturalHeightInputMode = true;
-
-        if ( !this.$naturalWidthInputMode ) {
-          attr2attrVal.$input.forceRecalculation();
-        }
-
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        attr2attrVal.$naturalHeight.update( 0 );
-
-    }
-  };
-  LAID.Part.prototype.$updateNaturalWidthFromText = function () {
-
-    var attr2attrVal = this.level.$attr2attrVal;
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalWidth &&
-      this.level.$attr2attrVal.text ) {
-
-        this.$naturalWidthTextMode = true;
-
-        if ( !this.$naturalHeightTextMode ) {
-          attr2attrVal.text.forceRecalculation();
-        }
-
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        attr2attrVal.$naturalWidth.update( 0 );
-
-
-
+      this.level.attr2attrVal.text ) {
+      if ( attr2attrVal.$naturalWidth ) {
+        this.calculateTextNaturalDimesion( true );
+      }
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeightFromText = function ( arg ) {
+  LAID.Part.prototype.updateNaturalHeightFromText = function ( arg ) {
 
-    var attr2attrVal = this.level.$attr2attrVal;
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalHeight &&
-      this.level.$attr2attrVal.text ) {
-
-      this.$naturalHeightTextMode = true;
-
-      if ( !this.$naturalWidthTextMode ) {
-        attr2attrVal.text.forceRecalculation();
+      this.level.attr2attrVal.text ) {
+      if ( attr2attrVal.$naturalHeight ) {
+       this.calculateTextNaturalDimesion( false );
       }
-
-      // temporarily (for current recalculate) cycle
-      // set the value to 0. This is only
-      // as a render cycle is required for learning
-      // the natural height
-      attr2attrVal.$naturalHeight.update( 0 );
-
     }
   };
 
-  LAID.Part.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.Part.prototype.updateNaturalWidthInput = function () {
 
-    LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
+    var attr2attrVal = this.level.attr2attrVal;
+
+    if ( attr2attrVal.$naturalWidth ) {
+      this.calculateTextNaturalDimesion( true );
+    }
+  };
+
+  LAID.Part.prototype.updateNaturalHeightInput = function () {
+
+    var attr2attrVal = this.level.attr2attrVal;
+
+    if ( attr2attrVal.$naturalHeight ) {
+      if ( attr2attrVal.$naturalHeight ) {
+        this.calculateTextNaturalDimesion( false );
+      }
+    }
+  };
+  
+
+  LAID.Part.prototype.addNormalRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAID.$arrayUtils.remove( this.travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
 
   };
 
-  LAID.Part.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.Part.prototype.addTravelRenderDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.remove( this.normalRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.travelRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
 
   };
 
-  LAID.Part.prototype.$updateWhenEventType = function ( eventType ) {
+  LAID.Part.prototype.updateWhenEventType = function ( eventType ) {
 
     var
       numFnHandlersForEventType =
-        this.level.$attr2attrVal[ "$$num.when." + eventType ].val,
+        this.level.attr2attrVal[ "$$num.when." + eventType ].val,
       fnMainHandler,
       thisLevel = this.level;
 
-    if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
+    if ( this.whenEventType2fnMainHandler[ eventType ] !== undefined ) {
       LAID.$eventUtils.remove( 
         this.node, eventType,
-          this.$whenEventType2fnMainHandler[ eventType ] );
+          this.whenEventType2fnMainHandler[ eventType ] );
     }
 
     if ( numFnHandlersForEventType !== 0 ) {
@@ -2764,38 +2974,33 @@ bottom: -0.25em;
         var i, len, attrValForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
           attrValForFnHandler =
-          thisLevel.$attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
+          thisLevel.attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
           if ( attrValForFnHandler !== undefined ) {
             attrValForFnHandler.calcVal.call( thisLevel, e );
           }
         }
       };
       LAID.$eventUtils.add( this.node, eventType, fnMainHandler );
-      this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
+      this.whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
-      this.$whenEventType2fnMainHandler[ eventType ] = undefined;
+      this.whenEventType2fnMainHandler[ eventType ] = undefined;
 
     }
   };
 
-  LAID.Part.prototype.$checkIsPropInTransition = function ( prop ) {
-    return ( this.level.$attr2attrVal[ "transition." + prop  + ".type" ] !==
+  LAID.Part.prototype.checkIsPropInTransition = function ( prop ) {
+    return ( this.level.attr2attrVal[ "transition." + prop  + ".type" ] !==
       undefined )  ||
-      ( this.level.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
+      ( this.level.attr2attrVal[ "transition." + prop  + ".delay" ] !==
         undefined );
   };
 
-  LAID.Part.prototype.$updateTransitionProp = function ( transitionProp ) {
-
+  LAID.Part.prototype.updateTransitionProp = function ( transitionProp ) {
 
     if ( this.isInitiallyRendered ) {
-      console.log( " x", this.level.path, transitionProp ); 
-      if ( this.level.$derivedMany ) {
-        console.log( " y", this.level.path, this.level.$derivedMany.$isLoaded );
-      }
       var
-        attr2attrVal = this.level.$attr2attrVal,
+        attr2attrVal = this.level.attr2attrVal,
         attr, attrVal,
         transitionPrefix,
         transitionType, transitionDuration, transitionDelay, transitionDone,
@@ -2812,15 +3017,14 @@ bottom: -0.25em;
         return;
       }
 
-      if ( !this.$checkIsPropInTransition( transitionProp ) ) {
-        if ( this.$checkIsPropInTransition( "all" ) ) {
+      if ( !this.checkIsPropInTransition( transitionProp ) ) {
+        if ( this.checkIsPropInTransition( "all" ) ) {
           allAffectedProp = transitionProp;
           transitionProp = "all";
         } else {
           return;
         }
       }
-
 
       transitionPrefix = "transition." + transitionProp + ".";
 
@@ -2865,8 +3069,8 @@ bottom: -0.25em;
           //     a transition then we will not want to override
           //     its transition with the lower priority "all" transition
           if ( attrVal.renderCall &&
-              !this.$checkIsPropInTransition( attrVal.attr ) ) {
-            this.$updateTransitionAttrVal(
+              !this.checkIsPropInTransition( attrVal.attr ) ) {
+            this.updateTransitionAttrVal(
               attrVal,
                transitionType, transitionDelay, transitionDuration,
                transitionArg2val, transitionDone
@@ -2876,7 +3080,7 @@ bottom: -0.25em;
         }
       } else {
 
-        this.$updateTransitionAttrVal(
+        this.updateTransitionAttrVal(
            attr2attrVal[ allAffectedProp || transitionProp ],
            transitionType, transitionDelay, transitionDuration,
            transitionArg2val, transitionDone
@@ -2886,7 +3090,7 @@ bottom: -0.25em;
     }
   };
 
-  LAID.Part.prototype.$updateTransitionAttrVal = function ( attrVal,
+  LAID.Part.prototype.updateTransitionAttrVal = function ( attrVal,
     transitionType, transitionDelay, transitionDuration,
     transitionArg2val, transitionDone  ) {
 
@@ -2912,20 +3116,30 @@ bottom: -0.25em;
     }
   }
 
+  function stringifyPxOrString( val, defaultVal ) {
+    return ( val === undefined ) ?
+        defaultVal : ( typeof val === "number" ?
+        ( val + "px" ) : val );
+  }
+
+  function stringifyEmOrString( val, defaultVal ) {
+    return ( val === undefined ) ?
+        defaultVal : ( typeof val === "number" ?
+        ( val + "em" ) : val );
+  }
+
   function computePxOrString( attrVal, defaultVal ) {
-    var transitionCalcVal =
-      attrVal && attrVal.transitionCalcVal;
-    return ( transitionCalcVal === undefined ) ?
-        defaultVal : ( typeof transitionCalcVal === "number" ?
-        ( transitionCalcVal + "px" ) : transitionCalcVal );
+    
+    return stringifyPxOrString(
+      attrVal && attrVal.transitionCalcVal,
+      defaultVal );
+    
   }
 
   function computeEmOrString( attrVal, defaultVal ) {
-    var transitionCalcVal =
-      attrVal && attrVal.transitionCalcVal;
-    return ( transitionCalcVal === undefined ) ?
-        defaultVal : ( typeof transitionCalcVal === "number" ?
-        ( transitionCalcVal + "em" ) : transitionCalcVal );
+    return stringifyEmOrString(
+      attrVal && attrVal.transitionCalcVal,
+      defaultVal );
   }
 
   function computeColorOrString( attrVal, defaultVal ) {
@@ -2944,16 +3158,16 @@ bottom: -0.25em;
   // this will make no difference
 
   // The renderable prop can be
-  // accessed via `part.$renderFn_<prop>`
+  // accessed via `part.renderFn_<prop>`
 
 
   if ( isGpuAccelerated ) {
 
 
     // TODO: optimize to enter matrix3d directly
-    LAID.Part.prototype.$renderFn_positional =   
+    LAID.Part.prototype.renderFn_positional =   
     function () {
-      var attr2attrVal = this.level.$attr2attrVal;
+      var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
       "scale3d(" +
@@ -2978,14 +3192,14 @@ bottom: -0.25em;
 
     };
 
-    LAID.Part.prototype.$renderFn_width = function () {
-      this.node.style.width = this.level.$attr2attrVal.width.transitionCalcVal + "px";
-      //this.$renderFn_positional(); //apply change to transform
+    LAID.Part.prototype.renderFn_width = function () {
+      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
+      //this.renderFn_positional(); //apply change to transform
     };
 
-    LAID.Part.prototype.$renderFn_height = function () {
-      this.node.style.height = this.level.$attr2attrVal.height.transitionCalcVal + "px";
-      //this.$renderFn_positional(); //apply change to transform
+    LAID.Part.prototype.renderFn_height = function () {
+      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
+      //this.renderFn_positional(); //apply change to transform
     };
 
 
@@ -2993,16 +3207,16 @@ bottom: -0.25em;
   } else {
     // legacy browser usage or forced non-gpu mode
 
-    LAID.Part.prototype.$renderFn_width = function () {
-      this.node.style.width = this.level.$attr2attrVal.width.transitionCalcVal + "px";
+    LAID.Part.prototype.renderFn_width = function () {
+      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
     };
 
-    LAID.Part.prototype.$renderFn_height = function () {
-      this.node.style.height = this.level.$attr2attrVal.height.transitionCalcVal + "px";
+    LAID.Part.prototype.renderFn_height = function () {
+      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
     };
 
-    LAID.Part.prototype.$renderFn_positional = function () {
-      var attr2attrVal = this.level.$attr2attrVal;
+    LAID.Part.prototype.renderFn_positional = function () {
+      var attr2attrVal = this.level.attr2attrVal;
       this.node.style.left = ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
       this.node.style.top = ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
 
@@ -3013,24 +3227,24 @@ bottom: -0.25em;
 
 
 
-  LAID.Part.prototype.$renderFn_origin = function () {
-    var attr2attrVal = this.level.$attr2attrVal;
+  LAID.Part.prototype.renderFn_origin = function () {
+    var attr2attrVal = this.level.attr2attrVal;
 
     this.node.style[ cssPrefix + "transform-origin" ] =
     ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0  ) + "px";
-    //this.$renderFn_positional(); //apply change to transform
+    //this.renderFn_positional(); //apply change to transform
   };
 
 
-  LAID.Part.prototype.$renderFn_perspective = function () {
+  LAID.Part.prototype.renderFn_perspective = function () {
     this.node.style[ cssPrefix + "perspective" ] =
-     this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
+     this.level.attr2attrVal.perspective.transitionCalcVal + "px";
   };
 
-  LAID.Part.prototype.$renderFn_perspectiveOrigin = function () {
-    var attr2attrVal = this.level.$attr2attrVal;
+  LAID.Part.prototype.renderFn_perspectiveOrigin = function () {
+    var attr2attrVal = this.level.attr2attrVal;
     this.node.style[ cssPrefix + "perspective-origin" ] =
     ( attr2attrVal.perspectiveOriginX ?
      ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 )
@@ -3040,32 +3254,32 @@ bottom: -0.25em;
       : 0 ) + "%";
   };
 
-  LAID.Part.prototype.$renderFn_backfaceVisibility = function () {
+  LAID.Part.prototype.renderFn_backfaceVisibility = function () {
     this.node.style[ cssPrefix + "backface-visibility" ] =
-      this.level.$attr2attrVal.backfaceVisibility.transitionCalcVal;
+      this.level.attr2attrVal.backfaceVisibility.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_opacity = function () {
-    this.node.style.opacity = this.level.$attr2attrVal.opacity.transitionCalcVal;
+  LAID.Part.prototype.renderFn_opacity = function () {
+    this.node.style.opacity = this.level.attr2attrVal.opacity.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_userSelect = function () {
+  LAID.Part.prototype.renderFn_userSelect = function () {
     this.node.style[ cssPrefix + "user-select" ] = 
-      this.level.$attr2attrVal.userSelect.transitionCalcVal;
+      this.level.attr2attrVal.userSelect.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_display = function () {
+  LAID.Part.prototype.renderFn_display = function () {
     var parentLevel = this.level.parentLevel;
     if ( parentLevel ) {
-      if ( parentLevel.$part ) {
-        parentLevel.$part.$updateNaturalWidth();
-        parentLevel.$part.$updateNaturalHeight();
+      if ( parentLevel.part ) {
+        parentLevel.part.updateNaturalWidth();
+        parentLevel.part.updateNaturalHeight();
 
       }
     }
     recurseVisibilityNode( this.node,
-        this.level.$attr2attrVal.display.transitionCalcVal ?
+        this.level.attr2attrVal.display.transitionCalcVal ?
         "visible" : "hidden"  );
 
   };
@@ -3081,82 +3295,82 @@ bottom: -0.25em;
     }
   }
 
-  LAID.Part.prototype.$renderFn_zIndex = function () {
+  LAID.Part.prototype.renderFn_zIndex = function () {
 
     this.node.style.zIndex =
-      this.level.$attr2attrVal.zIndex.transitionCalcVal || "auto";
+      this.level.attr2attrVal.zIndex.transitionCalcVal || "auto";
   };
 
 
-  LAID.Part.prototype.$renderFn_scrollX = function () {
-    this.node.scrollLeft = this.level.$attr2attrVal.scrollX.transitionCalcVal;
+  LAID.Part.prototype.renderFn_scrollX = function () {
+    this.node.scrollLeft = this.level.attr2attrVal.scrollX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_scrollY = function () {
-    this.node.scrollTop = this.level.$attr2attrVal.scrollY.transitionCalcVal;
+  LAID.Part.prototype.renderFn_scrollY = function () {
+    this.node.scrollTop = this.level.attr2attrVal.scrollY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_overflowX = function () {
+  LAID.Part.prototype.renderFn_overflowX = function () {
     this.node.style.overflowX =
-      this.level.$attr2attrVal.overflowX.transitionCalcVal;
+      this.level.attr2attrVal.overflowX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_overflowY = function () {
+  LAID.Part.prototype.renderFn_overflowY = function () {
     this.node.style.overflowY =
-      this.level.$attr2attrVal.overflowY.transitionCalcVal;
+      this.level.attr2attrVal.overflowY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_cursor = function () {
+  LAID.Part.prototype.renderFn_cursor = function () {
     this.node.style.cursor =
-      this.level.$attr2attrVal.
+      this.level.attr2attrVal.
       cursor.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundColor = function () {
+  LAID.Part.prototype.renderFn_backgroundColor = function () {
     this.node.style.backgroundColor =
-      this.level.$attr2attrVal.
+      this.level.attr2attrVal.
       backgroundColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.$renderFn_backgroundImage = function () {
+  LAID.Part.prototype.renderFn_backgroundImage = function () {
     this.node.style.backgroundImage =
-      this.level.$attr2attrVal.
+      this.level.attr2attrVal.
       backgroundImage.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundAttachment = function () {
-    this.node.style.backgroundAttachment = this.level.$attr2attrVal.backgroundAttachment.transitionCalcVal;
+  LAID.Part.prototype.renderFn_backgroundAttachment = function () {
+    this.node.style.backgroundAttachment = this.level.attr2attrVal.backgroundAttachment.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundRepeat = function () {
-    this.node.style.backgroundRepeat = this.level.$attr2attrVal.backgroundColor.transitionCalcVal;
+  LAID.Part.prototype.renderFn_backgroundRepeat = function () {
+    this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundColor.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_backgroundSize = function () {
+  LAID.Part.prototype.renderFn_backgroundSize = function () {
     
     this.node.style.backgroundSize =
       computePxOrString( 
-        this.level.$attr2attrVal.backgroundSizeX, "auto" ) +
+        this.level.attr2attrVal.backgroundSizeX, "auto" ) +
       " " +
       computePxOrString(
-        this.level.$attr2attrVal.backgroundSizeY, "auto" );
+        this.level.attr2attrVal.backgroundSizeY, "auto" );
 
   };
 
-  LAID.Part.prototype.$renderFn_backgroundPosition = function () {
+  LAID.Part.prototype.renderFn_backgroundPosition = function () {
     this.node.style.backgroundPosition =
       computePxOrString(
-        this.level.$attr2attrVal.backgroundPositionX, "0px" ) +
+        this.level.attr2attrVal.backgroundPositionX, "0px" ) +
          " " +
       computePxOrString(
-        this.level.$attr2attrVal.backgroundPositionX, "0px" );
+        this.level.attr2attrVal.backgroundPositionX, "0px" );
     
   };
 
-  LAID.Part.prototype.$renderFn_boxShadows = function () {
+  LAID.Part.prototype.renderFn_boxShadows = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     s = "",
     i, len;
     for ( i = 1, len = attr2attrVal[ "$$max.boxShadows" ].calcVal; i <= len;
@@ -3184,9 +3398,9 @@ bottom: -0.25em;
 
 
 
-  LAID.Part.prototype.$renderFn_filters = function () {
+  LAID.Part.prototype.renderFn_filters = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     s = "",
     i, len,
     filterType;
@@ -3220,173 +3434,186 @@ bottom: -0.25em;
 
   };
 
-  LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusTopLeft = function () {
     this.node.style.borderTopLeftRadius =
-     this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
+     this.level.attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusTopRight = function () {
     this.node.style.borderTopRightRadius =
-      this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
+      this.level.attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusBottomRight = function () {
     this.node.style.borderBottomRightRadius =
-      this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
+      this.level.attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusBottomLeft = function () {
     this.node.style.borderBottomLeftRadius =
-      this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
+      this.level.attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
   };
 
 
 
-  LAID.Part.prototype.$renderFn_borderTopStyle = function () {
+  LAID.Part.prototype.renderFn_borderTopStyle = function () {
     this.node.style.borderTopStyle =
-      this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderTopStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderRightStyle = function () {
+  LAID.Part.prototype.renderFn_borderRightStyle = function () {
     this.node.style.borderRightStyle =
-      this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderRightStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderBottomStyle = function () {
+  LAID.Part.prototype.renderFn_borderBottomStyle = function () {
     this.node.style.borderBottomStyle =
-      this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderBottomStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderLeftStyle = function () {
+  LAID.Part.prototype.renderFn_borderLeftStyle = function () {
     this.node.style.borderLeftStyle =
-      this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderLeftStyle.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_borderTopColor = function () {
+  LAID.Part.prototype.renderFn_borderTopColor = function () {
     this.node.style.borderTopColor =
-      this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderTopColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderRightColor = function () {
+  LAID.Part.prototype.renderFn_borderRightColor = function () {
     this.node.style.borderRightColor =
-      this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderRightColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderBottomColor = function () {
+  LAID.Part.prototype.renderFn_borderBottomColor = function () {
     this.node.style.borderBottomColor =
-      this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderLeftColor = function () {
+  LAID.Part.prototype.renderFn_borderLeftColor = function () {
     this.node.style.borderLeftColor =
-      this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.$renderFn_borderTopWidth = function () {
+  LAID.Part.prototype.renderFn_borderTopWidth = function () {
     this.node.style.borderTopWidth =
-      this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderTopWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderRightWidth = function () {
+  LAID.Part.prototype.renderFn_borderRightWidth = function () {
     this.node.style.borderRightWidth =
-      this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderRightWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderBottomWidth = function () {
+  LAID.Part.prototype.renderFn_borderBottomWidth = function () {
     this.node.style.borderBottomWidth =
-      this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderLeftWidth = function () {
+  LAID.Part.prototype.renderFn_borderLeftWidth = function () {
     this.node.style.borderLeftWidth =
-      this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
   };
 
 
 
   /* Text Related */
 
-  LAID.Part.prototype.$renderFn_text = function () {
+  LAID.Part.prototype.renderFn_text = function () {
     
-    if ( this.$naturalWidthTextMode ) {
-
-      this.node.style.display = "inline";
-      this.node.style.width = "auto";
-      this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-
-      this.level.$changeAttrVal( "$naturalWidth",
-       this.node.getBoundingClientRect().width );
-      this.node.style.display = "block";
-      this.$naturalWidthTextMode = false;
-    }
-    if ( this.$naturalHeightTextMode ) {
-
-      this.node.style.height = "auto";
-      this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      this.level.$changeAttrVal( "$naturalHeight",
-       this.node.getBoundingClientRect().height );
-      this.$naturalHeightTextMode = false;
-    }
-
     this.node.innerHTML =
-     this.level.$attr2attrVal.text.transitionCalcVal;
+     this.level.attr2attrVal.text.transitionCalcVal;
 
   };
 
 
-  LAID.Part.prototype.$renderFn_$input = function () {
-
-    var
-      divNode = this.inputDivNode,
-      attr2attrVal = this.level.$attr2attrVal,
-      inputVal = attr2attrVal.$input.transitionCalcVal;
-    
-
-    divNode.style.cssText = this.node.style.cssText;
-    divNode.style.visibility = "hidden";
-    divNode.style.overflow = "visible";
-    //this.inputDivNode.style.zIndex = "-1";
-
-    if ( this.$naturalWidthInputMode ) {
-      divNode.style.display = "inline";
-      divNode.style.width = "auto";
-      divNode.innerHTML = inputVal;
-
-      this.level.$changeAttrVal( "$naturalWidth",
-       divNode.getBoundingClientRect().width );
-      divNode.style.display = "block";
-      this.$naturalWidthInputMode = false;
-    }
-    if ( this.$naturalHeightInputMode ) {
-      divNode.style.height = "auto";
-      // If empty we will subsitute with a space character
-      // as we wouldn't want the height to resolve to 0
-      divNode.innerHTML = inputVal || ".";
-      this.level.$changeAttrVal( "$naturalHeight",
-        divNode.getBoundingClientRect().height );
-      this.$naturalHeightInputMode = false;
-    }
+  LAID.Part.prototype.renderFn_input = function () {
 
     this.node.value = inputVal;
 
   };
 
-  LAID.Part.prototype.$renderFn_textSize = function () {
+  LAID.Part.prototype.renderFn_textSize = function () {
    
     this.node.style.fontSize =
-      computePxOrString( 
-        this.level.$attr2attrVal.textSize );
+      computePxOrString( this.level.attr2attrVal.textSize );
   };
-  LAID.Part.prototype.$renderFn_textFamily = function () {
+  LAID.Part.prototype.renderFn_textFamily = function () {
     this.node.style.fontFamily =
-      this.level.$attr2attrVal.textFamily.transitionCalcVal;
+      this.level.attr2attrVal.textFamily.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textWeight = function () {
+
+  LAID.Part.prototype.renderFn_textWeight = function () {
 
     this.node.style.fontWeight =
-      this.level.$attr2attrVal.textWeight.transitionCalcVal;
+      this.level.attr2attrVal.textWeight.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textColor = function () {
+  LAID.Part.prototype.renderFn_textColor = function () {
     this.node.style.color = 
       computeColorOrString( 
-        this.level.$attr2attrVal.textColor );
+        this.level.attr2attrVal.textColor );
   };
 
+  LAID.Part.prototype.renderFn_textVariant = function () {
+    this.node.style.fontVariant =
+      this.level.attr2attrVal.textVariant.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textStyle = function () {
+    this.node.style.fontStyle =
+      this.level.attr2attrVal.textStyle.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textDecoration = function () {
+    this.node.style.textDecoration =
+      this.level.attr2attrVal.textDecoration.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textAlign = function () {
+    this.node.style.textAlign =
+      this.level.attr2attrVal.textAlign.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textLetterSpacing = function () {
+    this.node.style.letterSpacing = computePxOrString( 
+        this.level.attr2attrVal.textLetterSpacing ) ;
+  };
+  LAID.Part.prototype.renderFn_textWordSpacing = function () {
+    this.node.style.wordSpacing = computePxOrString( 
+        this.level.attr2attrVal.textWordSpacing );
+  };
+  LAID.Part.prototype.renderFn_textLineHeight = function () {
+    this.node.style.lineHeight = computeEmOrString( 
+        this.level.attr2attrVal.textLineHeight );
+  };
 
-  LAID.Part.prototype.$renderFn_textShadows = function () {
-    var
-    attr2attrVal = this.level.$attr2attrVal,
-    s = "",
-    i, len;
+  LAID.Part.prototype.renderFn_textOverflow = function () {
+    this.node.style.textOverflow =
+      this.level.attr2attrVal.textOverflow.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textIndent = function () {
+    this.node.style.textIndent =
+      this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textWhitespace = function () {
+    this.node.style.whiteSpace =
+      this.level.attr2attrVal.textWhitespace.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textSmoothing = function () {
+    this.node.style[ cssPrefix + "font-smoothing" ] =
+     this.level.attr2attrVal.textSmoothing.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textRendering = function () {
+    this.node.style.textRendering =
+      this.level.attr2attrVal.textRendering.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textPaddingTop = function () {
+    this.node.style.paddingTop =
+      this.level.attr2attrVal.textPaddingTop.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textPaddingRight = function () {
+    this.node.style.paddingRight =
+      this.level.attr2attrVal.textPaddingRight.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textPaddingBottom = function () {
+    this.node.style.paddingBottom =
+      this.level.attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textPaddingLeft = function () {
+    this.node.style.paddingLeft =
+      this.level.attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
+  };
+
+  LAID.Part.prototype.renderFn_textShadows = function () {
+    var attr2attrVal = this.level.attr2attrVal,
+      s = "",
+      i, len;
     for ( i = 1, len = attr2attrVal[ "$$max.textShadows" ].calcVal; i <= len; i++ ) {
       s +=
       (  attr2attrVal["textShadows" + i + "Color" ].transitionCalcVal.stringify() ) + " " +
@@ -3402,125 +3629,61 @@ bottom: -0.25em;
     this.node.style.textShadow = s;
   };
 
-  LAID.Part.prototype.$renderFn_textVariant = function () {
-    this.node.style.fontVariant = this.level.$attr2attrVal.textVariant.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textStyle = function () {
-    this.node.style.fontStyle = this.level.$attr2attrVal.textStyle.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textDecoration = function () {
-    this.node.style.textDecoration = this.level.$attr2attrVal.textDecoration.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textAlign = function () {
-    this.node.style.textAlign = this.level.$attr2attrVal.textAlign.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
-    this.node.style.letterSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textLetterSpacing ) ;
-  };
-  LAID.Part.prototype.$renderFn_textWordSpacing = function () {
-    this.node.style.wordSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textWordSpacing );
-  };
-  LAID.Part.prototype.$renderFn_textLineHeight = function () {
-    
-    this.node.style.lineHeight = computeEmOrString( 
-        this.level.$attr2attrVal.textLineHeight );
-  }
-
-  LAID.Part.prototype.$renderFn_textOverflow = function () {
-    this.node.style.textOverflow = this.level.$attr2attrVal.textOverflow.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textIndent = function () {
-    this.node.style.textIndent = this.level.$attr2attrVal.textIndent.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textWhitespace = function () {
-    this.node.style.whiteSpace =
-      this.level.$attr2attrVal.textWhitespace.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textSmoothing = function () {
-    this.node.style[ cssPrefix + "font-smoothing" ] =
-     this.level.$attr2attrVal.textSmoothing.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textRendering = function () {
-    this.node.style[ cssPrefix + "text-rendering" ] =
-      this.node.style[ "text-rendering" ] =
-      this.level.$attr2attrVal.textRendering.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textPaddingTop = function () {
-    this.node.style.paddingTop =
-      this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textPaddingRight = function () {
-    this.node.style.paddingRight =
-      this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textPaddingBottom = function () {
-    this.node.style.paddingBottom =
-      this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textPaddingLeft = function () {
-    this.node.style.paddingLeft =
-      this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
-  };
-
-
   /* Non <div> */
 
   /* Input (<input/> and <textarea>) Related */
 
-  LAID.Part.prototype.$renderFn_inputLabel = function () {
-    this.node.label = this.level.$attr2attrVal.inputLabel.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputLabel = function () {
+    this.node.label = this.level.attr2attrVal.inputLabel.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputRows = function () {
-    this.node.rows = this.level.$attr2attrVal.inputRows.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputRows = function () {
+    this.node.rows = this.level.attr2attrVal.inputRows.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_input = function () {
-    this.node.value = this.level.$attr2attrVal.input.transitionCalcVal;
+  LAID.Part.prototype.renderFn_input = function () {
+    this.node.value = this.level.attr2attrVal.input.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputPlaceholder = function () {
-    this.node.placeholder = this.level.$attr2attrVal.inputPlaceholder.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputPlaceholder = function () {
+    this.node.placeholder = this.level.attr2attrVal.inputPlaceholder.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputAutocomplete = function () {
-    this.node.autocomplete = this.level.$attr2attrVal.inputAutocomplete.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputAutocomplete = function () {
+    this.node.autocomplete = this.level.attr2attrVal.inputAutocomplete.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputAutocorrect = function () {
-    this.node.autocorrect = this.level.$attr2attrVal.inputAutocorrect.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputAutocorrect = function () {
+    this.node.autocorrect = this.level.attr2attrVal.inputAutocorrect.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputDisabled = function () {
-    this.node.disabled = this.level.$attr2attrVal.inputDisabled.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputDisabled = function () {
+    this.node.disabled = this.level.attr2attrVal.inputDisabled.transitionCalcVal;
   };
 
 
   /* Link (<a>) Related */
 
-  LAID.Part.prototype.$renderFn_linkHref = function () {
-    this.node.href = this.level.$attr2attrVal.linkHref.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkHref = function () {
+    this.node.href = this.level.attr2attrVal.linkHref.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkRel = function () {
-    this.node.rel = this.level.$attr2attrVal.linkRel.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkRel = function () {
+    this.node.rel = this.level.attr2attrVal.linkRel.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkDownload = function () {
-    this.node.download = this.level.$attr2attrVal.linkDownload.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkDownload = function () {
+    this.node.download = this.level.attr2attrVal.linkDownload.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkTarget = function () {
-    this.node.target = this.level.$attr2attrVal.linkTarget.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkTarget = function () {
+    this.node.target = this.level.attr2attrVal.linkTarget.transitionCalcVal;
   };
-
 
   /* Image (<img>) related */
-  LAID.Part.prototype.$renderFn_imageUrl = function () {
-    this.node.src = this.level.$attr2attrVal.imageUrl.transitionCalcVal;
+  LAID.Part.prototype.renderFn_imageUrl = function () {
+    this.node.src = this.level.attr2attrVal.imageUrl.transitionCalcVal;
   };
 
   /* Audio (<audio>) related */
-  LAID.Part.prototype.$renderFn_audioSources = function () {
+  LAID.Part.prototype.renderFn_audioSources = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
-    i, len,
-    documentFragment = document.createDocumentFragment(),
-    childNodes = this.node.childNodes,
-    childNode;
+      attr2attrVal = this.level.attr2attrVal,
+      i, len,
+      documentFragment = document.createDocumentFragment(),
+      childNodes = this.node.childNodes,
+      childNode;
     // first remove the current audio sources
     for ( i = 0, len = childNodes.length; i <= len; i++ ) {
       childNode = childNodes[ i ];
@@ -3537,9 +3700,9 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_audioTracks = function () {
+  LAID.Part.prototype.renderFn_audioTracks = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     i, len,
     documentFragment = document.createDocumentFragment(),
     childNodes = this.node.childNodes,
@@ -3560,26 +3723,26 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_audioVolume = function () {
-    this.node.volume = this.level.$attr2attrVal.audioVolume.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioVolume = function () {
+    this.node.volume = this.level.attr2attrVal.audioVolume.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioControls = function () {
-    this.node.controls = this.level.$attr2attrVal.audioControls.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioControls = function () {
+    this.node.controls = this.level.attr2attrVal.audioControls.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioLoop = function () {
-    this.node.loop = this.level.$attr2attrVal.audioLoop.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioLoop = function () {
+    this.node.loop = this.level.attr2attrVal.audioLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioMuted = function () {
-    this.node.muted = this.level.$attr2attrVal.audioMuted.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioMuted = function () {
+    this.node.muted = this.level.attr2attrVal.audioMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioPreload = function () {
-    this.node.preload = this.level.$attr2attrVal.audioPreload.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioPreload = function () {
+    this.node.preload = this.level.attr2attrVal.audioPreload.transitionCalcVal;
   };
 
   /* Video (<video>) related */
-  LAID.Part.prototype.$renderFn_videoSources = function () {
+  LAID.Part.prototype.renderFn_videoSources = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     i, len,
     documentFragment = document.createDocumentFragment(),
     childNodes = this.node.childNodes,
@@ -3600,9 +3763,9 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_videoTracks = function () {
+  LAID.Part.prototype.renderFn_videoTracks = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     i, len,
     documentFragment = document.createDocumentFragment(),
     childNodes = this.node.childNodes,
@@ -3623,26 +3786,26 @@ bottom: -0.25em;
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_videoAutoplay = function () {
-    this.node.autoplay = this.level.$attr2attrVal.videoAutoplay.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoAutoplay = function () {
+    this.node.autoplay = this.level.attr2attrVal.videoAutoplay.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoControls = function () {
-    this.node.controls = this.level.$attr2attrVal.videoControls.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoControls = function () {
+    this.node.controls = this.level.attr2attrVal.videoControls.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoCrossorigin = function () {
-    this.node.crossorigin = this.level.$attr2attrVal.videoCrossorigin.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoCrossorigin = function () {
+    this.node.crossorigin = this.level.attr2attrVal.videoCrossorigin.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoLoop = function () {
-    this.node.loop = this.level.$attr2attrVal.videoLoop.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoLoop = function () {
+    this.node.loop = this.level.attr2attrVal.videoLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoMuted = function () {
-    this.node.muted = this.level.$attr2attrVal.videoMuted.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoMuted = function () {
+    this.node.muted = this.level.attr2attrVal.videoMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoPreload = function () {
-    this.node.preload = this.level.$attr2attrVal.videoPreload.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoPreload = function () {
+    this.node.preload = this.level.attr2attrVal.videoPreload.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoPoster = function () {
-    this.node.poster = this.level.$attr2attrVal.videoPoster.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoPoster = function () {
+    this.node.poster = this.level.attr2attrVal.videoPoster.transitionCalcVal;
   };
 
 
@@ -3779,18 +3942,18 @@ bottom: -0.25em;
     if ( this.me ) {
       return referenceLevel;
     } else if ( this.many ) { 
-      return referenceLevel.$derivedMany.level;
+      return referenceLevel.derivedMany.level;
     } else {
       if ( this.absolute ) {
-          return LAID.$path2level[ this.absolutePath ];
+          return LAID.$pathName2level[ this.absolutePath ];
       } else {
         for ( var i = 0; i < this.numberOfParentTraversals;
          ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
         }
 
           return ( this.childPath === "" ) ? referenceLevel :
-              LAID.$path2level[ referenceLevel.path +
-              ( ( referenceLevel.path === "/" ) ? "" : "/" )+
+              LAID.$pathName2level[ referenceLevel.pathName +
+              ( ( referenceLevel.pathName === "/" ) ? "" : "/" )+
               this.childPath ];
       }
     }
@@ -3812,9 +3975,12 @@ bottom: -0.25em;
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-
-        return path.resolve( this ).$getAttrVal( attr ).calcVal;
-
+        if ( attr === "$all" || attr === "$filtered" ) {
+          return LAID.$arrayUtils.cloneSingleLevel( 
+            path.resolve( this ).$getAttrVal( attr ).calcVal );
+        } else {
+          return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+        }
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -3823,7 +3989,7 @@ bottom: -0.25em;
       var directValue = relativePath;
 
       if ( directValue instanceof LAID.Take ) {
-          this.$mergePathAndProps( directValue );
+          this.$mergePathAndAttrs( directValue );
       }
       this.executable = function () {
         return directValue;
@@ -3834,7 +4000,6 @@ bottom: -0.25em;
 
   };
 
-
   LAID.Take.prototype.execute = function ( contextPart ) {
 
     // pass in context part for relative path lookups
@@ -3842,24 +4007,20 @@ bottom: -0.25em;
 
   };
 
-
-  LAID.Take.prototype.$mergePathAndProps = function ( take ) {
+  LAID.Take.prototype.$mergePathAndAttrs = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
       this._relPath00attr_S.push( _relPath00attr_S[ i ] );
 
     }
-
   };
-
-
 
   LAID.Take.prototype.add = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) + val.execute( this );
@@ -3879,7 +4040,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) - val.execute( this );
@@ -3897,7 +4058,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) / val.execute( this );
@@ -3915,7 +4076,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) * val.execute( this );
@@ -3933,7 +4094,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) % val.execute( this );
@@ -3974,7 +4135,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).indexOf( val.execute( this ) ) !== -1;
@@ -3992,7 +4153,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return LAID.identical( oldExecutable.call( this ),
@@ -4011,7 +4172,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) === val.execute( this );
@@ -4031,7 +4192,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) !== val.execute( this );
@@ -4049,7 +4210,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) > val.execute( this );
@@ -4067,7 +4228,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) >= val.execute( this );
@@ -4085,7 +4246,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) < val.execute( this );
@@ -4103,7 +4264,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) <= val.execute( this );
@@ -4121,7 +4282,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) || val.execute( this );
@@ -4139,7 +4300,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) && val.execute( this );
@@ -4182,7 +4343,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this )[ val.execute( this ) ];
@@ -4213,7 +4374,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return Math.min( oldExecutable.call( this ), val.execute( this ) );
@@ -4231,7 +4392,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return Math.max( oldExecutable.call( this ), val.execute( this ) );
@@ -4308,7 +4469,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return Math.pow( oldExecutable.call( this ), val.execute( this ) );
@@ -4336,7 +4497,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).match( val.execute( this ) );
@@ -4355,7 +4516,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).test( val.execute( this ) );
@@ -4381,10 +4542,6 @@ bottom: -0.25em;
     argS.unshift( this );
 
     return takeFormat.fn.apply( takeFormat, argS );
-
-    // Add the `format` function
-    //argS.push(LAID.$format);
-    //return this.fn.apply( this, argS );
 
   };
 
@@ -4430,7 +4587,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).equals( val.execute( this ) );
@@ -4450,7 +4607,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().lighten( val.execute( this ) );
@@ -4470,7 +4627,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().darken( val.execute( this ) );
@@ -4512,7 +4669,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().saturate( val.execute( this ) );
@@ -4531,7 +4688,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().desaturate( val.execute( this ) );
@@ -4551,7 +4708,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().alpha( val.execute( this ) );
@@ -4570,7 +4727,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().red( val.execute( this ) );
@@ -4589,7 +4746,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().green( val.execute( this ) );
@@ -4607,7 +4764,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().blue( val.execute( this ) );
@@ -4625,7 +4782,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().hue( val.execute( this ) );
@@ -4643,7 +4800,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().saturation( val.execute( this ) );
@@ -4661,7 +4818,7 @@ bottom: -0.25em;
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().lightness( val.execute( this ) );
@@ -4682,10 +4839,10 @@ bottom: -0.25em;
     var oldExecutable = this.executable;
 
     if ( index instanceof LAID.Take ) {
-      this.$mergePathAndProps( index );
+      this.$mergePathAndAttrs( index );
 
       if ( attr instanceof LAID.Take ) {
-        this.$mergePathAndProps( attr );
+        this.$mergePathAndAttrs( attr );
         this.executable = function () {
           return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
@@ -4704,7 +4861,7 @@ bottom: -0.25em;
         }
       }
     } else if ( attr instanceof LAID.Take ) {
-      this.$mergePathAndProps( attr );
+      this.$mergePathAndAttrs( attr );
       this.executable = function () {
         return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
@@ -4732,10 +4889,10 @@ bottom: -0.25em;
     var oldExecutable = this.executable;
 
     if ( attr instanceof LAID.Take ) {
-      this.$mergePathAndProps( attr );
+      this.$mergePathAndAttrs( attr );
 
       if ( val instanceof LAID.Take ) {
-        this.$mergePathAndProps( val );
+        this.$mergePathAndAttrs( val );
         this.executable = function () {
           return LAID.$filterUtils.eq(
             oldExecutable.call( this ),
@@ -4754,7 +4911,7 @@ bottom: -0.25em;
         }
       }
     } else if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
       this.executable = function () {
         return LAID.$filterUtils.eq(
             oldExecutable.call( this ),
@@ -4799,7 +4956,7 @@ bottom: -0.25em;
 
       if ( arg instanceof LAID.Take ) {
 
-        this.$mergePathAndProps( arg );
+        this.$mergePathAndAttrs( arg );
         this.executable = function () {
 
           return fnExecutable.call( this ).call( this, arg.execute( this ) );
@@ -4818,11 +4975,11 @@ bottom: -0.25em;
 
       if ( arg1 instanceof LAID.Take ) {
 
-        this.$mergePathAndProps( arg1 );
+        this.$mergePathAndAttrs( arg1 );
 
         if ( arg2 instanceof LAID.Take ) {
 
-          this.$mergePathAndProps( arg2 );
+          this.$mergePathAndAttrs( arg2 );
 
           this.executable = function () {
             return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
@@ -4837,7 +4994,7 @@ bottom: -0.25em;
 
       } else if ( arg2 instanceof LAID.Take ) {
 
-        this.$mergePathAndProps( arg2 );
+        this.$mergePathAndAttrs( arg2 );
         this.executable = function () {
 
           return fnExecutable.call( this ).call( this, arg1, arg2.execute( this ) );
@@ -4862,7 +5019,7 @@ bottom: -0.25em;
 
         if ( curArg instanceof LAID.Take ) {
 
-          this.$mergePathAndProps( curArg );
+          this.$mergePathAndAttrs( curArg );
 
         }
       }
@@ -4897,7 +5054,7 @@ bottom: -0.25em;
 
     if ( fn instanceof LAID.Take ) {
 
-    this.$mergePathAndProps( fn );
+    this.$mergePathAndAttrs( fn );
     this.executable = function () {
 
     return (fn.execute( this )).call( this, oldExecutable.call( this ) );
@@ -4921,11 +5078,11 @@ fn = arguments[ 1 ];
 
 if ( fn instanceof LAID.Take ) {
 
-this.$mergePathAndProps( fn );
+this.$mergePathAndAttrs( fn );
 
 if ( arg instanceof LAID.Take ) {
 
-this.$mergePathAndProps( arg );
+this.$mergePathAndAttrs( arg );
 
 this.executable = function () {
 
@@ -4947,7 +5104,7 @@ return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
 
 if ( arg instanceof LAID.Take ) {
 
-this.$mergePathAndProps( arg );
+this.$mergePathAndAttrs( arg );
 
 this.executable = function () {
 
@@ -4976,7 +5133,7 @@ curArg = arguments[ i ];
 
 if ( curArg instanceof LAID.Take ) {
 
-this.$mergePathAndProps( curArg );
+this.$mergePathAndAttrs( curArg );
 
 }
 }
@@ -5045,8 +5202,7 @@ return this;
     this.delay = delay;
     this.transition = ( transitionType2fn[ type ] )( duration, args );
 
-  }
-
+  };
 
   LAID.Transition.prototype.generateNext = function ( delta ) {
     return this.transition.generateNext( delta );
@@ -5240,6 +5396,7 @@ return this;
     if ( colorName instanceof LAID.Take ) {
         return new LAID.Take( takeColor ).fn( colorName );
     } else {
+        colorName = colorName.toLowerCase();
         var colorValue = colorName2colorValue[ colorName ];
         if ( colorValue === undefined ) {
           throw ("LAID Error: Color name: " + colorName +  " not found." );
@@ -5482,7 +5639,7 @@ return this;
 	 * @return {Boolean} equal match
 	 */
 
-  LAID.identical = function ( a, b ) {
+  LAID.$identical = function ( a, b ) {
   	return deepEqual( a, b, undefined );
   };
 
@@ -5494,7 +5651,6 @@ return this;
 		return LAID.type(x);
 	}
 
-	
   function deepEqual(a,b,m) {
   	var
   		typeA = type( a ),
@@ -5502,10 +5658,10 @@ return this;
 
   	if ( sameValue( a, b ) ) {
 			return true;
-		} else if ( typeA !== typeB ) {
-			return false;
-		} else if ( "color" === typeA ) {
+		} else if ( 'color' === typeA ) {
 			return colorEqual(a, b);
+		} else if ( 'level' === typeA ) {
+			return levelEqual(a, b);
 		} else if ('date' === typeA ) {
 			return dateEqual(a, b);
 		} else if ('regexp' === typeA) {
@@ -5571,6 +5727,10 @@ return this;
 
 	function colorEqual (a, b) {
 		return type(b) === "color" && a.equals(b);		
+	}
+
+	function levelEqual (a, b) {
+		return type(b) === "level" && ( a.pathName === b.pathName );		
 	}
 
 	/*!
@@ -5737,7 +5897,7 @@ return this;
 
   LAID.level = function ( path ) {
 
-    return LAID.$path2level[ path ];
+    return LAID.$pathName2level[ path ];
 
   };
 
@@ -5790,7 +5950,7 @@ return this;
 
   LAID.run =  function ( rootLson ) {
 
-    initiateRuntimeGlobals();
+    setRuntimeGlobals();
 
     ( new LAID.Level( "/", rootLson, undefined ) ).$init();
 
@@ -5800,7 +5960,9 @@ return this;
 
   };
 
-  function initiateRuntimeGlobals () {
+  function setRuntimeGlobals () {
+  
+    
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
     LAID.$centerX = LAID.take("", "width").divide(2);
@@ -5832,7 +5994,7 @@ return this;
 
   function updateSize () {
 
-    var rootLevel = LAID.$path2level[ "/" ];
+    var rootLevel = LAID.$pathName2level[ "/" ];
 
     rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
     rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
@@ -5850,9 +6012,8 @@ return this;
 
   LAID.take = function ( relativePath, prop ) {
 
-
     if ( ( prop !== undefined ) &&
-    	( LAID.$checkIsValidUtils.expanderAttr( prop ) ) ) {
+    	( LAID.$checkIsValidUtils.checkIsAttrExpandable( prop ) ) ) {
         throw ( "LAID Error: takes using expander props such as '" + relativePath  + "' are not permitted." );
     } else {
 
@@ -5900,6 +6061,8 @@ return this;
       return "color";
     } else if ( obj instanceof LAID.Take ) {
       return "take";
+    } else if ( obj instanceof LAID.Level ) {
+      return "level"
     }
     // Support: Android < 4.0, iOS < 6 (functionish RegExp)
     return typeof obj === "object" || typeof obj === "function" ?
@@ -5974,6 +6137,7 @@ return this;
     /* Clone array at a single level */
     cloneSingleLevel: function ( elementS ) {
       return elementS.slice( 0 );
+      
     },
 
     /*Swap element at index a with index b */
@@ -6008,9 +6172,24 @@ return this;
     "root", "transition", "data", "when", "load",
     "",
     "many", "formation", "formationDisplayNone",
-     "sort", "ascending",
+     "sort", "fargs",
     "rows", "row", "filter", "args", "all"
   ];
+
+  function stripStateAttrPrefix( attr ) {
+    var nonStateAttrPrefixS = [ "data", "when", "transition" ];
+    var i = attr.indexOf(".");
+    if ( i === -1 ) {
+      return attr;
+    } else {
+      var prefix = attr.slice( 0, i );
+      if ( nonStateAttrPrefixS.indexOf( prefix ) !== -1 ) {
+        return attr;
+      } else {
+        return attr.slice( i + 1 );
+      }
+    }
+  }
 
   LAID.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
@@ -6032,38 +6211,42 @@ return this;
         )
       )
        || 
-       ( stateName.startsWith("formation:"))
+       ( stateName === "formation") || 
+       ( stateName === "formationDisplayNone")
        );
   	},
-  	expanderAttr: function ( attr ) {
-  		var expanderAttrS = [
-			  "border", "background", "boxShadows", "textShadows",
-         "videoSources", "audioSources", "videoTracks", "audioTracks",
-          "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
-			    "data", "when", "transition", "type", "inherit", "states", "observe"
-			];
-			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
-			 var nonStateAttrPrefixS = [ "data", "when", "transition" ];
 
-		  function stripStateAttrPrefix( attr ) {
-		    var i = attr.indexOf(".");
-		    if ( i === -1 ) {
-		      return attr;
-		    } else {
-		      var prefix = attr.slice( 0, i );
-		      if ( nonStateAttrPrefixS.indexOf( prefix ) !== -1 ) {
-		        return attr;
-		      } else {
-		        return attr.slice( i + 1 );
-		      }
-		    }
-		  }
+    checkIsAttrExpandable: function ( attr ) {
+      return this.checkIsNonPropAttrExpandable( attr ) ||
+        this.checkIsPropAttrExpandable( attr );
+    },
+
+  	checkIsNonPropAttrExpandable: function ( attr ) {
+  		var expanderAttrS = [
+			    "data", "when", "transition", "states", "fargs", "sort"
+			];
+			 var regexExpanderAttrs = /(^sort\.\d+$)|(^fargs\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
 
   		var strippedStateAttr = stripStateAttrPrefix( attr );
     	return ( ( expanderAttrS.indexOf( strippedStateAttr ) !== -1 ) ||
       	( regexExpanderAttrs.test( strippedStateAttr ) )
     	);
   	},
+
+    checkIsPropAttrExpandable: function ( attr ) {
+      var expanderPropS = [
+        "border", "background", "boxShadows", "textShadows",
+         "videoSources", "audioSources", "videoTracks", "audioTracks",
+          "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
+      ];
+       var regexExpanderProps = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)/;
+
+      var strippedStateAttr = stripStateAttrPrefix( attr );
+      return ( ( expanderPropS.indexOf( strippedStateAttr ) !== -1 ) ||
+        ( regexExpanderProps.test( strippedStateAttr ) )
+      );
+    },
+
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
      		( attr[ 0 ] !== "$") &&
@@ -6076,8 +6259,6 @@ return this;
   		return ( typeof val === "number" ) &&
 	     ( val !== +val );
   	}
-
-
 
   };
 
@@ -6099,7 +6280,7 @@ return this;
       for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
         renderDirtyPart = renderDirtyPartS[ x ];
-        travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
+        travelRenderDirtyAttrValS = renderDirtyPart.travelRenderDirtyAttrValS;
 
 
         for ( y = 0, yLen = travelRenderDirtyAttrValS.length; y < yLen; y++ ) {
@@ -6112,7 +6293,7 @@ return this;
 
             // Adding to the "normal" render list automatically
             // removes the attrval from the "travel" render list
-            renderDirtyPart.$addNormalRenderDirtyAttrVal(
+            renderDirtyPart.addNormalRenderDirtyAttrVal(
               travelRenderDirtyAttrVal
             );
           } else {
@@ -6270,7 +6451,7 @@ return this;
 
   var essentialProp2defaultValue;
 
-  LAID.$defaultizeMany = function ( lson ) {
+  LAID.$defaultizeManyLson = function ( lson ) {
     
     var
       essentialProp,
@@ -6283,17 +6464,21 @@ return this;
           essentialProp2defaultValue[ essentialProp ];
       }
     }
-
-    
-
-
   };
 
   essentialProp2defaultValue = {
     filter:  new LAID.Take( "", "$all" ),
-    sort: null,
+    sort: [],
     formation: "onebelow",
-    ascending: true
+    rows: [],
+    fargs: {
+      onebelow: {
+        gap: 0
+      },
+      totheright: {
+        gap: 0
+      }
+    }
     
   };
 
@@ -6318,7 +6503,7 @@ return this;
     takeTopToBottom;
 
 
-  LAID.$defaultizePart = function ( lson ) {
+  LAID.$defaultizePartLson = function ( lson ) {
     var
       essentialProp,
       rootState = lson.states.root,
@@ -6551,7 +6736,7 @@ return this;
     textOverflow: "clip",
     textIndent: 0,
     textWhitespace: "normal",
-    textSmoothing: "auto",
+    textSmoothing: "subpixel-antialiased",
     textRendering: "auto",
 
     textPaddingTop: 0,
@@ -6561,7 +6746,6 @@ return this;
 
     input: "",
     inputLabel: "",
-    inputRows: 2,
     inputPlaceholder: "",
     inputAutocomplete: false,
     inputAutocorrect: true,
@@ -6589,13 +6773,13 @@ return this;
 
   var $inputEvent2fn = {
     click: function () {
-      this.$changeAttrVal( "$input", this.$part.node.value );
+      this.$changeAttrVal( "$input", this.part.node.value );
     },
     change: function () {
-      this.$changeAttrVal( "$input", this.$part.node.value );
+      this.$changeAttrVal( "$input", this.part.node.value );
     },
     keyup: function () {
-      this.$changeAttrVal( "$input", this.$part.node.value );
+      this.$changeAttrVal( "$input", this.part.node.value );
     }
   };
 
@@ -6636,25 +6820,25 @@ return this;
     $scrolledX: {
       scroll: function () {
         this.$changeAttrVal( "$scrolledX",
-          this.$part.node.scrollTop );
+          this.part.node.scrollTop );
       }
     },
     $scrolledY: {
       scroll: function () {
         this.$changeAttrVal( "$scrolledY",
-         this.$part.node.scrollLeft );
+         this.part.node.scrollLeft );
       }
     },
     $cursorX: {
       mousemove: function () {
         this.$changeAttrVal( "$cursorX",
-          this.$part.node.offsetX );
+          this.part.node.offsetX );
       }
     },
     $cursorY: {
       mousemove: function () {
         this.$changeAttrVal( "$cursorY",
-          this.$part.node.offsetY );
+          this.part.node.offsetY );
       }
     },
 
@@ -6685,73 +6869,79 @@ return this;
 
 })();
 
-var GUID = 1;
+( function () {
+  "use strict";
 
-LAID.$eventUtils = {
-  add: function (element, type, handler) {
-    if (element.addEventListener) {
-      element.addEventListener(type, handler, false);
-    } else {
-      // assign each event handler a unique ID
-      if (!handler.$$guid) handler.$$guid = event_helper.GUID++;
-      // create a hash table of event types for the element
-      if (!element.events) element.events = {};
-      // create a hash table of event handlers for each element/event pair
-      var handlers = element.events[type];
-      if (!handlers) {
-        handlers = element.events[type] = {};
-        // store the existing event handler (if there is one)
-        if (element["on" + type]) {
-          handlers[0] = element["on" + type];
+  var GUID = 1;
+
+  LAID.$eventUtils = {
+    add: function (element, type, handler) {
+      if (element.addEventListener) {
+        element.addEventListener(type, handler, false);
+      } else {
+        // assign each event handler a unique ID
+        if (!handler.$$guid) handler.$$guid = event_helper.GUID++;
+        // create a hash table of event types for the element
+        if (!element.events) element.events = {};
+        // create a hash table of event handlers for each element/event pair
+        var handlers = element.events[type];
+        if (!handlers) {
+          handlers = element.events[type] = {};
+          // store the existing event handler (if there is one)
+          if (element["on" + type]) {
+            handlers[0] = element["on" + type];
+          }
+        }
+        // store the event handler in the hash table
+        handlers[handler.$$guid] = handler;
+        // assign a global event handler to do all the work
+        element["on" + type] = handle;
+      }
+    },
+
+    remove: function (element, type, handler) {
+      if (element.removeEventListener) {
+        element.removeEventListener(type, handler, false);
+      } else {
+        // delete the event handler from the hash table
+        if (element.events && element.events[type]) {
+          delete element.events[type][handler.$$guid];
         }
       }
-      // store the event handler in the hash table
-      handlers[handler.$$guid] = handler;
-      // assign a global event handler to do all the work
-      element["on" + type] = handle;
     }
-  },
+  };
 
-  remove: function (element, type, handler) {
-    if (element.removeEventListener) {
-      element.removeEventListener(type, handler, false);
-    } else {
-      // delete the event handler from the hash table
-      if (element.events && element.events[type]) {
-        delete element.events[type][handler.$$guid];
+  function handle(event) {
+    var returnValue = true;
+    // grab the event object (IE uses a global event object)
+    event = event || fix(((this.ownerDocument || this.document || this).parentWindow || window).event);
+    // get a reference to the hash table of event handlers
+    var handlers = this.events[event.type];
+    // execute each event handler
+    for (var i in handlers) {
+      this.$$handleEvent = handlers[i];
+      if (this.$$handleEvent(event) === false) {
+        returnValue = false;
       }
     }
+    return returnValue;
   }
-};
 
-function handle(event) {
-  var returnValue = true;
-  // grab the event object (IE uses a global event object)
-  event = event || fix(((this.ownerDocument || this.document || this).parentWindow || window).event);
-  // get a reference to the hash table of event handlers
-  var handlers = this.events[event.type];
-  // execute each event handler
-  for (var i in handlers) {
-    this.$$handleEvent = handlers[i];
-    if (this.$$handleEvent(event) === false) {
-      returnValue = false;
-    }
+  function fix(event) {
+    // add W3C standard event methods
+    event.preventDefault = fix_preventDefault;
+    event.stopPropagation = fix_stopPropagation;
+    return event;
   }
-  return returnValue;
-}
+  function fix_preventDefault() {
+    this.returnValue = false;
+  }
+  function fix_stopPropagation() {
+    this.cancelBubble = true;
+  }
+})();
 
-function fix(event) {
-  // add W3C standard event methods
-  event.preventDefault = fix_preventDefault;
-  event.stopPropagation = fix_stopPropagation;
-  return event;
-}
-function fix_preventDefault() {
-  this.returnValue = false;
-}
-function fix_stopPropagation() {
-  this.cancelBubble = true;
-}
+
 
 ( function () {
 	"use strict";
@@ -6767,14 +6957,15 @@ function fix_stopPropagation() {
 			return filter( function ( partLevel ) {
 					return partLevel.attr( attr ) !== val;
 				}, partLevelS );
-			
 		},
+
 		gt: function ( partLevelS, attr, val ) {
 			return filter( function ( partLevel ) {
 					return partLevel.attr( attr ) > val;
 				}, partLevelS );
 			
 		},
+		
 		gte: function ( partLevelS, attr, val ) {
 			return filter( function ( partLevel ) {
 					return partLevel.attr( attr )>= val;
@@ -6814,7 +7005,6 @@ function fix_stopPropagation() {
 
 		fn: function ( partLevelS, fnFilter ) {
 			return filter( fnFilter , partLevelS );
-			
 		}
 		
 
@@ -6835,8 +7025,6 @@ function fix_stopPropagation() {
 
 ( function () {
   "use strict";
-
-
 
   var regexDetails = /^([a-zA-Z]+)(\d+)/;
 
@@ -6867,9 +7055,10 @@ function fix_stopPropagation() {
       renderCall,
       multipleTypePropMatchDetails;
 
+    /*
     if ( prop === "$input" ) {
       return prop;
-    }
+    }*/
 
     if ( !LAID.$checkIsValidUtils.propAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
@@ -7193,14 +7382,14 @@ function fix_stopPropagation() {
 
 	LAID.$formationName2fn = {
 		onebelow: function ( f, filteredLevel, filteredLevelS ) {
-			filteredLevel.setFormationXY( undefined,
-				LAID.take(filteredLevelS[ f - 2 ].path, "bottom").add(
-					LAID.take("*", "args.onebelow.gap")) );
+			filteredLevel.$setFormationXY( undefined,
+				LAID.take(filteredLevelS[ f - 2 ].pathName, "bottom").add(
+					LAID.take("*", "fargs.onebelow.gap")) );
 		},
 		totheright: function ( f, filteredLevel, filteredLevelS ) {
-			filteredLevel.setFormationXY(
-				LAID.take(filteredLevelS[ f - 2 ].path, "right").add(
-					LAID.take("*", "args.totheright.gap")),
+			filteredLevel.$setFormationXY(
+				LAID.take(filteredLevelS[ f - 2 ].pathName, "right").add(
+					LAID.take("*", "fargs.totheright.gap")),
 					undefined );
 		}
 	};
@@ -7211,8 +7400,8 @@ function fix_stopPropagation() {
   LAID.$generateColorMix = function ( startColor, endColor, fraction ) {
 
       var
-        startColorRgbaDict = startColor.rgba(),
-        endColorRgbaDict = endColor.rgba(),
+        startColorRgbaDict = startColor.getRgba(),
+        endColorRgbaDict = endColor.getRgba(),
         midColor;
 
 
@@ -7314,10 +7503,9 @@ function fix_stopPropagation() {
 
       if ( isMany ) {
         into.formation = from.formation || into.formation;
-        into.sort = from.sort || into.sort;
-        into.ascending = from.ascending || into.ascending;
         into.filter = from.filter || into.filter;
-        key2fnInherit.args( into, from );
+        key2fnInherit.fargs( into, from );
+        into.sort = from.sort || into.sort;
 
       } else {
         if ( from.props !== undefined ) {
@@ -7332,7 +7520,7 @@ function fix_stopPropagation() {
         if ( from.$$max !== undefined ) {
           key2fnInherit.$$max( into, from );
         }
-      } 
+      }
     }
   };
 
@@ -7533,32 +7721,27 @@ function fix_stopPropagation() {
 
       },
 
-      args: function ( intoLson, fromLson ) {
+      fargs: function ( intoLson, fromLson ) {
 
         var
-          formationArg,
-          intoArgs = intoLson.args,
-          fromArgs = fromLson.args;
+          formationFarg,
+          intoFargs = intoLson.fargs,
+          fromFargs = fromLson.fargs;
 
-
-        if ( fromArgs ) {
-          if ( !intoArgs ) {
-            intoArgs = intoLson.args = {};
+        if ( fromFargs ) {
+          if ( !intoFargs ) {
+            intoFargs = intoLson.fargs = {};
           }
-          for ( formationArg in fromArgs ) {
-            if ( !intoArgs[ formationArg  ] ) {
-              intoArgs[ formationArg ] = {};
+          for ( formationFarg in fromFargs ) {
+            if ( !intoFargs[ formationFarg  ] ) {
+              intoFargs[ formationFarg ] = {};
             } 
-            inheritSingleLevelObject( intoArgs, fromArgs, formationArg );
+            inheritSingleLevelObject( 
+              intoFargs, fromFargs, formationFarg );
             
           }
         }
-
-
       },
-
-
-
 
 
       children: function( intoLson, fromLson ) {
@@ -7609,7 +7792,6 @@ function fix_stopPropagation() {
       },
 
       when: function( intoLson, fromLson ) {
-
 
         var
           fromEventType2_fnEventHandlerS_ = fromLson.when,
@@ -7718,8 +7900,6 @@ function fix_stopPropagation() {
           fromAttr2max = fromLson.$$max,
           intoAttr2max = intoLson.$$max,
           fromAttr;
-
-
 
         if ( intoAttr2max === undefined ) {
           intoAttr2max = intoLson.$$max = {};
@@ -7859,7 +8039,7 @@ function fix_stopPropagation() {
 
     } else {
 
-      if ( LAID.$checkIsValidUtils.expanderAttr( prefix ) ) {
+      if ( LAID.$checkIsValidUtils.checkIsPropAttrExpandable( prefix ) ) {
         checkAndThrowErrorAttrAsTake( prefix, val );
       }
 
@@ -8067,7 +8247,7 @@ function fix_stopPropagation() {
         }
 
         for ( transitionProp in transition ) {
-          if ( LAID.$checkIsValidUtils.expanderAttr( transitionProp ) ) {
+          if ( LAID.$checkIsValidUtils.checkIsPropAttrExpandable( transitionProp ) ) {
             throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
@@ -8107,7 +8287,10 @@ function fix_stopPropagation() {
           key2fnNormalize.props( state );
           key2fnNormalize.when( state );
           key2fnNormalize.transition( state );
-        } 
+        } else {
+          key2fnNormalize.fargs( state );
+          key2fnNormalize.sort( state ); 
+        }
 
       }
     }
@@ -8145,17 +8328,15 @@ function fix_stopPropagation() {
       
         formation: many.formation,
         sort: many.sort,
-        ascending: many.ascending,
         filter: many.filter || takeFilterAll,
-        args: many.args
+        fargs: many.fargs
 
       };
 
       many.formation = undefined;
       many.sort = undefined;
-      many.ascending = undefined;
       many.filter = undefined;
-      many.args = undefined;
+      many.fargs = undefined;
 
       key2fnNormalize.states( many, true );
 
@@ -8163,56 +8344,45 @@ function fix_stopPropagation() {
   },
 
   // formation args (Many)
-  args: function ( lson ) {
-    if ( lson.args ) {
+  fargs: function ( lson ) {
+    if ( lson.fargs ) {
       var
-        args = lson.args,
+        fargs = lson.fargs,
         formationArg;
 
-      checkAndThrowErrorAttrAsTake( "args", args );
+      checkAndThrowErrorAttrAsTake( "fargs", fargs );
 
-      for ( formationArg in args ) {
-        checkAndThrowErrorAttrAsTake( "args." + formationArg,
-          args[ formationArg ] );
+      for ( formationArg in fargs ) {
+        checkAndThrowErrorAttrAsTake( "fargs." + formationArg,
+          fargs[ formationArg ] );
       }
 
 
     }
+  },
+
+  sort: function ( lson ) {
+    if ( lson.sort ) {
+      var
+        sortS = lson.sort,
+        i, len;
+
+      checkAndThrowErrorAttrAsTake( "sort", sortS );
+
+      for ( i = 0, len = sortS.length; i < len; i++ ) {
+        checkAndThrowErrorAttrAsTake( "sort." + i,
+          sortS[ i ] );
+        if ( sortS[ i ].ascending === undefined ) {
+          sortS[ i ].ascending = true;
+        }
+
+      }
+    } 
   }
 
 };
 
 }());
-
-
-(function(){
-  "use strict";
-  /* Modified source of: Paul Irish's https://gist.github.com/paulirish/5438650
-  And https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-  */
-  if ( window.performance === undefined ) {
-    window.performance = {};
-  }
-
-  if ( window.performance.now === undefined ) {
-
-    if ( Date.now === undefined ) {
-      Date.now = function now() {
-        return new Date().getTime();
-      };
-    }
-    var nowOffset = Date.now();
-
-    if ( performance.timing !== undefined && performance.timing.navigationStart !== undefined ) {
-      nowOffset = performance.timing.navigationStart;
-    }
-
-    window.performance.now = function now() {
-      return Date.now() - nowOffset;
-    };
-  }
-
-})();
 
 ( function () {
   "use strict";
@@ -8326,52 +8496,33 @@ if (!Array.prototype.indexOf) {
   };
 }
 
-(function () {
-  "use strict";
 
-  if ( String.prototype.startWith === undefined ) {
-    String.prototype.startsWith = function ( prefix ) {
-      if (this.length < prefix.length)
-        return false;
-        for (var i = prefix.length - 1; (i >= 0) && (this[i] === prefix[i]); --i)
-          continue;
-          return i < 0;
-        };
+(function(){
+  "use strict";
+  /* Modified source of: Paul Irish's https://gist.github.com/paulirish/5438650
+  And https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
+  */
+  if ( window.performance === undefined ) {
+    window.performance = {};
   }
 
-})();
+  if ( window.performance.now === undefined ) {
 
-( function () {
-  "use strict";
+    if ( Date.now === undefined ) {
+      Date.now = function now() {
+        return new Date().getTime();
+      };
+    }
+    var nowOffset = Date.now();
 
-  LAID.$queryUtils = {
-    
-    fetch: function ( partLevelS, index, attr ) {
-  
-            
-      if ( index < 1 ) {
-        console.error(
-          "LAID Warning: Filter indexing begins from 1" );
-          console.log(index);
-        return undefined;
+    if ( performance.timing !== undefined && performance.timing.navigationStart !== undefined ) {
+      nowOffset = performance.timing.navigationStart;
+    }
 
-      } else {
-        if ( !partLevelS[ index - 1 ] ) {
-          return null;
-        } else {
-          return partLevelS[ index - 1 ].$getAttrVal( attr ).calcVal;
-        }
-      }
-
-    },
-
-   /* fetchAll: function ( partLevelS ) {
-      return partLevelS;
-    } */
-
-  };
-
-  
+    window.performance.now = function now() {
+      return Date.now() - nowOffset;
+    };
+  }
 
 })();
 
@@ -8408,6 +8559,54 @@ if (!Array.prototype.indexOf) {
         };
 }());
 
+(function () {
+  "use strict";
+
+  if ( String.prototype.startWith === undefined ) {
+    String.prototype.startsWith = function ( prefix ) {
+      if (this.length < prefix.length)
+        return false;
+        for (var i = prefix.length - 1; (i >= 0) && (this[i] === prefix[i]); --i)
+          continue;
+          return i < 0;
+        };
+  }
+
+})();
+
+( function () {
+  "use strict";
+
+  LAID.$queryUtils = {
+    
+    fetch: function ( partLevelS, index, attr ) {
+  
+      if ( index < 1 ) {
+        console.error(
+          "LAID Warning: Filter indexing begins from 1" );
+          console.log(index);
+        return undefined;
+
+      } else {
+        if ( !partLevelS[ index - 1 ] ) {
+          return null;
+        } else {
+          return partLevelS[ index - 1 ].$getAttrVal( attr ).calcVal;
+        }
+      }
+
+    },
+
+   /* fetchAll: function ( partLevelS ) {
+      return partLevelS;
+    } */
+
+  };
+
+  
+
+})();
+
 ( function () {
   "use strict";
 
@@ -8433,16 +8632,13 @@ if (!Array.prototype.indexOf) {
     var
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
-      insertedPartS = LAID.$insertedPartS, insertedPart,
-      removedPartS = LAID.$removedPartS, removedPart,    
+      parentNode,
       x, y,
       i, len,
       isDataTravelling = LAID.$isDataTravelling,
       dataTravellingDelta = LAID.$dataTravelDelta,
       renderDirtyPartS = LAID.$renderDirtyPartS,
       renderDirtyPart,
-      newManyS = LAID.$newManyS,
-      newMany,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal,
       normalRenderDirtyAttrValS,
@@ -8451,16 +8647,16 @@ if (!Array.prototype.indexOf) {
       renderCallS, isNormalAttrValTransitionComplete,
       renderNewLevelS = [],
       renderNewLevel,
-      loadAttrVal,
+      fnLoad,
       isAllNormalTransitionComplete = true;
 
+    /*
     for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
       insertedPart = insertedPartS[ i ];
-      insertedPart.level.parentLevel.$part.node.appendChild(
-        insertedPart.node );
-      if ( insertedPart.isInputText ) {
-        insertedPart.level.parentLevel.$part.node.appendChild(
-          insertedPart.inputDivNode );
+      parentNode = insertedPart.level.parentLevel.part.node;
+      parentNode.appendChild( insertedPart.node );
+      if ( insertedPart.textSizeMeasureNode ) {
+        parentNode.appendChild( insertedPart.textSizeMeasureNode );
       }  
     }
     
@@ -8468,18 +8664,22 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = removedPartS.length; i < len; i++ ) {
       removedPart = removedPartS[ i ];
-      removedPart.level.parentLevel.$part.node.removeChild(
-        removedPart.node );
+      parentNode = removedPart.level.parentLevel.part.node;
+      parentNode.removeChild( removedPart.node );
+      if ( removedPart.textSizeMeasureNode ) {
+        parentNode.removechild( removedPart.textSizeMeasureNode );
+      }
     }
 
     LAID.$removedPartS = [];
+    */
 
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
       renderDirtyPart = renderDirtyPartS[ x ];
 
-      travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
-      normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
+      travelRenderDirtyAttrValS = renderDirtyPart.travelRenderDirtyAttrValS;
+      normalRenderDirtyAttrValS = renderDirtyPart.normalRenderDirtyAttrValS;
 
       renderCallS = [];
 
@@ -8537,7 +8737,7 @@ if (!Array.prototype.indexOf) {
 
       }
 
-
+      /*
       // If "text" or "$input" is to be rendered, it must be
       // rendered last to be able to bear knowledge
       // of the most recent (render) changes to text props
@@ -8549,6 +8749,7 @@ if (!Array.prototype.indexOf) {
       if ( LAID.$arrayUtils.remove( renderCallS, "$input" ) ) {
         renderCallS.push( "$input" );
       }
+      */
 
       // And scroll positions must be affected later
       if ( LAID.$arrayUtils.remove( renderCallS, "scrollX" ) ) {
@@ -8560,12 +8761,12 @@ if (!Array.prototype.indexOf) {
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
         var fnRender =
-          renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ];
+          renderDirtyPart[ "renderFn_" + renderCallS[ i ] ];
         if ( !fnRender ) {
           throw "LAID Error: Inexistent prop: '" +
            renderCallS[ i ] + "'"; 
         }
-        renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
+        renderDirtyPart[ "renderFn_" + renderCallS[ i ] ]();
       }
 
       if (
@@ -8585,31 +8786,20 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
-      renderNewLevel.$part.isInitiallyRendered = true;
-      loadAttrVal = renderNewLevel.$attr2attrVal.load;
+      renderNewLevel.part.isInitiallyRendered = true;
+      fnLoad = renderNewLevel.lson.$load;
       
       if ( renderNewLevel.parentLevel ) {
         if ( renderNewLevel.parentLevel.node().style.visibility === "hidden") {
           renderNewLevel.node().style.visibility = "hidden";
         }
       }     
-      if ( ( loadAttrVal ) &&
-        ( typeof loadAttrVal.calcVal === "function" ) ) {
-          loadAttrVal.calcVal.call( renderNewLevel );
+      if ( fnLoad ) {
+        fnLoad.call( renderNewLevel );
       }
     }
 
-    for ( i = 0, len = newManyS.length; i < len; i++ ) {
-      newMany = newManyS[ i ];
-      newMany.$isLoaded = true;
-      newMany.$updateFilteredPositioning();
-      loadAttrVal = newMany.level.$attr2attrVal.load;
-      if ( ( loadAttrVal ) &&
-        ( typeof loadAttrVal.calcVal === "function" ) ) {
-          loadAttrVal.calcVal.call( newMany.level );
-      }
-    }
-    LAID.$newManyS = [];
+    
 
     LAID.$isRequestedForAnimationFrame = false;
 
@@ -8619,6 +8809,7 @@ if (!Array.prototype.indexOf) {
     } else if ( !isAllNormalTransitionComplete ) {
       LAID.$render( curTimeFrame );
     }
+
   }
 
   function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
@@ -8748,9 +8939,10 @@ if (!Array.prototype.indexOf) {
 ( function () {
   "use strict";
   LAID.$solve = function () {
-    
-    if ( !LAID.$isSolving ) {
 
+    if ( LAID.$isRendering ) {
+      LAID.$isSolveRequiredOnRenderFinish = true;
+    } else if ( !LAID.$isSolving ) {
       var 
         ret,
         isSolveNewComplete,
@@ -8778,6 +8970,8 @@ if (!Array.prototype.indexOf) {
         }
 
         executeStateInstallation();
+        executeManyLoads();
+
 
         // The reason we cannot use `ret` to confirm
         // completion and not `ret` is because during solving
@@ -8807,12 +9001,12 @@ if (!Array.prototype.indexOf) {
       if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
         var msg = "LAID Error: Circular/Undefined Reference Encountered [";
         if ( !isSolveNewComplete ) {
-          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].path;
+          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].pathName;
         } else {
           var uninstantiableLevel = LAID.$recalculateDirtyLevelS[ 0 ];
           msg += "Uninstantiable Attr: " +
-             uninstantiableLevel.$recalculateDirtyAttrValS[ 0 ].attr +
-            " (Level: " + uninstantiableLevel.path  + ")";
+             uninstantiableLevel.recalculateDirtyAttrValS[ 0 ].attr +
+            " (Level: " + uninstantiableLevel.pathName  + ")";
         } 
         msg += "]";
         throw msg;
@@ -8825,6 +9019,22 @@ if (!Array.prototype.indexOf) {
     }
 
   };
+
+  function executeManyLoads () {
+    var newManyS = LAID.$newManyS, newMany, fnLoad;
+
+    for ( var i = 0, len = newManyS.length; i < len; i++ ) {
+      newMany = newManyS[ i ];
+      newMany.isLoaded = true;
+      newMany.updateFilteredPositioning();
+      fnLoad = newMany.level.attr2attrVal.load;
+      if ( fnLoad ) {
+        fnLoad.call( newMany.level );
+      }
+    }
+    LAID.$newManyS = [];
+ 
+  }
 
   function executeStateInstallation () {
 
@@ -8841,10 +9051,10 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
-      newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
+      newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
         attrValNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] +
+          newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
           ".install" ];
         attrValNewlyInstalledStateInstall &&
           ( LAID.type(attrValNewlyInstalledStateInstall.calcVal ) ===
@@ -8853,16 +9063,16 @@ if (!Array.prototype.indexOf) {
           newlyInstalledStateLevel );
       }
       // empty the list
-      newlyInstalledStateLevel.$newlyInstalledStateS = [];
+      newlyInstalledStateLevel.newlyInstalledStateS = [];
     }
     LAID.$newlyInstalledStateLevelS = [];
 
     for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
-      newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
+      newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
         attrValNewlyUninstalledStateUninstall =
-          newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] +
+          newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
           ".uninstall" ];
         attrValNewlyUninstalledStateUninstall &&
           ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
@@ -8871,7 +9081,7 @@ if (!Array.prototype.indexOf) {
           newlyUninstalledStateLevel );
       }
       // empty the list
-      newlyUninstalledStateLevel.$newlyUninstalledStateS = [];
+      newlyUninstalledStateLevel.newlyUninstalledStateS = [];
     }
     LAID.$newlyUninstalledStateLevelS = [];
   }
@@ -8889,7 +9099,9 @@ if (!Array.prototype.indexOf) {
       isSolveProgressedOnce = false,
       newLevelS = LAID.$newLevelS,
       newLevel,
-      solvedLevelS = [];
+      solvedLevelS = [],
+      manyWithNewLevelS = [],
+      manyWithNewLevel;
 
     if ( !newLevelS.length ) {
       return 3;
@@ -8906,6 +9118,10 @@ if (!Array.prototype.indexOf) {
           solvedLevelS.push( newLevel );
           LAID.$arrayUtils.removeAtIndex( newLevelS, i );
           i--;
+          if ( newLevel.derivedMany ) {
+            LAID.$arrayUtils.pushUnique(
+             manyWithNewLevelS, newLevel.derivedMany );
+          }
         }
       }
    
@@ -8913,6 +9129,12 @@ if (!Array.prototype.indexOf) {
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
       solvedLevelS[ i ].$initAllAttrs();
+    }
+
+    for ( i = 0, len = manyWithNewLevelS.length;
+     i < len; i++ ) {
+      manyWithNewLevel = manyWithNewLevelS[ i ];
+      manyWithNewLevel.level.attr2attrVal.filter.forceRecalculation();
     }
 
     return newLevelS.length === 0 ? 0 :

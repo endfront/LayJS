@@ -40,18 +40,18 @@
     if ( this.me ) {
       return referenceLevel;
     } else if ( this.many ) { 
-      return referenceLevel.$derivedMany.level;
+      return referenceLevel.derivedMany.level;
     } else {
       if ( this.absolute ) {
-          return LAID.$path2level[ this.absolutePath ];
+          return LAID.$pathName2level[ this.absolutePath ];
       } else {
         for ( var i = 0; i < this.numberOfParentTraversals;
          ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
         }
 
           return ( this.childPath === "" ) ? referenceLevel :
-              LAID.$path2level[ referenceLevel.path +
-              ( ( referenceLevel.path === "/" ) ? "" : "/" )+
+              LAID.$pathName2level[ referenceLevel.pathName +
+              ( ( referenceLevel.pathName === "/" ) ? "" : "/" )+
               this.childPath ];
       }
     }

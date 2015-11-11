@@ -94,13 +94,15 @@ bottom: -0.25em;
 
   window.laid = window.LAID = {
 
-    version: 1,
+    // version is a method in order
+    // to maintain the consistency of
+    // only method accesses from the user
+    version: function(){ return 1; },
 
-    $path2level: {},
-    $cloggedLevelS: [],
-    $insertedPartS: [],
-    $removedPartS: [],
     
+    $pathName2level: {},
+    $cloggedLevelS: [],
+
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
@@ -120,6 +122,7 @@ bottom: -0.25em;
     $dataTravellingLevel: undefined,
     $dataTravellingAttrInitialVal: undefined,
     $dataTravellingAttrVal: undefined
+
 
 
   };

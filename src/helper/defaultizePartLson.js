@@ -16,7 +16,7 @@
     takeTopToBottom;
 
 
-  LAID.$defaultizePart = function ( lson ) {
+  LAID.$defaultizePartLson = function ( lson ) {
     var
       essentialProp,
       rootState = lson.states.root,
@@ -249,7 +249,7 @@
     textOverflow: "clip",
     textIndent: 0,
     textWhitespace: "normal",
-    textSmoothing: "auto",
+    textSmoothing: "subpixel-antialiased",
     textRendering: "auto",
 
     textPaddingTop: 0,
@@ -259,7 +259,6 @@
 
     input: "",
     inputLabel: "",
-    inputRows: 2,
     inputPlaceholder: "",
     inputAutocomplete: false,
     inputAutocorrect: true,

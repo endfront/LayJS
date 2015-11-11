@@ -4,8 +4,8 @@
   LAID.$generateColorMix = function ( startColor, endColor, fraction ) {
 
       var
-        startColorRgbaDict = startColor.rgba(),
-        endColorRgbaDict = endColor.rgba(),
+        startColorRgbaDict = startColor.getRgba(),
+        endColorRgbaDict = endColor.getRgba(),
         midColor;
 
 

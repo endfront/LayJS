@@ -10,9 +10,12 @@
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-
-        return path.resolve( this ).$getAttrVal( attr ).calcVal;
-
+        if ( attr === "$all" || attr === "$filtered" ) {
+          return LAID.$arrayUtils.cloneSingleLevel( 
+            path.resolve( this ).$getAttrVal( attr ).calcVal );
+        } else {
+          return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+        }
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -21,7 +24,7 @@
       var directValue = relativePath;
 
       if ( directValue instanceof LAID.Take ) {
-          this.$mergePathAndProps( directValue );
+          this.$mergePathAndAttrs( directValue );
       }
       this.executable = function () {
         return directValue;
@@ -32,7 +35,6 @@
 
   };
 
-
   LAID.Take.prototype.execute = function ( contextPart ) {
 
     // pass in context part for relative path lookups
@@ -40,24 +42,20 @@
 
   };
 
-
-  LAID.Take.prototype.$mergePathAndProps = function ( take ) {
+  LAID.Take.prototype.$mergePathAndAttrs = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
       this._relPath00attr_S.push( _relPath00attr_S[ i ] );
 
     }
-
   };
-
-
 
   LAID.Take.prototype.add = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) + val.execute( this );
@@ -77,7 +75,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) - val.execute( this );
@@ -95,7 +93,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) / val.execute( this );
@@ -113,7 +111,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) * val.execute( this );
@@ -131,7 +129,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) % val.execute( this );
@@ -172,7 +170,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).indexOf( val.execute( this ) ) !== -1;
@@ -190,7 +188,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return LAID.identical( oldExecutable.call( this ),
@@ -209,7 +207,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) === val.execute( this );
@@ -229,7 +227,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) !== val.execute( this );
@@ -247,7 +245,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) > val.execute( this );
@@ -265,7 +263,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) >= val.execute( this );
@@ -283,7 +281,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) < val.execute( this );
@@ -301,7 +299,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) <= val.execute( this );
@@ -319,7 +317,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) || val.execute( this );
@@ -337,7 +335,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ) && val.execute( this );
@@ -380,7 +378,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this )[ val.execute( this ) ];
@@ -411,7 +409,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return Math.min( oldExecutable.call( this ), val.execute( this ) );
@@ -429,7 +427,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return Math.max( oldExecutable.call( this ), val.execute( this ) );
@@ -506,7 +504,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return Math.pow( oldExecutable.call( this ), val.execute( this ) );
@@ -534,7 +532,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).match( val.execute( this ) );
@@ -553,7 +551,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).test( val.execute( this ) );
@@ -579,10 +577,6 @@
     argS.unshift( this );
 
     return takeFormat.fn.apply( takeFormat, argS );
-
-    // Add the `format` function
-    //argS.push(LAID.$format);
-    //return this.fn.apply( this, argS );
 
   };
 
@@ -628,7 +622,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).equals( val.execute( this ) );
@@ -648,7 +642,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().lighten( val.execute( this ) );
@@ -668,7 +662,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().darken( val.execute( this ) );
@@ -710,7 +704,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().saturate( val.execute( this ) );
@@ -729,7 +723,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().desaturate( val.execute( this ) );
@@ -749,7 +743,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().alpha( val.execute( this ) );
@@ -768,7 +762,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().red( val.execute( this ) );
@@ -787,7 +781,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().green( val.execute( this ) );
@@ -805,7 +799,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().blue( val.execute( this ) );
@@ -823,7 +817,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().hue( val.execute( this ) );
@@ -841,7 +835,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().saturation( val.execute( this ) );
@@ -859,7 +853,7 @@
 
     var oldExecutable = this.executable;
     if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
 
       this.executable = function () {
         return oldExecutable.call( this ).copy().lightness( val.execute( this ) );
@@ -880,10 +874,10 @@
     var oldExecutable = this.executable;
 
     if ( index instanceof LAID.Take ) {
-      this.$mergePathAndProps( index );
+      this.$mergePathAndAttrs( index );
 
       if ( attr instanceof LAID.Take ) {
-        this.$mergePathAndProps( attr );
+        this.$mergePathAndAttrs( attr );
         this.executable = function () {
           return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
@@ -902,7 +896,7 @@
         }
       }
     } else if ( attr instanceof LAID.Take ) {
-      this.$mergePathAndProps( attr );
+      this.$mergePathAndAttrs( attr );
       this.executable = function () {
         return LAID.$queryUtils.fetch(
             oldExecutable.call( this ),
@@ -930,10 +924,10 @@
     var oldExecutable = this.executable;
 
     if ( attr instanceof LAID.Take ) {
-      this.$mergePathAndProps( attr );
+      this.$mergePathAndAttrs( attr );
 
       if ( val instanceof LAID.Take ) {
-        this.$mergePathAndProps( val );
+        this.$mergePathAndAttrs( val );
         this.executable = function () {
           return LAID.$filterUtils.eq(
             oldExecutable.call( this ),
@@ -952,7 +946,7 @@
         }
       }
     } else if ( val instanceof LAID.Take ) {
-      this.$mergePathAndProps( val );
+      this.$mergePathAndAttrs( val );
       this.executable = function () {
         return LAID.$filterUtils.eq(
             oldExecutable.call( this ),
@@ -997,7 +991,7 @@
 
       if ( arg instanceof LAID.Take ) {
 
-        this.$mergePathAndProps( arg );
+        this.$mergePathAndAttrs( arg );
         this.executable = function () {
 
           return fnExecutable.call( this ).call( this, arg.execute( this ) );
@@ -1016,11 +1010,11 @@
 
       if ( arg1 instanceof LAID.Take ) {
 
-        this.$mergePathAndProps( arg1 );
+        this.$mergePathAndAttrs( arg1 );
 
         if ( arg2 instanceof LAID.Take ) {
 
-          this.$mergePathAndProps( arg2 );
+          this.$mergePathAndAttrs( arg2 );
 
           this.executable = function () {
             return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
@@ -1035,7 +1029,7 @@
 
       } else if ( arg2 instanceof LAID.Take ) {
 
-        this.$mergePathAndProps( arg2 );
+        this.$mergePathAndAttrs( arg2 );
         this.executable = function () {
 
           return fnExecutable.call( this ).call( this, arg1, arg2.execute( this ) );
@@ -1060,7 +1054,7 @@
 
         if ( curArg instanceof LAID.Take ) {
 
-          this.$mergePathAndProps( curArg );
+          this.$mergePathAndAttrs( curArg );
 
         }
       }
@@ -1095,7 +1089,7 @@
 
     if ( fn instanceof LAID.Take ) {
 
-    this.$mergePathAndProps( fn );
+    this.$mergePathAndAttrs( fn );
     this.executable = function () {
 
     return (fn.execute( this )).call( this, oldExecutable.call( this ) );
@@ -1119,11 +1113,11 @@ fn = arguments[ 1 ];
 
 if ( fn instanceof LAID.Take ) {
 
-this.$mergePathAndProps( fn );
+this.$mergePathAndAttrs( fn );
 
 if ( arg instanceof LAID.Take ) {
 
-this.$mergePathAndProps( arg );
+this.$mergePathAndAttrs( arg );
 
 this.executable = function () {
 
@@ -1145,7 +1139,7 @@ return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
 
 if ( arg instanceof LAID.Take ) {
 
-this.$mergePathAndProps( arg );
+this.$mergePathAndAttrs( arg );
 
 this.executable = function () {
 
@@ -1174,7 +1168,7 @@ curArg = arguments[ i ];
 
 if ( curArg instanceof LAID.Take ) {
 
-this.$mergePathAndProps( curArg );
+this.$mergePathAndAttrs( curArg );
 
 }
 }

@@ -2,25 +2,25 @@
 
 
 Current:
-  - /*this.transitionCalcVal =
-          this.level.$part.node.scrollLeft;*/
-    to be pushed into transition animation logic
+  - delete row (Many.rowDelete()) delete by id
+  - getBoundingClientRect polyfill for IE8
+  - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
+  - checkAndThrowErrorAttrAsTake
   - test Textarea
   - test Image
   - test if "input" sets "$input" to "< value >" instead of ""
   - LAID.level.remove() for input node clearance
-  - $numberOfChildren
   - $containerCenterX, $containerCenterY,
    $containerRight, $containerBottom
   - userSelect not working
-
+  - borderWidth text recalculation
+  - spec/docs page
 
   many:
   - sorting rows
-  - ascending rows
-  - lson.type ??
 
   spec:
+  - many.rows can take array of non-objects
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
   - add LAID.level.changeNativeInput/ScrollX/Y() to spec
@@ -34,10 +34,9 @@ Current:
   - routing
 
 
-
-
 Future:
-  - rowsCommit
+  - CSS pointer-events optimization
+  - $naturalWidth/$naturalHeight shouldn't transition from 0 to < diemsion > on load
   - takes across forbidden objects such as "when", "transition", etc
   - natural width and height dependent upon the rotation of Z axis of children.
   - Insert CSS from entry.js (normalize.css CSS)

@@ -180,20 +180,20 @@
               
               
               many: {
-                args: {
+                formation: "onebelow",
+                fargs: {
                   onebelow: {
                     gap: 0
                   },
                 },
                 $id: "id",
-                formation: "onebelow",
 
 
                 load: function () {
                   if ( window.localStorage ) {
                     var todos = localStorage.getItem("todos");
                     if (todos) {
-                      this.rowsChange(JSON.parse(todos));
+                      this.rowsCommit(JSON.parse(todos));
                     }
                   }
                 },
@@ -358,7 +358,7 @@
                             function () {
                               if ( !this.attr("row.selected") ) {
                                 var selected =
-                                 this.many().queryAll().filterEq("row.selected", true).end();
+                                 this.manyLevel().queryAll().filterEq("row.selected", true).end();
                                 selected[ 0 ].row("selected", false );
                                 this.row("selected", true);
                                 updateLocalStorage();
@@ -387,7 +387,7 @@
                             }
                           },
                           formation: "totheright",
-                          args: {
+                          fargs: {
                             totheright: {
                               gap:10
                             },
@@ -466,7 +466,7 @@
 
       many: {
         formation: "onebelow",
-        args: {
+        fargs: {
           onebelow: {
             gap: 10
           }
@@ -493,58 +493,83 @@ LAID.run({
   children: {
     "Container": {
       props: {
-        width: LAID.take("$naturalWidth"),
-        height: LAID.take("$naturalHeight"),
         centerX: LAID.take("../", "width").divide(2),
         centerY: LAID.take("../", "height").divide(2),
         backgroundColor: LAID.color("pink")
+      },
+      transition: {
+        all: {
+          type: "linear",
+          duration: 200
+        }
       },
       children: {
         "Person": {
           props: {
             width: 180,
-            centerX: LAID.take("../", "width").divide(2),
             cursor: "default",
-            text: LAID.take("", "row.name"),
+            border: {style:"solid",
+             color: LAID.color("red"),
+             width:1
+          },
+            backgroundColor: LAID.color("blue"),
+            text: LAID.take("", "row.content"),
+            textSize:20,
             textPadding: 10,
-            textColor: LAID.color("black")
-
+            textColor: LAID.color("white")
           },
           when: {
             "click": [
               function () {
-                this.many().rowsChange(
-                  [{id:2, name: "Alex" }]);
+                this.manyLevel().data("sidebiz",
+                  !this.manyLevel().attr("data.sidebiz") )
+                /*this.manyLevel().rowsCommit([
+                  {id:4, content: "Tesla" },
+                  {id:5, content: "Magic Leap" },
+                  {id:6, content: "20n" }
+                ]);*/
               }
             ]
           },
           transition: {
             all: {
               type: "linear",
-              duration: 1000
+              duration: 200
             }
           },
           states: {
             "hover": {
               onlyif: LAID.take("","$hovered"),
               props: {
-                textColor: LAID.color("gainsboro")
+                textColor: LAID.color("grey")
+
               }
             }
           },
           many: {
-            formation: "totheright",
-            args: {
-              totheright:{
-                gap:10
-              }
+            data: {
+              asc: true,
+              sidebiz: false
             },
-            $id: "id",
+            formation: "onebelow",            
+            sort: [{key: "content",
+              ascending: LAID.take("", "data.asc")}],
             rows: [
-              {id:1, name: "Boeing" },
-              {id:2, name: "NASA" },
-              {id:3, name: "Airbus" }
+              {id:1, content: "Airbus" },
+              {id:2, content: "Boeing" },
+              {id:3, content: "NASA" },
+              {id:4, content: "Zeil" }
             ],
+            states: {
+              "sidebiz": {
+                onlyif: LAID.take("", "data.sidebiz"),
+                formation: "totheright",
+                fargs: {
+                  totheright: {gap:10}
+                }
+              }
+            }
+            
           }
         }
       }

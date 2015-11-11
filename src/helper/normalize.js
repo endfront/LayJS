@@ -111,7 +111,7 @@
 
     } else {
 
-      if ( LAID.$checkIsValidUtils.expanderAttr( prefix ) ) {
+      if ( LAID.$checkIsValidUtils.checkIsPropAttrExpandable( prefix ) ) {
         checkAndThrowErrorAttrAsTake( prefix, val );
       }
 
@@ -319,7 +319,7 @@
         }
 
         for ( transitionProp in transition ) {
-          if ( LAID.$checkIsValidUtils.expanderAttr( transitionProp ) ) {
+          if ( LAID.$checkIsValidUtils.checkIsPropAttrExpandable( transitionProp ) ) {
             throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
@@ -359,7 +359,10 @@
           key2fnNormalize.props( state );
           key2fnNormalize.when( state );
           key2fnNormalize.transition( state );
-        } 
+        } else {
+          key2fnNormalize.fargs( state );
+          key2fnNormalize.sort( state ); 
+        }
 
       }
     }
@@ -397,17 +400,15 @@
       
         formation: many.formation,
         sort: many.sort,
-        ascending: many.ascending,
         filter: many.filter || takeFilterAll,
-        args: many.args
+        fargs: many.fargs
 
       };
 
       many.formation = undefined;
       many.sort = undefined;
-      many.ascending = undefined;
       many.filter = undefined;
-      many.args = undefined;
+      many.fargs = undefined;
 
       key2fnNormalize.states( many, true );
 
@@ -415,21 +416,40 @@
   },
 
   // formation args (Many)
-  args: function ( lson ) {
-    if ( lson.args ) {
+  fargs: function ( lson ) {
+    if ( lson.fargs ) {
       var
-        args = lson.args,
+        fargs = lson.fargs,
         formationArg;
 
-      checkAndThrowErrorAttrAsTake( "args", args );
+      checkAndThrowErrorAttrAsTake( "fargs", fargs );
 
-      for ( formationArg in args ) {
-        checkAndThrowErrorAttrAsTake( "args." + formationArg,
-          args[ formationArg ] );
+      for ( formationArg in fargs ) {
+        checkAndThrowErrorAttrAsTake( "fargs." + formationArg,
+          fargs[ formationArg ] );
       }
 
 
     }
+  },
+
+  sort: function ( lson ) {
+    if ( lson.sort ) {
+      var
+        sortS = lson.sort,
+        i, len;
+
+      checkAndThrowErrorAttrAsTake( "sort", sortS );
+
+      for ( i = 0, len = sortS.length; i < len; i++ ) {
+        checkAndThrowErrorAttrAsTake( "sort." + i,
+          sortS[ i ] );
+        if ( sortS[ i ].ascending === undefined ) {
+          sortS[ i ].ascending = true;
+        }
+
+      }
+    } 
   }
 
 };

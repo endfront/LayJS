@@ -18,7 +18,7 @@
 	 * @return {Boolean} equal match
 	 */
 
-  LAID.identical = function ( a, b ) {
+  LAID.$identical = function ( a, b ) {
   	return deepEqual( a, b, undefined );
   };
 
@@ -30,7 +30,6 @@
 		return LAID.type(x);
 	}
 
-	
   function deepEqual(a,b,m) {
   	var
   		typeA = type( a ),
@@ -38,10 +37,10 @@
 
   	if ( sameValue( a, b ) ) {
 			return true;
-		} else if ( typeA !== typeB ) {
-			return false;
-		} else if ( "color" === typeA ) {
+		} else if ( 'color' === typeA ) {
 			return colorEqual(a, b);
+		} else if ( 'level' === typeA ) {
+			return levelEqual(a, b);
 		} else if ('date' === typeA ) {
 			return dateEqual(a, b);
 		} else if ('regexp' === typeA) {
@@ -107,6 +106,10 @@
 
 	function colorEqual (a, b) {
 		return type(b) === "color" && a.equals(b);		
+	}
+
+	function levelEqual (a, b) {
+		return type(b) === "level" && ( a.pathName === b.pathName );		
 	}
 
 	/*!

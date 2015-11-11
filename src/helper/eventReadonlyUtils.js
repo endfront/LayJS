@@ -3,13 +3,13 @@
 
   var $inputEvent2fn = {
     click: function () {
-      this.$changeAttrVal( "$input", this.$part.node.value );
+      this.$changeAttrVal( "$input", this.part.node.value );
     },
     change: function () {
-      this.$changeAttrVal( "$input", this.$part.node.value );
+      this.$changeAttrVal( "$input", this.part.node.value );
     },
     keyup: function () {
-      this.$changeAttrVal( "$input", this.$part.node.value );
+      this.$changeAttrVal( "$input", this.part.node.value );
     }
   };
 
@@ -50,25 +50,25 @@
     $scrolledX: {
       scroll: function () {
         this.$changeAttrVal( "$scrolledX",
-          this.$part.node.scrollTop );
+          this.part.node.scrollTop );
       }
     },
     $scrolledY: {
       scroll: function () {
         this.$changeAttrVal( "$scrolledY",
-         this.$part.node.scrollLeft );
+         this.part.node.scrollLeft );
       }
     },
     $cursorX: {
       mousemove: function () {
         this.$changeAttrVal( "$cursorX",
-          this.$part.node.offsetX );
+          this.part.node.offsetX );
       }
     },
     $cursorY: {
       mousemove: function () {
         this.$changeAttrVal( "$cursorY",
-          this.$part.node.offsetY );
+          this.part.node.offsetY );
       }
     },
 

@@ -15,7 +15,7 @@
       for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
         renderDirtyPart = renderDirtyPartS[ x ];
-        travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
+        travelRenderDirtyAttrValS = renderDirtyPart.travelRenderDirtyAttrValS;
 
 
         for ( y = 0, yLen = travelRenderDirtyAttrValS.length; y < yLen; y++ ) {
@@ -28,7 +28,7 @@
 
             // Adding to the "normal" render list automatically
             // removes the attrval from the "travel" render list
-            renderDirtyPart.$addNormalRenderDirtyAttrVal(
+            renderDirtyPart.addNormalRenderDirtyAttrVal(
               travelRenderDirtyAttrVal
             );
           } else {

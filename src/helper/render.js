@@ -23,16 +23,13 @@
     var
       curTimeFrame = performance.now(),
       timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
-      insertedPartS = LAID.$insertedPartS, insertedPart,
-      removedPartS = LAID.$removedPartS, removedPart,    
+      parentNode,
       x, y,
       i, len,
       isDataTravelling = LAID.$isDataTravelling,
       dataTravellingDelta = LAID.$dataTravelDelta,
       renderDirtyPartS = LAID.$renderDirtyPartS,
       renderDirtyPart,
-      newManyS = LAID.$newManyS,
-      newMany,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal,
       normalRenderDirtyAttrValS,
@@ -41,16 +38,16 @@
       renderCallS, isNormalAttrValTransitionComplete,
       renderNewLevelS = [],
       renderNewLevel,
-      loadAttrVal,
+      fnLoad,
       isAllNormalTransitionComplete = true;
 
+    /*
     for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
       insertedPart = insertedPartS[ i ];
-      insertedPart.level.parentLevel.$part.node.appendChild(
-        insertedPart.node );
-      if ( insertedPart.isInputText ) {
-        insertedPart.level.parentLevel.$part.node.appendChild(
-          insertedPart.inputDivNode );
+      parentNode = insertedPart.level.parentLevel.part.node;
+      parentNode.appendChild( insertedPart.node );
+      if ( insertedPart.textSizeMeasureNode ) {
+        parentNode.appendChild( insertedPart.textSizeMeasureNode );
       }  
     }
     
@@ -58,18 +55,22 @@
 
     for ( i = 0, len = removedPartS.length; i < len; i++ ) {
       removedPart = removedPartS[ i ];
-      removedPart.level.parentLevel.$part.node.removeChild(
-        removedPart.node );
+      parentNode = removedPart.level.parentLevel.part.node;
+      parentNode.removeChild( removedPart.node );
+      if ( removedPart.textSizeMeasureNode ) {
+        parentNode.removechild( removedPart.textSizeMeasureNode );
+      }
     }
 
     LAID.$removedPartS = [];
+    */
 
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
       renderDirtyPart = renderDirtyPartS[ x ];
 
-      travelRenderDirtyAttrValS = renderDirtyPart.$travelRenderDirtyAttrValS;
-      normalRenderDirtyAttrValS = renderDirtyPart.$normalRenderDirtyAttrValS;
+      travelRenderDirtyAttrValS = renderDirtyPart.travelRenderDirtyAttrValS;
+      normalRenderDirtyAttrValS = renderDirtyPart.normalRenderDirtyAttrValS;
 
       renderCallS = [];
 
@@ -127,7 +128,7 @@
 
       }
 
-
+      /*
       // If "text" or "$input" is to be rendered, it must be
       // rendered last to be able to bear knowledge
       // of the most recent (render) changes to text props
@@ -139,6 +140,7 @@
       if ( LAID.$arrayUtils.remove( renderCallS, "$input" ) ) {
         renderCallS.push( "$input" );
       }
+      */
 
       // And scroll positions must be affected later
       if ( LAID.$arrayUtils.remove( renderCallS, "scrollX" ) ) {
@@ -150,12 +152,12 @@
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
         var fnRender =
-          renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ];
+          renderDirtyPart[ "renderFn_" + renderCallS[ i ] ];
         if ( !fnRender ) {
           throw "LAID Error: Inexistent prop: '" +
            renderCallS[ i ] + "'"; 
         }
-        renderDirtyPart[ "$renderFn_" + renderCallS[ i ] ]();
+        renderDirtyPart[ "renderFn_" + renderCallS[ i ] ]();
       }
 
       if (
@@ -175,31 +177,20 @@
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
-      renderNewLevel.$part.isInitiallyRendered = true;
-      loadAttrVal = renderNewLevel.$attr2attrVal.load;
+      renderNewLevel.part.isInitiallyRendered = true;
+      fnLoad = renderNewLevel.lson.$load;
       
       if ( renderNewLevel.parentLevel ) {
         if ( renderNewLevel.parentLevel.node().style.visibility === "hidden") {
           renderNewLevel.node().style.visibility = "hidden";
         }
       }     
-      if ( ( loadAttrVal ) &&
-        ( typeof loadAttrVal.calcVal === "function" ) ) {
-          loadAttrVal.calcVal.call( renderNewLevel );
+      if ( fnLoad ) {
+        fnLoad.call( renderNewLevel );
       }
     }
 
-    for ( i = 0, len = newManyS.length; i < len; i++ ) {
-      newMany = newManyS[ i ];
-      newMany.$isLoaded = true;
-      newMany.$updateFilteredPositioning();
-      loadAttrVal = newMany.level.$attr2attrVal.load;
-      if ( ( loadAttrVal ) &&
-        ( typeof loadAttrVal.calcVal === "function" ) ) {
-          loadAttrVal.calcVal.call( newMany.level );
-      }
-    }
-    LAID.$newManyS = [];
+    
 
     LAID.$isRequestedForAnimationFrame = false;
 
@@ -209,6 +200,7 @@
     } else if ( !isAllNormalTransitionComplete ) {
       LAID.$render( curTimeFrame );
     }
+
   }
 
   function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {

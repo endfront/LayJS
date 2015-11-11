@@ -9,8 +9,7 @@
     this.delay = delay;
     this.transition = ( transitionType2fn[ type ] )( duration, args );
 
-  }
-
+  };
 
   LAID.Transition.prototype.generateNext = function ( delta ) {
     return this.transition.generateNext( delta );

@@ -8,7 +8,9 @@
       isSolveProgressedOnce = false,
       newLevelS = LAID.$newLevelS,
       newLevel,
-      solvedLevelS = [];
+      solvedLevelS = [],
+      manyWithNewLevelS = [],
+      manyWithNewLevel;
 
     if ( !newLevelS.length ) {
       return 3;
@@ -25,6 +27,10 @@
           solvedLevelS.push( newLevel );
           LAID.$arrayUtils.removeAtIndex( newLevelS, i );
           i--;
+          if ( newLevel.derivedMany ) {
+            LAID.$arrayUtils.pushUnique(
+             manyWithNewLevelS, newLevel.derivedMany );
+          }
         }
       }
    
@@ -32,6 +38,12 @@
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
       solvedLevelS[ i ].$initAllAttrs();
+    }
+
+    for ( i = 0, len = manyWithNewLevelS.length;
+     i < len; i++ ) {
+      manyWithNewLevel = manyWithNewLevelS[ i ];
+      manyWithNewLevel.level.attr2attrVal.filter.forceRecalculation();
     }
 
     return newLevelS.length === 0 ? 0 :

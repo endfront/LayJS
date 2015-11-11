@@ -35,10 +35,9 @@
 
       if ( isMany ) {
         into.formation = from.formation || into.formation;
-        into.sort = from.sort || into.sort;
-        into.ascending = from.ascending || into.ascending;
         into.filter = from.filter || into.filter;
-        key2fnInherit.args( into, from );
+        key2fnInherit.fargs( into, from );
+        into.sort = from.sort || into.sort;
 
       } else {
         if ( from.props !== undefined ) {
@@ -53,7 +52,7 @@
         if ( from.$$max !== undefined ) {
           key2fnInherit.$$max( into, from );
         }
-      } 
+      }
     }
   };
 
@@ -254,32 +253,27 @@
 
       },
 
-      args: function ( intoLson, fromLson ) {
+      fargs: function ( intoLson, fromLson ) {
 
         var
-          formationArg,
-          intoArgs = intoLson.args,
-          fromArgs = fromLson.args;
+          formationFarg,
+          intoFargs = intoLson.fargs,
+          fromFargs = fromLson.fargs;
 
-
-        if ( fromArgs ) {
-          if ( !intoArgs ) {
-            intoArgs = intoLson.args = {};
+        if ( fromFargs ) {
+          if ( !intoFargs ) {
+            intoFargs = intoLson.fargs = {};
           }
-          for ( formationArg in fromArgs ) {
-            if ( !intoArgs[ formationArg  ] ) {
-              intoArgs[ formationArg ] = {};
+          for ( formationFarg in fromFargs ) {
+            if ( !intoFargs[ formationFarg  ] ) {
+              intoFargs[ formationFarg ] = {};
             } 
-            inheritSingleLevelObject( intoArgs, fromArgs, formationArg );
+            inheritSingleLevelObject( 
+              intoFargs, fromFargs, formationFarg );
             
           }
         }
-
-
       },
-
-
-
 
 
       children: function( intoLson, fromLson ) {
@@ -330,7 +324,6 @@
       },
 
       when: function( intoLson, fromLson ) {
-
 
         var
           fromEventType2_fnEventHandlerS_ = fromLson.when,

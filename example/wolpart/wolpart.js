@@ -9,7 +9,7 @@ var springTransition = {
 };
 
 
-LAID.run ( {
+LAID.run( {
   data: {
     lang: "en",
     menu: false
@@ -82,10 +82,7 @@ LAID.run ( {
             "MenuInvoke": {
               props: {
                 left: 30,
-                centerY: LAID.take( "../", "$centerY"),
-           
-               width:LAID.take("", "$naturalWidth").add(20),
-                height:LAID.take("", "$naturalHeight").add(20),
+                centerY: LAID.take( "../", "$centerY")
               },
               states: {
                 "hidden": {
@@ -109,13 +106,13 @@ LAID.run ( {
                   }
                 },
 
-                "clicked": {
+               /* "clicked": {
                   onlyif: LAID.take("", "$clicked"),
                   props: {
                     shiftX: 3,
                     shiftY: 3
                   }
-                }
+                }*/
               },
 
               children: {
@@ -194,10 +191,11 @@ LAID.run ( {
               },
               props: {
                 centerX: LAID.take("../", "$centerX"),
+                centerY: LAID.take("../", "$centerY"),
                 text: "WOLPART",
                 textAlign: "center",
                 textColor: LAID.color( "white"),
-                textPadding:20,
+                textPadding:{top: 20,bottom:20},
                 textSize: 30,
                 textLetterSpacing:1
               },
@@ -406,33 +404,31 @@ LAID.run ( {
 
 
 
-/*
-LAID.run({
-  children: {
-    "Parent": {
-      props: {
 
-        width:200,
-        backgroundColor:LAID.color("black")
+/*LAID.run({
+  children: {
+    "Grand": {
+      props:{
+        //centerX: LAID.take("../", "$centerX"),
+        centerY: LAID.take("../", "$centerY"),
       },
       children: {
-        "Child1": {
-          data: {
-            proxy: LAID.take("../", "height")
+        "Parent": {
+          props:{
+          //  centerX: LAID.take("../", "$centerX"),
+        //    centerY: LAID.take("../", "$centerY"),
+            width: 1000,
+                height:100,
+                backgroundColor:LAID.color("red")
           },
-          props: {
-            width:100,
-            height:LAID.take("", "data.proxy").add(10),
-            backgroundColor:LAID.color("blue")
-          }
-
-        },
-        "Child2": {
-          props: {
-            width:100,
-            height:20,
-            left:100,
-            backgroundColor:LAID.color("green")
+          children: {
+            "Baby": {
+              props: {
+                width: 100,
+                height:50,
+                backgroundColor:LAID.color("blue")
+              }
+            }
           }
         }
       }

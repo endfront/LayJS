@@ -12,14 +12,15 @@
 			return filter( function ( partLevel ) {
 					return partLevel.attr( attr ) !== val;
 				}, partLevelS );
-			
 		},
+
 		gt: function ( partLevelS, attr, val ) {
 			return filter( function ( partLevel ) {
 					return partLevel.attr( attr ) > val;
 				}, partLevelS );
 			
 		},
+		
 		gte: function ( partLevelS, attr, val ) {
 			return filter( function ( partLevel ) {
 					return partLevel.attr( attr )>= val;
@@ -59,7 +60,6 @@
 
 		fn: function ( partLevelS, fnFilter ) {
 			return filter( fnFilter , partLevelS );
-			
 		}
 		
 

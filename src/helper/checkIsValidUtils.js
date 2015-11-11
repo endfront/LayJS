@@ -6,9 +6,24 @@
     "root", "transition", "data", "when", "load",
     "",
     "many", "formation", "formationDisplayNone",
-     "sort", "ascending",
+     "sort", "fargs",
     "rows", "row", "filter", "args", "all"
   ];
+
+  function stripStateAttrPrefix( attr ) {
+    var nonStateAttrPrefixS = [ "data", "when", "transition" ];
+    var i = attr.indexOf(".");
+    if ( i === -1 ) {
+      return attr;
+    } else {
+      var prefix = attr.slice( 0, i );
+      if ( nonStateAttrPrefixS.indexOf( prefix ) !== -1 ) {
+        return attr;
+      } else {
+        return attr.slice( i + 1 );
+      }
+    }
+  }
 
   LAID.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
@@ -30,38 +45,42 @@
         )
       )
        || 
-       ( stateName.startsWith("formation:"))
+       ( stateName === "formation") || 
+       ( stateName === "formationDisplayNone")
        );
   	},
-  	expanderAttr: function ( attr ) {
-  		var expanderAttrS = [
-			  "border", "background", "boxShadows", "textShadows",
-         "videoSources", "audioSources", "videoTracks", "audioTracks",
-          "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
-			    "data", "when", "transition", "type", "inherit", "states", "observe"
-			];
-			 var regexExpanderAttrs = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
-			 var nonStateAttrPrefixS = [ "data", "when", "transition" ];
 
-		  function stripStateAttrPrefix( attr ) {
-		    var i = attr.indexOf(".");
-		    if ( i === -1 ) {
-		      return attr;
-		    } else {
-		      var prefix = attr.slice( 0, i );
-		      if ( nonStateAttrPrefixS.indexOf( prefix ) !== -1 ) {
-		        return attr;
-		      } else {
-		        return attr.slice( i + 1 );
-		      }
-		    }
-		  }
+    checkIsAttrExpandable: function ( attr ) {
+      return this.checkIsNonPropAttrExpandable( attr ) ||
+        this.checkIsPropAttrExpandable( attr );
+    },
+
+  	checkIsNonPropAttrExpandable: function ( attr ) {
+  		var expanderAttrS = [
+			    "data", "when", "transition", "states", "fargs", "sort"
+			];
+			 var regexExpanderAttrs = /(^sort\.\d+$)|(^fargs\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+$)|(^transition\.[a-zA-Z]+\.args$)|(^when\.[a-zA-Z]+$)/;
 
   		var strippedStateAttr = stripStateAttrPrefix( attr );
     	return ( ( expanderAttrS.indexOf( strippedStateAttr ) !== -1 ) ||
       	( regexExpanderAttrs.test( strippedStateAttr ) )
     	);
   	},
+
+    checkIsPropAttrExpandable: function ( attr ) {
+      var expanderPropS = [
+        "border", "background", "boxShadows", "textShadows",
+         "videoSources", "audioSources", "videoTracks", "audioTracks",
+          "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
+      ];
+       var regexExpanderProps = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)/;
+
+      var strippedStateAttr = stripStateAttrPrefix( attr );
+      return ( ( expanderPropS.indexOf( strippedStateAttr ) !== -1 ) ||
+        ( regexExpanderProps.test( strippedStateAttr ) )
+      );
+    },
+
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
      		( attr[ 0 ] !== "$") &&
@@ -74,8 +93,6 @@
   		return ( typeof val === "number" ) &&
 	     ( val !== +val );
   	}
-
-
 
   };
 

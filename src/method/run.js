@@ -3,7 +3,7 @@
 
   LAID.run =  function ( rootLson ) {
 
-    initiateRuntimeGlobals();
+    setRuntimeGlobals();
 
     ( new LAID.Level( "/", rootLson, undefined ) ).$init();
 
@@ -13,7 +13,9 @@
 
   };
 
-  function initiateRuntimeGlobals () {
+  function setRuntimeGlobals () {
+  
+    
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
     LAID.$centerX = LAID.take("", "width").divide(2);
@@ -45,7 +47,7 @@
 
   function updateSize () {
 
-    var rootLevel = LAID.$path2level[ "/" ];
+    var rootLevel = LAID.$pathName2level[ "/" ];
 
     rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
     rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );

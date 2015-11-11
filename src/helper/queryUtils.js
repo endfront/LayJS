@@ -5,7 +5,6 @@
     
     fetch: function ( partLevelS, index, attr ) {
   
-            
       if ( index < 1 ) {
         console.error(
           "LAID Warning: Filter indexing begins from 1" );

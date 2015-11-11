@@ -46,6 +46,7 @@
     /* Clone array at a single level */
     cloneSingleLevel: function ( elementS ) {
       return elementS.slice( 0 );
+      
     },
 
     /*Swap element at index a with index b */

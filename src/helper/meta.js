@@ -63,8 +63,6 @@
           intoAttr2max = intoLson.$$max,
           fromAttr;
 
-
-
         if ( intoAttr2max === undefined ) {
           intoAttr2max = intoLson.$$max = {};
         }

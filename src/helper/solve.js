@@ -1,9 +1,10 @@
 ( function () {
   "use strict";
   LAID.$solve = function () {
-    
-    if ( !LAID.$isSolving ) {
 
+    if ( LAID.$isRendering ) {
+      LAID.$isSolveRequiredOnRenderFinish = true;
+    } else if ( !LAID.$isSolving ) {
       var 
         ret,
         isSolveNewComplete,
@@ -31,6 +32,8 @@
         }
 
         executeStateInstallation();
+        executeManyLoads();
+
 
         // The reason we cannot use `ret` to confirm
         // completion and not `ret` is because during solving
@@ -60,12 +63,12 @@
       if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
         var msg = "LAID Error: Circular/Undefined Reference Encountered [";
         if ( !isSolveNewComplete ) {
-          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].path;
+          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].pathName;
         } else {
           var uninstantiableLevel = LAID.$recalculateDirtyLevelS[ 0 ];
           msg += "Uninstantiable Attr: " +
-             uninstantiableLevel.$recalculateDirtyAttrValS[ 0 ].attr +
-            " (Level: " + uninstantiableLevel.path  + ")";
+             uninstantiableLevel.recalculateDirtyAttrValS[ 0 ].attr +
+            " (Level: " + uninstantiableLevel.pathName  + ")";
         } 
         msg += "]";
         throw msg;
@@ -78,6 +81,22 @@
     }
 
   };
+
+  function executeManyLoads () {
+    var newManyS = LAID.$newManyS, newMany, fnLoad;
+
+    for ( var i = 0, len = newManyS.length; i < len; i++ ) {
+      newMany = newManyS[ i ];
+      newMany.isLoaded = true;
+      newMany.updateFilteredPositioning();
+      fnLoad = newMany.level.attr2attrVal.load;
+      if ( fnLoad ) {
+        fnLoad.call( newMany.level );
+      }
+    }
+    LAID.$newManyS = [];
+ 
+  }
 
   function executeStateInstallation () {
 
@@ -94,10 +113,10 @@
 
     for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
-      newlyInstalledStateS = newlyInstalledStateLevel.$newlyInstalledStateS;
+      newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
       for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
         attrValNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.$attr2attrVal[ newlyInstalledStateS[ j ] +
+          newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
           ".install" ];
         attrValNewlyInstalledStateInstall &&
           ( LAID.type(attrValNewlyInstalledStateInstall.calcVal ) ===
@@ -106,16 +125,16 @@
           newlyInstalledStateLevel );
       }
       // empty the list
-      newlyInstalledStateLevel.$newlyInstalledStateS = [];
+      newlyInstalledStateLevel.newlyInstalledStateS = [];
     }
     LAID.$newlyInstalledStateLevelS = [];
 
     for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
-      newlyUninstalledStateS = newlyUninstalledStateLevel.$newlyUninstalledStateS;
+      newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
       for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
         attrValNewlyUninstalledStateUninstall =
-          newlyUninstalledStateLevel.$attr2attrVal[ newlyUninstalledStateS[ j ] +
+          newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
           ".uninstall" ];
         attrValNewlyUninstalledStateUninstall &&
           ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
@@ -124,7 +143,7 @@
           newlyUninstalledStateLevel );
       }
       // empty the list
-      newlyUninstalledStateLevel.$newlyUninstalledStateS = [];
+      newlyUninstalledStateLevel.newlyUninstalledStateS = [];
     }
     LAID.$newlyUninstalledStateLevelS = [];
   }

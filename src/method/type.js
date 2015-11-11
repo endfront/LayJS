@@ -23,6 +23,8 @@
       return "color";
     } else if ( obj instanceof LAID.Take ) {
       return "take";
+    } else if ( obj instanceof LAID.Level ) {
+      return "level"
     }
     // Support: Android < 4.0, iOS < 6 (functionish RegExp)
     return typeof obj === "object" || typeof obj === "function" ?

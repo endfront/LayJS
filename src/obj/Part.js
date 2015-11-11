@@ -46,34 +46,34 @@
     option: "option"
   };
 
+
+  function stringifyPlusPx ( val ) {
+    return val + "px";
+  }
+  
+
   LAID.Part = function ( level ) {
 
     this.level = level;
     this.node = undefined;
     this.isInitiallyRendered = false;
     this.isInputText = false;
-    this.inputDivNode = undefined;
+    this.textSizeMeasureNode = undefined;
+    this.isInterface = false;
 
-    this.$naturalWidthTextMode = false;
-    this.$naturalHeightTextMode = false;
+    this.naturalWidthLevel = undefined;
+    this.naturalHeightLevel = undefined;
 
-    this.$naturalWidthInputMode = false;
-    this.$naturalHeightInputMode = false;
+    this.normalRenderDirtyAttrValS = [];
+    this.travelRenderDirtyAttrValS = [];
 
-    this.$naturalWidthLevel = undefined;
-    this.$naturalHeightLevel = undefined;
+    this.whenEventType2fnMainHandler = {};
 
-    this.$normalRenderDirtyAttrValS = [];
-    this.$travelRenderDirtyAttrValS = [];
+    this.absoluteY = undefined;
+    this.absoluteX = undefined;
 
-    this.$whenEventType2fnMainHandler = {};
-
-    this.$absoluteY = undefined;
-    this.$absoluteX = undefined;
-
-    this.$formationX = undefined;
-    this.$formationY = undefined;
-
+    this.formationX = undefined;
+    this.formationY = undefined;
 
   };
 
@@ -83,14 +83,14 @@
 
   }
 
-  LAID.Part.prototype.$init = function () {
+  LAID.Part.prototype.init = function () {
 
     var
-      levelType = this.level.$lson.$type,
+      levelType = this.level.lson.$type,
       inputType = getInputType( levelType ),
-      inputTag;
+      inputTag, parentNode;
 
-    if ( this.level.path === "/" ) {
+    if ( this.level.pathName === "/" ) {
       this.node = document.body;
     } else if ( inputType ) {
       inputTag = inputType2tag[ inputType ];
@@ -117,19 +117,46 @@
     }
     this.node.style.cssText = defaultCss;
 
-    if ( this.isInputText ) {
-      this.inputDivNode = document.createElement("div");
-      this.node.style.cssText = defaultCss;
+    if ( this.level.lson.$interface ) {
+      this.isInterface = true;
+      this.node.style.display = "none";
     }
 
-    if ( this.level.$lson.$interface ) {
-      this.node.style.visibility = "hidden";
+    if ( this.isInputText || levelType === "text" ) {
+      this.textSizeMeasureNode = document.createElement("div");
+      this.textSizeMeasureNode.style.cssText = defaultCss;
+      this.textSizeMeasureNode.style.visibility = "hidden";
+      this.textSizeMeasureNode.style.zIndex = "-9999";      
+      this.textSizeMeasureNode.style.height = "auto";
+      this.textSizeMeasureNode.style.overflow = "visible";
+      this.textSizeMeasureNode.style.borderStyle = "solid";
+      this.textSizeMeasureNode.style.borderColor = "transparent";
+
+
+    }
+
+    if ( this.level.pathName !== "/" ) {
+      parentNode = this.level.parentLevel.part.node;
+      parentNode.appendChild( this.node );
+      if ( this.textSizeMeasureNode ) {
+        parentNode.appendChild( this.textSizeMeasureNode );
+      }
     }
   };
 
+  LAID.Part.prototype.remove = function () {
+    if ( parentPart.naturalWidthLevel === this ) {
+      parentPart.updateNaturalWidth();
+    }
+    if ( parentPart.naturalHeightLevel === this ) {
+      parentPart.updateNaturalHeight();
+    }
+
+
+  };
 
   function checkIfLevelIsDisplayed ( level ) {
-    var attrValDisplay = level.$attr2attrVal.display;
+    var attrValDisplay = level.attr2attrVal.display;
     return !attrValDisplay || attrValDisplay.calcVal;
 
   }
@@ -137,23 +164,24 @@
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Part.prototype.$findChildWithMaxOfAttr =
-   function ( attr, attrValIndependentOf ) {
+  LAID.Part.prototype.findChildWithMaxOfAttr =
+   function ( attr, attrChildIndepedentOf,
+      attrValIndependentOf ) {
     var
        curMaxVal, curMaxLevel,
        childLevel, childLevelAttrVal,
-       attrValChildIndepedentOf,
-       attrChildIndepedentOf = attr;
+       attrValChildIndepedentOf;
+
     for ( var i = 0,
-         childLevelS = this.level.$childLevelS,
+         childLevelS = this.level.childLevelS,
         len = childLevelS.length;
          i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      if ( childLevel.$isPart ) {
+      if ( childLevel.isPart && !childLevel.part.isInterface ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
-          childLevelAttrVal = childLevel.$attr2attrVal[ attr ];
+          childLevelAttrVal = childLevel.attr2attrVal[ attr ];
           attrValChildIndepedentOf =
-            childLevel.$attr2attrVal[ attrChildIndepedentOf ];
+            childLevel.attr2attrVal[ attrChildIndepedentOf ];
 
           if (
               ( childLevelAttrVal !== undefined ) &&
@@ -174,66 +202,67 @@
     return curMaxLevel;
   };
 
-  LAID.Part.prototype.$updateAbsoluteX = function () {
+  LAID.Part.prototype.updateAbsoluteX = function () {
 
     var 
-      attr2attrVal = this.level.$attr2attrVal,
+      attr2attrVal = this.level.attr2attrVal,
       relativeLeft = attr2attrVal.left.calcVal,
       shiftX = attr2attrVal.shiftX ? attr2attrVal.shiftX.calcVal : 0,
-      parentAbsoluteX = this.level.path !== "/" ? 
-        this.level.parentLevel.$part.$absoluteX : 0,
+      parentAbsoluteX = this.level.pathName !== "/" ? 
+        this.level.parentLevel.part.absoluteX : 0,
       absoluteX = relativeLeft + shiftX + parentAbsoluteX;
 
     if ( typeof absoluteX === "number" ) {
-      this.$absoluteX = absoluteX;
+      this.absoluteX = absoluteX;
       if ( attr2attrVal.$absoluteX ) {
-        attr2attrVal.$absoluteX.update( this.$absoluteX );
+        attr2attrVal.$absoluteX.update( this.absoluteX );
       }
-      for ( var i = 0, childLevelS = this.level.$childLevelS,
+      for ( var i = 0, childLevelS = this.level.childLevelS,
          len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].$isPart && childLevelS[ i ].$part.$updateAbsoluteX();
+        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteX();
       }
     }
   };
 
-  LAID.Part.prototype.$updateAbsoluteY = function () {
+  LAID.Part.prototype.updateAbsoluteY = function () {
 
     var 
-      attr2attrVal = this.level.$attr2attrVal,
+      attr2attrVal = this.level.attr2attrVal,
       relativeTop = attr2attrVal.top.calcVal,
       shiftY = attr2attrVal.shiftY ? attr2attrVal.shiftY.calcVal : 0,
-      parentAbsoluteY = this.level.path !== "/" ?
-        this.level.parentLevel.$part.$absoluteY : 0,
+      parentAbsoluteY = this.level.pathName !== "/" ?
+        this.level.parentLevel.part.absoluteY : 0,
       absoluteY = relativeTop + shiftY + parentAbsoluteY;
 
     if ( typeof absoluteY === "number" ) {
-      this.$absoluteY = absoluteY;
+      this.absoluteY = absoluteY;
       if ( attr2attrVal.$absoluteY ) {
-        attr2attrVal.$absoluteY.update( this.$absoluteY );
+        attr2attrVal.$absoluteY.update( this.absoluteY );
       }
-      for ( var i = 0, childLevelS = this.level.$childLevelS,
+      for ( var i = 0, childLevelS = this.level.childLevelS,
          len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].$isPart && childLevelS[ i ].$part.$updateAbsoluteY();
+        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteY();
       }
     }
   };
 
 
-  LAID.Part.prototype.$updateNaturalWidth = function () {
-    var attr2attrVal = this.level.$attr2attrVal
+  LAID.Part.prototype.updateNaturalWidth = function () {
+    var attr2attrVal = this.level.attr2attrVal
     if ( attr2attrVal.$naturalWidth ) {
-      if ( this.level.path === "/" ) {
+      if ( this.level.pathName === "/" ) {
         attr2attrVal.$naturalWidth.update( window.innerWidth );
 
-      } else if ( this.level.$attr2attrVal.text ) {
+      } else if ( this.level.attr2attrVal.text ) {
        
-        this.$updateNaturalWidthFromText();
+        this.updateNaturalWidthFromText();
       } else {
-        this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-        attr2attrVal.$naturalWidth );
+        this.naturalWidthLevel =
+          this.findChildWithMaxOfAttr( "right", "width",
+          attr2attrVal.$naturalWidth );
         attr2attrVal.$naturalWidth.update(
-            this.$naturalWidthLevel ?
-           ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
+            this.naturalWidthLevel ?
+           ( this.naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
            0
         );
       }
@@ -242,20 +271,21 @@
 
 
 
-  LAID.Part.prototype.$updateNaturalHeight = function () {
-    var attr2attrVal = this.level.$attr2attrVal
+  LAID.Part.prototype.updateNaturalHeight = function () {
+    var attr2attrVal = this.level.attr2attrVal
     if (attr2attrVal.$naturalHeight ) {
-      if ( this.level.path === "/" ) {
+      if ( this.level.pathName === "/" ) {
         attr2attrVal.$naturalHeight.update( window.innerHeight );
-      } else if ( this.level.$attr2attrVal.text ) {
-        this.$updateNaturalHeightFromText();
+      } else if ( this.level.attr2attrVal.text ) {
+        this.updateNaturalHeightFromText();
       } else {
-        this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
+        this.naturalHeightLevel =
+          this.findChildWithMaxOfAttr( "bottom", "height",
         attr2attrVal.$naturalHeight);
 
         attr2attrVal.$naturalHeight.update(
-            this.$naturalHeightLevel ?
-           ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
+            this.naturalHeightLevel ?
+           ( this.naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
            0
         );
       }
@@ -263,23 +293,22 @@
   };
 
 
-  LAID.Part.prototype.$updateNaturalWidthFromChild = function ( childLevel ) {
+  LAID.Part.prototype.updateNaturalWidthFromChild = function ( childLevel ) {
 
-    var attr2attrVal = this.level.$attr2attrVal;
-
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalWidth &&
-      ( this.level.path !== "/" ) &&
-      ! (LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.right.calcVal )) &&
-      ! (childLevel.$attr2attrVal.right.checkIsDependentOnAttrVal(
+      ( this.level.pathName !== "/" ) &&
+      ! (LAID.$checkIsValidUtils.nan( childLevel.attr2attrVal.right.calcVal )) &&
+      ! (childLevel.attr2attrVal.width.checkIsDependentOnAttrVal(
         attr2attrVal.$naturalWidth)) &&
         (checkIfLevelIsDisplayed(childLevel) )
         ) {
 
 
-      if ( this.$naturalWidthLevel === undefined ) {
-        this.$naturalWidthLevel = childLevel;
-      } else if ( this.$naturalWidthLevel === childLevel ) {
+      if ( this.naturalWidthLevel === undefined ) {
+        this.naturalWidthLevel = childLevel;
+      } else if ( this.naturalWidthLevel === childLevel ) {
 
         // Check If the current child level responsible for the stretch
         // of the naturalWidth boundary, has receeded
@@ -288,21 +317,22 @@
         // child element which has a higher right position
         // than the current child level responsible for the natural width
         if ( attr2attrVal.$naturalWidth.calcVal >
-           childLevel.$attr2attrVal.right.calcVal  ) {
+           childLevel.attr2attrVal.right.calcVal  ) {
           // Find the child with the next largest right
           // This could be the same child level
-          this.$naturalWidthLevel = this.$findChildWithMaxOfAttr( "right",
-          attr2attrVal.$naturalWidth );
+          this.naturalWidthLevel =
+            this.findChildWithMaxOfAttr( "right", "width",
+            attr2attrVal.$naturalWidth );
         }
       } else {
-        if ( childLevel.$attr2attrVal.right.calcVal >
-          this.$naturalWidthLevel.$attr2attrVal.right.calcVal ) {
-            this.$naturalWidthLevel = childLevel;
+        if ( childLevel.attr2attrVal.right.calcVal >
+          this.naturalWidthLevel.attr2attrVal.right.calcVal ) {
+            this.naturalWidthLevel = childLevel;
         }
       }
       attr2attrVal.$naturalWidth.update(
-        this.$naturalWidthLevel ?
-        ( this.$naturalWidthLevel.$attr2attrVal.right.calcVal || 0 ) :
+        this.naturalWidthLevel ?
+        ( this.naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
         0
       );
 
@@ -310,20 +340,20 @@
   };
 
 
-  LAID.Part.prototype.$updateNaturalHeightFromChild = function ( childLevel ) {
+  LAID.Part.prototype.updateNaturalHeightFromChild = function ( childLevel ) {
 
-    var attr2attrVal = this.level.$attr2attrVal;
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalHeight &&
-        ( this.level.path !== "/" ) &&
-       !(LAID.$checkIsValidUtils.nan( childLevel.$attr2attrVal.bottom.calcVal )) &&
-       !( childLevel.$attr2attrVal.bottom.checkIsDependentOnAttrVal(
+        ( this.level.pathName !== "/" ) &&
+       !(LAID.$checkIsValidUtils.nan( childLevel.attr2attrVal.bottom.calcVal )) &&
+       !( childLevel.attr2attrVal.height.checkIsDependentOnAttrVal(
          attr2attrVal.$naturalHeight) ) &&
          (checkIfLevelIsDisplayed(childLevel) ) ) {
 
-      if ( this.$naturalHeightLevel === undefined ) {
-        this.$naturalHeightLevel = childLevel;
-      } else if ( this.$naturalHeightLevel === childLevel ) {
+      if ( this.naturalHeightLevel === undefined ) {
+        this.naturalHeightLevel = childLevel;
+      } else if ( this.naturalHeightLevel === childLevel ) {
         // Check If the current child level responsible for the stretch
           // of the naturalHeight boundary, has receeded
           // If this would be the case, then there is
@@ -331,22 +361,23 @@
           // child element which has a higher bottom position
           // than the current child level responsible for the natural height
          if ( attr2attrVal.$naturalHeight.calcVal >
-           childLevel.$attr2attrVal.bottom.calcVal  ) {
+           childLevel.attr2attrVal.bottom.calcVal  ) {
           // Find the child with the next largest bottom
           // This could be the same child level
-          this.$naturalHeightLevel = this.$findChildWithMaxOfAttr( "bottom",
-          attr2attrVal.$naturalHeight );
+          this.naturalHeightLevel =
+            this.findChildWithMaxOfAttr( "bottom", "height",
+           attr2attrVal.$naturalHeight );
         }
       } else {
-        if ( childLevel.$attr2attrVal.bottom.calcVal >
-          this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal ) {
-            this.$naturalHeightLevel = childLevel;
+        if ( childLevel.attr2attrVal.bottom.calcVal >
+          this.naturalHeightLevel.attr2attrVal.bottom.calcVal ) {
+            this.naturalHeightLevel = childLevel;
           }
         }
 
       attr2attrVal.$naturalHeight.update(
-          this.$naturalHeightLevel ?
-          ( this.$naturalHeightLevel.$attr2attrVal.bottom.calcVal || 0 ) :
+          this.naturalHeightLevel ?
+          ( this.naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
           0
       );
     }
@@ -354,122 +385,181 @@
 
   
 
-  LAID.Part.prototype.$updateNaturalWidthInput = function () {
 
-    var attr2attrVal = this.level.$attr2attrVal;
+  LAID.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
+    var dimensionAlteringAttr2fnStyle = {
+      textSize: stringifyPxOrString,
+      textFamily: null,
+      textWeight: null,
+      textAlign: null,
+      textLetterSpacing: stringifyEmOrString,
+      textWordSpacing: stringifyPxOrString,
+      textLineHeight: stringifyPxOrString,
+      textOverflow: null,
+      textIndent: stringifyPlusPx,
+      textWhitespace: null,
+      textRendering: null,
+      textPaddingTop: stringifyPlusPx,
+      textPaddingRight: stringifyPlusPx,
+      textPaddingBottom: stringifyPlusPx,
+      textPaddingLeft: stringifyPlusPx,
+      borderTopWidth: stringifyPlusPx,
+      borderRightWidth: stringifyPlusPx,
+      borderBottomWidth: stringifyPlusPx,
+      borderLeftWidth: stringifyPlusPx
+    };
+
+    var dimensionAlteringAttr2cssProp = {
+      textSize: "font-size",
+      textFamily: "font-family",
+      textWeight: "font-weight",
+      textAlign: "text-align",
+      textLetterSpacing: "letter-spacing",
+      textWordSpacing: "word-spacing",
+      textLineHeight: "line-height",
+      textOverflow: "text-overflow",
+      textIndent: "text-indent",
+      textWhitespace: "white-space",
+      textRendering: "text-rendering",
+      textPaddingTop: "padding-top",
+      textPaddingRight: "padding-right",
+      textPaddingBottom: "padding-bottom",
+      textPaddingLeft: "padding-left",
+      borderTopWidth: "border-top-width",
+      borderRightWidth: "border-right-width",
+      borderBottomWidth: "border-bottom-width",
+      borderLeftWidth: "border-left-width"
+    };
+
+
+    var
+      node = this.textSizeMeasureNode,
+      attr2attrVal = this.level.attr2attrVal,
+      dimensionAlteringAttr, fnStyle,
+      textRelatedAttrVal,
+      text = this.isInputText ? 
+        attr2attrVal.$input.calcVal :
+        attr2attrVal.text.calcVal;
+    
+    for ( dimensionAlteringAttr in
+       dimensionAlteringAttr2fnStyle ) {
+      textRelatedAttrVal = attr2attrVal[ 
+        dimensionAlteringAttr ];
+      if ( textRelatedAttrVal ) {
+
+        fnStyle = dimensionAlteringAttr2fnStyle[ 
+            dimensionAlteringAttr ];
+      
+        node.style[ 
+          dimensionAlteringAttr2cssProp[
+            dimensionAlteringAttr ] ] =
+            fnStyle === null ? textRelatedAttrVal.calcVal :
+              fnStyle( textRelatedAttrVal.calcVal );
+      }
+    }
 
     if ( attr2attrVal.$naturalWidth ) {
+      var initialWhitespace = node.style.whiteSpace;
+      node.style.whiteSpace = "nowrap";
+    }
 
-        this.$naturalWidthInputMode = true;
+    if ( isWidth ) {
+      node.style.display = "inline";
+      node.style.width = "auto";
+      node.innerHTML = text;
 
-        if ( !this.$naturalHeightInputMode ) {
-          attr2attrVal.$input.forceRecalculation();
-        }
-
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        attr2attrVal.$naturalWidth.update( 0 );
+      this.level.$changeAttrVal( "$naturalWidth",
+       node.offsetWidth );
+    } else {
+      node.style.display = "block";
+      node.style.width = attr2attrVal.width.calcVal + "px";
+      
+      // If empty we will subsitute with a space character
+      // as we wouldn't want the height to resolve to 0
+      node.innerHTML = text || " ";
+      this.level.$changeAttrVal( "$naturalHeight",
+        node.offsetHeight );
+    }
+    // restore whitespace
+    if ( attr2attrVal.$naturalWidth ) {
+      node.style.whiteSpace = initialWhitespace;
 
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeightInput = function () {
+  LAID.Part.prototype.updateNaturalWidthFromText = function () {
 
-
-    var attr2attrVal = this.level.$attr2attrVal;
-
-    if ( attr2attrVal.$naturalHeight ) {
-
-        this.$naturalHeightInputMode = true;
-
-        if ( !this.$naturalWidthInputMode ) {
-          attr2attrVal.$input.forceRecalculation();
-        }
-
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        attr2attrVal.$naturalHeight.update( 0 );
-
-    }
-  };
-  LAID.Part.prototype.$updateNaturalWidthFromText = function () {
-
-    var attr2attrVal = this.level.$attr2attrVal;
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalWidth &&
-      this.level.$attr2attrVal.text ) {
-
-        this.$naturalWidthTextMode = true;
-
-        if ( !this.$naturalHeightTextMode ) {
-          attr2attrVal.text.forceRecalculation();
-        }
-
-        // temporarily (for current recalculate) cycle
-        // set the value to 0. This is only
-        // as a render cycle is required for learning
-        // the natural width
-        attr2attrVal.$naturalWidth.update( 0 );
-
-
-
+      this.level.attr2attrVal.text ) {
+      if ( attr2attrVal.$naturalWidth ) {
+        this.calculateTextNaturalDimesion( true );
+      }
     }
   };
 
-  LAID.Part.prototype.$updateNaturalHeightFromText = function ( arg ) {
+  LAID.Part.prototype.updateNaturalHeightFromText = function ( arg ) {
 
-    var attr2attrVal = this.level.$attr2attrVal;
+    var attr2attrVal = this.level.attr2attrVal;
 
     if ( attr2attrVal.$naturalHeight &&
-      this.level.$attr2attrVal.text ) {
-
-      this.$naturalHeightTextMode = true;
-
-      if ( !this.$naturalWidthTextMode ) {
-        attr2attrVal.text.forceRecalculation();
+      this.level.attr2attrVal.text ) {
+      if ( attr2attrVal.$naturalHeight ) {
+       this.calculateTextNaturalDimesion( false );
       }
-
-      // temporarily (for current recalculate) cycle
-      // set the value to 0. This is only
-      // as a render cycle is required for learning
-      // the natural height
-      attr2attrVal.$naturalHeight.update( 0 );
-
     }
   };
 
-  LAID.Part.prototype.$addNormalRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.Part.prototype.updateNaturalWidthInput = function () {
 
-    LAID.$arrayUtils.remove( this.$travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$normalRenderDirtyAttrValS, attrVal );
+    var attr2attrVal = this.level.attr2attrVal;
+
+    if ( attr2attrVal.$naturalWidth ) {
+      this.calculateTextNaturalDimesion( true );
+    }
+  };
+
+  LAID.Part.prototype.updateNaturalHeightInput = function () {
+
+    var attr2attrVal = this.level.attr2attrVal;
+
+    if ( attr2attrVal.$naturalHeight ) {
+      if ( attr2attrVal.$naturalHeight ) {
+        this.calculateTextNaturalDimesion( false );
+      }
+    }
+  };
+  
+
+  LAID.Part.prototype.addNormalRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAID.$arrayUtils.remove( this.travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.normalRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
 
   };
 
-  LAID.Part.prototype.$addTravelRenderDirtyAttrVal = function ( attrVal ) {
+  LAID.Part.prototype.addTravelRenderDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.remove( this.$normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.$travelRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.remove( this.normalRenderDirtyAttrValS, attrVal );
+    LAID.$arrayUtils.pushUnique( this.travelRenderDirtyAttrValS, attrVal );
     LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
 
   };
 
-  LAID.Part.prototype.$updateWhenEventType = function ( eventType ) {
+  LAID.Part.prototype.updateWhenEventType = function ( eventType ) {
 
     var
       numFnHandlersForEventType =
-        this.level.$attr2attrVal[ "$$num.when." + eventType ].val,
+        this.level.attr2attrVal[ "$$num.when." + eventType ].val,
       fnMainHandler,
       thisLevel = this.level;
 
-    if ( this.$whenEventType2fnMainHandler[ eventType ] !== undefined ) {
+    if ( this.whenEventType2fnMainHandler[ eventType ] !== undefined ) {
       LAID.$eventUtils.remove( 
         this.node, eventType,
-          this.$whenEventType2fnMainHandler[ eventType ] );
+          this.whenEventType2fnMainHandler[ eventType ] );
     }
 
     if ( numFnHandlersForEventType !== 0 ) {
@@ -478,38 +568,33 @@
         var i, len, attrValForFnHandler;
         for ( i = 0; i < numFnHandlersForEventType; i++ ) {
           attrValForFnHandler =
-          thisLevel.$attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
+          thisLevel.attr2attrVal[ "when." + eventType + "." + ( i + 1 ) ];
           if ( attrValForFnHandler !== undefined ) {
             attrValForFnHandler.calcVal.call( thisLevel, e );
           }
         }
       };
       LAID.$eventUtils.add( this.node, eventType, fnMainHandler );
-      this.$whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
+      this.whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
-      this.$whenEventType2fnMainHandler[ eventType ] = undefined;
+      this.whenEventType2fnMainHandler[ eventType ] = undefined;
 
     }
   };
 
-  LAID.Part.prototype.$checkIsPropInTransition = function ( prop ) {
-    return ( this.level.$attr2attrVal[ "transition." + prop  + ".type" ] !==
+  LAID.Part.prototype.checkIsPropInTransition = function ( prop ) {
+    return ( this.level.attr2attrVal[ "transition." + prop  + ".type" ] !==
       undefined )  ||
-      ( this.level.$attr2attrVal[ "transition." + prop  + ".delay" ] !==
+      ( this.level.attr2attrVal[ "transition." + prop  + ".delay" ] !==
         undefined );
   };
 
-  LAID.Part.prototype.$updateTransitionProp = function ( transitionProp ) {
-
+  LAID.Part.prototype.updateTransitionProp = function ( transitionProp ) {
 
     if ( this.isInitiallyRendered ) {
-      console.log( " x", this.level.path, transitionProp ); 
-      if ( this.level.$derivedMany ) {
-        console.log( " y", this.level.path, this.level.$derivedMany.$isLoaded );
-      }
       var
-        attr2attrVal = this.level.$attr2attrVal,
+        attr2attrVal = this.level.attr2attrVal,
         attr, attrVal,
         transitionPrefix,
         transitionType, transitionDuration, transitionDelay, transitionDone,
@@ -526,15 +611,14 @@
         return;
       }
 
-      if ( !this.$checkIsPropInTransition( transitionProp ) ) {
-        if ( this.$checkIsPropInTransition( "all" ) ) {
+      if ( !this.checkIsPropInTransition( transitionProp ) ) {
+        if ( this.checkIsPropInTransition( "all" ) ) {
           allAffectedProp = transitionProp;
           transitionProp = "all";
         } else {
           return;
         }
       }
-
 
       transitionPrefix = "transition." + transitionProp + ".";
 
@@ -579,8 +663,8 @@
           //     a transition then we will not want to override
           //     its transition with the lower priority "all" transition
           if ( attrVal.renderCall &&
-              !this.$checkIsPropInTransition( attrVal.attr ) ) {
-            this.$updateTransitionAttrVal(
+              !this.checkIsPropInTransition( attrVal.attr ) ) {
+            this.updateTransitionAttrVal(
               attrVal,
                transitionType, transitionDelay, transitionDuration,
                transitionArg2val, transitionDone
@@ -590,7 +674,7 @@
         }
       } else {
 
-        this.$updateTransitionAttrVal(
+        this.updateTransitionAttrVal(
            attr2attrVal[ allAffectedProp || transitionProp ],
            transitionType, transitionDelay, transitionDuration,
            transitionArg2val, transitionDone
@@ -600,7 +684,7 @@
     }
   };
 
-  LAID.Part.prototype.$updateTransitionAttrVal = function ( attrVal,
+  LAID.Part.prototype.updateTransitionAttrVal = function ( attrVal,
     transitionType, transitionDelay, transitionDuration,
     transitionArg2val, transitionDone  ) {
 
@@ -626,20 +710,30 @@
     }
   }
 
+  function stringifyPxOrString( val, defaultVal ) {
+    return ( val === undefined ) ?
+        defaultVal : ( typeof val === "number" ?
+        ( val + "px" ) : val );
+  }
+
+  function stringifyEmOrString( val, defaultVal ) {
+    return ( val === undefined ) ?
+        defaultVal : ( typeof val === "number" ?
+        ( val + "em" ) : val );
+  }
+
   function computePxOrString( attrVal, defaultVal ) {
-    var transitionCalcVal =
-      attrVal && attrVal.transitionCalcVal;
-    return ( transitionCalcVal === undefined ) ?
-        defaultVal : ( typeof transitionCalcVal === "number" ?
-        ( transitionCalcVal + "px" ) : transitionCalcVal );
+    
+    return stringifyPxOrString(
+      attrVal && attrVal.transitionCalcVal,
+      defaultVal );
+    
   }
 
   function computeEmOrString( attrVal, defaultVal ) {
-    var transitionCalcVal =
-      attrVal && attrVal.transitionCalcVal;
-    return ( transitionCalcVal === undefined ) ?
-        defaultVal : ( typeof transitionCalcVal === "number" ?
-        ( transitionCalcVal + "em" ) : transitionCalcVal );
+    return stringifyEmOrString(
+      attrVal && attrVal.transitionCalcVal,
+      defaultVal );
   }
 
   function computeColorOrString( attrVal, defaultVal ) {
@@ -658,16 +752,16 @@
   // this will make no difference
 
   // The renderable prop can be
-  // accessed via `part.$renderFn_<prop>`
+  // accessed via `part.renderFn_<prop>`
 
 
   if ( isGpuAccelerated ) {
 
 
     // TODO: optimize to enter matrix3d directly
-    LAID.Part.prototype.$renderFn_positional =   
+    LAID.Part.prototype.renderFn_positional =   
     function () {
-      var attr2attrVal = this.level.$attr2attrVal;
+      var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
       "scale3d(" +
@@ -692,14 +786,14 @@
 
     };
 
-    LAID.Part.prototype.$renderFn_width = function () {
-      this.node.style.width = this.level.$attr2attrVal.width.transitionCalcVal + "px";
-      //this.$renderFn_positional(); //apply change to transform
+    LAID.Part.prototype.renderFn_width = function () {
+      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
+      //this.renderFn_positional(); //apply change to transform
     };
 
-    LAID.Part.prototype.$renderFn_height = function () {
-      this.node.style.height = this.level.$attr2attrVal.height.transitionCalcVal + "px";
-      //this.$renderFn_positional(); //apply change to transform
+    LAID.Part.prototype.renderFn_height = function () {
+      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
+      //this.renderFn_positional(); //apply change to transform
     };
 
 
@@ -707,16 +801,16 @@
   } else {
     // legacy browser usage or forced non-gpu mode
 
-    LAID.Part.prototype.$renderFn_width = function () {
-      this.node.style.width = this.level.$attr2attrVal.width.transitionCalcVal + "px";
+    LAID.Part.prototype.renderFn_width = function () {
+      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
     };
 
-    LAID.Part.prototype.$renderFn_height = function () {
-      this.node.style.height = this.level.$attr2attrVal.height.transitionCalcVal + "px";
+    LAID.Part.prototype.renderFn_height = function () {
+      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
     };
 
-    LAID.Part.prototype.$renderFn_positional = function () {
-      var attr2attrVal = this.level.$attr2attrVal;
+    LAID.Part.prototype.renderFn_positional = function () {
+      var attr2attrVal = this.level.attr2attrVal;
       this.node.style.left = ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
       this.node.style.top = ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
 
@@ -727,24 +821,24 @@
 
 
 
-  LAID.Part.prototype.$renderFn_origin = function () {
-    var attr2attrVal = this.level.$attr2attrVal;
+  LAID.Part.prototype.renderFn_origin = function () {
+    var attr2attrVal = this.level.attr2attrVal;
 
     this.node.style[ cssPrefix + "transform-origin" ] =
     ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0  ) + "px";
-    //this.$renderFn_positional(); //apply change to transform
+    //this.renderFn_positional(); //apply change to transform
   };
 
 
-  LAID.Part.prototype.$renderFn_perspective = function () {
+  LAID.Part.prototype.renderFn_perspective = function () {
     this.node.style[ cssPrefix + "perspective" ] =
-     this.level.$attr2attrVal.perspective.transitionCalcVal + "px";
+     this.level.attr2attrVal.perspective.transitionCalcVal + "px";
   };
 
-  LAID.Part.prototype.$renderFn_perspectiveOrigin = function () {
-    var attr2attrVal = this.level.$attr2attrVal;
+  LAID.Part.prototype.renderFn_perspectiveOrigin = function () {
+    var attr2attrVal = this.level.attr2attrVal;
     this.node.style[ cssPrefix + "perspective-origin" ] =
     ( attr2attrVal.perspectiveOriginX ?
      ( attr2attrVal.perspectiveOriginX.transitionCalcVal * 100 )
@@ -754,32 +848,32 @@
       : 0 ) + "%";
   };
 
-  LAID.Part.prototype.$renderFn_backfaceVisibility = function () {
+  LAID.Part.prototype.renderFn_backfaceVisibility = function () {
     this.node.style[ cssPrefix + "backface-visibility" ] =
-      this.level.$attr2attrVal.backfaceVisibility.transitionCalcVal;
+      this.level.attr2attrVal.backfaceVisibility.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_opacity = function () {
-    this.node.style.opacity = this.level.$attr2attrVal.opacity.transitionCalcVal;
+  LAID.Part.prototype.renderFn_opacity = function () {
+    this.node.style.opacity = this.level.attr2attrVal.opacity.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_userSelect = function () {
+  LAID.Part.prototype.renderFn_userSelect = function () {
     this.node.style[ cssPrefix + "user-select" ] = 
-      this.level.$attr2attrVal.userSelect.transitionCalcVal;
+      this.level.attr2attrVal.userSelect.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_display = function () {
+  LAID.Part.prototype.renderFn_display = function () {
     var parentLevel = this.level.parentLevel;
     if ( parentLevel ) {
-      if ( parentLevel.$part ) {
-        parentLevel.$part.$updateNaturalWidth();
-        parentLevel.$part.$updateNaturalHeight();
+      if ( parentLevel.part ) {
+        parentLevel.part.updateNaturalWidth();
+        parentLevel.part.updateNaturalHeight();
 
       }
     }
     recurseVisibilityNode( this.node,
-        this.level.$attr2attrVal.display.transitionCalcVal ?
+        this.level.attr2attrVal.display.transitionCalcVal ?
         "visible" : "hidden"  );
 
   };
@@ -795,82 +889,82 @@
     }
   }
 
-  LAID.Part.prototype.$renderFn_zIndex = function () {
+  LAID.Part.prototype.renderFn_zIndex = function () {
 
     this.node.style.zIndex =
-      this.level.$attr2attrVal.zIndex.transitionCalcVal || "auto";
+      this.level.attr2attrVal.zIndex.transitionCalcVal || "auto";
   };
 
 
-  LAID.Part.prototype.$renderFn_scrollX = function () {
-    this.node.scrollLeft = this.level.$attr2attrVal.scrollX.transitionCalcVal;
+  LAID.Part.prototype.renderFn_scrollX = function () {
+    this.node.scrollLeft = this.level.attr2attrVal.scrollX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_scrollY = function () {
-    this.node.scrollTop = this.level.$attr2attrVal.scrollY.transitionCalcVal;
+  LAID.Part.prototype.renderFn_scrollY = function () {
+    this.node.scrollTop = this.level.attr2attrVal.scrollY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_overflowX = function () {
+  LAID.Part.prototype.renderFn_overflowX = function () {
     this.node.style.overflowX =
-      this.level.$attr2attrVal.overflowX.transitionCalcVal;
+      this.level.attr2attrVal.overflowX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_overflowY = function () {
+  LAID.Part.prototype.renderFn_overflowY = function () {
     this.node.style.overflowY =
-      this.level.$attr2attrVal.overflowY.transitionCalcVal;
+      this.level.attr2attrVal.overflowY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_cursor = function () {
+  LAID.Part.prototype.renderFn_cursor = function () {
     this.node.style.cursor =
-      this.level.$attr2attrVal.
+      this.level.attr2attrVal.
       cursor.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundColor = function () {
+  LAID.Part.prototype.renderFn_backgroundColor = function () {
     this.node.style.backgroundColor =
-      this.level.$attr2attrVal.
+      this.level.attr2attrVal.
       backgroundColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.$renderFn_backgroundImage = function () {
+  LAID.Part.prototype.renderFn_backgroundImage = function () {
     this.node.style.backgroundImage =
-      this.level.$attr2attrVal.
+      this.level.attr2attrVal.
       backgroundImage.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundAttachment = function () {
-    this.node.style.backgroundAttachment = this.level.$attr2attrVal.backgroundAttachment.transitionCalcVal;
+  LAID.Part.prototype.renderFn_backgroundAttachment = function () {
+    this.node.style.backgroundAttachment = this.level.attr2attrVal.backgroundAttachment.transitionCalcVal;
   };
 
-  LAID.Part.prototype.$renderFn_backgroundRepeat = function () {
-    this.node.style.backgroundRepeat = this.level.$attr2attrVal.backgroundColor.transitionCalcVal;
+  LAID.Part.prototype.renderFn_backgroundRepeat = function () {
+    this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundColor.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_backgroundSize = function () {
+  LAID.Part.prototype.renderFn_backgroundSize = function () {
     
     this.node.style.backgroundSize =
       computePxOrString( 
-        this.level.$attr2attrVal.backgroundSizeX, "auto" ) +
+        this.level.attr2attrVal.backgroundSizeX, "auto" ) +
       " " +
       computePxOrString(
-        this.level.$attr2attrVal.backgroundSizeY, "auto" );
+        this.level.attr2attrVal.backgroundSizeY, "auto" );
 
   };
 
-  LAID.Part.prototype.$renderFn_backgroundPosition = function () {
+  LAID.Part.prototype.renderFn_backgroundPosition = function () {
     this.node.style.backgroundPosition =
       computePxOrString(
-        this.level.$attr2attrVal.backgroundPositionX, "0px" ) +
+        this.level.attr2attrVal.backgroundPositionX, "0px" ) +
          " " +
       computePxOrString(
-        this.level.$attr2attrVal.backgroundPositionX, "0px" );
+        this.level.attr2attrVal.backgroundPositionX, "0px" );
     
   };
 
-  LAID.Part.prototype.$renderFn_boxShadows = function () {
+  LAID.Part.prototype.renderFn_boxShadows = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     s = "",
     i, len;
     for ( i = 1, len = attr2attrVal[ "$$max.boxShadows" ].calcVal; i <= len;
@@ -898,9 +992,9 @@
 
 
 
-  LAID.Part.prototype.$renderFn_filters = function () {
+  LAID.Part.prototype.renderFn_filters = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     s = "",
     i, len,
     filterType;
@@ -934,173 +1028,186 @@
 
   };
 
-  LAID.Part.prototype.$renderFn_cornerRadiusTopLeft = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusTopLeft = function () {
     this.node.style.borderTopLeftRadius =
-     this.level.$attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
+     this.level.attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusTopRight = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusTopRight = function () {
     this.node.style.borderTopRightRadius =
-      this.level.$attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
+      this.level.attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusBottomRight = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusBottomRight = function () {
     this.node.style.borderBottomRightRadius =
-      this.level.$attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
+      this.level.attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_cornerRadiusBottomLeft = function () {
+  LAID.Part.prototype.renderFn_cornerRadiusBottomLeft = function () {
     this.node.style.borderBottomLeftRadius =
-      this.level.$attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
+      this.level.attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
   };
 
 
 
-  LAID.Part.prototype.$renderFn_borderTopStyle = function () {
+  LAID.Part.prototype.renderFn_borderTopStyle = function () {
     this.node.style.borderTopStyle =
-      this.level.$attr2attrVal.borderTopStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderTopStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderRightStyle = function () {
+  LAID.Part.prototype.renderFn_borderRightStyle = function () {
     this.node.style.borderRightStyle =
-      this.level.$attr2attrVal.borderRightStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderRightStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderBottomStyle = function () {
+  LAID.Part.prototype.renderFn_borderBottomStyle = function () {
     this.node.style.borderBottomStyle =
-      this.level.$attr2attrVal.borderBottomStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderBottomStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_borderLeftStyle = function () {
+  LAID.Part.prototype.renderFn_borderLeftStyle = function () {
     this.node.style.borderLeftStyle =
-      this.level.$attr2attrVal.borderLeftStyle.transitionCalcVal;
+      this.level.attr2attrVal.borderLeftStyle.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.$renderFn_borderTopColor = function () {
+  LAID.Part.prototype.renderFn_borderTopColor = function () {
     this.node.style.borderTopColor =
-      this.level.$attr2attrVal.borderTopColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderTopColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderRightColor = function () {
+  LAID.Part.prototype.renderFn_borderRightColor = function () {
     this.node.style.borderRightColor =
-      this.level.$attr2attrVal.borderRightColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderRightColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderBottomColor = function () {
+  LAID.Part.prototype.renderFn_borderBottomColor = function () {
     this.node.style.borderBottomColor =
-      this.level.$attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.$renderFn_borderLeftColor = function () {
+  LAID.Part.prototype.renderFn_borderLeftColor = function () {
     this.node.style.borderLeftColor =
-      this.level.$attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
+      this.level.attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.$renderFn_borderTopWidth = function () {
+  LAID.Part.prototype.renderFn_borderTopWidth = function () {
     this.node.style.borderTopWidth =
-      this.level.$attr2attrVal.borderTopWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderTopWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderRightWidth = function () {
+  LAID.Part.prototype.renderFn_borderRightWidth = function () {
     this.node.style.borderRightWidth =
-      this.level.$attr2attrVal.borderRightWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderRightWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderBottomWidth = function () {
+  LAID.Part.prototype.renderFn_borderBottomWidth = function () {
     this.node.style.borderBottomWidth =
-      this.level.$attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.$renderFn_borderLeftWidth = function () {
+  LAID.Part.prototype.renderFn_borderLeftWidth = function () {
     this.node.style.borderLeftWidth =
-      this.level.$attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
+      this.level.attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
   };
 
 
 
   /* Text Related */
 
-  LAID.Part.prototype.$renderFn_text = function () {
+  LAID.Part.prototype.renderFn_text = function () {
     
-    if ( this.$naturalWidthTextMode ) {
-
-      this.node.style.display = "inline";
-      this.node.style.width = "auto";
-      this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-
-      this.level.$changeAttrVal( "$naturalWidth",
-       this.node.getBoundingClientRect().width );
-      this.node.style.display = "block";
-      this.$naturalWidthTextMode = false;
-    }
-    if ( this.$naturalHeightTextMode ) {
-
-      this.node.style.height = "auto";
-      this.node.innerHTML = this.level.$attr2attrVal.text.transitionCalcVal;
-      this.level.$changeAttrVal( "$naturalHeight",
-       this.node.getBoundingClientRect().height );
-      this.$naturalHeightTextMode = false;
-    }
-
     this.node.innerHTML =
-     this.level.$attr2attrVal.text.transitionCalcVal;
+     this.level.attr2attrVal.text.transitionCalcVal;
 
   };
 
 
-  LAID.Part.prototype.$renderFn_$input = function () {
-
-    var
-      divNode = this.inputDivNode,
-      attr2attrVal = this.level.$attr2attrVal,
-      inputVal = attr2attrVal.$input.transitionCalcVal;
-    
-
-    divNode.style.cssText = this.node.style.cssText;
-    divNode.style.visibility = "hidden";
-    divNode.style.overflow = "visible";
-    //this.inputDivNode.style.zIndex = "-1";
-
-    if ( this.$naturalWidthInputMode ) {
-      divNode.style.display = "inline";
-      divNode.style.width = "auto";
-      divNode.innerHTML = inputVal;
-
-      this.level.$changeAttrVal( "$naturalWidth",
-       divNode.getBoundingClientRect().width );
-      divNode.style.display = "block";
-      this.$naturalWidthInputMode = false;
-    }
-    if ( this.$naturalHeightInputMode ) {
-      divNode.style.height = "auto";
-      // If empty we will subsitute with a space character
-      // as we wouldn't want the height to resolve to 0
-      divNode.innerHTML = inputVal || ".";
-      this.level.$changeAttrVal( "$naturalHeight",
-        divNode.getBoundingClientRect().height );
-      this.$naturalHeightInputMode = false;
-    }
+  LAID.Part.prototype.renderFn_input = function () {
 
     this.node.value = inputVal;
 
   };
 
-  LAID.Part.prototype.$renderFn_textSize = function () {
+  LAID.Part.prototype.renderFn_textSize = function () {
    
     this.node.style.fontSize =
-      computePxOrString( 
-        this.level.$attr2attrVal.textSize );
+      computePxOrString( this.level.attr2attrVal.textSize );
   };
-  LAID.Part.prototype.$renderFn_textFamily = function () {
+  LAID.Part.prototype.renderFn_textFamily = function () {
     this.node.style.fontFamily =
-      this.level.$attr2attrVal.textFamily.transitionCalcVal;
+      this.level.attr2attrVal.textFamily.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textWeight = function () {
+
+  LAID.Part.prototype.renderFn_textWeight = function () {
 
     this.node.style.fontWeight =
-      this.level.$attr2attrVal.textWeight.transitionCalcVal;
+      this.level.attr2attrVal.textWeight.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_textColor = function () {
+  LAID.Part.prototype.renderFn_textColor = function () {
     this.node.style.color = 
       computeColorOrString( 
-        this.level.$attr2attrVal.textColor );
+        this.level.attr2attrVal.textColor );
   };
 
+  LAID.Part.prototype.renderFn_textVariant = function () {
+    this.node.style.fontVariant =
+      this.level.attr2attrVal.textVariant.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textStyle = function () {
+    this.node.style.fontStyle =
+      this.level.attr2attrVal.textStyle.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textDecoration = function () {
+    this.node.style.textDecoration =
+      this.level.attr2attrVal.textDecoration.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textAlign = function () {
+    this.node.style.textAlign =
+      this.level.attr2attrVal.textAlign.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textLetterSpacing = function () {
+    this.node.style.letterSpacing = computePxOrString( 
+        this.level.attr2attrVal.textLetterSpacing ) ;
+  };
+  LAID.Part.prototype.renderFn_textWordSpacing = function () {
+    this.node.style.wordSpacing = computePxOrString( 
+        this.level.attr2attrVal.textWordSpacing );
+  };
+  LAID.Part.prototype.renderFn_textLineHeight = function () {
+    this.node.style.lineHeight = computeEmOrString( 
+        this.level.attr2attrVal.textLineHeight );
+  };
 
-  LAID.Part.prototype.$renderFn_textShadows = function () {
-    var
-    attr2attrVal = this.level.$attr2attrVal,
-    s = "",
-    i, len;
+  LAID.Part.prototype.renderFn_textOverflow = function () {
+    this.node.style.textOverflow =
+      this.level.attr2attrVal.textOverflow.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textIndent = function () {
+    this.node.style.textIndent =
+      this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textWhitespace = function () {
+    this.node.style.whiteSpace =
+      this.level.attr2attrVal.textWhitespace.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textSmoothing = function () {
+    this.node.style[ cssPrefix + "font-smoothing" ] =
+     this.level.attr2attrVal.textSmoothing.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textRendering = function () {
+    this.node.style.textRendering =
+      this.level.attr2attrVal.textRendering.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textPaddingTop = function () {
+    this.node.style.paddingTop =
+      this.level.attr2attrVal.textPaddingTop.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textPaddingRight = function () {
+    this.node.style.paddingRight =
+      this.level.attr2attrVal.textPaddingRight.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textPaddingBottom = function () {
+    this.node.style.paddingBottom =
+      this.level.attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
+  };
+  LAID.Part.prototype.renderFn_textPaddingLeft = function () {
+    this.node.style.paddingLeft =
+      this.level.attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
+  };
+
+  LAID.Part.prototype.renderFn_textShadows = function () {
+    var attr2attrVal = this.level.attr2attrVal,
+      s = "",
+      i, len;
     for ( i = 1, len = attr2attrVal[ "$$max.textShadows" ].calcVal; i <= len; i++ ) {
       s +=
       (  attr2attrVal["textShadows" + i + "Color" ].transitionCalcVal.stringify() ) + " " +
@@ -1116,125 +1223,61 @@
     this.node.style.textShadow = s;
   };
 
-  LAID.Part.prototype.$renderFn_textVariant = function () {
-    this.node.style.fontVariant = this.level.$attr2attrVal.textVariant.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textStyle = function () {
-    this.node.style.fontStyle = this.level.$attr2attrVal.textStyle.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textDecoration = function () {
-    this.node.style.textDecoration = this.level.$attr2attrVal.textDecoration.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textAlign = function () {
-    this.node.style.textAlign = this.level.$attr2attrVal.textAlign.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textLetterSpacing = function () {
-    this.node.style.letterSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textLetterSpacing ) ;
-  };
-  LAID.Part.prototype.$renderFn_textWordSpacing = function () {
-    this.node.style.wordSpacing = computePxOrString( 
-        this.level.$attr2attrVal.textWordSpacing );
-  };
-  LAID.Part.prototype.$renderFn_textLineHeight = function () {
-    
-    this.node.style.lineHeight = computeEmOrString( 
-        this.level.$attr2attrVal.textLineHeight );
-  }
-
-  LAID.Part.prototype.$renderFn_textOverflow = function () {
-    this.node.style.textOverflow = this.level.$attr2attrVal.textOverflow.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textIndent = function () {
-    this.node.style.textIndent = this.level.$attr2attrVal.textIndent.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textWhitespace = function () {
-    this.node.style.whiteSpace =
-      this.level.$attr2attrVal.textWhitespace.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textSmoothing = function () {
-    this.node.style[ cssPrefix + "font-smoothing" ] =
-     this.level.$attr2attrVal.textSmoothing.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textRendering = function () {
-    this.node.style[ cssPrefix + "text-rendering" ] =
-      this.node.style[ "text-rendering" ] =
-      this.level.$attr2attrVal.textRendering.transitionCalcVal;
-  };
-  LAID.Part.prototype.$renderFn_textPaddingTop = function () {
-    this.node.style.paddingTop =
-      this.level.$attr2attrVal.textPaddingTop.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textPaddingRight = function () {
-    this.node.style.paddingRight =
-      this.level.$attr2attrVal.textPaddingRight.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textPaddingBottom = function () {
-    this.node.style.paddingBottom =
-      this.level.$attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
-  };
-  LAID.Part.prototype.$renderFn_textPaddingLeft = function () {
-    this.node.style.paddingLeft =
-      this.level.$attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
-  };
-
-
   /* Non <div> */
 
   /* Input (<input/> and <textarea>) Related */
 
-  LAID.Part.prototype.$renderFn_inputLabel = function () {
-    this.node.label = this.level.$attr2attrVal.inputLabel.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputLabel = function () {
+    this.node.label = this.level.attr2attrVal.inputLabel.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputRows = function () {
-    this.node.rows = this.level.$attr2attrVal.inputRows.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputRows = function () {
+    this.node.rows = this.level.attr2attrVal.inputRows.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_input = function () {
-    this.node.value = this.level.$attr2attrVal.input.transitionCalcVal;
+  LAID.Part.prototype.renderFn_input = function () {
+    this.node.value = this.level.attr2attrVal.input.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputPlaceholder = function () {
-    this.node.placeholder = this.level.$attr2attrVal.inputPlaceholder.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputPlaceholder = function () {
+    this.node.placeholder = this.level.attr2attrVal.inputPlaceholder.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputAutocomplete = function () {
-    this.node.autocomplete = this.level.$attr2attrVal.inputAutocomplete.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputAutocomplete = function () {
+    this.node.autocomplete = this.level.attr2attrVal.inputAutocomplete.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputAutocorrect = function () {
-    this.node.autocorrect = this.level.$attr2attrVal.inputAutocorrect.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputAutocorrect = function () {
+    this.node.autocorrect = this.level.attr2attrVal.inputAutocorrect.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_inputDisabled = function () {
-    this.node.disabled = this.level.$attr2attrVal.inputDisabled.transitionCalcVal;
+  LAID.Part.prototype.renderFn_inputDisabled = function () {
+    this.node.disabled = this.level.attr2attrVal.inputDisabled.transitionCalcVal;
   };
 
 
   /* Link (<a>) Related */
 
-  LAID.Part.prototype.$renderFn_linkHref = function () {
-    this.node.href = this.level.$attr2attrVal.linkHref.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkHref = function () {
+    this.node.href = this.level.attr2attrVal.linkHref.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkRel = function () {
-    this.node.rel = this.level.$attr2attrVal.linkRel.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkRel = function () {
+    this.node.rel = this.level.attr2attrVal.linkRel.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkDownload = function () {
-    this.node.download = this.level.$attr2attrVal.linkDownload.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkDownload = function () {
+    this.node.download = this.level.attr2attrVal.linkDownload.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_linkTarget = function () {
-    this.node.target = this.level.$attr2attrVal.linkTarget.transitionCalcVal;
+  LAID.Part.prototype.renderFn_linkTarget = function () {
+    this.node.target = this.level.attr2attrVal.linkTarget.transitionCalcVal;
   };
-
 
   /* Image (<img>) related */
-  LAID.Part.prototype.$renderFn_imageUrl = function () {
-    this.node.src = this.level.$attr2attrVal.imageUrl.transitionCalcVal;
+  LAID.Part.prototype.renderFn_imageUrl = function () {
+    this.node.src = this.level.attr2attrVal.imageUrl.transitionCalcVal;
   };
 
   /* Audio (<audio>) related */
-  LAID.Part.prototype.$renderFn_audioSources = function () {
+  LAID.Part.prototype.renderFn_audioSources = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
-    i, len,
-    documentFragment = document.createDocumentFragment(),
-    childNodes = this.node.childNodes,
-    childNode;
+      attr2attrVal = this.level.attr2attrVal,
+      i, len,
+      documentFragment = document.createDocumentFragment(),
+      childNodes = this.node.childNodes,
+      childNode;
     // first remove the current audio sources
     for ( i = 0, len = childNodes.length; i <= len; i++ ) {
       childNode = childNodes[ i ];
@@ -1251,9 +1294,9 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_audioTracks = function () {
+  LAID.Part.prototype.renderFn_audioTracks = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     i, len,
     documentFragment = document.createDocumentFragment(),
     childNodes = this.node.childNodes,
@@ -1274,26 +1317,26 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_audioVolume = function () {
-    this.node.volume = this.level.$attr2attrVal.audioVolume.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioVolume = function () {
+    this.node.volume = this.level.attr2attrVal.audioVolume.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioControls = function () {
-    this.node.controls = this.level.$attr2attrVal.audioControls.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioControls = function () {
+    this.node.controls = this.level.attr2attrVal.audioControls.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioLoop = function () {
-    this.node.loop = this.level.$attr2attrVal.audioLoop.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioLoop = function () {
+    this.node.loop = this.level.attr2attrVal.audioLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioMuted = function () {
-    this.node.muted = this.level.$attr2attrVal.audioMuted.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioMuted = function () {
+    this.node.muted = this.level.attr2attrVal.audioMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_audioPreload = function () {
-    this.node.preload = this.level.$attr2attrVal.audioPreload.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioPreload = function () {
+    this.node.preload = this.level.attr2attrVal.audioPreload.transitionCalcVal;
   };
 
   /* Video (<video>) related */
-  LAID.Part.prototype.$renderFn_videoSources = function () {
+  LAID.Part.prototype.renderFn_videoSources = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     i, len,
     documentFragment = document.createDocumentFragment(),
     childNodes = this.node.childNodes,
@@ -1314,9 +1357,9 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_videoTracks = function () {
+  LAID.Part.prototype.renderFn_videoTracks = function () {
     var
-    attr2attrVal = this.level.$attr2attrVal,
+    attr2attrVal = this.level.attr2attrVal,
     i, len,
     documentFragment = document.createDocumentFragment(),
     childNodes = this.node.childNodes,
@@ -1337,26 +1380,26 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.$renderFn_videoAutoplay = function () {
-    this.node.autoplay = this.level.$attr2attrVal.videoAutoplay.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoAutoplay = function () {
+    this.node.autoplay = this.level.attr2attrVal.videoAutoplay.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoControls = function () {
-    this.node.controls = this.level.$attr2attrVal.videoControls.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoControls = function () {
+    this.node.controls = this.level.attr2attrVal.videoControls.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoCrossorigin = function () {
-    this.node.crossorigin = this.level.$attr2attrVal.videoCrossorigin.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoCrossorigin = function () {
+    this.node.crossorigin = this.level.attr2attrVal.videoCrossorigin.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoLoop = function () {
-    this.node.loop = this.level.$attr2attrVal.videoLoop.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoLoop = function () {
+    this.node.loop = this.level.attr2attrVal.videoLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoMuted = function () {
-    this.node.muted = this.level.$attr2attrVal.videoMuted.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoMuted = function () {
+    this.node.muted = this.level.attr2attrVal.videoMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoPreload = function () {
-    this.node.preload = this.level.$attr2attrVal.videoPreload.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoPreload = function () {
+    this.node.preload = this.level.attr2attrVal.videoPreload.transitionCalcVal;
   };
-  LAID.Part.prototype.$renderFn_videoPoster = function () {
-    this.node.poster = this.level.$attr2attrVal.videoPoster.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoPoster = function () {
+    this.node.poster = this.level.attr2attrVal.videoPoster.transitionCalcVal;
   };
 
 

@@ -24,13 +24,48 @@
 
   };
 
+  LAID.Color.prototype.getFormat = function () {
+    return this.format;
+  };
+
+  LAID.Color.prototype.getRed = function () {
+    return this.r;
+
+  };
+
+  LAID.Color.prototype.getGreen = function () {
+    return this.g;
+  };
+
+  LAID.Color.prototype.getBlue = function () {
+    return this.b;
+  };
+
+  LAID.Color.prototype.getHue = function () {
+    return this.h;
+  };
+
+  LAID.Color.prototype.getSaturation = function () {
+    return this.s;
+
+  };
+
+  LAID.Color.prototype.getLightness = function () {
+    return this.l;
+
+  };
+
+  LAID.Color.prototype.getAlpha = function () {
+    return this.a;
+  };
+
   LAID.Color.prototype.stringify = function () {
 
     var rgb, hsl;
     if ( isCss3ColorSupported ) {
 
       if ( this.format === "hsl" ) {
-        hsl = this.hsl();
+        hsl = this.getHsl();
         if ( this.a === 1 ) {
           return "hsl(" + hsl.h + "," + hsl.s + "," + hsl.l + ")";
         } else {
@@ -38,7 +73,7 @@
         }
 
       } else {
-        rgb = this.rgb();
+        rgb = this.getRgb();
         if ( this.a === 1 ) {
           return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
         } else {
@@ -51,7 +86,7 @@
       // for IE8 and legacy browsers
       // where rgb is the sole color
       // mode available
-      rgb = this.rgb();
+      rgb = this.getRgb();
       return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
 
     }
@@ -89,7 +124,7 @@
 
   };
 
-  LAID.Color.prototype.rgb = function () {
+  LAID.Color.prototype.getRgb = function () {
     if ( this.format === "rgb" ) {
 
       return { r: this.r, g: this.g, b: this.b };
@@ -102,7 +137,7 @@
     }
   };
 
-  LAID.Color.prototype.hsl = function () {
+  LAID.Color.prototype.getHsl = function () {
     if ( this.format === "hsl" ) {
 
       return { h: this.h, s: this.s, l: this.l };
@@ -114,9 +149,9 @@
   };
 
 
-  LAID.Color.prototype.rgba = function () {
+  LAID.Color.prototype.getRgba = function () {
 
-    var rgb = this.rgb();
+    var rgb = this.getRgb();
     rgb.a = this.a;
     return rgb;
 
@@ -124,9 +159,9 @@
 
 
 
-  LAID.Color.prototype.hsla = function () {
+  LAID.Color.prototype.getHsla = function () {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.a = this.a;
     return hsl;
 
@@ -141,7 +176,7 @@
     if ( this.format === "rgb" ) {
       this.r = val;
     } else {
-      var rgb = this.rgb();
+      var rgb = this.getRgb();
       var hsl = convertRgbToHsl( val, rgb.g, rgb.b );
       this.h = hsl.h;
       this.s = hsl.s;
@@ -155,7 +190,7 @@
     if ( this.format === "rgb" ) {
       this.g = val;
     } else {
-      var rgb = this.rgb();
+      var rgb = this.getRgb();
       var hsl = convertRgbToHsl( rgb.r, val, rgb.b );
       this.h = hsl.h;
       this.s = hsl.s;
@@ -169,7 +204,7 @@
     if ( this.format === "rgb" ) {
       this.b = val;
     } else {
-      var rgb = this.rgb();
+      var rgb = this.getRgb();
       var hsl = convertRgbToHsl( rgb.r, rgb.g, val );
       this.h = hsl.h;
       this.s = hsl.s;
@@ -183,7 +218,7 @@
     if ( this.format === "hsl" ) {
       this.h = val;
     } else {
-      var hsl = this.hsl();
+      var hsl = this.getHsl();
       var rgb = convertHslToRgb( val, hsl.s, hsl.l );
       this.r = rgb.r;
       this.g = rgb.g;
@@ -197,7 +232,7 @@
     if ( this.format === "hsl" ) {
       this.s = val;
     } else {
-      var hsl = this.hsl();
+      var hsl = this.getHsl();
       var rgb = convertHslToRgb( hsl.h, val, hsl.l );
       this.r = rgb.r;
       this.g = rgb.g;
@@ -211,7 +246,7 @@
     if ( this.format === "hsl" ) {
       this.l = val;
     } else {
-      var hsl = this.hsl();
+      var hsl = this.getHsl();
       var rgb = convertHslToRgb( hsl.h, hsl.s, val );
       this.r = rgb.r;
       this.g = rgb.g;
@@ -229,7 +264,7 @@
 
   LAID.Color.prototype.darken = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.l = hsl.l - ( hsl.l * fraction );
     if ( this.format === "hsl" ) {
       this.l = hsl.l;
@@ -244,7 +279,7 @@
 
   LAID.Color.prototype.lighten = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.l = hsl.l + ( hsl.l * fraction );
     if ( this.format === "hsl" ) {
       this.l = hsl.l;
@@ -259,7 +294,7 @@
 
   LAID.Color.prototype.saturate = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.s = hsl.s + ( hsl.s * fraction );
     if ( this.format === "hsl" ) {
       this.s = hsl.s;
@@ -274,7 +309,7 @@
 
   LAID.Color.prototype.desaturate = function ( fraction ) {
 
-    var hsl = this.hsl();
+    var hsl = this.getHsl();
     hsl.s = hsl.s - ( hsl.s * fraction );
     if ( this.format === "hsl" ) {
       this.s = hsl.s;
@@ -290,7 +325,7 @@
 
   LAID.Color.prototype.invert = function ( ) {
 
-    var rgb = this.rgb();
+    var rgb = this.getRgb();
     rgb.r = 255 - rgb.r;
     rgb.g = 255 - rgb.g;
     rgb.b = 255 - rgb.b;

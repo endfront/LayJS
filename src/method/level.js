@@ -3,7 +3,7 @@
 
   LAID.level = function ( path ) {
 
-    return LAID.$path2level[ path ];
+    return LAID.$pathName2level[ path ];
 
   };
 

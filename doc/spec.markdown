@@ -32,35 +32,34 @@ LAID involves writing LSON (Layout Syntax Object Notation)
           $interface: boolean,
           $inherit [ string | object, ... ],
           $observe: [ string, ... ],
+          $load: function,
 
           data: object | array | string | number,
           props: object,
           when: object,
           transition: transitionObj,
-          load: function,
 
           many: {
-              data: object,
-            
-              formation: string,
-              sort: array | string,
-              ascending: boolean,
-              filter: LAID.take,
+              $load: function,
               $id: string / null (constant),
+
+              data: object,
+              formation: string,
+              sort: [sortDict, ...],
+              filter: LAID.take,
               rows: array,
-              args: obj,
+              fargs: obj,
 
               load: function,
 
               states: {
                 < name >: {
                   formation: string,
-                  sort: array | string,
-                  ascending: boolean,
+                  sort: [sortDict, ...],
                   filter: LAID.take,
-                  args: obj,
-                  install,
-                  uninstall
+                  fargs: obj,
+                  install: function
+                  uninstall: function
                 }
               }
 
@@ -77,7 +76,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
           },
           children: LSON
 
-          }
+         }
        }
       }
     })
@@ -427,21 +426,6 @@ Defaults:
   `LAID.Color`
   Default: "inherit"
 
-
-- textShadows
-  This is a "multiple-type" and an "object-type" prop.
-  [
-    {
-      x: number ,
-      y: number ,
-      blur: number ,
-      color: LAID.Color
-    }
-    ...
-  ]
-
-
-
 - textVariant
   `string`
   CSS font-variant
@@ -487,7 +471,6 @@ Defaults:
   CSS text-overflow
   Default: 'clip'
 
-
 - textIndent
   `number`
   Default: 0
@@ -500,7 +483,7 @@ Defaults:
 - textSmoothing
   `string`
   CSS font-smoothing
-  Default: "auto"
+  Default: "subpixel-antialiased"
 
 - textRendering
   `string`
@@ -514,14 +497,21 @@ Defaults:
   Shorthand for `textPaddingTop`, `textPaddingRight`, `textPaddingBottom` and `textPaddingLeft`
   Default: 0
 
+- textShadows
+  This is a "multiple-type" and an "object-type" prop.
+  [
+    {
+      x: number ,
+      y: number ,
+      blur: number ,
+      color: LAID.Color
+    }
+    ...
+  ]
+  
 - inputLabel
   `string`
   Default: ""
-
-- inputRows
-  `number`
-  Rows for textarea
-  Default: 2
 
 - input
   `string`
@@ -649,9 +639,11 @@ Defaults:
 
   - formation
 
-  - sort
+  - fargs.<formation>.<key>
 
-  - ascending
+  - sort.<num>.key
+
+  - sort.<num>.ascending
 
   - filter
 
@@ -703,19 +695,16 @@ Defaults:
       Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
     - $all
-      All the parts within a `Many` type `Level`.
+      All the Levels created by the many-level
 
     - $id
-      The name of the unique key which is reponsible for id for each row in `rows` for `Many`.
+      The name of the unique key which is reponsible for id for each row in `rows` for many-level
 
     - $i
       Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` and `ascending` keys.
     
     - $f
       Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` and `ascending` keys.
-    
-
-
 
     - $focused (`boolean`)
 
@@ -823,8 +812,16 @@ LAID.Level methods:
 
   attr( attr ) //gets attr value
   data( changedData ) //changes data value
-
-
+  parent()
+  path()
+  manyLevel()
+  rowsMore()
+  rowsCommit()
+  rowDelete()
+  queryAll()
+  queryFiltered()
+  addChildren()
+  remove()
 
 
 ### LAID.take & LAID.Take
@@ -1027,11 +1024,10 @@ becomes:
 ##### LAID inheritance rules
 
 - events within 'when' key stacks up as an array
-- the scope of `states[state]` and `many` are inherited recursively iwth the same inheritance rules
-- the `many.rows` key is overwritten at the same level with clones made of each row (array) element
-- the `transiiton` key inherits to the lowest level
+- the scope of `states[state]` and `many` are inherited recursively iwth the same inheritance rulest
+- the `transiton` key inherits to the lowest level
 - all other props are overwritten at single level, and data values which are objects are cloned before copying over.
-
+- the 'many.sort' key is overwritten
 
 example of `when` stacking up:
 
@@ -1152,9 +1148,8 @@ LAID.run({
 ### Many
 
   Related methods:
-    - rowsChange()
     - rowsMore()
-    - rowsCommit() [coming soon]
+    - rowsCommit()
 
 
   LAID.run({
@@ -1169,7 +1164,7 @@ LAID.run({
               formation:'onebelow',
               sort: ['name'],
               ascending: true, //default
-              args: {
+              fargs: {
                 onebelow: { gap: 2 }
               },
               
@@ -1222,17 +1217,12 @@ example:
 
   {_id:'00423', name:'Eddard Stark', age: 50 },
 
-can be changed
-  
-  LAID.level('/BioData/Person').rowsChange([
-  {_id:'01010', name: 'Robb Stark', age: 32}])
-
 more can be added by:
 
   LAID.level('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
 
 
-or committed (facebook react style) [coming soon]
+or committed (facebook react style)
 
   LAID.level('/BioData/Person').rowsCommit( [
     {_id:'00423', name:'Eddard Stark', age: 50},
@@ -1254,7 +1244,7 @@ All built-in formations:
 Formation Arguments:
 
 Arguments for formation are to be specified in the
-LSON key "many.args.< formation name >"
+LSON key "many.fargs.< formation name >"
 Below are formation arguments for corresponding formations:
 
   - "onebelow"
