@@ -14,41 +14,42 @@
   };
 
   function setRuntimeGlobals () {
-  
+    var
+      takeMidpointX = LAID.take("", "width").divide(2),
+      takeEdgeX = LAID.take("", "width"),
+      takeMidpointY = LAID.take("", "height").divide(2),
+      takeEdgeY = LAID.take("", "height");
     
+    LAID.$miscPosAttr2take = {
+      centerX: LAID.take("","left").add( takeMidpointX ),
+      centerY: LAID.take("","top").add( takeMidpointY ),
+      $centerX: takeMidpointX,
+      $right: takeEdgeX,
+      $centerY: takeMidpointY,
+      $bottom: takeEdgeY
+    };
+
+    LAID.$essentialPosAttr2take = {
+      right: LAID.take("","left").add( takeEdgeX ),
+      bottom: LAID.take("","top").add( takeEdgeY ),
+    };
+
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
-    LAID.$centerX = LAID.take("", "width").divide(2);
-    LAID.$centerY = LAID.take("", "height").divide(2);
-    LAID.$right = LAID.take("", "width");
-    LAID.$bottom = LAID.take("", "height");
-
-    /*
-    LAID.$takeNaturalHeightInput =
-      new LAID.Take( "", "$naturalHeightInput");
-    LAID.$takeNaturalWidthInput =
-      new LAID.Take( "", "$naturalWidthInput");
-    */
-
-    LAID.$displayNoneFormationState = {
+    LAID.$formationDisplayNoneState = {
       onlyif: LAID.take("","$f").eq(-1),
       props: {
         display:false
       }
     };
-    LAID.$formationState = {
-      onlyif: LAID.take("", "$f").gt(1),
-      props: {
-        top: LAID.take("", "root.top"),
-        left: LAID.take("", "root.left")
-      }
-    };
+
+    
+  
   }
 
   function updateSize () {
 
     var rootLevel = LAID.$pathName2level[ "/" ];
-
     rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
     rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
 

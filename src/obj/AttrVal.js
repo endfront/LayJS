@@ -55,7 +55,8 @@
   }
 
   /*
-  * For attrs which are of type when ( i.e state.<eventType><eventNum> )
+  * For attrs which are of type "when"
+  * ( i.e when.<eventType>.<eventNum> )
   * Return the event type component.
   * Else return the empty string.
   */
@@ -65,7 +66,12 @@
     attr.slice( 5, attr.length - 2 ) : "";
 
   }
-
+  /*
+  * For attrs which are of type "transition"
+  * ( i.e transition.<prop>.<>.<> )
+  * Return the event type component.
+  * Else return the empty string.
+  */
   function getTransitionPropOfAttrTransition( attr ) {
 
       return  attr.startsWith( "transition." ) ?
@@ -76,7 +82,9 @@
 
   function checkIsStateProjectedAttr( attr ) {
     var i = attr.indexOf( "." );
-    if ( LAID.$checkIsValidUtils.propAttr( attr ) ) {
+    if ( LAID.$checkIsValidUtils.propAttr( attr ) &&
+      [ "centerX", "right",
+       "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
     } else if ( 
       [ "formation", "filter", "sort", "ascending" ].indexOf ( attr ) !== -1 ) {
@@ -97,7 +105,7 @@
   Returns true if the value is different,
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
-     
+    
     this.val = val;
     if ( !LAID.$identical( val, this.prevVal ) ) {
       if ( this.val instanceof LAID.Take ) {
@@ -242,6 +250,9 @@
         }
         isDirty = true;
         break;
+      // rows is always dirty when recalculated
+      // as changes made to rows would have rows
+      // retain the same pointer to the array
       case "rows":
         isDirty = true;
         break; 
@@ -287,13 +298,12 @@
             part.updateNaturalHeightFromText();
             part.updateNaturalWidthFromText();
             break;
-          case "$input":
-            part.updateNaturalWidthInput();
-            part.updateNaturalHeightInput();
-            break;
-          case "inputRows":
-            part.updateNaturalWidthInput();
-            part.updateNaturalHeightInput();
+          case "display":
+            var parentLevel = this.level.parentLevel;
+            if ( parentLevel ) {
+              parentLevel.part.updateNaturalWidth();
+              parentLevel.part.updateNaturalHeight();
+            }
             break;
           case "width":
             if ( part.isInputText ) {
@@ -315,7 +325,6 @@
             part.updateAbsoluteY();
             break;
         
-
           default:
             var checkIfAttrNotAffectTextDimesion  = function ( attr ) {
               return 
@@ -328,39 +337,17 @@
             }
             if ( attr.startsWith( "text" ) &&
               !checkIfAttrNotAffectTextDimesion( attr ) )  {
-
-              var childLevelS = level.childLevelS;
-
-              if ( childLevelS.length ) {
-                // A CSS text styling inherit taking
-                // place must have all the children
-                // levels (parts) notified.
-                for ( var i = 0, len = childLevelS.length,
-                    childPart;
-                    i < len; i++ ) {
-                  childPart = childLevelS[ i ].part;
-                  if ( childPart ) {
-                    if ( childPart.isInputText ) {
-                      childPart.updateNaturalWidthInput(); 
-                      childPart.updateNaturalHeightInput(); 
-                    } else {
-                      childPart.updateNaturalWidthFromText();
-                      childPart.updateNaturalHeightFromText();
-                    }
-                  }
-                }
-              } else {
-                if ( part.isInputText ) {
-                  part.updateNaturalWidthInput(); 
-                  part.updateNaturalHeightInput(); 
-                } else {
-                  part.updateNaturalWidthFromText();
-                  part.updateNaturalHeightFromText();
-                }
-              }     
+              
+              //recurseUpdateTextDimensions( level );
+              if ( part.type === "input" ) {
+                part.updateNaturalWidthInput(); 
+                part.updateNaturalHeightInput(); 
+              } else if ( part.type === "text" ) {
+                part.updateNaturalWidthFromText();
+                part.updateNaturalHeightFromText();
+              } 
             } else if ( ( attr === "borderTopWidth" ) ||
               ( attr === "borderBottomWidth" ) ) {
-
                 part.updateNaturalHeightFromText();
             } else if ( ( attr === "borderLeftWidth" ) ||
               ( attr === "borderRightWidth" ) ) {
@@ -439,7 +426,6 @@
             }
             break;
           case "$naturalHeight":
-
             if ( this.level.attr2attrVal.scrollY ) {
               var self = this;
               setTimeout(function(){
@@ -449,6 +435,13 @@
               });
             }
             break;
+          case "$input":
+            part.updateNaturalWidthInput();
+            if ( part.inputType !== "line" ||
+               !part.isInitiallyRendered ) {
+              part.updateNaturalHeightInput();
+            }
+            break;
         }
       }
     }
@@ -456,6 +449,34 @@
     this.isRecalculateRequired = false;
     return true;
   };
+/*
+  function recurseUpdateTextDimensions ( level ) {
+    var 
+      part = level.part,
+      partType = part.type,
+      childLevel,
+      childLevelS = level.childLevelS;
+
+    if ( !childLevelS.length ) {
+      if ( partType === "input" ) {
+        part.updateNaturalWidthInput(); 
+        part.updateNaturalHeightInput(); 
+      } else if ( partType === "text" ) {
+        part.updateNaturalWidthFromText();
+        part.updateNaturalHeightFromText();
+      } 
+    } else {
+      for ( var i = 0, len = childLevelS.length,
+            childPart; i < len; i++ ) {
+
+        childLevel = childLevelS[ i ];
+
+        if ( childLevel.part ) {
+          recurseUpdateTextDimensions( childLevel )
+        }
+      }
+    }         
+  }*/
 
   LAID.AttrVal.prototype.give = function ( attrVal ) {
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&

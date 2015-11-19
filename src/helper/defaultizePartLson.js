@@ -2,21 +2,12 @@
   "use strict";
 
   var
-    essentialProp2defaultValue,
-    lazyProp2defaultValue,
-    fnPosToCenter,
-    fnPosToEdge,
-    takeLeft,
-    takeWidth,
-    takeTop,
-    takeHeight,
-    takeLeftToCenterX,
-    takeLeftToRight,
-    takeTopToCenterY,
-    takeTopToBottom;
+    nonRootEssentialProp2defaultValue,
+    rootEssentialProp2defaultValue,
+    lazyProp2defaultValue;
 
 
-  LAID.$defaultizePartLson = function ( lson ) {
+  LAID.$defaultizePartLson = function ( lson, isRootLevel ) {
     var
       essentialProp,
       rootState = lson.states.root,
@@ -28,15 +19,20 @@
       stateName, state,
       prop,
       when, transition, metaMax, maxProp,
-      eventType, transitionProp;
+      eventType, transitionProp,
+      essentialProp2defaultValue = isRootLevel ?
+        rootEssentialProp2defaultValue :
+        nonRootEssentialProp2defaultValue ;
 
-    /* Filling in the defaults here for root lson */
+      /* Filling in the defaults here for root state lson */
+
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootStateProps[ essentialProp ] === undefined ) {
         rootStateProps[ essentialProp ] =
           essentialProp2defaultValue[ essentialProp ];
       }
     }
+  
 
     if ( states ) {
       for ( stateName in states ) {
@@ -46,7 +42,7 @@
         transition = state.transition;
         metaMax = state.$$max;
 
-        if ( props.left || props.left === 0 ) {
+        /*if ( props.left || props.left === 0 ) {
           takeLeft = new LAID.Take( "",  stateName + ".left" );
 
           props.centerX = new LAID.Take( fnPosToCenter ).fn(
@@ -62,7 +58,10 @@
             takeTop, takeHeight );
           props.bottom = new LAID.Take( fnPosToEdge ).fn(
             takeTop, takeHeight );  
-       }
+       }*/
+
+
+
 
         for ( prop in props ) {
 
@@ -142,27 +141,52 @@
 */
 
 
-  
-
-  essentialProp2defaultValue = {
-    width:  new LAID.Take( "", "$naturalWidth" ),
-    height:  new LAID.Take( "", "$naturalHeight" ),
+  rootEssentialProp2defaultValue = {
     top: 0,
-    left: 0
+    left: 0,
+    width: LAID.take("", "$naturalWidth"),
+    height: LAID.take("", "$naturalHeight"),
+    textSize: 15,
+    textFamily: "sans-serif",
+    textWeight: "normal",
+    textColor: LAID.color("black"),
+    textVariant: "normal",
+    textTransform: "none",
+    textStyle: "normal",
+    textDecoration: "none",
+    textLetterSpacing: "normal",
+    textWordSpacing: "normal",
+    textAlign: "start",
+    textDirection: "ltr",
+    textLineHeight: "1em",
+    textSmoothing: "antialiased",
+    textRendering: "auto",
+    userSelect: "none"
   };
 
-  fnPosToCenter = function( pos, dim ) {
-    return pos + ( dim / 2 );
+  nonRootEssentialProp2defaultValue = {
+    top: 0,
+    left: 0,
+    width: LAID.take("", "$naturalWidth"),
+    height: LAID.take("", "$naturalHeight"),
+    textSize: LAID.take("../", "textSize"),
+    textFamily: LAID.take("../", "textFamily"),
+    textWeight: LAID.take("../", "textWeight"),
+    textColor: LAID.take("../", "textColor"),
+    textVariant: LAID.take("../", "textVariant"),
+    textTransform: LAID.take("../", "textTransform"),
+    textStyle: LAID.take("../", "textStyle"),
+    textLetterSpacing: LAID.take("../", "textLetterSpacing"),
+    textWordSpacing: LAID.take("../", "textWordSpacing"),
+    textDecoration: LAID.take("../", "textDecoration"),
+    textAlign: LAID.take("../", "textAlign"),
+    textDirection: LAID.take("../", "textDirection"),
+    textLineHeight: LAID.take("../", "textLineHeight"),
+    textSmoothing: LAID.take("../", "textSmoothing"),
+    textRendering: LAID.take("../", "textRendering"),
+    userSelect: LAID.take("../", "userSelect"),
   };
 
-  fnPosToEdge = function( pos, dim ) {
-    return pos + ( dim );
-  };
-
-
-
-  takeWidth = new LAID.Take( "", "width" );
-  takeHeight = new LAID.Take( "", "height" );
 
   /*
   takeLeft = new LAID.Take( "", "left" );
@@ -235,22 +259,25 @@
     borderLeftColor: LAID.transparent(),
 
     text: "",
-    textSize: "medium",
-    textFamily: "inherit",
-    textWeight: "normal",
-    textColor: "inherit",
-    textVariant: "normal",
-    textStyle: "normal",
-    textDecoration: "none",
-    textAlign: "start",
+    /*textSize: LAID.take("../", "textSize"),
+    textFamily: LAID.take("../", "textFamily"),
+    textWeight: LAID.take("../", "textWeight"),
+    textColor: LAID.take("../", "textColor"),
+    textVariant: LAID.take("../", "textVariant"),
+    textTransform: "none"
+    textStyle: LAID.take("../", "textStyle"),
     textLetterSpacing: "normal",
     textWordSpacing: "normal",
+    textDecoration: "none",
+    textAlign: "start",
+    textDirection: "ltr",
     textLineHeight: 1,
+    */
+
     textOverflow: "clip",
     textIndent: 0,
     textWhitespace: "normal",
-    textSmoothing: "subpixel-antialiased",
-    textRendering: "auto",
+    textWordBreak: "normal",
 
     textPaddingTop: 0,
     textPaddingRight: 0,

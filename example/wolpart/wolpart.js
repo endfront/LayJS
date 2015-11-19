@@ -106,13 +106,13 @@ LAID.run( {
                   }
                 },
 
-               /* "clicked": {
-                  onlyif: LAID.take("", "$clicked"),
+                "click": {
+                  onlyif: LAID.take("", "$clicking"),
                   props: {
                     shiftX: 3,
                     shiftY: 3
                   }
-                }*/
+                }
               },
 
               children: {

@@ -113,7 +113,7 @@ bottom: -0.25em;
 
     $isClogged:false,
     $isSolving: false,
-    $isRequestedForAnimationFrame: false,
+//    $isRequestedForAnimationFrame: false,
     $isSolveRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,

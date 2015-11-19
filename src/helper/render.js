@@ -7,13 +7,18 @@
   * which represent the previous time frame
   */
   LAID.$render = function ( timeNow ) {
-    if ( !LAID.$isRequestedForAnimationFrame &&
-       ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
+    if ( ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
        LAID.isDataTravelling
        ) ) {
 
-      LAID.$prevTimeFrame = timeNow || performance.now();
-      window.requestAnimationFrame( render );
+      if ( timeNow ) {
+        LAID.$prevTimeFrame = timeNow;
+        window.requestAnimationFrame( render );
+      } else {
+        LAID.$prevTimeFrame = performance.now();
+        render();
+      }
+      
     }
   }
 
@@ -179,20 +184,13 @@
       renderNewLevel = renderNewLevelS[ i ];
       renderNewLevel.part.isInitiallyRendered = true;
       fnLoad = renderNewLevel.lson.$load;
-      
-      if ( renderNewLevel.parentLevel ) {
-        if ( renderNewLevel.parentLevel.node().style.visibility === "hidden") {
-          renderNewLevel.node().style.visibility = "hidden";
-        }
-      }     
       if ( fnLoad ) {
         fnLoad.call( renderNewLevel );
       }
     }
 
     
-
-    LAID.$isRequestedForAnimationFrame = false;
+    //LAID.$isRequestedForAnimationFrame = false;
 
     if ( LAID.$isSolveRequiredOnRenderFinish ) {
       LAID.$isSolveRequiredOnRenderFinish = false;

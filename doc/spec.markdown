@@ -92,16 +92,12 @@ LAID involves writing LSON (Layout Syntax Object Notation)
     "video"
     "audio"
     "canvas"
-    "svg"
     ( inputs ...)
     "input:line"
     "input:multiline"
-    "input:button"
-    "input:select"
-    "input:checkbox"
-    "input:option"
-    "input:optgroup"
-    "input:< any other valid input[type] html property i.e file, color, date, etc >" (coming soon: individual support)
+    "input:select" [coming soon]
+    "input:file" [coming soon]
+    "input:< any other valid input[type] html property i.e color, date, optgroup, etc >" [coming soon]
 
 
 ### LSON.$inherit
@@ -286,10 +282,6 @@ Defaults:
   `boolean`
   Default: false
 
-- userSelect
-  `boolean`
-  Default: false
-
 - opacity
   `number`
   Default: 1
@@ -319,7 +311,7 @@ Defaults:
 
 - scrollElastic
   `boolean`
-  CSS `-webkit-overflow-scrolling` with value "touch"
+  CSS `-webkit-overflow-scrolling` (true for "touch", false for "auto")
   Default: true
 
 - cursor
@@ -327,6 +319,10 @@ Defaults:
   CSS cursor property
   Default: 'auto'
 
+- userSelect
+  `string`
+  CSS user-select
+  Default: LAID.take("../", "userSelect") [for "/": "none"]
 
 - background (no support for multiple backgrounds)
   This is an "object-type" prop.
@@ -410,61 +406,79 @@ Defaults:
 - textSize
   in pixels
   `number`
-  Default: "medium"
+  Default: LAID.take("../", "textSize") [for "/": 15]
 
 - textFamily
   `string`
   CSS font-family
-  Default: "inherit"
+  Default: LAID.take("../", "textFamily") [for "/": "sans-serif"]
 
 - textWeight
   `string`
   CSS font-weight
-  Default: 'normal'
+  Default: LAID.take("../", "textWeight") [for "/": "normal"]
 
 - textColor
   `LAID.Color`
-  Default: "inherit"
+  Default: LAID.take("../", "textColor") [for "/": LAID.color("black")]
 
 - textVariant
   `string`
   CSS font-variant
-  Default: 'normal'
+  Default: LAID.take("../", "textVariant") [for "/": "normal"]
+
+- textTransform
+  `string`
+  CSS text-transform
+  Default: LAID.take("../", "textTransform") [for "/": "none"]
 
 - textStyle
   `string`
   CSS font-style
-  Default: 'normal'
+  Default: LAID.take("../", "textStyle") [for "/": "normal"]
 
 - textDecoration
   `string`
   CSS text-decoration
-  Default: 'none'
-
-- textAlign
-  `string`
-  CSS text-align
-  Default: 'start'
-
+  Default: LAID.take("../", "textDecoration") [for "/": "none"]
 
 - textLetterSpacing
   `number` / `string`  
   `number`: In pixels.  
   `string`: CSS letter-spacing [non-transitionable]
-  Default: 'normal'
-
+  Default: LAID.take("../", "textLetterSpacing") [for "/": "normal"]
 
 - textWordSpacing
   `number` / `string`  
   `number`: In pixels.  
   `string`: CSS word-spacing [non-transitionable]
-  Default: 'normal'
+  Default: LAID.take("../", "textWordSpacing") [for "/": "normal"]
+
+- textAlign
+  `string`
+  CSS text-align
+  Default: LAID.take("../", "textAlign") [for "/": "start"]
+
+- textDirection
+  `string`
+  CSS direction
+  Default: LAID.take("../", "textDirection") [for "/": "ltr"]
 
 - textLineHeight
   `number` / `string`
   `number`: In em.  
   `string`: CSS line-height [non-transitionable]
-  Default: 1
+  Default: LAID.take("../", "textLineHeight") [for "/": 1]
+
+- textSmoothing
+  `string`
+  CSS -webkit-font-smoothing
+  Default: LAID.take("../", "textSmoothing") [for "/": "antialised"]
+
+- textRendering
+  `string`
+  CSS text-rendering
+  Default: LAID.take("../", "textRendering") [for "/": "auto"]
 
 - textOverflow
   `string`
@@ -480,15 +494,10 @@ Defaults:
   CSS white-space
   Default: 'normal'
 
-- textSmoothing
+- textWordBreak
   `string`
-  CSS font-smoothing
-  Default: "subpixel-antialiased"
-
-- textRendering
-  `string`
-  CSS text-rendering
-  Default: "auto"
+  CSS word-break
+  Default: 'normal'
 
 - textPadding
   `number`
@@ -708,9 +717,9 @@ Defaults:
 
     - $focused (`boolean`)
 
-    - $clicked (`boolean`)
+    - $clicking (`boolean`)
 
-    - $hovered (`boolean`)
+    - $hovering (`boolean`)
 
     - $scrolledX (`number`)
 
@@ -727,15 +736,7 @@ Defaults:
 
 ### LSON.$observe
 
-  All read-only attributes except for:
-    - $numberOfChildren
-    - $naturalWidth
-    - $naturalHeight
-    - $dataTravelling
-    - $dataTravelDelta
-    - $dataTravelLevel
-
-  such as "$hovered", "$focused" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these read-onlys using "Level.attr()", since lexical parsing of internal functions is out of the question there is no viable way for LAID to be aware and switch on the event listeners for the corresponding read-only.
+  such as "$hovering", "$focused" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these read-onlys using "Level.attr()", since lexical parsing of internal functions is out of the question there is no viable way for LAID to be aware and switch on the event listeners for the corresponding read-only.
   This is the purpose behind `$observe`, `$observe` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$observe` LAID will switch on the event listeners for the
   read-only.
 
@@ -1132,8 +1133,8 @@ LAID.run({
         backgroundColor: LAID.rgba(245, 100, 145, 0.5)
       },
       states: {
-        hovered: {
-          onlyif: LAID.take("", "$hovered"),
+        hovering: {
+          onlyif: LAID.take("", "$hovering"),
           props: {
             backgroundColor: LAID.take("", "root.backgroundColor").colorDarken(0.8)
           }

@@ -113,7 +113,7 @@ bottom: -0.25em;
 
     $isClogged:false,
     $isSolving: false,
-    $isRequestedForAnimationFrame: false,
+//    $isRequestedForAnimationFrame: false,
     $isSolveRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,
@@ -186,7 +186,8 @@ bottom: -0.25em;
   }
 
   /*
-  * For attrs which are of type when ( i.e state.<eventType><eventNum> )
+  * For attrs which are of type "when"
+  * ( i.e when.<eventType>.<eventNum> )
   * Return the event type component.
   * Else return the empty string.
   */
@@ -196,7 +197,12 @@ bottom: -0.25em;
     attr.slice( 5, attr.length - 2 ) : "";
 
   }
-
+  /*
+  * For attrs which are of type "transition"
+  * ( i.e transition.<prop>.<>.<> )
+  * Return the event type component.
+  * Else return the empty string.
+  */
   function getTransitionPropOfAttrTransition( attr ) {
 
       return  attr.startsWith( "transition." ) ?
@@ -207,7 +213,9 @@ bottom: -0.25em;
 
   function checkIsStateProjectedAttr( attr ) {
     var i = attr.indexOf( "." );
-    if ( LAID.$checkIsValidUtils.propAttr( attr ) ) {
+    if ( LAID.$checkIsValidUtils.propAttr( attr ) &&
+      [ "centerX", "right",
+       "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
     } else if ( 
       [ "formation", "filter", "sort", "ascending" ].indexOf ( attr ) !== -1 ) {
@@ -228,7 +236,7 @@ bottom: -0.25em;
   Returns true if the value is different,
   false otherwise */
   LAID.AttrVal.prototype.update = function ( val ) {
-     
+    
     this.val = val;
     if ( !LAID.$identical( val, this.prevVal ) ) {
       if ( this.val instanceof LAID.Take ) {
@@ -373,6 +381,9 @@ bottom: -0.25em;
         }
         isDirty = true;
         break;
+      // rows is always dirty when recalculated
+      // as changes made to rows would have rows
+      // retain the same pointer to the array
       case "rows":
         isDirty = true;
         break; 
@@ -418,13 +429,12 @@ bottom: -0.25em;
             part.updateNaturalHeightFromText();
             part.updateNaturalWidthFromText();
             break;
-          case "$input":
-            part.updateNaturalWidthInput();
-            part.updateNaturalHeightInput();
-            break;
-          case "inputRows":
-            part.updateNaturalWidthInput();
-            part.updateNaturalHeightInput();
+          case "display":
+            var parentLevel = this.level.parentLevel;
+            if ( parentLevel ) {
+              parentLevel.part.updateNaturalWidth();
+              parentLevel.part.updateNaturalHeight();
+            }
             break;
           case "width":
             if ( part.isInputText ) {
@@ -446,7 +456,6 @@ bottom: -0.25em;
             part.updateAbsoluteY();
             break;
         
-
           default:
             var checkIfAttrNotAffectTextDimesion  = function ( attr ) {
               return 
@@ -459,39 +468,17 @@ bottom: -0.25em;
             }
             if ( attr.startsWith( "text" ) &&
               !checkIfAttrNotAffectTextDimesion( attr ) )  {
-
-              var childLevelS = level.childLevelS;
-
-              if ( childLevelS.length ) {
-                // A CSS text styling inherit taking
-                // place must have all the children
-                // levels (parts) notified.
-                for ( var i = 0, len = childLevelS.length,
-                    childPart;
-                    i < len; i++ ) {
-                  childPart = childLevelS[ i ].part;
-                  if ( childPart ) {
-                    if ( childPart.isInputText ) {
-                      childPart.updateNaturalWidthInput(); 
-                      childPart.updateNaturalHeightInput(); 
-                    } else {
-                      childPart.updateNaturalWidthFromText();
-                      childPart.updateNaturalHeightFromText();
-                    }
-                  }
-                }
-              } else {
-                if ( part.isInputText ) {
-                  part.updateNaturalWidthInput(); 
-                  part.updateNaturalHeightInput(); 
-                } else {
-                  part.updateNaturalWidthFromText();
-                  part.updateNaturalHeightFromText();
-                }
-              }     
+              
+              //recurseUpdateTextDimensions( level );
+              if ( part.type === "input" ) {
+                part.updateNaturalWidthInput(); 
+                part.updateNaturalHeightInput(); 
+              } else if ( part.type === "text" ) {
+                part.updateNaturalWidthFromText();
+                part.updateNaturalHeightFromText();
+              } 
             } else if ( ( attr === "borderTopWidth" ) ||
               ( attr === "borderBottomWidth" ) ) {
-
                 part.updateNaturalHeightFromText();
             } else if ( ( attr === "borderLeftWidth" ) ||
               ( attr === "borderRightWidth" ) ) {
@@ -570,7 +557,6 @@ bottom: -0.25em;
             }
             break;
           case "$naturalHeight":
-
             if ( this.level.attr2attrVal.scrollY ) {
               var self = this;
               setTimeout(function(){
@@ -580,6 +566,13 @@ bottom: -0.25em;
               });
             }
             break;
+          case "$input":
+            part.updateNaturalWidthInput();
+            if ( part.inputType !== "line" ||
+               !part.isInitiallyRendered ) {
+              part.updateNaturalHeightInput();
+            }
+            break;
         }
       }
     }
@@ -587,6 +580,34 @@ bottom: -0.25em;
     this.isRecalculateRequired = false;
     return true;
   };
+/*
+  function recurseUpdateTextDimensions ( level ) {
+    var 
+      part = level.part,
+      partType = part.type,
+      childLevel,
+      childLevelS = level.childLevelS;
+
+    if ( !childLevelS.length ) {
+      if ( partType === "input" ) {
+        part.updateNaturalWidthInput(); 
+        part.updateNaturalHeightInput(); 
+      } else if ( partType === "text" ) {
+        part.updateNaturalWidthFromText();
+        part.updateNaturalHeightFromText();
+      } 
+    } else {
+      for ( var i = 0, len = childLevelS.length,
+            childPart; i < len; i++ ) {
+
+        childLevel = childLevelS[ i ];
+
+        if ( childLevel.part ) {
+          recurseUpdateTextDimensions( childLevel )
+        }
+      }
+    }         
+  }*/
 
   LAID.AttrVal.prototype.give = function ( attrVal ) {
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
@@ -1149,9 +1170,7 @@ bottom: -0.25em;
 ( function () {
   "use strict";
 
-
-
-  LAID.Level = function ( path, lson, parent, derivedMany, row, id ) {
+  LAID.Level = function ( path, lson, parent, derivedMany, rowDict, id ) {
 
     this.pathName = path;
     this.lson = lson;
@@ -1185,9 +1204,8 @@ bottom: -0.25em;
     // If the Level is derived from a Many Level
     // this will contain the row information will
     // be contained within below
-    this.row = row;
+    this.rowDict = rowDict;
 
-    this.isNormalized = false;
     this.isInherited = false;
 
     this.recalculateDirtyAttrValS = [];
@@ -1247,12 +1265,19 @@ bottom: -0.25em;
        
       return this.attr2attrVal[ attr ].calcVal;
 
-    } else if ( this.$createLazyAttr( attr ) ) {
-
+    } else { 
+      var lazyReadonlyVal = this.isPart &&
+        this.part.getLazyReadonlyValAtRuntime( attr );
+      if ( lazyReadonlyVal ) {
+        return lazyReadonlyVal;
+      } else if ( this.$createLazyAttr( attr ) ) {
+        var attrVal = this.attr2attrVal[ attr ];
+        attrVal.give( LAID.$emptyAttrVal );
         LAID.$solve();
-        return this.attr2attrVal[ attr ].calcVal;
+        return attrVal.calcVal;
 
-    } 
+      } 
+    }
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
@@ -1264,24 +1289,22 @@ bottom: -0.25em;
       this.$changeAttrVal( "row." + rowKey, value );
       this.derivedMany.id2row[ this.id ][ rowKey ] = value;
       this.derivedMany.level.attr2attrVal.rows.requestRecalculation();
+      LAID.$solve();
+    } else if ( this.many ) {
+      allLevelS = this
     }
   };
 
   LAID.Level.prototype.changeNativeInput = function ( value ) {
-    var self = this;
-    // Set timeout to make sure "evenReadonlyUtils.js"
-    // updates strictly before the change of input
-    setTimeout(function(){
-      self.$changeAttrVal( "$input", value );      
-    })
+    this.part.node.value = value;
   };
 
   LAID.Level.prototype.changeNativeScrollX = function ( value ) {
-    this.$changeAttrVal( "$scrollX", value );
+    this.part.node.scrollLeft = value;
   };
 
   LAID.Level.prototype.changeNativeScrollY = function ( value ) {
-    this.$changeAttrVal( "$scrollY", value );
+    this.part.node.scrollTop = value;
   };
 
   LAID.Level.prototype.manyLevel = function () {
@@ -1418,8 +1441,12 @@ bottom: -0.25em;
     if ( this.pathName === "/" ) {
       console.error("LAID Error: Attempt to remove root level prohibited");
     } else {
-      this.$remove();
-      LAID.$solve();
+      if ( this.derivedMany ) {
+        console.error("LAID Error: Attempt to remove a lson.many derived level without using rowDelete()");
+      } else {
+        this.$remove();
+        LAID.$solve();
+      }
     }
     
   };
@@ -1436,9 +1463,7 @@ bottom: -0.25em;
     
     if ( this.isPart ) {
       this.part.remove();
-      if ( this.derivedMany ) {
-        this.derivedMany.removeLevel( this.level );
-      }
+      
     } else {
       this.many.remove();
     }
@@ -1454,10 +1479,9 @@ bottom: -0.25em;
   LAID.Level.prototype.$normalizeAndInherit = function () {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-    if ( !this.isNormalized ) {
-      this.isNormalized = true;
-      LAID.$normalize( this.lson, false );
-    }
+  
+    LAID.$normalize( this.lson, false );
+    
     // check if it contains anything to inherit from
     if ( this.lson.$inherit !== undefined ) { 
       lson = { type: "none" };
@@ -1503,13 +1527,14 @@ bottom: -0.25em;
 
   };
 
-  LAID.Level.prototype.$identifyAndReproduce = function ( ) {
+  LAID.Level.prototype.$identifyAndReproduce = function () {
     this.isPart = this.lson.many === undefined;
 //    console.log(this.pathName, this.lson);
 
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
-        LAID.$defaultizePartLson( this.lson );
+        LAID.$defaultizePartLson( this.lson,
+          this.pathName === "/" );
       }
       this.part = new LAID.Part( this );
       this.part.init();
@@ -1527,18 +1552,19 @@ bottom: -0.25em;
       LAID.$defaultizeManyLson( this.lson );
       this.many = new LAID.Many( this, partLson );
       this.many.init();
-      /*if ( this.lson.rows ) {
-        this.lson.rows = {level: this, rows: this.lson.rows};
-      }*/
+      
     }
   };
 
-  function initAttrsObj( attrPrefix, key2val, attr2val ) {
+  function initAttrsObj( attrPrefix, key2val, attr2val, isNoUndefinedAllowed ) {
 
     var key, val;
 
     for ( key in key2val ) {
-      attr2val[ attrPrefix + key ] = key2val[ key ];
+      if ( ( key2val[ key ] !== undefined ) ||
+          !isNoUndefinedAllowed ) {
+        attr2val[ attrPrefix + key ] = key2val[ key ];
+      }
     }
   }
 
@@ -1566,7 +1592,7 @@ bottom: -0.25em;
       i, len;
           
     if ( isPart ){ 
-      initAttrsObj( "", slson.props, attr2val );
+      initAttrsObj( "", slson.props, attr2val, true );
 
       for ( transitionProp in transition ) {
         transitionDirective = transition[ transitionProp ];
@@ -1589,7 +1615,7 @@ bottom: -0.25em;
         }
         if ( transitionDirective.args !== undefined ) {
           initAttrsObj( transitionPropPrefix + "args.",
-            transitionDirective.args, attr2val );
+            transitionDirective.args, attr2val, false );
         }
       }
 
@@ -1599,17 +1625,17 @@ bottom: -0.25em;
       }
 
       if ( slson.$$num !== undefined ) {
-        initAttrsObj( "$$num.", slson.$$num, attr2val );
+        initAttrsObj( "$$num.", slson.$$num, attr2val, false );
       }
 
       if ( slson.$$max !== undefined ) {
-        initAttrsObj(  "$$max.", slson.$$max, attr2val );
+        initAttrsObj(  "$$max.", slson.$$max, attr2val, false );
       }
     } else {
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
-            fargs[ formationFarg ], attr2val );        
+            fargs[ formationFarg ], attr2val, false );        
         }
       }
 
@@ -1619,7 +1645,7 @@ bottom: -0.25em;
 
       for ( i = 0, len = slson.sort.length; i < len; i++ ) {
         initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[ i ],
-         attr2val );
+         attr2val, false );
       }
       
     }
@@ -1652,7 +1678,8 @@ bottom: -0.25em;
         observableReadonlyS.push( "$naturalHeight" );
       }
       
-      if ( this.part.isInputText ) {
+      if ( this.part.type === "input" &&
+          this.part.inputType !== "line" ) {
         // since there is a high probability
         // that the user will reference $input
         // whilst using an input:line, input:textarea
@@ -1665,7 +1692,10 @@ bottom: -0.25em;
     if ( observableReadonlyS.length ) {
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
         observableReadonly = observableReadonlyS[ i ];
-        this.$createLazyAttr( observableReadonly );
+        if ( !this.$createLazyAttr( observableReadonly ) ) {
+          throw "LAID Error: Unobervable Attr: '" +
+            observableReadonly  + "'";
+        }
         this.attr2attrVal[ observableReadonly ].give(
           LAID.$emptyAttrVal );
       }
@@ -1684,13 +1714,10 @@ bottom: -0.25em;
       lson = this.lson,
       attr2val = {};
 
-    initAttrsObj( "data.", lson.data, attr2val );
+    initAttrsObj( "data.", lson.data, attr2val, false );
 
     if ( this.derivedMany ) {
-      initAttrsObj( "row.", this.row, attr2val );
-      attr2val[ "formation.top" ] = 0;
-      attr2val[ "formation.left" ] = 0;
-      this.row = undefined;
+      initAttrsObj( "row.", this.rowDict, attr2val, false  );
     }
 
     for ( stateName in states ) {
@@ -1706,7 +1733,10 @@ bottom: -0.25em;
         }
     }
 
-    if ( !this.isPart ) { // Many
+    if ( this.isPart ) { 
+      attr2val.right = LAID.$essentialPosAttr2take.right;
+      attr2val.bottom = LAID.$essentialPosAttr2take.bottom;
+    } else { // Many
       attr2val.$all = [];
       attr2val.$filtered = [];
       attr2val.rows = lson.rows || [];
@@ -1733,9 +1763,11 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$createAttrVal = function ( attr, val ) {
 
-    ( this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this ) ).update( val );
+    ( this.attr2attrVal[ attr ] =
+      new LAID.AttrVal( attr, this ) ).update( val );
 
   };
+
 
   /*
   * Return true if attr was created as it exists (in lazy form),
@@ -1743,18 +1775,20 @@ bottom: -0.25em;
   */
   LAID.Level.prototype.$createLazyAttr = function ( attr ) {
     var
-     readonlyDefaultVal = LAID.$getReadonlyAttrDefaultVal( attr ),
      splitAttrLsonComponentS, attrLsonComponentObj, i, len,
-     firstAttrLsonComponent;
+     firstAttrLsonComponent, createdAttrVal;
 
-    if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
-      attr ) !== -1 ) {
-      this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-      this.attr2attrVal[ attr ].update( this.lson[ attr ] );
+    if ( LAID.$miscPosAttr2take[ attr ] ) {
+      this.$createAttrVal( attr,
+        LAID.$miscPosAttr2take[ attr ] );
+    } else if ( attr.startsWith( "$" ) ) { //readonly
+      createdAttrVal = this.attr2attrVal[ attr ] =
+        new LAID.AttrVal( attr, this );
 
-    } else if ( readonlyDefaultVal !== undefined ) {
-      this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-      if ( readonlyDefaultVal === null ) {
+      if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
+            attr ) !== -1 ) {
+          createdAttrVal.update( this.lson[ attr ] );
+      } else {
         switch ( attr ) {
           case "$naturalWidth":
             if ( this.part.isInputText ) {
@@ -1771,21 +1805,52 @@ bottom: -0.25em;
             }
             break;
           case "$absoluteX":
-            this.part.updateAbsoluteX();
+            createdAttrVal.update( this.part.absoluteX );
             break;
           case "$absoluteY":
-            this.part.updateAbsoluteY();
+            createdAttrVal.update( this.part.absoluteY );
             break;
+          case "$focused":
+            createdAttrVal.update( this.part &&
+             this.part.node === document.activeElement );
+            break;
+          case "$scrolledX":
+            createdAttrVal.update( this.part.node.scrollLeft );
+            break;
+          case "$scrolledY":
+            createdAttrVal.update( this.part.node.scrollTop );
+            break;
+          case "$cursorX":
+            createdAttrVal.update( this.part.node.offsetX );
+            break;
+          case "$cursorY":
+            createdAttrVal.update( this.part.node.offsetY );
+            break;
+          case "$input":
+            createdAttrVal.update( this.part.node.value );
+            break;
+          case "$inputChecked":
+            createdAttrVal.update( this.part.node.value );
+            break;
+          case "$hovering":
+            createdAttrVal.update( false );
+            break;
+          case "$clicking":
+            createdAttrVal.update( false );
+            break;
+          case "$dataTravelling":
+            createdAttrVal.update( false );
+            break;
+          case "$dataTravelDelta":
+            createdAttrVal.update( 0.0 );
+            break;
+          case "$dataTravelLevel":
+            createdAttrVal.update( null );
+            break;
+
         }
-      } else if ( ["$centerX",
-                   "$centerY",
-                    "$right",
-                     "$bottom" ].indexOf( attr )
-                      !== -1 ) {
-        this.attr2attrVal[ attr ].update( LAID[ attr ] );
-      } else {
-        this.attr2attrVal[ attr ].update( readonlyDefaultVal );
       }
+
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
@@ -1834,8 +1899,7 @@ bottom: -0.25em;
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-              this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
-              this.attr2attrVal[ attr ].update( attrLsonComponentObj );
+              this.$createdAttrVal( attr , firstAttrLsonComponent );
             }
           }
         }
@@ -1893,7 +1957,7 @@ bottom: -0.25em;
       this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-   //     console.log( "\trecalculate", this.pathName, isSolveProgressed,
+//        console.log( "\trecalculate", this.pathName, isSolveProgressed,
   //        recalculateDirtyAttrValS[ i ].attr );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
@@ -1959,13 +2023,6 @@ bottom: -0.25em;
       sortedStateS = this.stateS.sort(),
       i, len, sortedState;
 
-    // Push the "formation" state to second after the "root"
-    // state for 2nd lowest priority
-    if ( sortedStateS.indexOf( "formation" ) !== -1 ) {
-      LAID.$arrayUtils.remove( sortedStateS, "formation" );
-      sortedStateS.unshift( "formation" );
-    }
-
     // Push the "root" state to the start for least priority
     LAID.$arrayUtils.remove( sortedStateS, "root" );
     sortedStateS.unshift("root");
@@ -1974,7 +2031,7 @@ bottom: -0.25em;
     // list of states for maximum priority.
     if ( sortedStateS.indexOf( "formationDisplayNone" ) !== -1 ) {
       LAID.$arrayUtils.remove( sortedStateS, "formationDisplayNone" );
-      sortedStateS.push( "formation" );
+      sortedStateS.push( "formationDisplayNone" );
     }
 
   };
@@ -1999,9 +2056,9 @@ bottom: -0.25em;
   };
 
 
-
-
   LAID.Level.prototype.$updateStates = function () {
+
+    var attr2attrVal = this.attr2attrVal;
 
     this.$undefineStateProjectedAttrs();
     this.$commitAttr2Val( this.$getStateAttr2val() );
@@ -2009,10 +2066,12 @@ bottom: -0.25em;
     if ( this.derivedMany &&
        !this.derivedMany.level.
         attr2attrVal.filter.isRecalculateRequired &&
-        this.attr2attrVal.$f && this.attr2attrVal.$f.calcVal !== 1 ) {
+        attr2attrVal.$f &&
+        attr2attrVal.$f.calcVal !== 1 ) {
       this.$setFormationXY( this.part.formationX,
           this.part.formationY );
     }
+
 
     if ( this.pathName === "/" ) {
       if ( this.attr2attrVal.width.val !==
@@ -2051,27 +2110,23 @@ bottom: -0.25em;
   };
 
   LAID.Level.prototype.$setFormationXY = function ( x, y ) {
+    var
+      topAttrVal = this.attr2attrVal.top,
+      leftAttrVal = this.attr2attrVal.left;
+
     if ( x === undefined ) {
-      this.$changeAttrVal( "formation.left",
-        LAID.$formationState.props.left );
-      this.$changeAttrVal( "left",
-        LAID.$formationState.props.left );
+      leftAttrVal.update( this.derivedMany.defaultFormationX );
     } else {
-      this.$changeAttrVal( "formation.left", x );
-      this.$changeAttrVal( "left", x );
+      leftAttrVal.update( x );
     }
     if ( y === undefined ) {
-      this.$changeAttrVal( "formation.top",
-        LAID.$formationState.props.top );
-      this.$changeAttrVal( "top",
-        LAID.$formationState.props.top );
+      topAttrVal.update( this.derivedMany.defaultFormationY );
     } else {
-      this.$changeAttrVal( "formation.top", y );
-      this.$changeAttrVal( "top", y );
+      topAttrVal.update( y );
     }
 
-    this.attr2attrVal.top.requestRecalculation();
-    this.attr2attrVal.left.requestRecalculation();
+    topAttrVal.requestRecalculation();
+    leftAttrVal.requestRecalculation();
 
     this.part.formationX = x;
     this.part.formationY = y;
@@ -2118,37 +2173,41 @@ bottom: -0.25em;
     this.id = level.lson.id || "id";
     this.id2level = {};
     this.id2row = {};
-    this.allLevelS = [];
     this.isLoaded = false;
+
+    this.defaultFormationX = undefined;
+    this.defaultFormationY = undefined;
 
   };
 
   LAID.Many.prototype.init = function () {
 
     var
-      states = this.partLson.states || ( this.partLson.states = {} );
+      states = this.partLson.states ||
+      ( this.partLson.states = {} );
 
     states.formationDisplayNone =
-      LAID.$displayNoneFormationState;
-    states.formation = LAID.$formationState;
+      LAID.$formationDisplayNoneState;
 
-    LAID.$defaultizePartLson( this.partLson );
+    LAID.$defaultizePartLson( this.partLson, false );
 
     LAID.$newManyS.push( this );
 
     this.level.$createAttrVal( "$all", [] );
     this.level.$createAttrVal( "$filtered", [] );
 
+    this.defaultFormationX = this.partLson.states.root.props.left;
+    this.defaultFormationY = this.partLson.states.root.props.top;
+
   };
 
   LAID.Many.prototype.queryAll = function () {
     return new LAID.Query( 
        LAID.$arrayUtils.cloneSingleLevel(
-        this.allLevelS ) );
+        this.level.attr2attrVal.$all.calcVal ) );
   };
 
   LAID.Many.prototype.queryFiltered = function () {
-
     return new LAID.Query(
       LAID.$arrayUtils.cloneSingleLevel(
         this.level.attr2attrVal.$filtered.calcVal ) );
@@ -2172,6 +2231,23 @@ bottom: -0.25em;
     this.level.attr2attrVal.rows.requestRecalculation();
     
     LAID.$solve();
+
+  };
+
+  LAID.Many.prototype.rowDelete = function ( id ) {
+    var
+      curRowS = this.level.attr2attrVal.rows.calcVal,
+      row = this.id2row [ id ];
+
+    if ( row ) {
+      LAID.$arrayUtils.remove( 
+        curRowS, row );
+      this.level.attr2attrVal.rows.requestRecalculation();
+
+      LAID.$solve();
+
+    }
+
 
   };
 
@@ -2211,6 +2287,7 @@ bottom: -0.25em;
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
       rowS = objectifyRows( rowS );
     }
+
     this.sort( rowS );
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
@@ -2240,7 +2317,6 @@ bottom: -0.25em;
 		  } else {
         // update level with new row changes
         level.attr2attrVal.$i.update( i + 1 );
-        level.attr2attrVal.$f.update( -1 );
 
         for ( rowKey in row ) {
           rowVal = row[ rowKey ];
@@ -2265,12 +2341,12 @@ bottom: -0.25em;
       level = id2level[ id ];
       if ( updatedLevelS.indexOf( level ) === -1 ) {
         level.$remove();
+        this.id2row[ id ] = undefined;
+        this.id2level[ id ] = undefined;
       }
     }
 
-
     LAID.$solve();
-
 
     this.level.attr2attrVal.$all.update( updatedLevelS );
     this.level.attr2attrVal.$all.requestRecalculation();
@@ -2281,9 +2357,8 @@ bottom: -0.25em;
   };
 
   LAID.Many.prototype.updateFilter = function ( ) {
-
     var  
-      allLevelS = this.allLevelS,
+      allLevelS = this.level.attr2attrVal.$all.calcVal || [],
       filteredLevelS = this.level.attr2attrVal.filter.calcVal || [];
 
     for ( 
@@ -2315,8 +2390,13 @@ bottom: -0.25em;
       var
         filteredLevelS = this.level.attr2attrVal.filter.calcVal || [],
         formationFn = LAID.$formationName2fn[
-          this.level.attr2attrVal.formation.calcVal ];
+          this.level.attr2attrVal.formation.calcVal ],
+        firstFilteredLevel = filteredLevelS[ 0 ];
 
+      if ( firstFilteredLevel && firstFilteredLevel.part ) {
+        firstFilteredLevel.$setFormationXY(
+          undefined, undefined );
+      }
       for ( 
         var f = 1, len = filteredLevelS.length, filteredLevel;
         f < len;
@@ -2336,14 +2416,7 @@ bottom: -0.25em;
 
   };
 
-  LAID.Many.prototype.removeLevel = function ( level ) {
-
-    this.id2level[ level.id ] = undefined;
-    this.id2row[ level.id ] = undefined;
-
-    LAID.$arrayUtils.remove( this.allLevelS, level );
-
-  };
+  
 
   LAID.Many.prototype.sort = function ( rowS ) {
     var sortAttrPrefix,
@@ -2410,7 +2483,7 @@ bottom: -0.25em;
 
 
   var isGpuAccelerated, cssPrefix, allStyles,
-  defaultCss, inputType2tag;
+  defaultCss, inputType2tag, nonInputType2tag;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -2437,33 +2510,42 @@ bottom: -0.25em;
   allStyles = undefined;
 
 
-  defaultCss = "position:absolute;display:block;margin:0;padding:0;" +
+  defaultCss = "position:absolute;display:block;visibility:inherit;" + 
+    "margin:0;padding:0;" +
+    "webkit-font-smoothing:antialiased;" + 
+    "backface-visibility: hidden;" +
+    "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
     "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
-    "font-family:inherit;line-height:1em;" +
-    "outline:none;border:none";
+    "user-drag:none;" +
+    "user-select:none;-webkit-user-select:none;-ms-user-select:none;" +
+    "outline:none;border:none;";
 
   inputType2tag = {
-    button: "button",
-    multiline: "textarea",
-    optgroup: "optgroup",
-    option: "option"
+    multiline: "textarea"
   };
 
+  nonInputType2tag = {
+    none: "div",
+    text: "div",
+    image: "img",
+    video: "video",
+    audio: "audio"
+  };
 
   function stringifyPlusPx ( val ) {
     return val + "px";
   }
-  
 
   LAID.Part = function ( level ) {
 
     this.level = level;
     this.node = undefined;
+    this.type = undefined;
+    this.inputType = undefined;
     this.isInitiallyRendered = false;
-    this.isInputText = false;
     this.textSizeMeasureNode = undefined;
     this.isInterface = false;
 
@@ -2491,44 +2573,40 @@ bottom: -0.25em;
 
   LAID.Part.prototype.init = function () {
 
-    var
-      levelType = this.level.lson.$type,
-      inputType = getInputType( levelType ),
-      inputTag, parentNode;
+    var inputTag, parentNode;
 
+    this.inputType = getInputType( 
+        this.level.lson.$type );
+    this.type = this.inputType ? "input" :
+     this.level.lson.$type;
     if ( this.level.pathName === "/" ) {
       this.node = document.body;
-    } else if ( inputType ) {
-      inputTag = inputType2tag[ inputType ];
+    } else if ( this.inputType ) {
+      inputTag = inputType2tag[ this.inputType ];
       if ( inputTag ) {
-        if ( inputTag === "textarea" ) {
-          this.isInputText = true;
-        }
         this.node = document.createElement( inputTag );
-      } else {
-        if ( inputType === "line" ) {
-          inputType = "text";
-          this.isInputText = true;          
-        }
+      } else {        
         this.node = document.createElement( "input" );
-        this.node.type = inputType;
+        this.node.type = this.inputType === "line" ?
+          "text" : this.inputType;
       }
 
     } else {
       this.node = document.createElement(
-       ( ( levelType === "none" ) ||
-       ( levelType === "text" ) ) ? "div" :
-        ( levelType === "image" ?
-         "img" : levelType ) );
+        nonInputType2tag[ this.type]);
     }
     this.node.style.cssText = defaultCss;
+
+    if ( this.level.pathName === "/" ) {
+      this.node.style.zoom = 1;
+    }
 
     if ( this.level.lson.$interface ) {
       this.isInterface = true;
       this.node.style.display = "none";
     }
 
-    if ( this.isInputText || levelType === "text" ) {
+    if ( this.type === "text" || this.type === "input" ) {
       this.textSizeMeasureNode = document.createElement("div");
       this.textSizeMeasureNode.style.cssText = defaultCss;
       this.textSizeMeasureNode.style.visibility = "hidden";
@@ -2537,8 +2615,6 @@ bottom: -0.25em;
       this.textSizeMeasureNode.style.overflow = "visible";
       this.textSizeMeasureNode.style.borderStyle = "solid";
       this.textSizeMeasureNode.style.borderColor = "transparent";
-
-
     }
 
     if ( this.level.pathName !== "/" ) {
@@ -2551,20 +2627,20 @@ bottom: -0.25em;
   };
 
   LAID.Part.prototype.remove = function () {
+    
     if ( parentPart.naturalWidthLevel === this ) {
       parentPart.updateNaturalWidth();
     }
     if ( parentPart.naturalHeightLevel === this ) {
       parentPart.updateNaturalHeight();
-    }
-
+    }    
 
   };
+
 
   function checkIfLevelIsDisplayed ( level ) {
     var attrValDisplay = level.attr2attrVal.display;
     return !attrValDisplay || attrValDisplay.calcVal;
-
   }
   /*
   * Additional constraint of not being dependent upon
@@ -2606,6 +2682,41 @@ bottom: -0.25em;
      }
     }
     return curMaxLevel;
+  };
+
+  LAID.Part.prototype.getLazyReadonlyValAtRuntime = function ( attr ) {
+    switch ( attr ) {
+      case "$scrolledX":
+        return this.node.scrollLeft;
+        break;
+      case "$scrolledY":
+        return this.node.scrollTop;
+        break;
+      case "$cursorX":
+        return this.node.offsetX;
+        break;
+      case "$cursorY":
+        return this.node.offsetY;
+        break;
+      case "absoluteX":
+        return this.absoluteX;
+        break;
+      case "absoluteY":
+        return this.absoluteY;
+        break;
+      case "$input":
+        return this.node.value;
+        break;
+      case "$inputChecked":
+        return this.node.value;
+        break;
+      case "$hovering":
+        console.error("LAID Error: $hovering absent from takes or $observe");
+        break;
+      case "$clicking":
+        console.error("LAID Error: $clicking absent from takes or $observe");
+        break;
+    }
   };
 
   LAID.Part.prototype.updateAbsoluteX = function () {
@@ -2658,9 +2769,7 @@ bottom: -0.25em;
     if ( attr2attrVal.$naturalWidth ) {
       if ( this.level.pathName === "/" ) {
         attr2attrVal.$naturalWidth.update( window.innerWidth );
-
       } else if ( this.level.attr2attrVal.text ) {
-       
         this.updateNaturalWidthFromText();
       } else {
         this.naturalWidthLevel =
@@ -2798,12 +2907,15 @@ bottom: -0.25em;
       textFamily: null,
       textWeight: null,
       textAlign: null,
-      textLetterSpacing: stringifyEmOrString,
+      textDirection: null,
+      textTransform: null,
+      textLetterSpacing: stringifyPxOrString,
       textWordSpacing: stringifyPxOrString,
-      textLineHeight: stringifyPxOrString,
+      textLineHeight: stringifyEmOrString,
       textOverflow: null,
       textIndent: stringifyPlusPx,
       textWhitespace: null,
+      textWordBreak: null,
       textRendering: null,
       textPaddingTop: stringifyPlusPx,
       textPaddingRight: stringifyPlusPx,
@@ -2820,12 +2932,15 @@ bottom: -0.25em;
       textFamily: "font-family",
       textWeight: "font-weight",
       textAlign: "text-align",
+      textDirection: "direction",
+      textTransform: "text-transform",
       textLetterSpacing: "letter-spacing",
       textWordSpacing: "word-spacing",
       textLineHeight: "line-height",
       textOverflow: "text-overflow",
       textIndent: "text-indent",
       textWhitespace: "white-space",
+      textWordBreak: "word-break",
       textRendering: "text-rendering",
       textPaddingTop: "padding-top",
       textPaddingRight: "padding-right",
@@ -2843,10 +2958,10 @@ bottom: -0.25em;
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
-      text = this.isInputText ? 
-        attr2attrVal.$input.calcVal :
-        attr2attrVal.text.calcVal;
-    
+      text = this.type === "text" ? 
+        attr2attrVal.text.calcVal :
+        ( attr2attrVal.$input ?
+          attr2attrVal.$input.calcVal : "." );
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
       textRelatedAttrVal = attr2attrVal[ 
@@ -2856,7 +2971,7 @@ bottom: -0.25em;
         fnStyle = dimensionAlteringAttr2fnStyle[ 
             dimensionAlteringAttr ];
       
-        node.style[ 
+        node.style[
           dimensionAlteringAttr2cssProp[
             dimensionAlteringAttr ] ] =
             fnStyle === null ? textRelatedAttrVal.calcVal :
@@ -2882,7 +2997,7 @@ bottom: -0.25em;
       
       // If empty we will subsitute with a space character
       // as we wouldn't want the height to resolve to 0
-      node.innerHTML = text || " ";
+      node.innerHTML = text || ".";
       this.level.$changeAttrVal( "$naturalHeight",
         node.offsetHeight );
     }
@@ -2897,7 +3012,8 @@ bottom: -0.25em;
 
     var attr2attrVal = this.level.attr2attrVal;
 
-    if ( attr2attrVal.$naturalWidth &&
+    if ( this.level.pathName !== "/" &&
+        attr2attrVal.$naturalWidth &&
       this.level.attr2attrVal.text ) {
       if ( attr2attrVal.$naturalWidth ) {
         this.calculateTextNaturalDimesion( true );
@@ -2909,7 +3025,8 @@ bottom: -0.25em;
 
     var attr2attrVal = this.level.attr2attrVal;
 
-    if ( attr2attrVal.$naturalHeight &&
+    if ( this.level.pathName !== "/" &&
+      attr2attrVal.$naturalHeight &&
       this.level.attr2attrVal.text ) {
       if ( attr2attrVal.$naturalHeight ) {
        this.calculateTextNaturalDimesion( false );
@@ -3193,16 +3310,22 @@ bottom: -0.25em;
     };
 
     LAID.Part.prototype.renderFn_width = function () {
-      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
-      //this.renderFn_positional(); //apply change to transform
+      this.node.style.width =
+        this.level.attr2attrVal.width.transitionCalcVal + "px";
+      if ( this.type === "canvas" ) {
+        this.node.width =
+        this.level.attr2attrVal.width.transitionCalcVal;
+      }
     };
 
     LAID.Part.prototype.renderFn_height = function () {
-      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
-      //this.renderFn_positional(); //apply change to transform
+      this.node.style.height =
+        this.level.attr2attrVal.height.transitionCalcVal + "px";
+      if ( this.type === "canvas" ) {
+        this.node.height =
+          this.level.attr2attrVal.height.transitionCalcVal;
+      }
     };
-
-
 
   } else {
     // legacy browser usage or forced non-gpu mode
@@ -3264,36 +3387,13 @@ bottom: -0.25em;
     this.node.style.opacity = this.level.attr2attrVal.opacity.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_userSelect = function () {
-    this.node.style[ cssPrefix + "user-select" ] = 
-      this.level.attr2attrVal.userSelect.transitionCalcVal;
-  };
-
   LAID.Part.prototype.renderFn_display = function () {
-    var parentLevel = this.level.parentLevel;
-    if ( parentLevel ) {
-      if ( parentLevel.part ) {
-        parentLevel.part.updateNaturalWidth();
-        parentLevel.part.updateNaturalHeight();
-
-      }
-    }
-    recurseVisibilityNode( this.node,
-        this.level.attr2attrVal.display.transitionCalcVal ?
-        "visible" : "hidden"  );
+    
+    this.node.style.visibility =
+      this.level.attr2attrVal.display.transitionCalcVal ?
+        "inherit" : "hidden";
 
   };
-
-  function recurseVisibilityNode( node, visibility ) {
-    if ( node && node.style ) {
-      var childNodeS = node.childNodes;
-      node.style.visibility = visibility;
-
-      for ( var i = 0, len = childNodeS.length; i < len; i++ ) {
-        recurseVisibilityNode( childNodeS[ i ], visibility );
-      }
-    }
-  }
 
   LAID.Part.prototype.renderFn_zIndex = function () {
 
@@ -3303,11 +3403,19 @@ bottom: -0.25em;
 
 
   LAID.Part.prototype.renderFn_scrollX = function () {
-    this.node.scrollLeft = this.level.attr2attrVal.scrollX.transitionCalcVal;
+    this.node.scrollLeft =
+      this.level.attr2attrVal.scrollX.transitionCalcVal;
   };
 
   LAID.Part.prototype.renderFn_scrollY = function () {
-    this.node.scrollTop = this.level.attr2attrVal.scrollY.transitionCalcVal;
+    this.node.scrollTop =
+      this.level.attr2attrVal.scrollY.transitionCalcVal;
+  };
+
+  LAID.Part.prototype.renderFn_scrollElastic = function () {
+    this.node["-webkit-overflow-scrolling"] =
+      this.level.attr2attrVal.scrollElastic.transitionCalcVal ?
+       "touch" : "auto";
   };
 
   LAID.Part.prototype.renderFn_overflowX = function () {
@@ -3324,6 +3432,10 @@ bottom: -0.25em;
     this.node.style.cursor =
       this.level.attr2attrVal.
       cursor.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_userSelect = function () {
+    this.node.style[ cssPrefix + "user-select" ] = 
+      this.level.attr2attrVal.userSelect.transitionCalcVal;
   };
 
   LAID.Part.prototype.renderFn_backgroundColor = function () {
@@ -3548,6 +3660,10 @@ bottom: -0.25em;
     this.node.style.fontVariant =
       this.level.attr2attrVal.textVariant.transitionCalcVal;
   };
+  LAID.Part.prototype.renderFn_textTransform = function () {
+    this.node.style.textTransform =
+      this.level.attr2attrVal.textTransform.transitionCalcVal;
+  };
   LAID.Part.prototype.renderFn_textStyle = function () {
     this.node.style.fontStyle =
       this.level.attr2attrVal.textStyle.transitionCalcVal;
@@ -3556,10 +3672,6 @@ bottom: -0.25em;
     this.node.style.textDecoration =
       this.level.attr2attrVal.textDecoration.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textAlign = function () {
-    this.node.style.textAlign =
-      this.level.attr2attrVal.textAlign.transitionCalcVal;
-  };
   LAID.Part.prototype.renderFn_textLetterSpacing = function () {
     this.node.style.letterSpacing = computePxOrString( 
         this.level.attr2attrVal.textLetterSpacing ) ;
@@ -3567,6 +3679,14 @@ bottom: -0.25em;
   LAID.Part.prototype.renderFn_textWordSpacing = function () {
     this.node.style.wordSpacing = computePxOrString( 
         this.level.attr2attrVal.textWordSpacing );
+  };
+  LAID.Part.prototype.renderFn_textAlign = function () {
+    this.node.style.textAlign =
+      this.level.attr2attrVal.textAlign.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textDirection = function () {
+    this.node.style.direction =
+      this.level.attr2attrVal.textDirection.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_textLineHeight = function () {
     this.node.style.lineHeight = computeEmOrString( 
@@ -3584,6 +3704,10 @@ bottom: -0.25em;
   LAID.Part.prototype.renderFn_textWhitespace = function () {
     this.node.style.whiteSpace =
       this.level.attr2attrVal.textWhitespace.transitionCalcVal;
+  };
+  LAID.Part.prototype.renderFn_textWordBreak = function () {
+    this.node.style.wordBreak =
+      this.level.attr2attrVal.textWordBreak.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_textSmoothing = function () {
     this.node.style[ cssPrefix + "font-smoothing" ] =
@@ -3883,7 +4007,6 @@ bottom: -0.25em;
   LAID.Query.prototype.foldFn = function ( fnFold, acc ) {
     return LAID.$foldUtils.fn( this.partLevelS, fnFold, acc );
   };
-
 
   LAID.Query.prototype.fetch = function ( index, attr ) {
   	return LAID.$queryUtils.fetch(
@@ -5961,41 +6084,42 @@ return this;
   };
 
   function setRuntimeGlobals () {
-  
+    var
+      takeMidpointX = LAID.take("", "width").divide(2),
+      takeEdgeX = LAID.take("", "width"),
+      takeMidpointY = LAID.take("", "height").divide(2),
+      takeEdgeY = LAID.take("", "height");
     
+    LAID.$miscPosAttr2take = {
+      centerX: LAID.take("","left").add( takeMidpointX ),
+      centerY: LAID.take("","top").add( takeMidpointY ),
+      $centerX: takeMidpointX,
+      $right: takeEdgeX,
+      $centerY: takeMidpointY,
+      $bottom: takeEdgeY
+    };
+
+    LAID.$essentialPosAttr2take = {
+      right: LAID.take("","left").add( takeEdgeX ),
+      bottom: LAID.take("","top").add( takeEdgeY ),
+    };
+
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
 
-    LAID.$centerX = LAID.take("", "width").divide(2);
-    LAID.$centerY = LAID.take("", "height").divide(2);
-    LAID.$right = LAID.take("", "width");
-    LAID.$bottom = LAID.take("", "height");
-
-    /*
-    LAID.$takeNaturalHeightInput =
-      new LAID.Take( "", "$naturalHeightInput");
-    LAID.$takeNaturalWidthInput =
-      new LAID.Take( "", "$naturalWidthInput");
-    */
-
-    LAID.$displayNoneFormationState = {
+    LAID.$formationDisplayNoneState = {
       onlyif: LAID.take("","$f").eq(-1),
       props: {
         display:false
       }
     };
-    LAID.$formationState = {
-      onlyif: LAID.take("", "$f").gt(1),
-      props: {
-        top: LAID.take("", "root.top"),
-        left: LAID.take("", "root.left")
-      }
-    };
+
+    
+  
   }
 
   function updateSize () {
 
     var rootLevel = LAID.$pathName2level[ "/" ];
-
     rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
     rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
 
@@ -6489,21 +6613,12 @@ return this;
   "use strict";
 
   var
-    essentialProp2defaultValue,
-    lazyProp2defaultValue,
-    fnPosToCenter,
-    fnPosToEdge,
-    takeLeft,
-    takeWidth,
-    takeTop,
-    takeHeight,
-    takeLeftToCenterX,
-    takeLeftToRight,
-    takeTopToCenterY,
-    takeTopToBottom;
+    nonRootEssentialProp2defaultValue,
+    rootEssentialProp2defaultValue,
+    lazyProp2defaultValue;
 
 
-  LAID.$defaultizePartLson = function ( lson ) {
+  LAID.$defaultizePartLson = function ( lson, isRootLevel ) {
     var
       essentialProp,
       rootState = lson.states.root,
@@ -6515,15 +6630,20 @@ return this;
       stateName, state,
       prop,
       when, transition, metaMax, maxProp,
-      eventType, transitionProp;
+      eventType, transitionProp,
+      essentialProp2defaultValue = isRootLevel ?
+        rootEssentialProp2defaultValue :
+        nonRootEssentialProp2defaultValue ;
 
-    /* Filling in the defaults here for root lson */
+      /* Filling in the defaults here for root state lson */
+
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootStateProps[ essentialProp ] === undefined ) {
         rootStateProps[ essentialProp ] =
           essentialProp2defaultValue[ essentialProp ];
       }
     }
+  
 
     if ( states ) {
       for ( stateName in states ) {
@@ -6533,7 +6653,7 @@ return this;
         transition = state.transition;
         metaMax = state.$$max;
 
-        if ( props.left || props.left === 0 ) {
+        /*if ( props.left || props.left === 0 ) {
           takeLeft = new LAID.Take( "",  stateName + ".left" );
 
           props.centerX = new LAID.Take( fnPosToCenter ).fn(
@@ -6549,7 +6669,10 @@ return this;
             takeTop, takeHeight );
           props.bottom = new LAID.Take( fnPosToEdge ).fn(
             takeTop, takeHeight );  
-       }
+       }*/
+
+
+
 
         for ( prop in props ) {
 
@@ -6629,27 +6752,52 @@ return this;
 */
 
 
-  
-
-  essentialProp2defaultValue = {
-    width:  new LAID.Take( "", "$naturalWidth" ),
-    height:  new LAID.Take( "", "$naturalHeight" ),
+  rootEssentialProp2defaultValue = {
     top: 0,
-    left: 0
+    left: 0,
+    width: LAID.take("", "$naturalWidth"),
+    height: LAID.take("", "$naturalHeight"),
+    textSize: 15,
+    textFamily: "sans-serif",
+    textWeight: "normal",
+    textColor: LAID.color("black"),
+    textVariant: "normal",
+    textTransform: "none",
+    textStyle: "normal",
+    textDecoration: "none",
+    textLetterSpacing: "normal",
+    textWordSpacing: "normal",
+    textAlign: "start",
+    textDirection: "ltr",
+    textLineHeight: "1em",
+    textSmoothing: "antialiased",
+    textRendering: "auto",
+    userSelect: "none"
   };
 
-  fnPosToCenter = function( pos, dim ) {
-    return pos + ( dim / 2 );
+  nonRootEssentialProp2defaultValue = {
+    top: 0,
+    left: 0,
+    width: LAID.take("", "$naturalWidth"),
+    height: LAID.take("", "$naturalHeight"),
+    textSize: LAID.take("../", "textSize"),
+    textFamily: LAID.take("../", "textFamily"),
+    textWeight: LAID.take("../", "textWeight"),
+    textColor: LAID.take("../", "textColor"),
+    textVariant: LAID.take("../", "textVariant"),
+    textTransform: LAID.take("../", "textTransform"),
+    textStyle: LAID.take("../", "textStyle"),
+    textLetterSpacing: LAID.take("../", "textLetterSpacing"),
+    textWordSpacing: LAID.take("../", "textWordSpacing"),
+    textDecoration: LAID.take("../", "textDecoration"),
+    textAlign: LAID.take("../", "textAlign"),
+    textDirection: LAID.take("../", "textDirection"),
+    textLineHeight: LAID.take("../", "textLineHeight"),
+    textSmoothing: LAID.take("../", "textSmoothing"),
+    textRendering: LAID.take("../", "textRendering"),
+    userSelect: LAID.take("../", "userSelect"),
   };
 
-  fnPosToEdge = function( pos, dim ) {
-    return pos + ( dim );
-  };
-
-
-
-  takeWidth = new LAID.Take( "", "width" );
-  takeHeight = new LAID.Take( "", "height" );
 
   /*
   takeLeft = new LAID.Take( "", "left" );
@@ -6722,22 +6870,25 @@ return this;
     borderLeftColor: LAID.transparent(),
 
     text: "",
-    textSize: "medium",
-    textFamily: "inherit",
-    textWeight: "normal",
-    textColor: "inherit",
-    textVariant: "normal",
-    textStyle: "normal",
-    textDecoration: "none",
-    textAlign: "start",
+    /*textSize: LAID.take("../", "textSize"),
+    textFamily: LAID.take("../", "textFamily"),
+    textWeight: LAID.take("../", "textWeight"),
+    textColor: LAID.take("../", "textColor"),
+    textVariant: LAID.take("../", "textVariant"),
+    textTransform: "none"
+    textStyle: LAID.take("../", "textStyle"),
     textLetterSpacing: "normal",
     textWordSpacing: "normal",
+    textDecoration: "none",
+    textAlign: "start",
+    textDirection: "ltr",
     textLineHeight: 1,
+    */
+
     textOverflow: "clip",
     textIndent: 0,
     textWhitespace: "normal",
-    textSmoothing: "subpixel-antialiased",
-    textRendering: "auto",
+    textWordBreak: "normal",
 
     textPaddingTop: 0,
     textPaddingRight: 0,
@@ -6784,13 +6935,30 @@ return this;
   };
 
   var eventReadonly2_eventType2fnHandler_ = {
-    $hovered: {
+    $hovering: {
       mouseover: function () {
-        this.$changeAttrVal( "$hovered", true );
+        this.$changeAttrVal( "$hovering", true );
       },
       mouseout:   function () {
-        this.$changeAttrVal( "$hovered", false );
+        this.$changeAttrVal( "$hovering", false );
       }
+    },
+    $clicking: {
+      mousedown: function () {
+        this.$changeAttrVal( "$clicking", true );
+      },
+      touchdown: function () {
+        this.$changeAttrVal( "$clicking", true );
+      },
+      mouseup: function () {
+        this.$changeAttrVal( "$clicking", false );
+      },
+      mouseleave: function () {
+        this.$changeAttrVal( "$clicking", false );
+      },
+      touchup: function () {
+        this.$changeAttrVal( "$clicking", false );
+      },
     },
     $focused: {
       focus: function () {
@@ -6799,23 +6967,6 @@ return this;
       blur: function () {
         this.$changeAttrVal( "$focused", false );
       }
-    },
-    $clicked: {
-      mousedown: function () {
-        this.$changeAttrVal( "$clicked", true );
-      },
-      touchdown: function () {
-        this.$changeAttrVal( "$clicked", true );
-      },
-      mouseup: function () {
-        this.$changeAttrVal( "$clicked", false );
-      },
-      mouseleave: function () {
-        this.$changeAttrVal( "$clicked", false );
-      },
-      touchup: function () {
-        this.$changeAttrVal( "$clicked", false );
-      },
     },
     $scrolledX: {
       scroll: function () {
@@ -7424,48 +7575,6 @@ return this;
 
 })();
 
-( function () {
-  "use strict";
-
-  /* null values indicate that
-  * a recalculation at runtime must
-  * be done based on the level
-  */
-
-  var readonlyAttr2defaultVal = {
-    $naturalWidth: null,
-    $naturalHeight: null,
-    $naturalWidthInput: null,
-    $naturalHeightInput: null,
-    $absoluteX: null,
-    $absoluteY: null,
-    $centerX: 0,
-    $centerY: 0,
-    $right: 0,
-    $bottom: 0,
-
-    //$numberOfChildren: null,
-    $dataTravelling: false,
-    $dataTravelDelta: 0.0,
-    $dataTravelLevel: null,
-
-    $hovered: false,
-    $focused: false,
-    $clicked: false,
-    $scrolledX: 0,
-    $scrolledY: 0,
-    $cursorX: 0,
-    $cursorY: 0,
-    $input: "",
-    $inputChecked: false
-  };
-
-  LAID.$getReadonlyAttrDefaultVal = function ( attr ) {
-    return readonlyAttr2defaultVal[ attr ];
-  };
-
-})();
-
 
 (function () {
   "use strict";
@@ -7933,12 +8042,30 @@ return this;
     normalizedExternalLsonS = [],
     fnCenterToPos,
     fnEdgeToPos,
+    fnPosToCenter,
+    fnPosToEdge,
     takeWidth,
     takeHeight,
-    takeFilterAll,
     key2fnNormalize;
 
-  
+  fnCenterToPos = function( center, dim ) {
+    return center - ( dim / 2 );
+  };
+
+  fnEdgeToPos = function( edge, dim ) {
+    return edge - ( dim );
+  };
+
+  fnPosToCenter = function( pos, dim ) {
+    return pos + ( dim / 2 );
+  };
+
+  fnPosToEdge = function( pos, dim ) {
+    return pos + ( dim );
+  };
+
+  takeWidth = new LAID.Take( "", "width" );
+  takeHeight = new LAID.Take( "", "height" );
 
   LAID.$normalize = function( lson, isExternal ) {
 
@@ -7968,7 +8095,6 @@ return this;
         lson.states = {};
       }
 
-
       if ( lson.states.root ) {
         throw "LAID Error: State name 'root' is reserved.";
       }
@@ -7995,22 +8121,13 @@ return this;
       lson.$$normalized = true;
 
     }
-
-
   }
-
-
-
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAID.Take ) {
       throw ( "LAID Error: takes for special/expander props such as '" + name  + "' are not permitted." );
     }
   }
-
-
-
-
 
   /*
   * Recursively flatten the prop if object or array typed
@@ -8047,27 +8164,6 @@ return this;
 
     }
   }
-
-
-
-
-
-
-
-  fnCenterToPos = function( center, dim ) {
-    return center - ( dim / 2 );
-  };
-
-  fnEdgeToPos = function( edge, dim ) {
-    return edge - ( dim );
-  };
-
-
-  takeWidth = new LAID.Take( "", "width" );
-  takeHeight = new LAID.Take( "", "height" );
-  takeFilterAll = new LAID.Take("", "$all");
-
-
 
   key2fnNormalize = {
     /*type: function ( lson ) {
@@ -8148,27 +8244,33 @@ return this;
       if ( prop2val.centerX !== undefined ) {
         prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn(
            prop2val.centerX, takeWidth );
+        prop2val.centerX = undefined;
       }
 
       if ( prop2val.right !== undefined ) {
         prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn(
            prop2val.right, takeWidth );
+        prop2val.right = undefined;
       }
 
       if ( prop2val.centerY !== undefined ) {
         prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn(
            prop2val.centerY, takeHeight );
+        prop2val.centerY = undefined;
+
       }
 
       if ( prop2val.bottom !== undefined ) {
         prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn(
            prop2val.bottom, takeHeight );
+        prop2val.bottom = undefined;
       }
+
+    
 
       for ( prop in prop2val ) {
         flattenProp( prop2val, prop2val, prop, prop );
       }
-
 
       for ( prop in prop2val ) {
         longhandPropS = LAID.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
@@ -8184,6 +8286,11 @@ return this;
       }
 
       for ( prop in prop2val ) {
+        if ( prop.lastIndexOf("Color") !== -1 ) {
+          if ( typeof prop2val[ prop ] === "string" ) {
+            throw "LAID Error: '" + prop + "' must be LAID.color()/LAID.rgb()/LAID.rgba()/LAID.hsl()/LAID.hsla()";
+          }
+        }
         multipleTypePropMatchDetails =
           LAID.$findMultipleTypePropMatchDetails( prop );
         if ( multipleTypePropMatchDetails !== null ) {
@@ -8196,6 +8303,7 @@ return this;
           }
         }
       }
+
     },
 
   when: function ( lson ) {
@@ -8230,20 +8338,16 @@ return this;
         checkAndThrowErrorAttrAsTake( "transition", lson.transition );
 
         if ( transition.centerX !== undefined ) {
-          transition.left =
-          transition.centerX;
+          transition.left = transition.centerX;
         }
         if ( transition.right !== undefined ) {
-          transition.left =
-          transition.right;
+          transition.left = transition.right;
         }
         if ( transition.centerY !== undefined ) {
-          transition.top =
-          transition.centerY;
+          transition.top = transition.centerY;
         }
         if ( transition.bottom !== undefined ) {
-          transition.top =
-          transition.bottom;
+          transition.top = transition.bottom;
         }
 
         for ( transitionProp in transition ) {
@@ -8328,7 +8432,7 @@ return this;
       
         formation: many.formation,
         sort: many.sort,
-        filter: many.filter || takeFilterAll,
+        filter: many.filter,
         fargs: many.fargs
 
       };
@@ -8616,13 +8720,18 @@ if (!Array.prototype.indexOf) {
   * which represent the previous time frame
   */
   LAID.$render = function ( timeNow ) {
-    if ( !LAID.$isRequestedForAnimationFrame &&
-       ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
+    if ( ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
        LAID.isDataTravelling
        ) ) {
 
-      LAID.$prevTimeFrame = timeNow || performance.now();
-      window.requestAnimationFrame( render );
+      if ( timeNow ) {
+        LAID.$prevTimeFrame = timeNow;
+        window.requestAnimationFrame( render );
+      } else {
+        LAID.$prevTimeFrame = performance.now();
+        render();
+      }
+      
     }
   }
 
@@ -8788,20 +8897,13 @@ if (!Array.prototype.indexOf) {
       renderNewLevel = renderNewLevelS[ i ];
       renderNewLevel.part.isInitiallyRendered = true;
       fnLoad = renderNewLevel.lson.$load;
-      
-      if ( renderNewLevel.parentLevel ) {
-        if ( renderNewLevel.parentLevel.node().style.visibility === "hidden") {
-          renderNewLevel.node().style.visibility = "hidden";
-        }
-      }     
       if ( fnLoad ) {
         fnLoad.call( renderNewLevel );
       }
     }
 
     
-
-    LAID.$isRequestedForAnimationFrame = false;
+    //LAID.$isRequestedForAnimationFrame = false;
 
     if ( LAID.$isSolveRequiredOnRenderFinish ) {
       LAID.$isSolveRequiredOnRenderFinish = false;

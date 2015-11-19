@@ -5,12 +5,30 @@
     normalizedExternalLsonS = [],
     fnCenterToPos,
     fnEdgeToPos,
+    fnPosToCenter,
+    fnPosToEdge,
     takeWidth,
     takeHeight,
-    takeFilterAll,
     key2fnNormalize;
 
-  
+  fnCenterToPos = function( center, dim ) {
+    return center - ( dim / 2 );
+  };
+
+  fnEdgeToPos = function( edge, dim ) {
+    return edge - ( dim );
+  };
+
+  fnPosToCenter = function( pos, dim ) {
+    return pos + ( dim / 2 );
+  };
+
+  fnPosToEdge = function( pos, dim ) {
+    return pos + ( dim );
+  };
+
+  takeWidth = new LAID.Take( "", "width" );
+  takeHeight = new LAID.Take( "", "height" );
 
   LAID.$normalize = function( lson, isExternal ) {
 
@@ -40,7 +58,6 @@
         lson.states = {};
       }
 
-
       if ( lson.states.root ) {
         throw "LAID Error: State name 'root' is reserved.";
       }
@@ -67,22 +84,13 @@
       lson.$$normalized = true;
 
     }
-
-
   }
-
-
-
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAID.Take ) {
       throw ( "LAID Error: takes for special/expander props such as '" + name  + "' are not permitted." );
     }
   }
-
-
-
-
 
   /*
   * Recursively flatten the prop if object or array typed
@@ -119,27 +127,6 @@
 
     }
   }
-
-
-
-
-
-
-
-  fnCenterToPos = function( center, dim ) {
-    return center - ( dim / 2 );
-  };
-
-  fnEdgeToPos = function( edge, dim ) {
-    return edge - ( dim );
-  };
-
-
-  takeWidth = new LAID.Take( "", "width" );
-  takeHeight = new LAID.Take( "", "height" );
-  takeFilterAll = new LAID.Take("", "$all");
-
-
 
   key2fnNormalize = {
     /*type: function ( lson ) {
@@ -220,27 +207,33 @@
       if ( prop2val.centerX !== undefined ) {
         prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn(
            prop2val.centerX, takeWidth );
+        prop2val.centerX = undefined;
       }
 
       if ( prop2val.right !== undefined ) {
         prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn(
            prop2val.right, takeWidth );
+        prop2val.right = undefined;
       }
 
       if ( prop2val.centerY !== undefined ) {
         prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn(
            prop2val.centerY, takeHeight );
+        prop2val.centerY = undefined;
+
       }
 
       if ( prop2val.bottom !== undefined ) {
         prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn(
            prop2val.bottom, takeHeight );
+        prop2val.bottom = undefined;
       }
+
+    
 
       for ( prop in prop2val ) {
         flattenProp( prop2val, prop2val, prop, prop );
       }
-
 
       for ( prop in prop2val ) {
         longhandPropS = LAID.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
@@ -256,6 +249,11 @@
       }
 
       for ( prop in prop2val ) {
+        if ( prop.lastIndexOf("Color") !== -1 ) {
+          if ( typeof prop2val[ prop ] === "string" ) {
+            throw "LAID Error: '" + prop + "' must be LAID.color()/LAID.rgb()/LAID.rgba()/LAID.hsl()/LAID.hsla()";
+          }
+        }
         multipleTypePropMatchDetails =
           LAID.$findMultipleTypePropMatchDetails( prop );
         if ( multipleTypePropMatchDetails !== null ) {
@@ -268,6 +266,7 @@
           }
         }
       }
+
     },
 
   when: function ( lson ) {
@@ -302,20 +301,16 @@
         checkAndThrowErrorAttrAsTake( "transition", lson.transition );
 
         if ( transition.centerX !== undefined ) {
-          transition.left =
-          transition.centerX;
+          transition.left = transition.centerX;
         }
         if ( transition.right !== undefined ) {
-          transition.left =
-          transition.right;
+          transition.left = transition.right;
         }
         if ( transition.centerY !== undefined ) {
-          transition.top =
-          transition.centerY;
+          transition.top = transition.centerY;
         }
         if ( transition.bottom !== undefined ) {
-          transition.top =
-          transition.bottom;
+          transition.top = transition.bottom;
         }
 
         for ( transitionProp in transition ) {
@@ -400,7 +395,7 @@
       
         formation: many.formation,
         sort: many.sort,
-        filter: many.filter || takeFilterAll,
+        filter: many.filter,
         fargs: many.fargs
 
       };

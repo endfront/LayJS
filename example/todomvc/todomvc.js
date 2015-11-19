@@ -1,6 +1,5 @@
 
-
-/*LAID.run({
+var x = ({
   data: {
     responsiveWidth: 550,
     gray230: LAID.rgb(230,230,230)
@@ -12,7 +11,7 @@
     textSmoothing: "antialiased",
     textColor: LAID.rgb(77,77,77),
     textSize: 14,
-    textWeight: "300"
+    textWeight: "300",
   },
   children: {
     "Header": {
@@ -35,9 +34,8 @@
     "Container": {
       props:{
         top: LAID.take("../Header", "bottom"),
-        centerX: LAID.take("../", "width").divide(2),
-        height: LAID.take("", "$naturalHeight"),
-        width:LAID.take("/", "data.responsiveWidth"),
+        centerX: LAID.take("../", "$centerX"),
+        width: LAID.take("/", "data.responsiveWidth"),
         backgroundColor:  LAID.color("white"),
         overflow: "visible",
         boxShadows: [
@@ -72,12 +70,25 @@
 
           },
           children: {
-            "CheckAll": {
+            "CompleteToggle": {
+              data: {
+                allCompleted:
+                  LAID.take("/Container/TodosWrapper/Todo", "$all").length().gt(0).and(
+                    LAID.take("/Container/TodosWrapper/Todo", "$all").filterEq(
+                      "row.complete", false).length().eq(0)),
+                setComplete: function ( val ){
+                  var levels = LAID.level("/Container/TodosWrapper/Todo").queryAll().end();
+                  console.log(levels);
+                  for (var i=0; i<levels.length; i++ ) {
+                    levels[i].row("complete", val);
+                  }
+                }
+              },
               props: {
                 width:40,
-                centerY: LAID.take("../New", "height").divide(2),
+                centerY: LAID.take("../New", "centerY"),
+                cursor: "default",
                 text: "❯",
-                textColor: LAID.take("/", "data.gray230"),
                 textSize: 22,
                 // Text line height should equal
                 // the width (division for conversion
@@ -86,22 +97,48 @@
                   LAID.take("", "textSize")),
                 textAlign: "center",
                 rotateZ: 90
+              },
+              states: {
+                "incomplete": {
+                  onlyif: LAID.take("", "data.allCompleted").not(),
+                  props: {
+                    textColor: LAID.take("/", "data.gray230"),
+                  },
+                  when: {
+                    click: [
+                      function () {
+                        this.attr("data.setComplete")( true );
+                      }
+                    ]
+                  }
+                },
+                "completed": {
+                  onlyif: LAID.take("", "data.allCompleted"),
+                  props: {
+                    textColor: LAID.rgb(115,115,155)
+                  },
+                  when: {
+                    click: [
+                      function () {
+                        this.attr("data.setComplete")( false );
+                      }
+                    ]
+                  }
+                },
+                
               }
             },
             "New": {
               props: {
-                left: LAID.take("../CheckAll", "right"),
-                //centerY: LAID.take("../", "height").divide(2),
+                left: LAID.take("../CompleteToggle", "right"),
                 width: LAID.take("../", "width").subtract(
-                  LAID.take("../CheckAll", "height")),
+                  LAID.take("../CompleteToggle", "height")),
                 
                 textWeight: "300",
 
-
-
               },
               children: {
-                "Placeholder": {
+                /*"Placeholder": {
                   props: {
                     width: LAID.take("../", "width"),
                     centerY: LAID.take("../Input", "height").divide(2),
@@ -121,7 +158,7 @@
                       }
                     }
                   }
-                },
+                },*/
                 "Input": {
                   $type: "input:line",
                   
@@ -133,6 +170,7 @@
                     textPadding: {left:10, top:16, right:16, bottom:16},
                     textSmoothing: "antialiased",
                     textWeight: "inherit",
+                    inputPlaceholder: "What needs to be done?"
 
                   },
                   when: {
@@ -178,16 +216,8 @@
                 },
               },
               
-              
               many: {
                 formation: "onebelow",
-                fargs: {
-                  onebelow: {
-                    gap: 0
-                  },
-                },
-                $id: "id",
-
 
                 load: function () {
                   if ( window.localStorage ) {
@@ -256,9 +286,13 @@
                   "Content": {
                     props: {
                       left: LAID.take("../Tick", "right"),
+                      width: LAID.take("../", "width").subtract(
+                        LAID.take("", "left")),
                       text: LAID.take("../", "row.title"),
                       textPadding:15,
-                      textSize: 24
+                      textSize: 24,
+                      textWordBreak: "break-word",
+                      userSelect: "text"
                     },
                     states: {
                       "complete": {
@@ -336,7 +370,8 @@
                             color: LAID.transparent()},
                           cornerRadius: 3,
                           text: LAID.take("", "row.text"),
-                          textPadding: {top:3, bottom:3, left:7, right:7},
+                          textPadding: {top:3, bottom:3, left:7, right:7}
+
                         },
                         states: {
                           "selected": {
@@ -346,7 +381,7 @@
                             }
                           },
                           "hover": {
-                            onlyif: LAID.take("", "$hovered").eq(true).and(
+                            onlyif: LAID.take("", "$hovering").eq(true).and(
                               LAID.take("", "row.selected").not()),
                             props: {
                               borderColor: LAID.rgba(175, 47, 47, 0.1)
@@ -359,6 +394,7 @@
                               if ( !this.attr("row.selected") ) {
                                 var selected =
                                  this.manyLevel().queryAll().filterEq("row.selected", true).end();
+                                 // TODO: change the below implementation
                                 selected[ 0 ].row("selected", false );
                                 this.row("selected", true);
                                 updateLocalStorage();
@@ -394,7 +430,7 @@
                           },
                           $id: "id",
                           rows: [
-                            {id:1, text: "All", selected: true },
+                            {id:1, text: "Allllllllll", selected: true },
                             {id:2, text: "Active", selected: false },
                             {id:3, text: "Completed", selected: false }
                           ],
@@ -409,11 +445,10 @@
                       centerY: LAID.take("../", "height").divide(2),
                       height: LAID.take("/", "textSize"),
                       text: "Clear completed",
-                      textWhitespace: "nowrap"
                     },
                     states: {
                       "hover": {
-                        onlyif: LAID.take("", "$hovered"),
+                        onlyif: LAID.take("", "$hovering"),
                         props: {
                           textDecoration: "underline"
                         }
@@ -483,9 +518,9 @@
     }
     
   }   
-});*/
+});
 
- 
+
 LAID.run({
   props: {
     backgroundColor: LAID.color("gainsboro")
@@ -493,8 +528,8 @@ LAID.run({
   children: {
     "Container": {
       props: {
-        centerX: LAID.take("../", "width").divide(2),
-        centerY: LAID.take("../", "height").divide(2),
+        centerX: LAID.take("../", "$centerX"),
+        centerY: LAID.take("../", "$centerY"),
         backgroundColor: LAID.color("pink")
       },
       transition: {
@@ -523,11 +558,7 @@ LAID.run({
               function () {
                 this.manyLevel().data("sidebiz",
                   !this.manyLevel().attr("data.sidebiz") )
-                /*this.manyLevel().rowsCommit([
-                  {id:4, content: "Tesla" },
-                  {id:5, content: "Magic Leap" },
-                  {id:6, content: "20n" }
-                ]);*/
+              
               }
             ]
           },
@@ -539,7 +570,7 @@ LAID.run({
           },
           states: {
             "hover": {
-              onlyif: LAID.take("","$hovered"),
+              onlyif: LAID.take("","$hovering"),
               props: {
                 textColor: LAID.color("grey")
 
@@ -576,7 +607,39 @@ LAID.run({
     
     }
   }
-})
+});
+
+
+
+/*
+LAID.run({
+  props: {
+    backgroundColor: LAID.color("pink")
+  },
+  children: {
+    "First": {
+      props: {
+        centerX: LAID.take("../", "$centerX"),
+        centerY: LAID.take("../", "$centerY"),
+
+        width:100,
+        height:100,
+       border: {
+          style: "solid",
+          width:1,
+          color:LAID.color("green")
+        }
+      }
+    },
+   "Second": {
+      $inherit: ["../First"],
+      props: {
+        top: LAID.take("../First", "bottom")
+      }
+    }
+  }
+});
+*/
 
 function updateLocalStorage () {
   var rows = LAID.level("/Container/TodosWrapper/Todo").attr("rows");

@@ -70,7 +70,6 @@
     return LAID.$foldUtils.fn( this.partLevelS, fnFold, acc );
   };
 
-
   LAID.Query.prototype.fetch = function ( index, attr ) {
   	return LAID.$queryUtils.fetch(
   		this.partLevelS, index, attr );

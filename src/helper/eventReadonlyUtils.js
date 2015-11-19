@@ -14,13 +14,30 @@
   };
 
   var eventReadonly2_eventType2fnHandler_ = {
-    $hovered: {
+    $hovering: {
       mouseover: function () {
-        this.$changeAttrVal( "$hovered", true );
+        this.$changeAttrVal( "$hovering", true );
       },
       mouseout:   function () {
-        this.$changeAttrVal( "$hovered", false );
+        this.$changeAttrVal( "$hovering", false );
       }
+    },
+    $clicking: {
+      mousedown: function () {
+        this.$changeAttrVal( "$clicking", true );
+      },
+      touchdown: function () {
+        this.$changeAttrVal( "$clicking", true );
+      },
+      mouseup: function () {
+        this.$changeAttrVal( "$clicking", false );
+      },
+      mouseleave: function () {
+        this.$changeAttrVal( "$clicking", false );
+      },
+      touchup: function () {
+        this.$changeAttrVal( "$clicking", false );
+      },
     },
     $focused: {
       focus: function () {
@@ -29,23 +46,6 @@
       blur: function () {
         this.$changeAttrVal( "$focused", false );
       }
-    },
-    $clicked: {
-      mousedown: function () {
-        this.$changeAttrVal( "$clicked", true );
-      },
-      touchdown: function () {
-        this.$changeAttrVal( "$clicked", true );
-      },
-      mouseup: function () {
-        this.$changeAttrVal( "$clicked", false );
-      },
-      mouseleave: function () {
-        this.$changeAttrVal( "$clicked", false );
-      },
-      touchup: function () {
-        this.$changeAttrVal( "$clicked", false );
-      },
     },
     $scrolledX: {
       scroll: function () {
