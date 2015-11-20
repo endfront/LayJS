@@ -2,43 +2,43 @@
   "use strict";
 
   LAID.$foldlUtils = {
-    min: function ( partLevelS, attr, val ) {
-      return fold( function ( part, acc ) {
-        var val = part.attr( attr );
+    min: function ( rowS, key, val ) {
+      return fold( function ( row, acc ) {
+        var val = row[ key ];
           if ( ( acc === undefined ) || ( val < acc ) ) {
             return val;
           } else {
             return acc;
           }
-        }, undefined, partLevelS ); 
+        }, undefined, rowS ); 
     },
-    max: function ( partLevelS, attr, val ) {
-      return fold( function ( part, acc ) {
-        var val = part.attr( attr );
+    max: function ( rowS, key, val ) {
+      return fold( function ( row, acc ) {
+        var val = row[ key ];
           if ( ( acc === undefined ) || ( val > acc ) ) {
             return val;
           } else {
             return acc;
           }
-        }, undefined, partLevelS ); 
+        }, undefined, rowS ); 
     },
-    sum: function ( partLevelS, attr, val ) {
-      return fold( function ( part, acc ) {
-        return acc + part.attr( attr );
-        }, 0, partLevelS ); 
+    sum: function ( rowS, key, val ) {
+      return fold( function ( row, acc ) {
+        return acc + row[ key ];
+        }, 0, rowS ); 
     },
 
     
-    fn: function ( partLevelS, fnFold, acc ) {
-      return fold( fnFold, acc, partLevelS );      
+    fn: function ( rowS, fnFold, acc ) {
+      return fold( fnFold, acc, rowS );      
     },
   
 
   };
 
-  function fold ( fnFold, acc, partLevelS ) {
-    for ( var i = 0, len = partLevelS.length; i < len; i++ ) {
-      acc = fnFold( partLevelS[ i ], acc );
+  function fold ( fnFold, acc, rowS ) {
+    for ( var i = 0, len = rowS.length; i < len; i++ ) {
+      acc = fnFold( rowS[ i ], acc );
     }
     return acc;
   }

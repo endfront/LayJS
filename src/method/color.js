@@ -7,6 +7,7 @@
 
   }
 
+  var numRegex = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*((\d+)|(\d+))?/;
   LAID.color = function ( colorName ) {
 
     if ( colorName instanceof LAID.Take ) {
@@ -15,11 +16,11 @@
         colorName = colorName.toLowerCase();
         var colorValue = colorName2colorValue[ colorName ];
         if ( colorValue === undefined ) {
+          if ( colorName.match(/(rgb)|(hsl)/) )
           throw ("LAID Error: Color name: " + colorName +  " not found." );
         }
         else {
           return new LAID.Color( 'rgb', colorValue, 1 );
-
         }
     }
 

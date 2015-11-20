@@ -29,7 +29,7 @@
       } else {
         multipleTypePropMatchDetails = LAID.$findMultipleTypePropMatchDetails(
         prop );
-
+        
         if ( multipleTypePropMatchDetails ) {
           return multipleTypePropMatchDetails[ 1 ];
         }

@@ -1,6 +1,13 @@
 
 Current:
   - < state >.bottom/right/centerX/centerY
+  - filter.end() ?
+  - LAID.color
+  - $gpu key
+  - "url" hashchange "$url" ??
+  - add all remaining filter/fold takes
+  - function to get all partLevelS from many?
+  - do you need to clone rows and filter in Take.js? and also in LAID.Many.prototype.queryRows/Filter?
   - when event array normalization
   - centerX undefined in Level.attr2attrVal
   - lazyProp2defaultValue has originX and perspectiveOriginX as 0.5?
@@ -26,14 +33,17 @@ Current:
 
 
   spec:
-  - .../
+  - */ to reach row
+  - Many.rowsUpdate()
   - many.rows can take array of non-objects
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
   - add LAID.level.changeNativeInput/ScrollX/Y() to spec
   - $centerX, $centerY, $right, $bottom
   - update spec to have quotes around state names
-  - filter.end()
+  - filter.end() ?
+  - $filtered and $all
+  - queryAll, queryFiltered
 
   todomvc:
   - delete item
@@ -42,8 +52,9 @@ Current:
 
 
 Future:
-  - $input switch-off optimization (think email/long-text entry)
   - $browser attr
+  - $url attr
+  - try to remove AttrVal.forceRecalculation()
   - CSS pointer-events optimization
   - $naturalWidth/$naturalHeight shouldn't transition from 0 to < diemsion > on load
   - takes across forbidden objects such as "when", "transition", etc

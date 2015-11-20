@@ -2,78 +2,78 @@
 	"use strict";
 
 	LAID.$filterUtils = {
-		eq: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) === val;
-				}, partLevelS );
+		eq: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] === val;
+				}, rowS );
 		},
 		
-		neq: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) !== val;
-				}, partLevelS );
+		neq: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] !== val;
+				}, rowS );
 		},
 
-		gt: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) > val;
-				}, partLevelS );
+		gt: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] > val;
+				}, rowS );
 			
 		},
 		
-		gte: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr )>= val;
-				}, partLevelS );
+		gte: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] >= val;
+				}, rowS );
 			
 		},
-		lt: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) < val;
-				}, partLevelS );
+		lt: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] < val;
+				}, rowS );
 			
 		},
-		lte: function ( partLevelS, attr, val ) {
-			return  filter( function ( partLevel ) {
-					return partLevel.attr( attr ) <= val;
-				}, partLevelS );
+		lte: function ( rowS, key, val ) {
+			return  filter( function ( row ) {
+					return row[ key ] <= val;
+				}, rowS );
 			
 		},
-		regex: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return val.test( partLevel.attr( attr ) );
-				}, partLevelS );
+		regex: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return val.test( row[ key ] );
+				}, rowS );
 			
 		},
-		contains: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ).indexOf( val ) !== -1;
-				}, partLevelS );
+		contains: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ].indexOf( val ) !== -1;
+				}, rowS );
 			
 		},
-		within: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return val.indexOf( partLevel.attr( attr ) ) !== -1;
-				}, partLevelS );
+		within: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return val.indexOf( row[ key ] ) !== -1;
+				}, rowS );
 			
 		},
 
-		fn: function ( partLevelS, fnFilter ) {
-			return filter( fnFilter , partLevelS );
+		fn: function ( rowS, fnFilter ) {
+			return filter( fnFilter , rowS );
 		}
 		
 
 	};
 
-	function filter ( fnFilter, partLevelS ) {
-		var filteredPartLevelS = [];
-		for ( var i = 0, len = partLevelS.length, partLevel; i < len; i++ ) {
-			partLevel = partLevelS[ i ];
-			if ( fnFilter( partLevel ) ) {
-				filteredPartLevelS.push( partLevel );
+	function filter ( fnFilter, rowS ) {
+		var filteredRowS = [];
+		for ( var i = 0, len = rowS.length, row; i < len; i++ ) {
+			row = rowS[ i ];
+			if ( fnFilter( row ) ) {
+				filteredRowS.push( row );
 			} 
 		}
-		return filteredPartLevelS;
+		return filteredRowS;
 	}
 
 })();

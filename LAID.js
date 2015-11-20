@@ -1,96 +1,7 @@
-/*
 
-optgroup {
-font-weight: bold;
-}
-
-textarea {
-overflow: auto;
-}
-
-
-button {
-overflow: visible;
-}
-
-
-abbr[title] {
-border-bottom: 1px dotted;
-}
-
-
-
-b,
-strong {
-font-weight: bold;
-}
-
-dfn {
-font-style: italic;
-}
-
-
-
-h1 {
-font-size: 2em;
-margin: 0.67em 0;
-}
-
-
-
-mark {
-background: #ff0;
-color: #000;
-}
-
-
-
-small {
-font-size: 80%;
-}
-
-
-
-sub,
-sup {
-font-size: 75%;
-line-height: 0;
-position: relative;
-vertical-align: baseline;
-}
-
-sup {
-top: -0.5em;
-}
-
-sub {
-bottom: -0.25em;
-}
-
-
-
-*/
 
 (function () {
   "use strict";
-
-  /*
-  var
-    textTestNodeCSS = "position:absolute;isibility:hidden;box-sizing:border-box;-moz-box-sizing:border-box;font-family:sans-serif:font-size:13px;",
-    textWidthTestNode = document.createElement( "span" ),
-    textHeightTestNode = document.createElement( "div" );
-
-  textHeightTestNode.id = "t-height";
-  textWidthTestNode.id = "t-width";
-
-  textWidthTestNode.style.cssText = textTestNodeCSS;
-  textHeightTestNode.style.cssText = textTestNodeCSS;
-
-
-  document.body.appendChild( textWidthTestNode );
-  document.body.appendChild( textHeightTestNode );
-
-*/
 
   window.laid = window.LAID = {
 
@@ -113,7 +24,7 @@ bottom: -0.25em;
 
     $isClogged:false,
     $isSolving: false,
-//    $isRequestedForAnimationFrame: false,
+    //$isRequestedForAnimationFrame: false,
     $isSolveRequiredOnRenderFinish: false,
 
     $isDataTravellingShock: false,
@@ -121,9 +32,9 @@ bottom: -0.25em;
     $dataTravelDelta: 0.0,
     $dataTravellingLevel: undefined,
     $dataTravellingAttrInitialVal: undefined,
-    $dataTravellingAttrVal: undefined
+    $dataTravellingAttrVal: undefined,
 
-
+    $isGpuAccelerated: undefined
 
   };
 
@@ -317,7 +228,7 @@ bottom: -0.25em;
       recalcVal,
       level = this.level,
       part = level.part,
-      many = level.many,
+      many = level.manyObj,
       attr = this.attr,
       i, len; 
 
@@ -347,16 +258,14 @@ bottom: -0.25em;
       }
     }
 
-    if ( attr === "$all" || attr === "$filtered" ) {
-      isDirty = true;
-    }
-
     if ( this.isForceRecalculate ) {
       isDirty = true;
     }
 
     switch ( attr ) {
       case "scrollX":
+        // TODO: investigate the below code block's
+        // redundancy
          this.transitionCalcVal =
              this.level.part.node.scrollLeft;      
         if ( level.attr2attrVal.$scrolledX ) {
@@ -366,6 +275,8 @@ bottom: -0.25em;
         isDirty = true;
         break;
       case "scrollY":
+        // TODO: investigate the below code block's
+        // redundancy
          this.transitionCalcVal =
              this.level.part.node.scrollTop;
         if ( level.attr2attrVal.$scrolledY ) {
@@ -375,6 +286,8 @@ bottom: -0.25em;
         isDirty = true;
         break;
       case "input":
+        // TODO: investigate the below code block's
+        // redundancy
         if ( level.attr2attrVal.$input ) {
           level.$changeAttrVal( "$input",
            this.calcVal );
@@ -384,8 +297,10 @@ bottom: -0.25em;
       // rows is always dirty when recalculated
       // as changes made to rows would have rows
       // retain the same pointer to the array
+      // TODO: possibly change to .forceRecalculation()
       case "rows":
         isDirty = true;
+        console.log("rows", this.calcVal);
         break; 
     }
 
@@ -402,12 +317,13 @@ bottom: -0.25em;
         this.takerAttrValS[ i ].requestRecalculation();
       }
 
+      /*
       if ( level.derivedMany ) {
         level.derivedMany.level.attr2attrVal.$all.requestRecalculation();
         if ( level.attr2attrVal.$f.calcVal !== -1 ) {
           level.derivedMany.level.attr2attrVal.$filtered.requestRecalculation();
        }
-      }
+      }*/
 
       if ( LAID.$isDataTravellingShock ) {
 
@@ -1174,6 +1090,7 @@ bottom: -0.25em;
 
     this.pathName = path;
     this.lson = lson;
+    this.gpu = undefined;
 
     this.parentLevel = parent; // parent Level
     this.attr2attrVal = {};
@@ -1189,7 +1106,7 @@ bottom: -0.25em;
     // If the Level is a Many (i.e this.isPart is false)
     // then this.many will hold a reference to the corresponding
     // Many object.
-    this.many = undefined;
+    this.manyObj = undefined;
 
 
     // If the Level is derived from a Many
@@ -1222,20 +1139,7 @@ bottom: -0.25em;
   LAID.Level.prototype.$init = function () {
 
     LAID.$pathName2level[ this.pathName ] = this;
-
-    // Check is this is many derived level,
-    // if it is not then add it to the queue
-    // of levels for the "$inherit" key to be
-    // executed.
-    // If so then we can proceed doing nothing as
-    // the level already has its LSON inherited
-    // through its derived many level.
-    
-    if ( !LAID.$isClogged ) {
-      LAID.$newLevelS.push( this );
-    } else {
-      LAID.$cloggedLevelS.push( this );
-    }
+    LAID.$newLevelS.push( this );
    
   };
 
@@ -1286,12 +1190,9 @@ bottom: -0.25em;
 
   LAID.Level.prototype.row = function ( rowKey, value ) {
     if ( this.derivedMany ) {
-      this.$changeAttrVal( "row." + rowKey, value );
       this.derivedMany.id2row[ this.id ][ rowKey ] = value;
       this.derivedMany.level.attr2attrVal.rows.requestRecalculation();
       LAID.$solve();
-    } else if ( this.many ) {
-      allLevelS = this
     }
   };
 
@@ -1307,7 +1208,7 @@ bottom: -0.25em;
     this.part.node.scrollTop = value;
   };
 
-  LAID.Level.prototype.manyLevel = function () {
+  LAID.Level.prototype.many = function () {
 
     return this.derivedMany && this.derivedMany.level;
   };
@@ -1315,21 +1216,30 @@ bottom: -0.25em;
   LAID.Level.prototype.rowsCommit = function ( newRowS ) {
 
     if ( !this.isPart ) {
-      this.many.rowsCommit( newRowS );
+      this.manyObj.rowsCommit( newRowS );
     }
   };
 
   LAID.Level.prototype.rowsMore = function ( newRowS ) {
 
     if ( !this.isPart ) {
-      this.many.rowsMore( newRowS );
+      this.manyObj.rowsMore( newRowS );
     }
   };
 
-  LAID.Level.prototype.rowDelete = function ( id ) {
+  LAID.Level.prototype.rowDeleteByID = function ( id ) {
 
     if ( !this.isPart ) {
-      this.many.rowsDelete( id );
+      this.manyObj.rowDeleteByID( id );
+    }
+  };
+
+  LAID.Level.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+    if ( !this.isPart ) {
+      if ( queryRowS instanceof LAID.Query ) {
+        queryRowS = queryRowS.rowS;
+      }
+      this.manyObj.rowsUpdate( key, val, queryRowS );
     }
   };
 
@@ -1401,15 +1311,15 @@ bottom: -0.25em;
 
 
 
-  LAID.Level.prototype.queryAll = function () {
+  LAID.Level.prototype.queryRows = function () {
     if ( !this.isPart ) {
-      return this.many.queryAll();
+      return this.manyObj.queryRows();
     }
   };
 
-  LAID.Level.prototype.queryFiltered = function () {
+  LAID.Level.prototype.queryFilter = function () {
     if ( !this.isPart ) {
-      return this.many.queryFiltered();
+      return this.manyObj.queryFilter();
     }
   };
 
@@ -1439,10 +1349,10 @@ bottom: -0.25em;
   LAID.Level.prototype.remove = function () {
       
     if ( this.pathName === "/" ) {
-      console.error("LAID Error: Attempt to remove root level prohibited");
+      console.error("LAID Error: Attempt to remove root level '/' prohibited");
     } else {
       if ( this.derivedMany ) {
-        console.error("LAID Error: Attempt to remove a lson.many derived level without using rowDelete()");
+        this.derivedMany.rowDelete( this.id );
       } else {
         this.$remove();
         LAID.$solve();
@@ -1463,12 +1373,10 @@ bottom: -0.25em;
     
     if ( this.isPart ) {
       this.part.remove();
-      
     } else {
-      this.many.remove();
+      this.manyObj && this.manyObj.remove();
     }
     
-
   
   };
 
@@ -1529,7 +1437,8 @@ bottom: -0.25em;
 
   LAID.Level.prototype.$identifyAndReproduce = function () {
     this.isPart = this.lson.many === undefined;
-//    console.log(this.pathName, this.lson);
+    this.gpu = this.lson.$gpu === undefined ? true : 
+      this.lson.$gpu;
 
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
@@ -1550,8 +1459,8 @@ bottom: -0.25em;
       // with a many creator
       partLson.many = undefined;
       LAID.$defaultizeManyLson( this.lson );
-      this.many = new LAID.Many( this, partLson );
-      this.many.init();
+      this.manyObj = new LAID.Many( this, partLson );
+      this.manyObj.init();
       
     }
   };
@@ -1737,8 +1646,6 @@ bottom: -0.25em;
       attr2val.right = LAID.$essentialPosAttr2take.right;
       attr2val.bottom = LAID.$essentialPosAttr2take.bottom;
     } else { // Many
-      attr2val.$all = [];
-      attr2val.$filtered = [];
       attr2val.rows = lson.rows || [];
       attr2val.$id = lson.$id;
     }
@@ -1899,7 +1806,8 @@ bottom: -0.25em;
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-              this.$createdAttrVal( attr , firstAttrLsonComponent );
+              this.$createAttrVal( attr ,
+                 attrLsonComponentObj );
             }
           }
         }
@@ -2162,6 +2070,9 @@ bottom: -0.25em;
     this.level = level;
     this.partLson = partLson;
 
+    this.allLevelS = [];
+    this.filteredLevelS = [];
+
     // "stringHashedStates2_cachedAttr2val_"
     // for levels derived from the many
     // Keeping this cache ensures thats
@@ -2193,24 +2104,21 @@ bottom: -0.25em;
 
     LAID.$newManyS.push( this );
 
-    this.level.$createAttrVal( "$all", [] );
-    this.level.$createAttrVal( "$filtered", [] );
-
     this.defaultFormationX = this.partLson.states.root.props.left;
     this.defaultFormationY = this.partLson.states.root.props.top;
 
   };
 
-  LAID.Many.prototype.queryAll = function () {
+  LAID.Many.prototype.queryRows = function () {
     return new LAID.Query( 
        LAID.$arrayUtils.cloneSingleLevel(
-        this.level.attr2attrVal.$all.calcVal ) );
+        this.level.attr2attrVal.rows.calcVal ) );
   };
 
-  LAID.Many.prototype.queryFiltered = function () {
+  LAID.Many.prototype.queryFilter = function () {
     return new LAID.Query(
       LAID.$arrayUtils.cloneSingleLevel(
-        this.level.attr2attrVal.$filtered.calcVal ) );
+        this.level.attr2attrVal.filter.calcVal ) );
   };
 
   LAID.Many.prototype.rowsCommit = function ( newRowS ) {
@@ -2222,34 +2130,52 @@ bottom: -0.25em;
 
   LAID.Many.prototype.rowsMore = function ( newRowS ) {
     var
-      curRowS = this.level.attr2attrVal.rows.calcVal;
+      curRowS = this.level.attr2attrVal.rows.val;
 
     for ( var i = 0; i < newRowS.length; i++ ) {
       curRowS.push( newRowS[ i ] );
     }
 
+    console.log(
+      this.level.pathName, curRowS, 
+      this.level.attr2attrVal.rows.val);
     this.level.attr2attrVal.rows.requestRecalculation();
-    
     LAID.$solve();
 
   };
 
-  LAID.Many.prototype.rowDelete = function ( id ) {
+  LAID.Many.prototype.rowDeleteByID = function ( id ) {
     var
-      curRowS = this.level.attr2attrVal.rows.calcVal,
+      curRowS = this.level.attr2attrVal.rows.val,
       row = this.id2row [ id ];
 
     if ( row ) {
       LAID.$arrayUtils.remove( 
         curRowS, row );
       this.level.attr2attrVal.rows.requestRecalculation();
-
       LAID.$solve();
 
     }
+  };
 
+  LAID.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+    // If no queriedRowS parameter is supplied then
+    // update all the rows
+    queryRowS = queryRowS ||
+      this.level.attr2attrVal.rows.val || [];
+
+    for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
+      var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
+      if ( fetchedRow ) {
+        fetchedRow[ key ] = val;
+      }
+    }
+
+    this.level.attr2attrVal.rows.requestRecalculation();
+    LAID.$solve();
 
   };
+
 
 
   function checkIfRowsIsNotObjectified ( rowS ) {
@@ -2277,18 +2203,18 @@ bottom: -0.25em;
   		id,
   		level,
   		parentLevel = this.level.parentLevel,
-      updatedLevelS = [],
+      updatedAllLevelS = [],
       newLevelS = [],
       id2level = this.id2level,
       id2row = this.id2row,
       rowKey, rowVal,
       i, len;
 
+    console.log( rowS );
+
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
       rowS = objectifyRows( rowS );
     }
-
-    this.sort( rowS );
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
@@ -2328,7 +2254,7 @@ bottom: -0.25em;
         }
   		}
 
-      updatedLevelS.push( level );
+      updatedAllLevelS.push( level );
 
   	}
 
@@ -2336,21 +2262,17 @@ bottom: -0.25em;
     // after "Level.$identifyAndReproduce()"
     LAID.$solve();
 
-
     for ( id in id2level ) {
       level = id2level[ id ];
-      if ( updatedLevelS.indexOf( level ) === -1 ) {
+      if ( level &&
+          updatedAllLevelS.indexOf( level ) === -1 ) {
         level.$remove();
         this.id2row[ id ] = undefined;
         this.id2level[ id ] = undefined;
       }
     }
 
-    LAID.$solve();
-
-    this.level.attr2attrVal.$all.update( updatedLevelS );
-    this.level.attr2attrVal.$all.requestRecalculation();
-
+    this.allLevelS = updatedAllLevelS;
     LAID.$solve();
 
 
@@ -2358,27 +2280,30 @@ bottom: -0.25em;
 
   LAID.Many.prototype.updateFilter = function ( ) {
     var  
-      allLevelS = this.level.attr2attrVal.$all.calcVal || [],
-      filteredLevelS = this.level.attr2attrVal.filter.calcVal || [];
+      allLevelS = this.allLevelS,
+      filteredRowS =
+        this.level.attr2attrVal.filter.calcVal || [],
+      filteredLevelS = [],
+      filteredLevel, f = 1;
 
     for ( 
       var i = 0, len = allLevelS.length;
-      i < len;
-      i++
-     ) {
+      i < len; i++ ) {
       allLevelS[ i ].attr2attrVal.$f.update( -1 );
     }
+
     for ( 
-      var f = 0, len = filteredLevelS.length;
-      f < len;
-      f++
-     ) {
-      filteredLevelS[ f ].attr2attrVal.$f.update( f + 1 );
+      var i = 0, len = filteredRowS.length;
+      i < len; i++ ) {
+      filteredLevel = this.id2level[ filteredRowS[ i ].id ];
+      if ( filteredLevel ) {
+        filteredLevelS.push( filteredLevel );
+        filteredLevel.attr2attrVal.$f.update( f++ );
+      }
     }
 
-    this.level.attr2attrVal.$filtered.update( filteredLevelS );
 
-    LAID.$solve();
+    this.filteredLevelS = filteredLevelS;
 
     this.updateFilteredPositioning();
 
@@ -2388,7 +2313,7 @@ bottom: -0.25em;
 
     if ( this.isLoaded ) {
       var
-        filteredLevelS = this.level.attr2attrVal.filter.calcVal || [],
+        filteredLevelS = this.filteredLevelS,
         formationFn = LAID.$formationName2fn[
           this.level.attr2attrVal.formation.calcVal ],
         firstFilteredLevel = filteredLevelS[ 0 ];
@@ -2498,13 +2423,15 @@ bottom: -0.25em;
 
 
   // check for matrix 3d support
-  //if ( ( (cssPrefix + "transform" ) in allStyles ) ) {
-    // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
-    allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
-    isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
-  //}
+  // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
+  allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
+  LAID.$isGpuAccelerated = 
+    isGpuAccelerated =
+      Boolean(
+        window.getComputedStyle(
+          document.body, null ).getPropertyValue(
+            ( cssPrefix + "transform" ) ) );
 
-  //isGpuAccelerated = (  );
 
 
   allStyles = undefined;
@@ -2626,14 +2553,19 @@ bottom: -0.25em;
     }
   };
 
+  // Precondition: not called on "/" level
   LAID.Part.prototype.remove = function () {
-    
+    console.log("woot",
+      this.level.attr2attrVal["row.title"].calcVal);
+    var parentPart = this.level.parentLevel.part;
     if ( parentPart.naturalWidthLevel === this ) {
       parentPart.updateNaturalWidth();
     }
     if ( parentPart.naturalHeightLevel === this ) {
       parentPart.updateNaturalHeight();
     }    
+
+    parentPart.node.removeChild( this.node );
 
   };
 
@@ -3309,7 +3241,38 @@ bottom: -0.25em;
 
     };
 
-    LAID.Part.prototype.renderFn_width = function () {
+    LAID.Part.prototype.renderFn_transform =   
+    function () {
+      var attr2attrVal = this.level.attr2attrVal;
+      cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
+      this.node.style[ cssPrefix + "transform" ] =
+      "scale3d(" +
+      ( attr2attrVal.scaleX !== undefined ? attr2attrVal.scaleX.transitionCalcVal : 1 ) + "," +
+      ( attr2attrVal.scaleY !== undefined ? attr2attrVal.scaleY.transitionCalcVal : 1 ) + "," +
+      ( attr2attrVal.scaleZ !== undefined ? attr2attrVal.scaleZ.transitionCalcVal : 1 ) + ") " +
+      "skew(" +
+      ( attr2attrVal.skewX !== undefined ? attr2attrVal.skewX.transitionCalcVal : 0 ) + "deg," +
+      ( attr2attrVal.skewY !== undefined ? attr2attrVal.skewY.transitionCalcVal : 0 ) + "deg) " +
+      "rotateX(" + ( attr2attrVal.rotateX !== undefined ? attr2attrVal.rotateX.transitionCalcVal : 0 ) + "deg) " +
+      "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
+      "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
+    };
+    
+  } else {
+    // legacy browser usage or forced non-gpu mode
+
+    LAID.Part.prototype.renderFn_positional = function () {
+      var attr2attrVal = this.level.attr2attrVal;
+      this.node.style.left =
+        ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
+      this.node.style.top =
+        ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
+
+    };
+
+  }
+
+  LAID.Part.prototype.renderFn_width = function () {
       this.node.style.width =
         this.level.attr2attrVal.width.transitionCalcVal + "px";
       if ( this.type === "canvas" ) {
@@ -3318,36 +3281,14 @@ bottom: -0.25em;
       }
     };
 
-    LAID.Part.prototype.renderFn_height = function () {
-      this.node.style.height =
-        this.level.attr2attrVal.height.transitionCalcVal + "px";
-      if ( this.type === "canvas" ) {
-        this.node.height =
-          this.level.attr2attrVal.height.transitionCalcVal;
-      }
-    };
-
-  } else {
-    // legacy browser usage or forced non-gpu mode
-
-    LAID.Part.prototype.renderFn_width = function () {
-      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
-    };
-
-    LAID.Part.prototype.renderFn_height = function () {
-      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
-    };
-
-    LAID.Part.prototype.renderFn_positional = function () {
-      var attr2attrVal = this.level.attr2attrVal;
-      this.node.style.left = ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
-      this.node.style.top = ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
-
-    };
-
-  }
-
-
+  LAID.Part.prototype.renderFn_height = function () {
+    this.node.style.height =
+      this.level.attr2attrVal.height.transitionCalcVal + "px";
+    if ( this.type === "canvas" ) {
+      this.node.height =
+        this.level.attr2attrVal.height.transitionCalcVal;
+    }
+  };
 
 
   LAID.Part.prototype.renderFn_origin = function () {
@@ -3646,7 +3587,7 @@ bottom: -0.25em;
   };
 
   LAID.Part.prototype.renderFn_textWeight = function () {
-
+    console.log("tw");
     this.node.style.fontWeight =
       this.level.attr2attrVal.textWeight.transitionCalcVal;
   };
@@ -3938,85 +3879,85 @@ bottom: -0.25em;
 
 ( function () {
   "use strict";
-  LAID.Query = function ( partLevelS ) {
-    this.partLevelS = partLevelS;
+  LAID.Query = function ( rowS ) {
+    this.rowS = rowS;
   };
   
-  LAID.Query.prototype.filterEq = function ( attr, val ) {
+  LAID.Query.prototype.filterEq = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.eq(
-        this.partLevelS, attr, val ) );
+        this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterNeq = function ( attr, val ) {
+  LAID.Query.prototype.filterNeq = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.neq(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterGt = function ( attr, val ) {
+  LAID.Query.prototype.filterGt = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.gt(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterGte = function ( attr, val ) {
+  LAID.Query.prototype.filterGte = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.gte(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
   
-  LAID.Query.prototype.filterLt = function ( attr, val ) {
+  LAID.Query.prototype.filterLt = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.lt(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterLte = function ( attr, val ) {
+  LAID.Query.prototype.filterLte = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.lte(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterRegex = function ( attr, val ) {
+  LAID.Query.prototype.filterRegex = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.regex(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterContains = function ( attr, val ) {
+  LAID.Query.prototype.filterContains = function ( key, val ) {
   	return new LAID.Query( LAID.$filterUtils.contains(
-      this.partLevelS, attr, val ) );
+      this.rowS, key, val ) );
   };
 
-  LAID.Query.prototype.filterWithin = function ( attr, val ) {
+  LAID.Query.prototype.filterWithin = function ( key, val ) {
     return new LAID.Query( 
-      LAID.$filterUtils.within( this.partLevelS, attr, val ) );
+      LAID.$filterUtils.within( this.rowS, key, val ) );
   };
 
   LAID.Query.prototype.filterFn = function ( fnFilter ) {
   	return new LAID.Query( LAID.$filterUtils.fn(
-      this.partLevelS, fnFilter ) );
+      this.rowS, fnFilter ) );
   };
 
-  LAID.Query.prototype.foldMin = function ( attr, val ) {
-    return LAID.$foldUtils.min( this.partLevelS, attr, val );
+  LAID.Query.prototype.foldMin = function ( key, val ) {
+    return LAID.$foldUtils.min( this.rowS, key, val );
   };
 
-  LAID.Query.prototype.foldMax = function ( attr, val ) {
-    return LAID.$foldUtils.max( this.partLevelS, attr, val );
+  LAID.Query.prototype.foldMax = function ( key, val ) {
+    return LAID.$foldUtils.max( this.rowS, key, val );
   };
 
-  LAID.Query.prototype.foldSum = function ( attr, val ) {
-    return LAID.$foldUtils.sum( this.partLevelS, attr, val );
+  LAID.Query.prototype.foldSum = function ( key, val ) {
+    return LAID.$foldUtils.sum( this.rowS, key, val );
   };
 
   LAID.Query.prototype.foldFn = function ( fnFold, acc ) {
-    return LAID.$foldUtils.fn( this.partLevelS, fnFold, acc );
+    return LAID.$foldUtils.fn( this.rowS, fnFold, acc );
   };
 
-  LAID.Query.prototype.fetch = function ( index, attr ) {
-  	return LAID.$queryUtils.fetch(
-  		this.partLevelS, index, attr );
+  LAID.Query.prototype.index = function ( i ) {
+  	return this.rowS[ i ];
   };
+
   LAID.Query.prototype.length = function () {
-    return this.partLevelS.length;
+    return this.rowS.length;
   };
   LAID.Query.prototype.end = function () {
-  	return this.partLevelS;
+  	return this.rowS;
   };
 
 
@@ -4098,7 +4039,7 @@ bottom: -0.25em;
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        if ( attr === "$all" || attr === "$filtered" ) {
+        if ( attr === "rows" || attr === "filter" ) {
           return LAID.$arrayUtils.cloneSingleLevel( 
             path.resolve( this ).$getAttrVal( attr ).calcVal );
         } else {
@@ -4157,7 +4098,7 @@ bottom: -0.25em;
     return this;
   };
 
-
+  LAID.Take.prototype.plus = LAID.Take.prototype.add;
 
   LAID.Take.prototype.subtract = function ( val ) {
 
@@ -4176,6 +4117,8 @@ bottom: -0.25em;
     }
     return this;
   };
+
+  LAID.Take.prototype.minus = LAID.Take.prototype.subtract;
 
   LAID.Take.prototype.divide = function ( val ) {
 
@@ -4702,10 +4645,6 @@ bottom: -0.25em;
   }
 
 
-
-
-
-
   LAID.Take.prototype.colorEquals = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -4955,58 +4894,6 @@ bottom: -0.25em;
     return this;
   };
 
-  LAID.Take.prototype.queryLength = LAID.Take.prototype.length;
-
-  LAID.Take.prototype.queryFetch = function ( index, attr ) {
-
-    var oldExecutable = this.executable;
-
-    if ( index instanceof LAID.Take ) {
-      this.$mergePathAndAttrs( index );
-
-      if ( attr instanceof LAID.Take ) {
-        this.$mergePathAndAttrs( attr );
-        this.executable = function () {
-          return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index.execute( this ),
-            attr.execute( this )
-          );
-        }
-
-      } else {
-        this.executable = function () {
-          return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index.execute( this ),
-            attr
-          );
-        }
-      }
-    } else if ( attr instanceof LAID.Take ) {
-      this.$mergePathAndAttrs( attr );
-      this.executable = function () {
-        return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index,
-            attr.execute( this )
-          );
-      }
-
-    } else {
-      this.executable = function () {
-        return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index,
-            attr
-          );
-      }
-    }
-
-    return this;
-
-  };
-
   LAID.Take.prototype.filterEq = function ( attr, val ) {
 
     var oldExecutable = this.executable;
@@ -5166,149 +5053,6 @@ bottom: -0.25em;
 
     return this;
 
-    /*
-
-    var fn;
-    var oldExecutable = this.executable;
-
-    if ( arguments.length === 1 ) {
-
-    fn = arguments[ 0 ];
-
-    if ( fn instanceof LAID.Take ) {
-
-    this.$mergePathAndAttrs( fn );
-    this.executable = function () {
-
-    return (fn.execute( this )).call( this, oldExecutable.call( this ) );
-
-  };
-
-} else {
-
-this.executable = function () {
-
-return fn.call( this, oldExecutable.call( this ) );
-
-};
-}
-}
-
-else if (arguments.length === 2 ) {
-
-var arg = arguments[ 0 ];
-fn = arguments[ 1 ];
-
-if ( fn instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( fn );
-
-if ( arg instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( arg );
-
-this.executable = function () {
-
-return (fn.execute( this )).call( this, oldExecutable.call( this ), arg.execute( this ) );
-
-};
-
-} else {
-
-this.executable = function () {
-
-return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
-
-};
-
-}
-
-} else {
-
-if ( arg instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( arg );
-
-this.executable = function () {
-
-return fn.call( this, oldExecutable.call( this ), arg.execute( this ) );
-
-};
-
-} else {
-
-this.executable = function () {
-
-return fn.call( this, oldExecutable.call( this ), arg );
-
-};
-}
-}
-
-} else {
-
-var argSlength = arguments.length - 1;
-var argS = Array.prototype.slice.call( arguments );
-
-for ( var i = 0, curArg; i < argSlength; i++ ) {
-
-curArg = arguments[ i ];
-
-if ( curArg instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( curArg );
-
-}
-}
-
-fn = argS[ argSlength - 1 ];
-
-if ( fn instanceof LAID.Take ) {
-
-this.executable = function () {
-
-
-// The "+1" allocates space for the first argument which is of the LAID.Take in current context.
-var callableArgS = new Array( argSlength + 1 );
-callableArgS[ 0 ] = oldExecutable.call( this );
-
-for ( var i = 0, arg; i < argSlength; i++ ) {
-
-arg = argS[ i ];
-
-callableArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
-
-}
-
-return ( fn.execute( this ) ).apply( this, callableArgS );
-
-};
-
-} else {
-
-this.executable = function () {
-
-// The "+1" allocates space for the first argument which is of the LAID.Take in current context.
-var callableArgS = new Array( argSlength + 1 );
-callableArgS[ 0 ] = oldExecutable.call( this );
-
-for ( var i = 0, arg; i < argSlength; i++ ) {
-
-arg = argS[ i ];
-
-callableArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
-
-}
-
-return fn.apply( window, callableArgS );
-
-
-};
-}
-}
-
-return this;
-*/
 
 };
 
@@ -5514,6 +5258,7 @@ return this;
 
   }
 
+  var numRegex = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*((\d+)|(\d+))?/;
   LAID.color = function ( colorName ) {
 
     if ( colorName instanceof LAID.Take ) {
@@ -5522,11 +5267,11 @@ return this;
         colorName = colorName.toLowerCase();
         var colorValue = colorName2colorValue[ colorName ];
         if ( colorValue === undefined ) {
+          if ( colorName.match(/(rgb)|(hsl)/) )
           throw ("LAID Error: Color name: " + colorName +  " not found." );
         }
         else {
           return new LAID.Color( 'rgb', colorValue, 1 );
-
         }
     }
 
@@ -5704,6 +5449,38 @@ return this;
 	};
 
 })();
+( function() {
+  "use strict";
+
+  function takeHex ( hex ) {
+
+    return LAID.hex( hex );
+
+  }
+
+  LAID.hex = function ( hexVal ) {
+
+    if ( hexVal instanceof LAID.Take ) {
+        return new LAID.Take( takeHex ).fn( hexVal );
+    } else {
+
+      return new LAID.Color( 'rgb', hexToRgb(hexVal), 1 );        
+    }
+
+  };
+
+  // source: http://stackoverflow.com/users/1047797/david
+  // http://stackoverflow.com/a/11508164
+  function hexToRgb(hex) {
+    return {
+      r: (hex >> 16) & 255,
+      g: (hex >> 8) & 255,
+      b: hex & 255
+    };
+  }
+
+})();
+
 (function() {
   "use strict";
 
@@ -6201,12 +5978,7 @@ return this;
 
   LAID.unclog = function () {
 
-    var 
-    	i, len,
-    	cloggedLevelS = LAID.cloggedLevelS;
-    for ( i = 0, len = cloggedLevelS.length; i < len; i++ ) {
-      LAID.$newLevelS.push( cloggedLevelS[ i ] );
-    }
+    LAID.$isClogged = false;
     LAID.$solve();
     
   };
@@ -6591,7 +6363,7 @@ return this;
   };
 
   essentialProp2defaultValue = {
-    filter:  new LAID.Take( "", "$all" ),
+    filter:  new LAID.Take( "", "rows" ),
     sort: [],
     formation: "onebelow",
     rows: [],
@@ -7098,78 +6870,78 @@ return this;
 	"use strict";
 
 	LAID.$filterUtils = {
-		eq: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) === val;
-				}, partLevelS );
+		eq: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] === val;
+				}, rowS );
 		},
 		
-		neq: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) !== val;
-				}, partLevelS );
+		neq: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] !== val;
+				}, rowS );
 		},
 
-		gt: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) > val;
-				}, partLevelS );
+		gt: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] > val;
+				}, rowS );
 			
 		},
 		
-		gte: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr )>= val;
-				}, partLevelS );
+		gte: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] >= val;
+				}, rowS );
 			
 		},
-		lt: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ) < val;
-				}, partLevelS );
+		lt: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ] < val;
+				}, rowS );
 			
 		},
-		lte: function ( partLevelS, attr, val ) {
-			return  filter( function ( partLevel ) {
-					return partLevel.attr( attr ) <= val;
-				}, partLevelS );
+		lte: function ( rowS, key, val ) {
+			return  filter( function ( row ) {
+					return row[ key ] <= val;
+				}, rowS );
 			
 		},
-		regex: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return val.test( partLevel.attr( attr ) );
-				}, partLevelS );
+		regex: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return val.test( row[ key ] );
+				}, rowS );
 			
 		},
-		contains: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return partLevel.attr( attr ).indexOf( val ) !== -1;
-				}, partLevelS );
+		contains: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return row[ key ].indexOf( val ) !== -1;
+				}, rowS );
 			
 		},
-		within: function ( partLevelS, attr, val ) {
-			return filter( function ( partLevel ) {
-					return val.indexOf( partLevel.attr( attr ) ) !== -1;
-				}, partLevelS );
+		within: function ( rowS, key, val ) {
+			return filter( function ( row ) {
+					return val.indexOf( row[ key ] ) !== -1;
+				}, rowS );
 			
 		},
 
-		fn: function ( partLevelS, fnFilter ) {
-			return filter( fnFilter , partLevelS );
+		fn: function ( rowS, fnFilter ) {
+			return filter( fnFilter , rowS );
 		}
 		
 
 	};
 
-	function filter ( fnFilter, partLevelS ) {
-		var filteredPartLevelS = [];
-		for ( var i = 0, len = partLevelS.length, partLevel; i < len; i++ ) {
-			partLevel = partLevelS[ i ];
-			if ( fnFilter( partLevel ) ) {
-				filteredPartLevelS.push( partLevel );
+	function filter ( fnFilter, rowS ) {
+		var filteredRowS = [];
+		for ( var i = 0, len = rowS.length, row; i < len; i++ ) {
+			row = rowS[ i ];
+			if ( fnFilter( row ) ) {
+				filteredRowS.push( row );
 			} 
 		}
-		return filteredPartLevelS;
+		return filteredRowS;
 	}
 
 })();
@@ -7218,7 +6990,7 @@ return this;
       } else {
         multipleTypePropMatchDetails = LAID.$findMultipleTypePropMatchDetails(
         prop );
-
+        
         if ( multipleTypePropMatchDetails ) {
           return multipleTypePropMatchDetails[ 1 ];
         }
@@ -7238,43 +7010,43 @@ return this;
   "use strict";
 
   LAID.$foldlUtils = {
-    min: function ( partLevelS, attr, val ) {
-      return fold( function ( part, acc ) {
-        var val = part.attr( attr );
+    min: function ( rowS, key, val ) {
+      return fold( function ( row, acc ) {
+        var val = row[ key ];
           if ( ( acc === undefined ) || ( val < acc ) ) {
             return val;
           } else {
             return acc;
           }
-        }, undefined, partLevelS ); 
+        }, undefined, rowS ); 
     },
-    max: function ( partLevelS, attr, val ) {
-      return fold( function ( part, acc ) {
-        var val = part.attr( attr );
+    max: function ( rowS, key, val ) {
+      return fold( function ( row, acc ) {
+        var val = row[ key ];
           if ( ( acc === undefined ) || ( val > acc ) ) {
             return val;
           } else {
             return acc;
           }
-        }, undefined, partLevelS ); 
+        }, undefined, rowS ); 
     },
-    sum: function ( partLevelS, attr, val ) {
-      return fold( function ( part, acc ) {
-        return acc + part.attr( attr );
-        }, 0, partLevelS ); 
+    sum: function ( rowS, key, val ) {
+      return fold( function ( row, acc ) {
+        return acc + row[ key ];
+        }, 0, rowS ); 
     },
 
     
-    fn: function ( partLevelS, fnFold, acc ) {
-      return fold( fnFold, acc, partLevelS );      
+    fn: function ( rowS, fnFold, acc ) {
+      return fold( fnFold, acc, rowS );      
     },
   
 
   };
 
-  function fold ( fnFold, acc, partLevelS ) {
-    for ( var i = 0, len = partLevelS.length; i < len; i++ ) {
-      acc = fnFold( partLevelS[ i ], acc );
+  function fold ( fnFold, acc, rowS ) {
+    for ( var i = 0, len = rowS.length; i < len; i++ ) {
+      acc = fnFold( rowS[ i ], acc );
     }
     return acc;
   }
@@ -8210,14 +7982,16 @@ return this;
       checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
     },
 
-    load: function ( lson ) {
-      // do nothing
+    $load: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$load", lson.$load );
+    },
+
+    $gpu: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$gpu", lson.$gpu );
     },
 
     data: function ( lson ) {
-
       checkAndThrowErrorAttrAsTake( "data", lson.data );
-
     },
     /*
     * normalize the `lson`
@@ -8313,12 +8087,20 @@ return this;
     } else {
       checkAndThrowErrorAttrAsTake( "when", lson.when );
 
-      var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
+      var eventType2_fnCallbackS_ = lson.when,
+        eventType, fnCallbackS, i, len;
 
       for ( eventType in eventType2_fnCallbackS_ ) {
         fnCallbackS = eventType2_fnCallbackS_[ eventType ];
+        //console.log(eventType2_fnCallbackS_[ eventType ]);
+
+        if ( ! ( fnCallbackS instanceof Array ) ) {
+          fnCallbackS =
+            eventType2_fnCallbackS_[ eventType ] =
+              [ fnCallbackS ];
+        }
         checkAndThrowErrorAttrAsTake( "when." + eventType,
-        fnCallbackS );
+          fnCallbackS );
         //LAID.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
       }
     }
@@ -8681,39 +8463,6 @@ if (!Array.prototype.indexOf) {
 ( function () {
   "use strict";
 
-  LAID.$queryUtils = {
-    
-    fetch: function ( partLevelS, index, attr ) {
-  
-      if ( index < 1 ) {
-        console.error(
-          "LAID Warning: Filter indexing begins from 1" );
-          console.log(index);
-        return undefined;
-
-      } else {
-        if ( !partLevelS[ index - 1 ] ) {
-          return null;
-        } else {
-          return partLevelS[ index - 1 ].$getAttrVal( attr ).calcVal;
-        }
-      }
-
-    },
-
-   /* fetchAll: function ( partLevelS ) {
-      return partLevelS;
-    } */
-
-  };
-
-  
-
-})();
-
-( function () {
-  "use strict";
-
 
   /*
   * Optional argument of `timeNow`
@@ -9044,7 +8793,7 @@ if (!Array.prototype.indexOf) {
 
     if ( LAID.$isRendering ) {
       LAID.$isSolveRequiredOnRenderFinish = true;
-    } else if ( !LAID.$isSolving ) {
+    } else if ( !LAID.$isSolving && !LAID.$isClogged ) {
       var 
         ret,
         isSolveNewComplete,
@@ -9129,7 +8878,7 @@ if (!Array.prototype.indexOf) {
       newMany = newManyS[ i ];
       newMany.isLoaded = true;
       newMany.updateFilteredPositioning();
-      fnLoad = newMany.level.attr2attrVal.load;
+      fnLoad = newMany.level.lson.$load;
       if ( fnLoad ) {
         fnLoad.call( newMany.level );
       }

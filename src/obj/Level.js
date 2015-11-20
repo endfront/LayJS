@@ -5,6 +5,7 @@
 
     this.pathName = path;
     this.lson = lson;
+    this.gpu = undefined;
 
     this.parentLevel = parent; // parent Level
     this.attr2attrVal = {};
@@ -20,7 +21,7 @@
     // If the Level is a Many (i.e this.isPart is false)
     // then this.many will hold a reference to the corresponding
     // Many object.
-    this.many = undefined;
+    this.manyObj = undefined;
 
 
     // If the Level is derived from a Many
@@ -53,20 +54,7 @@
   LAID.Level.prototype.$init = function () {
 
     LAID.$pathName2level[ this.pathName ] = this;
-
-    // Check is this is many derived level,
-    // if it is not then add it to the queue
-    // of levels for the "$inherit" key to be
-    // executed.
-    // If so then we can proceed doing nothing as
-    // the level already has its LSON inherited
-    // through its derived many level.
-    
-    if ( !LAID.$isClogged ) {
-      LAID.$newLevelS.push( this );
-    } else {
-      LAID.$cloggedLevelS.push( this );
-    }
+    LAID.$newLevelS.push( this );
    
   };
 
@@ -117,12 +105,9 @@
 
   LAID.Level.prototype.row = function ( rowKey, value ) {
     if ( this.derivedMany ) {
-      this.$changeAttrVal( "row." + rowKey, value );
       this.derivedMany.id2row[ this.id ][ rowKey ] = value;
       this.derivedMany.level.attr2attrVal.rows.requestRecalculation();
       LAID.$solve();
-    } else if ( this.many ) {
-      allLevelS = this
     }
   };
 
@@ -138,7 +123,7 @@
     this.part.node.scrollTop = value;
   };
 
-  LAID.Level.prototype.manyLevel = function () {
+  LAID.Level.prototype.many = function () {
 
     return this.derivedMany && this.derivedMany.level;
   };
@@ -146,21 +131,30 @@
   LAID.Level.prototype.rowsCommit = function ( newRowS ) {
 
     if ( !this.isPart ) {
-      this.many.rowsCommit( newRowS );
+      this.manyObj.rowsCommit( newRowS );
     }
   };
 
   LAID.Level.prototype.rowsMore = function ( newRowS ) {
 
     if ( !this.isPart ) {
-      this.many.rowsMore( newRowS );
+      this.manyObj.rowsMore( newRowS );
     }
   };
 
-  LAID.Level.prototype.rowDelete = function ( id ) {
+  LAID.Level.prototype.rowDeleteByID = function ( id ) {
 
     if ( !this.isPart ) {
-      this.many.rowsDelete( id );
+      this.manyObj.rowDeleteByID( id );
+    }
+  };
+
+  LAID.Level.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+    if ( !this.isPart ) {
+      if ( queryRowS instanceof LAID.Query ) {
+        queryRowS = queryRowS.rowS;
+      }
+      this.manyObj.rowsUpdate( key, val, queryRowS );
     }
   };
 
@@ -232,15 +226,15 @@
 
 
 
-  LAID.Level.prototype.queryAll = function () {
+  LAID.Level.prototype.queryRows = function () {
     if ( !this.isPart ) {
-      return this.many.queryAll();
+      return this.manyObj.queryRows();
     }
   };
 
-  LAID.Level.prototype.queryFiltered = function () {
+  LAID.Level.prototype.queryFilter = function () {
     if ( !this.isPart ) {
-      return this.many.queryFiltered();
+      return this.manyObj.queryFilter();
     }
   };
 
@@ -270,10 +264,10 @@
   LAID.Level.prototype.remove = function () {
       
     if ( this.pathName === "/" ) {
-      console.error("LAID Error: Attempt to remove root level prohibited");
+      console.error("LAID Error: Attempt to remove root level '/' prohibited");
     } else {
       if ( this.derivedMany ) {
-        console.error("LAID Error: Attempt to remove a lson.many derived level without using rowDelete()");
+        this.derivedMany.rowDelete( this.id );
       } else {
         this.$remove();
         LAID.$solve();
@@ -294,12 +288,10 @@
     
     if ( this.isPart ) {
       this.part.remove();
-      
     } else {
-      this.many.remove();
+      this.manyObj && this.manyObj.remove();
     }
     
-
   
   };
 
@@ -360,7 +352,8 @@
 
   LAID.Level.prototype.$identifyAndReproduce = function () {
     this.isPart = this.lson.many === undefined;
-//    console.log(this.pathName, this.lson);
+    this.gpu = this.lson.$gpu === undefined ? true : 
+      this.lson.$gpu;
 
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
@@ -381,8 +374,8 @@
       // with a many creator
       partLson.many = undefined;
       LAID.$defaultizeManyLson( this.lson );
-      this.many = new LAID.Many( this, partLson );
-      this.many.init();
+      this.manyObj = new LAID.Many( this, partLson );
+      this.manyObj.init();
       
     }
   };
@@ -568,8 +561,6 @@
       attr2val.right = LAID.$essentialPosAttr2take.right;
       attr2val.bottom = LAID.$essentialPosAttr2take.bottom;
     } else { // Many
-      attr2val.$all = [];
-      attr2val.$filtered = [];
       attr2val.rows = lson.rows || [];
       attr2val.$id = lson.$id;
     }
@@ -730,7 +721,8 @@
             if ( attrLsonComponentObj === undefined ) {
               return false;
             } else {
-              this.$createdAttrVal( attr , firstAttrLsonComponent );
+              this.$createAttrVal( attr ,
+                 attrLsonComponentObj );
             }
           }
         }

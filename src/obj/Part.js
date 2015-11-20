@@ -19,13 +19,15 @@
 
 
   // check for matrix 3d support
-  //if ( ( (cssPrefix + "transform" ) in allStyles ) ) {
-    // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
-    allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
-    isGpuAccelerated = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( ( cssPrefix + "transform" ) ) );
-  //}
+  // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
+  allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
+  LAID.$isGpuAccelerated = 
+    isGpuAccelerated =
+      Boolean(
+        window.getComputedStyle(
+          document.body, null ).getPropertyValue(
+            ( cssPrefix + "transform" ) ) );
 
-  //isGpuAccelerated = (  );
 
 
   allStyles = undefined;
@@ -147,14 +149,19 @@
     }
   };
 
+  // Precondition: not called on "/" level
   LAID.Part.prototype.remove = function () {
-    
+    console.log("woot",
+      this.level.attr2attrVal["row.title"].calcVal);
+    var parentPart = this.level.parentLevel.part;
     if ( parentPart.naturalWidthLevel === this ) {
       parentPart.updateNaturalWidth();
     }
     if ( parentPart.naturalHeightLevel === this ) {
       parentPart.updateNaturalHeight();
     }    
+
+    parentPart.node.removeChild( this.node );
 
   };
 
@@ -830,7 +837,38 @@
 
     };
 
-    LAID.Part.prototype.renderFn_width = function () {
+    LAID.Part.prototype.renderFn_transform =   
+    function () {
+      var attr2attrVal = this.level.attr2attrVal;
+      cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
+      this.node.style[ cssPrefix + "transform" ] =
+      "scale3d(" +
+      ( attr2attrVal.scaleX !== undefined ? attr2attrVal.scaleX.transitionCalcVal : 1 ) + "," +
+      ( attr2attrVal.scaleY !== undefined ? attr2attrVal.scaleY.transitionCalcVal : 1 ) + "," +
+      ( attr2attrVal.scaleZ !== undefined ? attr2attrVal.scaleZ.transitionCalcVal : 1 ) + ") " +
+      "skew(" +
+      ( attr2attrVal.skewX !== undefined ? attr2attrVal.skewX.transitionCalcVal : 0 ) + "deg," +
+      ( attr2attrVal.skewY !== undefined ? attr2attrVal.skewY.transitionCalcVal : 0 ) + "deg) " +
+      "rotateX(" + ( attr2attrVal.rotateX !== undefined ? attr2attrVal.rotateX.transitionCalcVal : 0 ) + "deg) " +
+      "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
+      "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
+    };
+    
+  } else {
+    // legacy browser usage or forced non-gpu mode
+
+    LAID.Part.prototype.renderFn_positional = function () {
+      var attr2attrVal = this.level.attr2attrVal;
+      this.node.style.left =
+        ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
+      this.node.style.top =
+        ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
+
+    };
+
+  }
+
+  LAID.Part.prototype.renderFn_width = function () {
       this.node.style.width =
         this.level.attr2attrVal.width.transitionCalcVal + "px";
       if ( this.type === "canvas" ) {
@@ -839,36 +877,14 @@
       }
     };
 
-    LAID.Part.prototype.renderFn_height = function () {
-      this.node.style.height =
-        this.level.attr2attrVal.height.transitionCalcVal + "px";
-      if ( this.type === "canvas" ) {
-        this.node.height =
-          this.level.attr2attrVal.height.transitionCalcVal;
-      }
-    };
-
-  } else {
-    // legacy browser usage or forced non-gpu mode
-
-    LAID.Part.prototype.renderFn_width = function () {
-      this.node.style.width = this.level.attr2attrVal.width.transitionCalcVal + "px";
-    };
-
-    LAID.Part.prototype.renderFn_height = function () {
-      this.node.style.height = this.level.attr2attrVal.height.transitionCalcVal + "px";
-    };
-
-    LAID.Part.prototype.renderFn_positional = function () {
-      var attr2attrVal = this.level.attr2attrVal;
-      this.node.style.left = ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
-      this.node.style.top = ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
-
-    };
-
-  }
-
-
+  LAID.Part.prototype.renderFn_height = function () {
+    this.node.style.height =
+      this.level.attr2attrVal.height.transitionCalcVal + "px";
+    if ( this.type === "canvas" ) {
+      this.node.height =
+        this.level.attr2attrVal.height.transitionCalcVal;
+    }
+  };
 
 
   LAID.Part.prototype.renderFn_origin = function () {
@@ -1167,7 +1183,7 @@
   };
 
   LAID.Part.prototype.renderFn_textWeight = function () {
-
+    console.log("tw");
     this.node.style.fontWeight =
       this.level.attr2attrVal.textWeight.transitionCalcVal;
   };

@@ -186,7 +186,7 @@
       recalcVal,
       level = this.level,
       part = level.part,
-      many = level.many,
+      many = level.manyObj,
       attr = this.attr,
       i, len; 
 
@@ -216,16 +216,14 @@
       }
     }
 
-    if ( attr === "$all" || attr === "$filtered" ) {
-      isDirty = true;
-    }
-
     if ( this.isForceRecalculate ) {
       isDirty = true;
     }
 
     switch ( attr ) {
       case "scrollX":
+        // TODO: investigate the below code block's
+        // redundancy
          this.transitionCalcVal =
              this.level.part.node.scrollLeft;      
         if ( level.attr2attrVal.$scrolledX ) {
@@ -235,6 +233,8 @@
         isDirty = true;
         break;
       case "scrollY":
+        // TODO: investigate the below code block's
+        // redundancy
          this.transitionCalcVal =
              this.level.part.node.scrollTop;
         if ( level.attr2attrVal.$scrolledY ) {
@@ -244,6 +244,8 @@
         isDirty = true;
         break;
       case "input":
+        // TODO: investigate the below code block's
+        // redundancy
         if ( level.attr2attrVal.$input ) {
           level.$changeAttrVal( "$input",
            this.calcVal );
@@ -253,8 +255,10 @@
       // rows is always dirty when recalculated
       // as changes made to rows would have rows
       // retain the same pointer to the array
+      // TODO: possibly change to .forceRecalculation()
       case "rows":
         isDirty = true;
+        console.log("rows", this.calcVal);
         break; 
     }
 
@@ -271,12 +275,13 @@
         this.takerAttrValS[ i ].requestRecalculation();
       }
 
+      /*
       if ( level.derivedMany ) {
         level.derivedMany.level.attr2attrVal.$all.requestRecalculation();
         if ( level.attr2attrVal.$f.calcVal !== -1 ) {
           level.derivedMany.level.attr2attrVal.$filtered.requestRecalculation();
        }
-      }
+      }*/
 
       if ( LAID.$isDataTravellingShock ) {
 

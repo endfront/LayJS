@@ -19,7 +19,7 @@
   };
 
   essentialProp2defaultValue = {
-    filter:  new LAID.Take( "", "$all" ),
+    filter:  new LAID.Take( "", "rows" ),
     sort: [],
     formation: "onebelow",
     rows: [],

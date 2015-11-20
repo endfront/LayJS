@@ -10,7 +10,7 @@
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        if ( attr === "$all" || attr === "$filtered" ) {
+        if ( attr === "rows" || attr === "filter" ) {
           return LAID.$arrayUtils.cloneSingleLevel( 
             path.resolve( this ).$getAttrVal( attr ).calcVal );
         } else {
@@ -69,7 +69,7 @@
     return this;
   };
 
-
+  LAID.Take.prototype.plus = LAID.Take.prototype.add;
 
   LAID.Take.prototype.subtract = function ( val ) {
 
@@ -88,6 +88,8 @@
     }
     return this;
   };
+
+  LAID.Take.prototype.minus = LAID.Take.prototype.subtract;
 
   LAID.Take.prototype.divide = function ( val ) {
 
@@ -614,10 +616,6 @@
   }
 
 
-
-
-
-
   LAID.Take.prototype.colorEquals = function ( val ) {
 
     var oldExecutable = this.executable;
@@ -867,58 +865,6 @@
     return this;
   };
 
-  LAID.Take.prototype.queryLength = LAID.Take.prototype.length;
-
-  LAID.Take.prototype.queryFetch = function ( index, attr ) {
-
-    var oldExecutable = this.executable;
-
-    if ( index instanceof LAID.Take ) {
-      this.$mergePathAndAttrs( index );
-
-      if ( attr instanceof LAID.Take ) {
-        this.$mergePathAndAttrs( attr );
-        this.executable = function () {
-          return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index.execute( this ),
-            attr.execute( this )
-          );
-        }
-
-      } else {
-        this.executable = function () {
-          return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index.execute( this ),
-            attr
-          );
-        }
-      }
-    } else if ( attr instanceof LAID.Take ) {
-      this.$mergePathAndAttrs( attr );
-      this.executable = function () {
-        return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index,
-            attr.execute( this )
-          );
-      }
-
-    } else {
-      this.executable = function () {
-        return LAID.$queryUtils.fetch(
-            oldExecutable.call( this ),
-            index,
-            attr
-          );
-      }
-    }
-
-    return this;
-
-  };
-
   LAID.Take.prototype.filterEq = function ( attr, val ) {
 
     var oldExecutable = this.executable;
@@ -1078,149 +1024,6 @@
 
     return this;
 
-    /*
-
-    var fn;
-    var oldExecutable = this.executable;
-
-    if ( arguments.length === 1 ) {
-
-    fn = arguments[ 0 ];
-
-    if ( fn instanceof LAID.Take ) {
-
-    this.$mergePathAndAttrs( fn );
-    this.executable = function () {
-
-    return (fn.execute( this )).call( this, oldExecutable.call( this ) );
-
-  };
-
-} else {
-
-this.executable = function () {
-
-return fn.call( this, oldExecutable.call( this ) );
-
-};
-}
-}
-
-else if (arguments.length === 2 ) {
-
-var arg = arguments[ 0 ];
-fn = arguments[ 1 ];
-
-if ( fn instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( fn );
-
-if ( arg instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( arg );
-
-this.executable = function () {
-
-return (fn.execute( this )).call( this, oldExecutable.call( this ), arg.execute( this ) );
-
-};
-
-} else {
-
-this.executable = function () {
-
-return (fn.execute( this )).call( this, oldExecutable.call( this ), arg );
-
-};
-
-}
-
-} else {
-
-if ( arg instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( arg );
-
-this.executable = function () {
-
-return fn.call( this, oldExecutable.call( this ), arg.execute( this ) );
-
-};
-
-} else {
-
-this.executable = function () {
-
-return fn.call( this, oldExecutable.call( this ), arg );
-
-};
-}
-}
-
-} else {
-
-var argSlength = arguments.length - 1;
-var argS = Array.prototype.slice.call( arguments );
-
-for ( var i = 0, curArg; i < argSlength; i++ ) {
-
-curArg = arguments[ i ];
-
-if ( curArg instanceof LAID.Take ) {
-
-this.$mergePathAndAttrs( curArg );
-
-}
-}
-
-fn = argS[ argSlength - 1 ];
-
-if ( fn instanceof LAID.Take ) {
-
-this.executable = function () {
-
-
-// The "+1" allocates space for the first argument which is of the LAID.Take in current context.
-var callableArgS = new Array( argSlength + 1 );
-callableArgS[ 0 ] = oldExecutable.call( this );
-
-for ( var i = 0, arg; i < argSlength; i++ ) {
-
-arg = argS[ i ];
-
-callableArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
-
-}
-
-return ( fn.execute( this ) ).apply( this, callableArgS );
-
-};
-
-} else {
-
-this.executable = function () {
-
-// The "+1" allocates space for the first argument which is of the LAID.Take in current context.
-var callableArgS = new Array( argSlength + 1 );
-callableArgS[ 0 ] = oldExecutable.call( this );
-
-for ( var i = 0, arg; i < argSlength; i++ ) {
-
-arg = argS[ i ];
-
-callableArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
-
-}
-
-return fn.apply( window, callableArgS );
-
-
-};
-}
-}
-
-return this;
-*/
 
 };
 

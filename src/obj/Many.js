@@ -6,6 +6,9 @@
     this.level = level;
     this.partLson = partLson;
 
+    this.allLevelS = [];
+    this.filteredLevelS = [];
+
     // "stringHashedStates2_cachedAttr2val_"
     // for levels derived from the many
     // Keeping this cache ensures thats
@@ -37,24 +40,21 @@
 
     LAID.$newManyS.push( this );
 
-    this.level.$createAttrVal( "$all", [] );
-    this.level.$createAttrVal( "$filtered", [] );
-
     this.defaultFormationX = this.partLson.states.root.props.left;
     this.defaultFormationY = this.partLson.states.root.props.top;
 
   };
 
-  LAID.Many.prototype.queryAll = function () {
+  LAID.Many.prototype.queryRows = function () {
     return new LAID.Query( 
        LAID.$arrayUtils.cloneSingleLevel(
-        this.level.attr2attrVal.$all.calcVal ) );
+        this.level.attr2attrVal.rows.calcVal ) );
   };
 
-  LAID.Many.prototype.queryFiltered = function () {
+  LAID.Many.prototype.queryFilter = function () {
     return new LAID.Query(
       LAID.$arrayUtils.cloneSingleLevel(
-        this.level.attr2attrVal.$filtered.calcVal ) );
+        this.level.attr2attrVal.filter.calcVal ) );
   };
 
   LAID.Many.prototype.rowsCommit = function ( newRowS ) {
@@ -66,34 +66,52 @@
 
   LAID.Many.prototype.rowsMore = function ( newRowS ) {
     var
-      curRowS = this.level.attr2attrVal.rows.calcVal;
+      curRowS = this.level.attr2attrVal.rows.val;
 
     for ( var i = 0; i < newRowS.length; i++ ) {
       curRowS.push( newRowS[ i ] );
     }
 
+    console.log(
+      this.level.pathName, curRowS, 
+      this.level.attr2attrVal.rows.val);
     this.level.attr2attrVal.rows.requestRecalculation();
-    
     LAID.$solve();
 
   };
 
-  LAID.Many.prototype.rowDelete = function ( id ) {
+  LAID.Many.prototype.rowDeleteByID = function ( id ) {
     var
-      curRowS = this.level.attr2attrVal.rows.calcVal,
+      curRowS = this.level.attr2attrVal.rows.val,
       row = this.id2row [ id ];
 
     if ( row ) {
       LAID.$arrayUtils.remove( 
         curRowS, row );
       this.level.attr2attrVal.rows.requestRecalculation();
-
       LAID.$solve();
 
     }
+  };
 
+  LAID.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+    // If no queriedRowS parameter is supplied then
+    // update all the rows
+    queryRowS = queryRowS ||
+      this.level.attr2attrVal.rows.val || [];
+
+    for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
+      var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
+      if ( fetchedRow ) {
+        fetchedRow[ key ] = val;
+      }
+    }
+
+    this.level.attr2attrVal.rows.requestRecalculation();
+    LAID.$solve();
 
   };
+
 
 
   function checkIfRowsIsNotObjectified ( rowS ) {
@@ -121,18 +139,18 @@
   		id,
   		level,
   		parentLevel = this.level.parentLevel,
-      updatedLevelS = [],
+      updatedAllLevelS = [],
       newLevelS = [],
       id2level = this.id2level,
       id2row = this.id2row,
       rowKey, rowVal,
       i, len;
 
+    console.log( rowS );
+
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
       rowS = objectifyRows( rowS );
     }
-
-    this.sort( rowS );
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
@@ -172,7 +190,7 @@
         }
   		}
 
-      updatedLevelS.push( level );
+      updatedAllLevelS.push( level );
 
   	}
 
@@ -180,21 +198,17 @@
     // after "Level.$identifyAndReproduce()"
     LAID.$solve();
 
-
     for ( id in id2level ) {
       level = id2level[ id ];
-      if ( updatedLevelS.indexOf( level ) === -1 ) {
+      if ( level &&
+          updatedAllLevelS.indexOf( level ) === -1 ) {
         level.$remove();
         this.id2row[ id ] = undefined;
         this.id2level[ id ] = undefined;
       }
     }
 
-    LAID.$solve();
-
-    this.level.attr2attrVal.$all.update( updatedLevelS );
-    this.level.attr2attrVal.$all.requestRecalculation();
-
+    this.allLevelS = updatedAllLevelS;
     LAID.$solve();
 
 
@@ -202,27 +216,30 @@
 
   LAID.Many.prototype.updateFilter = function ( ) {
     var  
-      allLevelS = this.level.attr2attrVal.$all.calcVal || [],
-      filteredLevelS = this.level.attr2attrVal.filter.calcVal || [];
+      allLevelS = this.allLevelS,
+      filteredRowS =
+        this.level.attr2attrVal.filter.calcVal || [],
+      filteredLevelS = [],
+      filteredLevel, f = 1;
 
     for ( 
       var i = 0, len = allLevelS.length;
-      i < len;
-      i++
-     ) {
+      i < len; i++ ) {
       allLevelS[ i ].attr2attrVal.$f.update( -1 );
     }
+
     for ( 
-      var f = 0, len = filteredLevelS.length;
-      f < len;
-      f++
-     ) {
-      filteredLevelS[ f ].attr2attrVal.$f.update( f + 1 );
+      var i = 0, len = filteredRowS.length;
+      i < len; i++ ) {
+      filteredLevel = this.id2level[ filteredRowS[ i ].id ];
+      if ( filteredLevel ) {
+        filteredLevelS.push( filteredLevel );
+        filteredLevel.attr2attrVal.$f.update( f++ );
+      }
     }
 
-    this.level.attr2attrVal.$filtered.update( filteredLevelS );
 
-    LAID.$solve();
+    this.filteredLevelS = filteredLevelS;
 
     this.updateFilteredPositioning();
 
@@ -232,7 +249,7 @@
 
     if ( this.isLoaded ) {
       var
-        filteredLevelS = this.level.attr2attrVal.filter.calcVal || [],
+        filteredLevelS = this.filteredLevelS,
         formationFn = LAID.$formationName2fn[
           this.level.attr2attrVal.formation.calcVal ],
         firstFilteredLevel = filteredLevelS[ 0 ];

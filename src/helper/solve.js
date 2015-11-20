@@ -4,7 +4,7 @@
 
     if ( LAID.$isRendering ) {
       LAID.$isSolveRequiredOnRenderFinish = true;
-    } else if ( !LAID.$isSolving ) {
+    } else if ( !LAID.$isSolving && !LAID.$isClogged ) {
       var 
         ret,
         isSolveNewComplete,
@@ -89,7 +89,7 @@
       newMany = newManyS[ i ];
       newMany.isLoaded = true;
       newMany.updateFilteredPositioning();
-      fnLoad = newMany.level.attr2attrVal.load;
+      fnLoad = newMany.level.lson.$load;
       if ( fnLoad ) {
         fnLoad.call( newMany.level );
       }

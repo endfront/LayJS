@@ -29,6 +29,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
         "ChildName": {
 
           $type: string,
+          $gpu: boolean,
           $interface: boolean,
           $inherit [ string | object, ... ],
           $observe: [ string, ... ],
@@ -703,15 +704,12 @@ Defaults:
     - $absoluteY (`number`)
       Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
-    - $all
-      All the Levels created by the many-level
-
     - $id
       The name of the unique key which is reponsible for id for each row in `rows` for many-level
 
     - $i
       Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` and `ascending` keys.
-    
+
     - $f
       Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` and `ascending` keys.
 
@@ -815,12 +813,12 @@ LAID.Level methods:
   data( changedData ) //changes data value
   parent()
   path()
-  manyLevel()
+  many()
   rowsMore()
   rowsCommit()
-  rowDelete()
-  queryAll()
-  queryFiltered()
+  rowDeleteByID()
+  queryRows()
+  queryFilter()
   addChildren()
   remove()
 
@@ -838,7 +836,7 @@ or
 
 LAID.Take methods
 
-  - add,subtract,divide,multiply
+  - add(alias:plus),subtract(alias:minus),divide,multiply
   - remainder
   - half, double (unary)
   - min, max
@@ -893,6 +891,7 @@ LAID.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
 LAID.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
 LAID.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
 LAID.color(name)  [name: XML recognized color]
+LAID.hex(hex) [hex: hexadecimal number]
 LAID.transparent()
 
 

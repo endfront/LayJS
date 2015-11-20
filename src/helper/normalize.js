@@ -173,14 +173,16 @@
       checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
     },
 
-    load: function ( lson ) {
-      // do nothing
+    $load: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$load", lson.$load );
+    },
+
+    $gpu: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$gpu", lson.$gpu );
     },
 
     data: function ( lson ) {
-
       checkAndThrowErrorAttrAsTake( "data", lson.data );
-
     },
     /*
     * normalize the `lson`
@@ -276,12 +278,20 @@
     } else {
       checkAndThrowErrorAttrAsTake( "when", lson.when );
 
-      var eventType2_fnCallbackS_, eventType, fnCallbackS, i, len;
+      var eventType2_fnCallbackS_ = lson.when,
+        eventType, fnCallbackS, i, len;
 
       for ( eventType in eventType2_fnCallbackS_ ) {
         fnCallbackS = eventType2_fnCallbackS_[ eventType ];
+        //console.log(eventType2_fnCallbackS_[ eventType ]);
+
+        if ( ! ( fnCallbackS instanceof Array ) ) {
+          fnCallbackS =
+            eventType2_fnCallbackS_[ eventType ] =
+              [ fnCallbackS ];
+        }
         checkAndThrowErrorAttrAsTake( "when." + eventType,
-        fnCallbackS );
+          fnCallbackS );
         //LAID.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
       }
     }
