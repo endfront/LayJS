@@ -16,22 +16,18 @@
   function setRuntimeGlobals () {
     var
       takeMidpointX = LAID.take("", "width").divide(2),
-      takeEdgeX = LAID.take("", "width"),
-      takeMidpointY = LAID.take("", "height").divide(2),
-      takeEdgeY = LAID.take("", "height");
+      takeMidpointY = LAID.take("", "height").divide(2);
     
     LAID.$miscPosAttr2take = {
       centerX: LAID.take("","left").add( takeMidpointX ),
       centerY: LAID.take("","top").add( takeMidpointY ),
-      $centerX: takeMidpointX,
-      $right: takeEdgeX,
-      $centerY: takeMidpointY,
-      $bottom: takeEdgeY
+      $midpointX: takeMidpointX,
+      $midpointY: takeMidpointY
     };
 
     LAID.$essentialPosAttr2take = {
-      right: LAID.take("","left").add( takeEdgeX ),
-      bottom: LAID.take("","top").add( takeEdgeY ),
+      right: LAID.take("","left").add( LAID.take("", "width") ),
+      bottom: LAID.take("","top").add( LAID.take("", "height") )
     };
 
     LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
@@ -50,8 +46,10 @@
   function updateSize () {
 
     var rootLevel = LAID.$pathName2level[ "/" ];
-    rootLevel.$changeAttrVal( "$naturalWidth", window.innerWidth );
-    rootLevel.$changeAttrVal( "$naturalHeight", window.innerHeight );
+    rootLevel.$changeAttrVal( "$naturalWidth",
+      window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth );
+    rootLevel.$changeAttrVal( "$naturalHeight",
+     window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight);
 
   }
 

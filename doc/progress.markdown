@@ -1,39 +1,40 @@
 
 Current:
+  - updateNaturalWidth should be a part of attrVal
+  - todoMVC Learn section
+  - throw error on no id provided
+  - many.rows inheritance
+  - `filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;`
+
+  - TODOMVC: There is still a problem with height changes on filter
   - < state >.bottom/right/centerX/centerY
-  - filter.end() ?
-  - LAID.color
-  - $gpu key
+  - filter.end()
+  - todoMVC routing
+  - LAID.color() warning
+    so that it doesn't get recalculated a million times
   - "url" hashchange "$url" ??
   - add all remaining filter/fold takes
   - function to get all partLevelS from many?
   - do you need to clone rows and filter in Take.js? and also in LAID.Many.prototype.queryRows/Filter?
-  - when event array normalization
-  - centerX undefined in Level.attr2attrVal
   - lazyProp2defaultValue has originX and perspectiveOriginX as 0.5?
-  - backface-visibility hidden perf
   - ONLY 1 NODE to count the goddamn text dimesions is the DREAM COME TRUE
   - grid formation
-  - */ to reach row
   - height/width change should trigger scrollY/X change if
     applicable, similarly double-check is naturalHeight/Width
     changes does the trigger without using setTimeout
   - input:file,select
-  - Canvas support
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
   - LAID.Many.remove()
   - test Textarea
   - test Image
   - test Video
-  - $containerCenterX, $containerCenterY,
-    $containerRight, $containerBottom rename
-  - test if "input" sets "$input" to "< value >" instead of ""
+  - test Canvas
+  - refactor many key to be above props key
   - website
 
 
   spec:
-  - */ to reach row
   - Many.rowsUpdate()
   - many.rows can take array of non-objects
   - Add "$i" index for Many to spec
@@ -54,12 +55,15 @@ Current:
 Future:
   - $browser attr
   - $url attr
+  - LAID.transparent() -> LAID.transparent ?
+  - "*/" to reach row level from descendant level
+  - selective inheritance where part of lson is inherited
+    eg: ($inherit: [{level:"../Button", keys: ["props", "when"]}] )
   - try to remove AttrVal.forceRecalculation()
   - CSS pointer-events optimization
-  - $naturalWidth/$naturalHeight shouldn't transition from 0 to < diemsion > on load
+  - HTML5 aria
   - takes across forbidden objects such as "when", "transition", etc
   - natural width and height dependent upon the rotation of Z axis of children.
-  - Insert CSS from entry.js (normalize.css CSS)
   - move `eventReadonlyEventType2boundFnHandler` outside of AttrVal (move to Level) to save space
   - Add/interface HTML history module support
   - change 'audio/videoControl"s"' to 'audio/videoControl' to respect naming convention of props?
@@ -78,3 +82,11 @@ hardware acceleration flag
   - Opacity to 0.999999 research and implementation within LAID
   - LAID.Color mix
   - Expand out object-typed data values
+
+
+cry about:
+  - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
+  - "-moz-user-select" unactivated from JS
+
+research:
+  - http://jsperf.com/origin-px-vs-percent

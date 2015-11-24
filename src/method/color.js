@@ -7,22 +7,37 @@
 
   }
 
-  var numRegex = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*((\d+)|(\d+))?/;
+  var numRegex = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,?\s*((\d+\.\d+)|(\d+))?/;
   LAID.color = function ( colorName ) {
 
     if ( colorName instanceof LAID.Take ) {
-        return new LAID.Take( takeColor ).fn( colorName );
+      return new LAID.Take( takeColor ).fn( colorName );
     } else {
-        colorName = colorName.toLowerCase();
-        var colorValue = colorName2colorValue[ colorName ];
-        if ( colorValue === undefined ) {
-          if ( colorName.match(/(rgb)|(hsl)/) )
-          throw ("LAID Error: Color name: " + colorName +  " not found." );
+      colorName = colorName.toLowerCase();
+      var colorValue = colorName2colorValue[ colorName ];
+      if ( colorValue !== undefined ) {
+        return new LAID.Color( 'rgb', colorValue, 1 );
+      } else {
+        if ( colorName.match(/(rgb)|(hsl)/) ) {
+          var match = colorName.match( colorName );
+          if ( match ) {
+            var
+              arg1 = parseInt(match[1]),
+              arg2 = parseInt(match[2]),
+              arg3 = parseInt(match[3]),
+              argAlpha = match[4] === undefined ?
+               1 : parseFloat(match[4]);
+
+            if ( colorName.indexOf("rgb") ) {
+              return LAID.rgba(arg1,arg2,arg3, argAlpha );
+            } else {
+              return LAID.hsla(arg1,arg2,arg3, argAlpha );
+            }
+          }
         }
-        else {
-          return new LAID.Color( 'rgb', colorValue, 1 );
-        }
+      } 
     }
+    throw ("LAID Error: Color name: " + colorName +  " not found." );
 
   };
 

@@ -8,15 +8,14 @@
 
   shorthandProp2_longhandPropS_ = {
 
-    positional:[
-      "left",
-      "top",
+    transform:[
       "z",
-      "shiftX", "shiftY",
       "scaleX", "scaleY", "scaleZ",
       "rotateX", "rotateY", "rotateZ",
       "skewX", "skewY"
     ],
+    x: [ "left", "shiftX"],
+    y: [ "top", "shiftY"],
     overflow: [
       "overflowX", "overflowY" ],
     backgroundPosition: [
@@ -47,7 +46,7 @@
   // for each shorthand property
 
   centeralizedShorthandPropS = [
-    "positional", "origin",
+    "transform", "x", "y", "origin",
     "backgroundPosition", "backgroundSize"
   ];
 

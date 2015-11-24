@@ -9,7 +9,7 @@
         element.addEventListener(type, handler, false);
       } else {
         // assign each event handler a unique ID
-        if (!handler.$$guid) handler.$$guid = event_helper.GUID++;
+        if (!handler.$$guid) handler.$$guid = GUID++;
         // create a hash table of event types for the element
         if (!element.events) element.events = {};
         // create a hash table of event handlers for each element/event pair

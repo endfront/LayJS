@@ -31,7 +31,7 @@
     
     fn: function ( rowS, fnFold, acc ) {
       return fold( fnFold, acc, rowS );      
-    },
+    }
   
 
   };

@@ -46,30 +46,6 @@
       fnLoad,
       isAllNormalTransitionComplete = true;
 
-    /*
-    for ( i = 0, len = insertedPartS.length; i < len; i++ ) {
-      insertedPart = insertedPartS[ i ];
-      parentNode = insertedPart.level.parentLevel.part.node;
-      parentNode.appendChild( insertedPart.node );
-      if ( insertedPart.textSizeMeasureNode ) {
-        parentNode.appendChild( insertedPart.textSizeMeasureNode );
-      }  
-    }
-    
-    LAID.$insertedPartS = [];
-
-    for ( i = 0, len = removedPartS.length; i < len; i++ ) {
-      removedPart = removedPartS[ i ];
-      parentNode = removedPart.level.parentLevel.part.node;
-      parentNode.removeChild( removedPart.node );
-      if ( removedPart.textSizeMeasureNode ) {
-        parentNode.removechild( removedPart.textSizeMeasureNode );
-      }
-    }
-
-    LAID.$removedPartS = [];
-    */
-
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
       renderDirtyPart = renderDirtyPartS[ x ];
@@ -96,8 +72,10 @@
 
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
         isNormalAttrValTransitionComplete = true;
-        LAID.$arrayUtils.pushUnique( renderCallS,
-          normalRenderDirtyAttrVal.renderCall );
+        if ( normalRenderDirtyAttrVal.calcVal !== undefined ) {
+          LAID.$arrayUtils.pushUnique( renderCallS,
+           normalRenderDirtyAttrVal.renderCall );
+        }
         renderDirtyTransition = normalRenderDirtyAttrVal.transition;
 
         if ( renderDirtyTransition !== undefined ) { // if transitioning
@@ -133,21 +111,9 @@
 
       }
 
-      /*
-      // If "text" or "$input" is to be rendered, it must be
-      // rendered last to be able to bear knowledge
-      // of the most recent (render) changes to text props
-      // such as text padding, text size, and other text props
-      // which can affect the dimensions of the part
-      if ( LAID.$arrayUtils.remove( renderCallS, "text" ) ) {
-        renderCallS.push( "text" );
-      }
-      if ( LAID.$arrayUtils.remove( renderCallS, "$input" ) ) {
-        renderCallS.push( "$input" );
-      }
-      */
-
-      // And scroll positions must be affected later
+      // scroll positions must be affected last
+      // as a dimensional update would require
+      // scroll to be updated after
       if ( LAID.$arrayUtils.remove( renderCallS, "scrollX" ) ) {
         renderCallS.push( "scrollX" );
       }
@@ -190,8 +156,6 @@
     }
 
     
-    //LAID.$isRequestedForAnimationFrame = false;
-
     if ( LAID.$isSolveRequiredOnRenderFinish ) {
       LAID.$isSolveRequiredOnRenderFinish = false;
       LAID.$solve();

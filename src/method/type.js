@@ -24,11 +24,11 @@
     } else if ( obj instanceof LAID.Take ) {
       return "take";
     } else if ( obj instanceof LAID.Level ) {
-      return "level"
+      return "level";
     }
     // Support: Android < 4.0, iOS < 6 (functionish RegExp)
     return typeof obj === "object" || typeof obj === "function" ?
-    typeIdentifier2_type_[ toString.call(obj) ] || "object" :
+    typeIdentifier2_type_[ Object.prototype.toString.call(obj) ] || "object" :
     typeof obj;
   };
 

@@ -99,18 +99,6 @@
       lson.$type = "text";
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";
-    } else if ( lson.$type.startsWith( "input:" ) ) {
-      lson.$inputType = lson.$type.slice( ( "input:" ).length );
-      /*
-      if ( rootStateProps.width ===
-       essentialProp2defaultValue.width ) {
-        rootStateProps.width = takeNaturalWidthInput;
-      }
-      if ( rootStateProps.height ===
-       essentialProp2defaultValue.height ) {
-        rootStateProps.height = takeNaturalHeightInput;
-      }*/
-
     }
 
   };
@@ -156,7 +144,7 @@
     textDecoration: "none",
     textLetterSpacing: "normal",
     textWordSpacing: "normal",
-    textAlign: "start",
+    textAlign: "left",
     textDirection: "ltr",
     textLineHeight: "1em",
     textSmoothing: "antialiased",
@@ -184,7 +172,7 @@
     textLineHeight: LAID.take("../", "textLineHeight"),
     textSmoothing: LAID.take("../", "textSmoothing"),
     textRendering: LAID.take("../", "textRendering"),
-    userSelect: LAID.take("../", "userSelect"),
+    userSelect: LAID.take("../", "userSelect")
   };
 
 
@@ -226,6 +214,7 @@
     overflowY: "hidden",
     scrollX: 0,
     scrollY: 0,
+    focus: false,
     scrollElastic: true,
     cursor: "auto",
     backgroundColor: LAID.transparent(),
@@ -276,7 +265,7 @@
 
     textOverflow: "clip",
     textIndent: 0,
-    textWhitespace: "normal",
+    textWrap: "nowrap",
     textWordBreak: "normal",
 
     textPaddingTop: 0,

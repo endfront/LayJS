@@ -71,6 +71,7 @@
             " (Level: " + uninstantiableLevel.pathName  + ")";
         } 
         msg += "]";
+        console.log(msg);
         throw msg;
 
       }

@@ -1,11 +1,11 @@
 ( function () {
   "use strict";
 
-  LAID.Level = function ( path, lson, parent, derivedMany, rowDict, id ) {
+  LAID.Level = function ( path, lson, parent, isHelper, derivedMany, rowDict, id ) {
 
     this.pathName = path;
     this.lson = lson;
-    this.gpu = undefined;
+    this.isGpu = undefined;
 
     this.parentLevel = parent; // parent Level
     this.attr2attrVal = {};
@@ -13,6 +13,10 @@
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
     this.isPart = undefined;
+
+    // If the level name begins with "_",
+    // the level is considered a helper (non-renderable)
+    this.isHelper = isHelper || ( parent && parent.isHelper );
 
     // If the Level is a Many (i.e this.isPart is false)
     // then this.many will hold a reference to the corresponding
@@ -142,6 +146,10 @@
     }
   };
 
+  LAID.Level.prototype.rowAdd = function ( newRow ) {
+    this.rowsMore( [ newRow ] );
+  };
+
   LAID.Level.prototype.rowDeleteByID = function ( id ) {
 
     if ( !this.isPart ) {
@@ -155,6 +163,15 @@
         queryRowS = queryRowS.rowS;
       }
       this.manyObj.rowsUpdate( key, val, queryRowS );
+    }
+  };
+
+  LAID.Level.prototype.rowsDelete = function ( queryRowS ) {
+    if ( !this.isPart ) {
+      if ( queryRowS instanceof LAID.Query ) {
+        queryRowS = queryRowS.rowS;
+      }
+      this.manyObj.rowsDelete( queryRowS );
     }
   };
 
@@ -247,12 +264,12 @@
         if ( !LAID.$checkIsValidUtils.levelName( name ) ) {
           throw ( "LAID Error: Invalid Level Name: " + name );
         }
-
         childPath = this.pathName + ( this.pathName === "/" ? "" : "/" ) + name;
         if ( LAID.$pathName2level[ childPath ] !== undefined ) {
           throw ( "LAID Error: Level already exists with path: " + childPath );
         }
-        childLevel = new LAID.Level( childPath, name2lson[ name ], this );
+        childLevel = new LAID.Level( childPath,
+         name2lson[ name ], this, name.charAt(0) === "_" );
         childLevel.$init();
         this.childLevelS.push( childLevel );
 
@@ -267,7 +284,7 @@
       console.error("LAID Error: Attempt to remove root level '/' prohibited");
     } else {
       if ( this.derivedMany ) {
-        this.derivedMany.rowDelete( this.id );
+        this.derivedMany.rowDeleteByID( this.id );
       } else {
         this.$remove();
         LAID.$solve();
@@ -352,8 +369,17 @@
 
   LAID.Level.prototype.$identifyAndReproduce = function () {
     this.isPart = this.lson.many === undefined;
-    this.gpu = this.lson.$gpu === undefined ? true : 
-      this.lson.$gpu;
+    if ( this.pathName === "/" ) {
+      this.isGpu = this.lson.$gpu === undefined ?
+        true : 
+        this.lson.$gpu;
+    } else {
+      this.isGpu = this.lson.$gpu === undefined ?
+        this.parentLevel.isGpu :
+        this.lson.$gpu;
+    }
+    this.isGpu = this.isGpu && LAID.$isGpuAccelerated;
+
 
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
@@ -482,7 +508,7 @@
        this.lson.$observe : [],
       observableReadonly, i, len;
     
-   
+    
     if ( this.pathName === "/" ) {
       var dataTravelReadonlyS = [ "$dataTravelling",
         "$dataTravelLevel", "$dataTravelDelta" ];
@@ -613,14 +639,14 @@
       } else {
         switch ( attr ) {
           case "$naturalWidth":
-            if ( this.part.isInputText ) {
+            if ( this.part.type === "input" ) {
               this.part.updateNaturalWidthInput();
             } else {
               this.part.updateNaturalWidth();
             }
             break;
           case "$naturalHeight":
-            if ( this.part.isInputText ) {
+            if ( this.part.type === "input" ) {
               this.part.updateNaturalHeightInput();
             } else {
               this.part.updateNaturalHeight();
@@ -677,7 +703,8 @@
       if ( attr.indexOf( "." ) === -1 ) {
         return false;
       } else {
-        if ( attr.startsWith( "data." ) ) {
+        if ( attr.startsWith( "data." ||
+            attr.startsWith("row.") ) ) {
           return false;
         } else {
           splitAttrLsonComponentS = attr.split( "." );

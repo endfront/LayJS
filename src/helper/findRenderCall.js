@@ -11,16 +11,11 @@
   };*/
 
 
-  LAID.$findRenderCall = function( prop ) {
+  LAID.$findRenderCall = function( prop, isPositionGpu ) {
 
     var
       renderCall,
       multipleTypePropMatchDetails;
-
-    /*
-    if ( prop === "$input" ) {
-      return prop;
-    }*/
 
     if ( !LAID.$checkIsValidUtils.propAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
@@ -29,7 +24,7 @@
       } else {
         multipleTypePropMatchDetails = LAID.$findMultipleTypePropMatchDetails(
         prop );
-        
+
         if ( multipleTypePropMatchDetails ) {
           return multipleTypePropMatchDetails[ 1 ];
         }
@@ -38,9 +33,17 @@
           LAID.$shorthandPropsUtils.getShorthandPropCenteralized(
             prop );
         if ( renderCall !== undefined ) {
-          return renderCall;
-        }
+          if ( isPositionGpu &&
+            ( renderCall === "x" ||
+              renderCall === "y" ||
+              renderCall === "transform" ) ) {
+            return "positionAndTransform";
+          } else {
+            return renderCall;
+          }
+        } 
         return prop;
+        
       }
     };
 })();

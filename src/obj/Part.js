@@ -3,17 +3,25 @@
 
 
 
-  var isGpuAccelerated, cssPrefix, allStyles,
-  defaultCss, inputType2tag, nonInputType2tag;
+  var cssPrefix, allStyles,
+    defaultCss, inputType2tag, nonInputType2tag,
+    textSizeMeasureNode;
 
 
   // source: http://davidwalsh.name/vendor-prefix
-  cssPrefix = (Array.prototype.slice
-    .call(window.getComputedStyle(document.body, null))
-    .join('')
-    .match(/(-moz-|-webkit-|-ms-)/)
-  )[1];
+  if ( window.getComputedStyle ) {
+    cssPrefix = (Array.prototype.slice
+      .call(window.getComputedStyle(document.body, null))
+      .join('')
+      .match(/(-moz-|-webkit-|-ms-)/)
+    )[1];
+  } else {
+    cssPrefix = "-ms-";
+  }
 
+
+   // source: xicooc (http://stackoverflow.com/a/29837441)
+  LAID.$isBelowIE9 = (/MSIE\s/.test(navigator.userAgent) && parseFloat(navigator.appVersion.split("MSIE")[1]) < 10);
 
   allStyles = document.body.style;
 
@@ -21,17 +29,18 @@
   // check for matrix 3d support
   // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
   allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
-  LAID.$isGpuAccelerated = 
-    isGpuAccelerated =
+  if ( window.getComputedStyle ) {
+    LAID.$isGpuAccelerated =
       Boolean(
         window.getComputedStyle(
           document.body, null ).getPropertyValue(
-            ( cssPrefix + "transform" ) ) );
-
-
+            ( cssPrefix + "transform" ) ) ) &&
+        !LAID.$isBelowIE9;
+  } else {
+    LAID.$isGpuAccelerated = false;
+  }
 
   allStyles = undefined;
-
 
   defaultCss = "position:absolute;display:block;visibility:inherit;" + 
     "margin:0;padding:0;" +
@@ -43,7 +52,7 @@
     "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
     "user-drag:none;" +
-    "user-select:none;-webkit-user-select:none;-ms-user-select:none;" +
+    "white-space:nowrap;" +
     "outline:none;border:none;";
 
   inputType2tag = {
@@ -62,6 +71,17 @@
     return val + "px";
   }
 
+
+  textSizeMeasureNode = document.createElement("div");
+  textSizeMeasureNode.style.cssText = defaultCss;
+  textSizeMeasureNode.style.visibility = "hidden";
+  textSizeMeasureNode.style.zIndex = "-9999";      
+  textSizeMeasureNode.style.height = "auto";
+  textSizeMeasureNode.style.overflow = "visible";
+  textSizeMeasureNode.style.borderStyle = "solid";
+  textSizeMeasureNode.style.borderColor = "transparent";
+  document.body.appendChild(textSizeMeasureNode);
+
   LAID.Part = function ( level ) {
 
     this.level = level;
@@ -69,8 +89,6 @@
     this.type = undefined;
     this.inputType = undefined;
     this.isInitiallyRendered = false;
-    this.textSizeMeasureNode = undefined;
-    this.isInterface = false;
 
     this.naturalWidthLevel = undefined;
     this.naturalHeightLevel = undefined;
@@ -120,44 +138,24 @@
     }
     this.node.style.cssText = defaultCss;
 
-    if ( this.level.pathName === "/" ) {
-      this.node.style.zoom = 1;
-    }
-
-    if ( this.level.lson.$interface ) {
-      this.isInterface = true;
+    if ( this.level.isHelper ) {
       this.node.style.display = "none";
-    }
-
-    if ( this.type === "text" || this.type === "input" ) {
-      this.textSizeMeasureNode = document.createElement("div");
-      this.textSizeMeasureNode.style.cssText = defaultCss;
-      this.textSizeMeasureNode.style.visibility = "hidden";
-      this.textSizeMeasureNode.style.zIndex = "-9999";      
-      this.textSizeMeasureNode.style.height = "auto";
-      this.textSizeMeasureNode.style.overflow = "visible";
-      this.textSizeMeasureNode.style.borderStyle = "solid";
-      this.textSizeMeasureNode.style.borderColor = "transparent";
     }
 
     if ( this.level.pathName !== "/" ) {
       parentNode = this.level.parentLevel.part.node;
       parentNode.appendChild( this.node );
-      if ( this.textSizeMeasureNode ) {
-        parentNode.appendChild( this.textSizeMeasureNode );
-      }
+      
     }
   };
 
   // Precondition: not called on "/" level
   LAID.Part.prototype.remove = function () {
-    console.log("woot",
-      this.level.attr2attrVal["row.title"].calcVal);
     var parentPart = this.level.parentLevel.part;
-    if ( parentPart.naturalWidthLevel === this ) {
+    if ( parentPart.naturalWidthLevel === this.level ) {
       parentPart.updateNaturalWidth();
     }
-    if ( parentPart.naturalHeightLevel === this ) {
+    if ( parentPart.naturalHeightLevel === this.level ) {
       parentPart.updateNaturalHeight();
     }    
 
@@ -187,7 +185,7 @@
         len = childLevelS.length;
          i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      if ( childLevel.isPart && !childLevel.part.isInterface ) {
+      if ( childLevel.isPart && !childLevel.isHelper ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
           childLevelAttrVal = childLevel.attr2attrVal[ attr ];
           attrValChildIndepedentOf =
@@ -296,7 +294,9 @@
     var attr2attrVal = this.level.attr2attrVal
     if ( attr2attrVal.$naturalWidth ) {
       if ( this.level.pathName === "/" ) {
-        attr2attrVal.$naturalWidth.update( window.innerWidth );
+        attr2attrVal.$naturalWidth.update( window.innerWidth ||
+         document.documentElement.clientWidth ||
+          document.body.clientWidth );
       } else if ( this.level.attr2attrVal.text ) {
         this.updateNaturalWidthFromText();
       } else {
@@ -318,7 +318,9 @@
     var attr2attrVal = this.level.attr2attrVal
     if (attr2attrVal.$naturalHeight ) {
       if ( this.level.pathName === "/" ) {
-        attr2attrVal.$naturalHeight.update( window.innerHeight );
+        attr2attrVal.$naturalHeight.update( window.innerHeight ||
+          document.documentElement.clientHeight ||
+          document.body.clientHeight );
       } else if ( this.level.attr2attrVal.text ) {
         this.updateNaturalHeightFromText();
       } else {
@@ -435,6 +437,7 @@
       textFamily: null,
       textWeight: null,
       textAlign: null,
+      
       textDirection: null,
       textTransform: null,
       textLetterSpacing: stringifyPxOrString,
@@ -442,8 +445,10 @@
       textLineHeight: stringifyEmOrString,
       textOverflow: null,
       textIndent: stringifyPlusPx,
-      textWhitespace: null,
-      textWordBreak: null,
+      textWrap: null,
+      //IE <8 cannot handle "break-word" 
+      //convert to "break-all"
+      textWordBreak: handleBelowIE9WordBreak,
       textRendering: null,
       textPaddingTop: stringifyPlusPx,
       textPaddingRight: stringifyPlusPx,
@@ -467,7 +472,7 @@
       textLineHeight: "line-height",
       textOverflow: "text-overflow",
       textIndent: "text-indent",
-      textWhitespace: "white-space",
+      textWrap: "white-space",
       textWordBreak: "word-break",
       textRendering: "text-rendering",
       textPaddingTop: "padding-top",
@@ -482,34 +487,31 @@
 
 
     var
-      node = this.textSizeMeasureNode,
+      node = textSizeMeasureNode,
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
       text = this.type === "text" ? 
         attr2attrVal.text.calcVal :
         ( attr2attrVal.$input ?
-          attr2attrVal.$input.calcVal : "." );
+          attr2attrVal.$input.calcVal : "a" );
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
       textRelatedAttrVal = attr2attrVal[ 
         dimensionAlteringAttr ];
-      if ( textRelatedAttrVal ) {
+      if ( textRelatedAttrVal &&
+        textRelatedAttrVal.calcVal !== undefined ) {
 
         fnStyle = dimensionAlteringAttr2fnStyle[ 
             dimensionAlteringAttr ];
-      
+        
         node.style[
-          dimensionAlteringAttr2cssProp[
-            dimensionAlteringAttr ] ] =
-            fnStyle === null ? textRelatedAttrVal.calcVal :
-              fnStyle( textRelatedAttrVal.calcVal );
+        dimensionAlteringAttr2cssProp[
+          dimensionAlteringAttr ] ] = (fnStyle === null) ?
+          textRelatedAttrVal.calcVal :
+          fnStyle( textRelatedAttrVal.calcVal );
+    
       }
-    }
-
-    if ( attr2attrVal.$naturalWidth ) {
-      var initialWhitespace = node.style.whiteSpace;
-      node.style.whiteSpace = "nowrap";
     }
 
     if ( isWidth ) {
@@ -519,21 +521,24 @@
 
       this.level.$changeAttrVal( "$naturalWidth",
        node.offsetWidth );
+
     } else {
       node.style.display = "block";
-      node.style.width = attr2attrVal.width.calcVal + "px";
+      node.style.width = ( attr2attrVal.width.calcVal || 0 ) + "px";
       
       // If empty we will subsitute with a space character
       // as we wouldn't want the height to resolve to 0
-      node.innerHTML = text || ".";
+      node.innerHTML = text || "a";
       this.level.$changeAttrVal( "$naturalHeight",
         node.offsetHeight );
+      if (node.offsetHeight === 52) {
+        console.log("here", node.innerHTML);
+      }
     }
-    // restore whitespace
-    if ( attr2attrVal.$naturalWidth ) {
-      node.style.whiteSpace = initialWhitespace;
-
-    }
+    // restore non default text
+    // altering CSS
+    node.style.padding = "0px";
+    node.style.borderWidth = "0px";
   };
 
   LAID.Part.prototype.updateNaturalWidthFromText = function () {
@@ -795,6 +800,9 @@
         transitionCalcVal.stringify() : transitionCalcVal );
   }
   
+  function handleBelowIE9WordBreak( val ) {
+    return ( val === "break-word" && LAID.$isBelowIE9) ? "break-all" : val;
+  }
 
   // Below we will customize prototypical functions
   // using conditionals. As per the results from
@@ -805,12 +813,28 @@
   // The renderable prop can be
   // accessed via `part.renderFn_<prop>`
 
+  LAID.Part.prototype.renderFn_x =  function () {
+      var attr2attrVal = this.level.attr2attrVal;
+      this.node.style.left =
+        ( attr2attrVal.left.transitionCalcVal +
+          ( attr2attrVal.shiftX !== undefined ?
+            attr2attrVal.shiftX.transitionCalcVal : 0 ) ) +
+            "px";
+    };
 
-  if ( isGpuAccelerated ) {
+  LAID.Part.prototype.renderFn_y =  function () {
+      var attr2attrVal = this.level.attr2attrVal;
+      this.node.style.top =
+        ( attr2attrVal.top.transitionCalcVal +
+          ( attr2attrVal.shiftY !== undefined ?
+            attr2attrVal.shiftY.transitionCalcVal : 0 ) ) +
+            "px";
+    };
 
+  if ( LAID.$isGpuAccelerated ) {
 
     // TODO: optimize to enter matrix3d directly
-    LAID.Part.prototype.renderFn_positional =   
+    LAID.Part.prototype.renderFn_positionAndTransform =   
     function () {
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
@@ -853,19 +877,17 @@
       "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
       "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
     };
-    
+
   } else {
     // legacy browser usage or forced non-gpu mode
 
-    LAID.Part.prototype.renderFn_positional = function () {
-      var attr2attrVal = this.level.attr2attrVal;
-      this.node.style.left =
-        ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px";
-      this.node.style.top =
-        ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px";
+    LAID.Part.prototype.renderFn_positionAndTransform =
+      function () {
+        this.renderFn_x();
+        this.renderFn_y();
+      }
 
-    };
-
+    LAID.Part.prototype.renderFn_transform = function () {};
   }
 
   LAID.Part.prototype.renderFn_width = function () {
@@ -939,6 +961,14 @@
   };
 
 
+  LAID.Part.prototype.renderFn_focus = function () {
+    if ( this.level.attr2attrVal.focus.transitionCalcVal ) {
+      this.node.focus();
+    } else {
+      document.body.focus();
+    }
+  };
+
   LAID.Part.prototype.renderFn_scrollX = function () {
     this.node.scrollLeft =
       this.level.attr2attrVal.scrollX.transitionCalcVal;
@@ -948,6 +978,8 @@
     this.node.scrollTop =
       this.level.attr2attrVal.scrollY.transitionCalcVal;
   };
+
+
 
   LAID.Part.prototype.renderFn_scrollElastic = function () {
     this.node["-webkit-overflow-scrolling"] =
@@ -971,8 +1003,11 @@
       cursor.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_userSelect = function () {
-    this.node.style[ cssPrefix + "user-select" ] = 
-      this.level.attr2attrVal.userSelect.transitionCalcVal;
+    if ( this.type !== "input" ) {
+      this.node.style[ cssPrefix + "user-select" ] = 
+        this.level.attr2attrVal.userSelect.transitionCalcVal;
+
+    }
   };
 
   LAID.Part.prototype.renderFn_backgroundColor = function () {
@@ -1018,31 +1053,33 @@
   };
 
   LAID.Part.prototype.renderFn_boxShadows = function () {
-    var
-    attr2attrVal = this.level.attr2attrVal,
-    s = "",
-    i, len;
-    for ( i = 1, len = attr2attrVal[ "$$max.boxShadows" ].calcVal; i <= len;
-     i++ ) {
-      s +=
-      ( ( attr2attrVal["boxShadows" + i + "Inset" ] !== undefined ?
-       attr2attrVal["boxShadows" + i + "Inset" ].transitionCalcVal :
-        false ) ? "inset " : "" ) +
-      ( attr2attrVal["boxShadows" + i + "X" ].transitionCalcVal + "px " ) +
-      ( attr2attrVal["boxShadows" + i + "Y" ].transitionCalcVal + "px " ) +
-      ( ( attr2attrVal["boxShadows" + i + "Blur" ] !== undefined ?
-        attr2attrVal["boxShadows" + i + "Blur" ].transitionCalcVal : 0 )
-        + "px " ) +
-      ( ( attr2attrVal["boxShadows" + i + "Spread" ] !== undefined ?
-       attr2attrVal["boxShadows" + i + "Spread" ].transitionCalcVal : 0 )
-        + "px " ) +
-      ( attr2attrVal["boxShadows" + i + "Color" ].transitionCalcVal.stringify() );
+    if ( !LAID.$isBelowIE9 ) {
+      var
+      attr2attrVal = this.level.attr2attrVal,
+      s = "",
+      i, len;
+      for ( i = 1, len = attr2attrVal[ "$$max.boxShadows" ].calcVal; i <= len;
+       i++ ) {
+        s +=
+        ( ( attr2attrVal["boxShadows" + i + "Inset" ] !== undefined ?
+         attr2attrVal["boxShadows" + i + "Inset" ].transitionCalcVal :
+          false ) ? "inset " : "" ) +
+        ( attr2attrVal["boxShadows" + i + "X" ].transitionCalcVal + "px " ) +
+        ( attr2attrVal["boxShadows" + i + "Y" ].transitionCalcVal + "px " ) +
+        ( ( attr2attrVal["boxShadows" + i + "Blur" ] !== undefined ?
+          attr2attrVal["boxShadows" + i + "Blur" ].transitionCalcVal : 0 )
+          + "px " ) +
+        ( ( attr2attrVal["boxShadows" + i + "Spread" ] !== undefined ?
+         attr2attrVal["boxShadows" + i + "Spread" ].transitionCalcVal : 0 )
+          + "px " ) +
+        ( attr2attrVal["boxShadows" + i + "Color" ].transitionCalcVal.stringify() );
 
-      if ( i !== len ) {
-        s += ",";
+        if ( i !== len ) {
+          s += ",";
+        }
       }
+      this.node.style.boxShadow = s;
     }
-    this.node.style.boxShadow = s;
   };
 
 
@@ -1167,13 +1204,10 @@
 
 
   LAID.Part.prototype.renderFn_input = function () {
-
     this.node.value = inputVal;
-
   };
 
   LAID.Part.prototype.renderFn_textSize = function () {
-   
     this.node.style.fontSize =
       computePxOrString( this.level.attr2attrVal.textSize );
   };
@@ -1183,7 +1217,6 @@
   };
 
   LAID.Part.prototype.renderFn_textWeight = function () {
-    console.log("tw");
     this.node.style.fontWeight =
       this.level.attr2attrVal.textWeight.transitionCalcVal;
   };
@@ -1222,8 +1255,11 @@
       this.level.attr2attrVal.textAlign.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_textDirection = function () {
+    //var dir = this.level.attr2attrVal.textDirection.transitionCalcVal;
+    //if ( dir ) { //IE <8 throws error when given undefined value
     this.node.style.direction =
       this.level.attr2attrVal.textDirection.transitionCalcVal;
+    //}
   };
   LAID.Part.prototype.renderFn_textLineHeight = function () {
     this.node.style.lineHeight = computeEmOrString( 
@@ -1238,13 +1274,14 @@
     this.node.style.textIndent =
       this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_textWhitespace = function () {
+  LAID.Part.prototype.renderFn_textWrap = function () {
     this.node.style.whiteSpace =
-      this.level.attr2attrVal.textWhitespace.transitionCalcVal;
+      this.level.attr2attrVal.textWrap.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_textWordBreak = function () {
     this.node.style.wordBreak =
-      this.level.attr2attrVal.textWordBreak.transitionCalcVal;
+      handleBelowIE9WordBreak(
+      this.level.attr2attrVal.textWordBreak.transitionCalcVal);
   };
   LAID.Part.prototype.renderFn_textSmoothing = function () {
     this.node.style[ cssPrefix + "font-smoothing" ] =

@@ -4,7 +4,7 @@ var springTransition = {
     args: {
       velocity: 20,
       tension: 200.0,
-      friction: 15.9,
+      friction: 15.9
   }
 };
 
@@ -21,7 +21,6 @@ LAID.run( {
   },
   children: {
     "_SpringTransition": {
-      $interface:true,
       transition: {
         all: springTransition
       }
@@ -82,7 +81,7 @@ LAID.run( {
             "MenuInvoke": {
               props: {
                 left: 30,
-                centerY: LAID.take( "../", "$centerY")
+                centerY: LAID.take( "../", "$midpointY")
               },
               states: {
                 "hidden": {
@@ -118,39 +117,37 @@ LAID.run( {
               children: {
                 "Wrapper": {
                     props: {
-                      centerX: LAID.take("../", "$centerX"),
-                      centerY: LAID.take("../", "$centerY"),
+                      centerX: LAID.take("../", "$midpointX"),
+                      centerY: LAID.take("../", "$midpointY"),
                       width: LAID.take("", "$naturalWidth").max( LAID.take("", "$naturalHeight") ),
                       height: LAID.take("", "width"),
-                      overflowX: "visible",
-                      overflowY: "visible"
-
+                      overflow: "visible"
                     },
                     children: {
                       "TopBar": {
                         $inherit: [ "/_SpringTransition" ],
-                          data: {
-                            barDistance: LAID.take(function ( width, height ) {
-                              var numBars = 3;
-                              return (width - (numBars * height))/2;
-                            }).fn(LAID.take("", "width"),LAID.take("", "height"))
-                          },
-                          props: {
-                            width:18,
-                            height:3,
-                            backgroundColor:LAID.color("white"),
-                            cornerRadius:10
-                          },
-                          states: {
-                            "cross": {
-                              onlyif: LAID.take("/", "data.menu"),
-                              props: {
-                                rotateZ: 45,
-                                width: LAID.take("", "root.width").multiply(1.5),
-                                top: LAID.take("../MiddleBar", "root.top")
-                              }
+                        data: {
+                          barDistance: LAID.take(function ( width, height ) {
+                            var numBars = 3;
+                            return (width - (numBars * height))/2;
+                          }).fn(LAID.take("", "width"),LAID.take("", "height"))
+                        },
+                        props: {
+                          width:18,
+                          height:3,
+                          backgroundColor:LAID.color("white"),
+                          cornerRadius:10
+                        },
+                        states: {
+                          "cross": {
+                            onlyif: LAID.take("/", "data.menu"),
+                            props: {
+                              rotateZ: 45,
+                              width: LAID.take("", "root.width").multiply(1.5),
+                              top: LAID.take("../MiddleBar", "root.top")
                             }
                           }
+                        }
                       },
                       "MiddleBar": {
                         $inherit: ["../TopBar"],
@@ -185,21 +182,20 @@ LAID.run( {
               }
             },
             "Title": {
-              //$inherit: ["/_SpringTransition"],
               data: {
                 isRotating: false
               },
               props: {
-                centerX: LAID.take("../", "$centerX"),
-                centerY: LAID.take("../", "$centerY"),
+                centerX: LAID.take("../", "$midpointX"),
+                centerY: LAID.take("../", "$midpointY"),
                 text: "WOLPART",
                 textAlign: "center",
                 textColor: LAID.color( "white"),
                 textPadding:{top: 20,bottom:20},
                 textSize: 30,
                 textLetterSpacing:1
-              },
-              /*load: function () {
+              }
+              /*$load: function () {
                 this.data("isRotating", true);
 
               },
@@ -234,7 +230,7 @@ LAID.run( {
 
               }*/
             }
-          },
+          }
         },
         "Body": {
           
@@ -243,41 +239,19 @@ LAID.run( {
             top: LAID.take("../Header", "bottom"),
             height: LAID.take("../", "height").subtract(LAID.take("../Header", "height")),
             backgroundColor: LAID.color("gainsboro"),
-            overflowY: "auto",
+            overflowY: "auto"
           },
           transition:{
             height:springTransition
           },
-
           children: {
-            /*"Option" : {
-              props: {
-                width:LAID.take("../", 'width').subtract(20),
-                height:120,
-                backgroundColor: LAID.color("blue"),
-                centerX: LAID.take("../","width").divide(2),
-                backgroundColor:LAID.color("blue"),
-                textColor:LAID.take("", "backgroundColor").colorInvert(),
-                text: "hlrlo world"
-//                text: LAID.take("", "row.title")
-
-              },
-              many:{
-                formation: "onebelow",
-                $id: "id",
-                rows: [
-                  {id:1, title:"first"},
-                  {id:2, title:"second"}
-                ]
-              }
-            }*/
             "Option1": {
               props: {
                 width:LAID.take("../", 'width').subtract(20),
-                centerX: LAID.take("../","$centerX"),
+                centerX: LAID.take("../", "$midpointX"),
                 height:120,
                 backgroundColor:LAID.color("blue"),
-               text: LAID.take("Is data travelling? %s <br> Delta? %s").format( 
+                text: LAID.take("Is data travelling? %s <br> Delta? %s").format( 
                   LAID.take("/", "$dataTravelling"),
                   LAID.take("/", "$dataTravelDelta")
                    ),
@@ -294,7 +268,7 @@ LAID.run( {
                   "en": "color: %s",
                   "zh": "颜色: %s"
                 }).i18nFormat(LAID.take("", "backgroundColor"))
-              },
+              }
             }
           }
         },
@@ -315,7 +289,7 @@ LAID.run( {
             top: LAID.take("../Body", "top"),
             width:LAID.take("../Body", "width"),
             height:LAID.take("../Body", "height"),
-            backgroundColor:LAID.color("black"),
+            backgroundColor:LAID.color("black")
           },
           transition: {
             opacity: springTransition
@@ -392,12 +366,11 @@ LAID.run( {
                   }
                 ]
               }
-            },
+            }
           }
         }
       }
     }
-
   }
 });
 
@@ -405,18 +378,17 @@ LAID.run( {
 
 
 
-/*LAID.run({
+var y =({
   children: {
     "Grand": {
       props:{
-        //centerX: LAID.take("../", "$centerX"),
-        centerY: LAID.take("../", "$centerY"),
+        centerY: LAID.take("../", "$midpointY")
       },
       children: {
         "Parent": {
           props:{
-          //  centerX: LAID.take("../", "$centerX"),
-        //    centerY: LAID.take("../", "$centerY"),
+          //  centerX: LAID.take("../", "$midpointX"),
+        //    centerY: LAID.take("../", "$midpointY"),
             width: 1000,
                 height:100,
                 backgroundColor:LAID.color("red")
@@ -435,6 +407,6 @@ LAID.run( {
     }
   }
 
-});*/
+});
 
 /**/

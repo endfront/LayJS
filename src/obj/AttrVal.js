@@ -33,7 +33,8 @@
     this.isEventReadonlyAttr =
       LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall =
-      level && ( level.isPart ) && ( LAID.$findRenderCall( attr ) );
+      level && ( level.isPart ) &&
+        ( LAID.$findRenderCall( attr, level.isGpu ) );
 
     this.takerAttrValS = [];
 
@@ -95,9 +96,6 @@
          prefix ) !== -1 );
     }
   }
-
-
-
 
   /* TODO: update this doc below along with its slash-asterisk
   formatting
@@ -190,8 +188,10 @@
       attr = this.attr,
       i, len; 
 
-    //console.log("update", level.pathName, attr, this.val );
-
+    LAID.count++;
+    //console.log("update", level.pathName, attr, this.val,
+    //LAID.count );
+    
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
         this.isTaken = this.take();
@@ -243,7 +243,7 @@
         }
         isDirty = true;
         break;
-      case "input":
+      /*case "input":
         // TODO: investigate the below code block's
         // redundancy
         if ( level.attr2attrVal.$input ) {
@@ -251,15 +251,15 @@
            this.calcVal );
         }
         isDirty = true;
-        break;
+        break;*/
       // rows is always dirty when recalculated
       // as changes made to rows would have rows
       // retain the same pointer to the array
       // TODO: possibly change to .forceRecalculation()
       case "rows":
         isDirty = true;
-        console.log("rows", this.calcVal);
-        break; 
+        break;
+
     }
 
 
@@ -275,18 +275,8 @@
         this.takerAttrValS[ i ].requestRecalculation();
       }
 
-      /*
-      if ( level.derivedMany ) {
-        level.derivedMany.level.attr2attrVal.$all.requestRecalculation();
-        if ( level.attr2attrVal.$f.calcVal !== -1 ) {
-          level.derivedMany.level.attr2attrVal.$filtered.requestRecalculation();
-       }
-      }*/
-
       if ( LAID.$isDataTravellingShock ) {
-
         part.addTravelRenderDirtyAttrVal( this );
-
       }
 
       if ( this.renderCall ) {
@@ -299,15 +289,14 @@
         }
 
         switch ( attr ) {
-          case "text":
-            part.updateNaturalHeightFromText();
-            part.updateNaturalWidthFromText();
-            break;
           case "display":
             var parentLevel = this.level.parentLevel;
             if ( parentLevel ) {
               parentLevel.part.updateNaturalWidth();
               parentLevel.part.updateNaturalHeight();
+            }
+            if ( this.calcVal === false ) {
+              recursivelySwitchOffDoingEvent( level );
             }
             break;
           case "width":
@@ -331,19 +320,18 @@
             break;
         
           default:
-            var checkIfAttrNotAffectTextDimesion  = function ( attr ) {
-              return 
-                ( ( [ "textDecoration",
-                  "textColor", "textSmoothing" ] ).indexOf(
-                 attr ) !== -1 )
-                ||
-                attr.startsWith("textShadow");
-
-            }
-            if ( attr.startsWith( "text" ) &&
-              !checkIfAttrNotAffectTextDimesion( attr ) )  {
+            var checkIfAttrAffectsTextDimesion =
+              function ( attr ) {
+              return ([ "text", "textSize",
+                  "textFamily", "textWeight",
+                  "textVariant", "textTransform",
+                  "textLetterSpacing", "textAlign",
+                  "textWordSpacing", "textLineHeight"
+                  ]).indexOf( attr ) !== -1;
+                
+            };
+            if ( checkIfAttrAffectsTextDimesion( attr ) )  {
               
-              //recurseUpdateTextDimensions( level );
               if ( part.type === "input" ) {
                 part.updateNaturalWidthInput(); 
                 part.updateNaturalHeightInput(); 
@@ -454,34 +442,33 @@
     this.isRecalculateRequired = false;
     return true;
   };
-/*
-  function recurseUpdateTextDimensions ( level ) {
+
+  /*
+  * Doing events: clicking, hovering
+  */
+  function recursivelySwitchOffDoingEvent( level ) {
     var 
-      part = level.part,
-      partType = part.type,
+      hoveringAttrVal = level.attr2attrVal.$hovering,
+      clickingAttrVal = level.attr2attrVal.$clicking,
       childLevel,
       childLevelS = level.childLevelS;
 
-    if ( !childLevelS.length ) {
-      if ( partType === "input" ) {
-        part.updateNaturalWidthInput(); 
-        part.updateNaturalHeightInput(); 
-      } else if ( partType === "text" ) {
-        part.updateNaturalWidthFromText();
-        part.updateNaturalHeightFromText();
-      } 
-    } else {
-      for ( var i = 0, len = childLevelS.length,
-            childPart; i < len; i++ ) {
-
+    if ( hoveringAttrVal ) {
+      hoveringAttrVal.update( false );
+    }
+    if ( clickingAttrVal ) {
+      clickingAttrVal.update( false );
+    }
+    if ( childLevelS.length ) {
+      for ( var i = 0, len = childLevelS.length;
+            i < len; i++ ) {
         childLevel = childLevelS[ i ];
-
         if ( childLevel.part ) {
-          recurseUpdateTextDimensions( childLevel )
+          recursivelySwitchOffDoingEvent( childLevel );
         }
-      }
+      } 
     }         
-  }*/
+  }
 
   LAID.AttrVal.prototype.give = function ( attrVal ) {
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&

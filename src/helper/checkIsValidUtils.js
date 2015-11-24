@@ -3,7 +3,8 @@
 
 
   var reservedNameS = [ 
-    "root", "transition", "data", "when", "load",
+    "$type", "$load", "$gpu", "$inherit", "$observe",
+    "root", "transition", "data", "when", 
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
@@ -83,7 +84,7 @@
 
   	propAttr: function ( attr ) {
   		return ( ( attr.indexOf( "." ) === -1 ) &&
-     		( attr[ 0 ] !== "$") &&
+     		( attr.charAt(0) !== "$") &&
         ( reservedNameS.indexOf( attr ) === -1 )
        );
   	},

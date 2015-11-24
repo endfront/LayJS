@@ -228,7 +228,8 @@
           intoLson.many = {};
         }
 
-        LAID.$inherit( intoLson.many, fromLson.many, false, false, false );
+        LAID.$inherit( intoLson.many, fromLson.many,
+          false, false, false );
 
       },
 
@@ -355,14 +356,9 @@
         }
       },
 
-      /*$$keys: function ( intoLson, fromLson ) {
-
-        LAID.$meta.inherit.$$keys( intoLson, fromLson );
-      },*/
-
       $$max: function ( intoLson, fromLson ) {
         LAID.$meta.inherit.$$max( intoLson, fromLson );
-      },
+      }
 
     };
 

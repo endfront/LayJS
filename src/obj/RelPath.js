@@ -16,7 +16,7 @@
       this.many = true;
 
     } else {
-      if ( relativePath[ 0 ] === "/" ) {
+      if ( relativePath.charAt(0) === "/" ) {
         this.absolute = true;
         this.absolutePath = relativePath;
       } else {

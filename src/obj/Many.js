@@ -59,46 +59,57 @@
 
   LAID.Many.prototype.rowsCommit = function ( newRowS ) {
 
-    this.level.attr2attrVal.rows.update( newRowS );
+    var rowsAttrVal = this.level.attr2attrVal.rows;
+
+    rowsAttrVal.val = newRowS;
+    rowsAttrVal.requestRecalculation();
     LAID.$solve();
 
   };
 
   LAID.Many.prototype.rowsMore = function ( newRowS ) {
     var
-      curRowS = this.level.attr2attrVal.rows.val;
+      rowsAttrVal = this.level.attr2attrVal.rows,
+      curRowS = rowsAttrVal.calcVal;
+
+    if ( checkIfRowsIsNotObjectified( newRowS ) ) {
+       newRowS = objectifyRows;
+    }
 
     for ( var i = 0; i < newRowS.length; i++ ) {
       curRowS.push( newRowS[ i ] );
     }
 
-    console.log(
-      this.level.pathName, curRowS, 
-      this.level.attr2attrVal.rows.val);
-    this.level.attr2attrVal.rows.requestRecalculation();
+    rowsAttrVal.val = rowsAttrVal.calcVal;
+    rowsAttrVal.requestRecalculation();
     LAID.$solve();
 
   };
 
   LAID.Many.prototype.rowDeleteByID = function ( id ) {
     var
-      curRowS = this.level.attr2attrVal.rows.val,
+      rowsAttrVal = this.level.attr2attrVal.rows,
+      curRowS = rowsAttrVal.calcVal,
       row = this.id2row [ id ];
 
     if ( row ) {
       LAID.$arrayUtils.remove( 
         curRowS, row );
-      this.level.attr2attrVal.rows.requestRecalculation();
+      rowsAttrVal.val = rowsAttrVal.calcVal;
+      rowsAttrVal.requestRecalculation();
       LAID.$solve();
 
     }
   };
 
   LAID.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+
+    var rowsAttrVal = this.level.attr2attrVal.rows;
+
     // If no queriedRowS parameter is supplied then
     // update all the rows
     queryRowS = queryRowS ||
-      this.level.attr2attrVal.rows.val || [];
+      rowsAttrVal.calcVal || [];
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
       var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
@@ -107,7 +118,30 @@
       }
     }
 
-    this.level.attr2attrVal.rows.requestRecalculation();
+    rowsAttrVal.val = rowsAttrVal.calcVal;
+    rowsAttrVal.requestRecalculation();
+    LAID.$solve();
+
+  };
+
+  LAID.Many.prototype.rowsDelete = function ( queryRowS ) {
+    
+    var
+      rowsAttrVal = this.level.attr2attrVal.rows,
+      curRowS = rowsAttrVal.calcVal;
+
+    // If no queriedRowS parameter is supplied then
+    // delete all the rows
+    queryRowS = queryRowS ||
+      rowsAttrVal.calcVal || [];
+
+    for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
+      var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
+      LAID.$arrayUtils.remove( curRowS, fetchedRow );
+    }
+
+    rowsAttrVal.val = rowsAttrVal.calcVal;
+    rowsAttrVal.requestRecalculation();
     LAID.$solve();
 
   };
@@ -133,7 +167,7 @@
   * (2) Updating existing levels in accordance to changes in changed rows
   */
   LAID.Many.prototype.updateRows = function () {
-  	var 
+    var 
   		rowS = this.level.attr2attrVal.rows.calcVal,
   		row,
   		id,
@@ -143,11 +177,15 @@
       newLevelS = [],
       id2level = this.id2level,
       id2row = this.id2row,
-      rowKey, rowVal,
+      rowKey, rowVal, rowAttr,
+      rowAttrVal,
       i, len;
 
-    console.log( rowS );
-
+    // incase rows is explicity set to undefined
+    // (most likely through a Take)
+    if ( !rowS ) {
+      rowS = [];
+    }
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
       rowS = objectifyRows( rowS );
     }
@@ -160,8 +198,11 @@
       
       if ( !level ) {
         // create new level with row
+        if ( id === undefined ) {
+          throw "LAID Error: No id provided for many " + this.pathName;
+        }
   			level = new LAID.Level( this.level.pathName + ":" + id,
-  			 this.partLson, parentLevel, this, row, id );
+  			 this.partLson, parentLevel, false, this, row, id );
         level.$init();
         // the level has already been normalized
         // while LAID was parsing the "many" level
@@ -182,10 +223,12 @@
 
         for ( rowKey in row ) {
           rowVal = row[ rowKey ];
-          if ( !level.attr2attrVal[ "row." + rowKey ] ) {
-            level.$createAttrVal( "row." + rowKey, rowVal );
+          rowAttr = "row." + rowKey;
+          rowAttrVal = level.attr2attrVal[ rowAttr ];
+          if ( !rowAttrVal ) {
+            level.$createAttrVal( rowAttr, rowVal );
           } else {
-            level.$changeAttrVal( "row." + rowKey, rowVal );           
+            rowAttrVal.update( rowVal );
           }
         }
   		}

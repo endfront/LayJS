@@ -30,8 +30,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
 
           $type: string,
           $gpu: boolean,
-          $interface: boolean,
-          $inherit [ string | object, ... ],
+          $inherit: string | object | [ string | object, ... ],
           $observe: [ string, ... ],
           $load: function,
 
@@ -109,10 +108,10 @@ Type: `string` | `Object` | `array of strings and/or Objects`
 More about inheritance in inherit section of this document.
 
 
-### LSON.$interface
+### LSON helper levels
 
-  If set to true, the level will not render.
-  (Primary usage for such a level exists soley for inheritance)
+  If a level name begins with "_", the level will not render.
+  (Primary usage for such a level exists solely for inheritance)
 
 
 ### data
@@ -310,6 +309,10 @@ Defaults:
   `number`
   Default: 0
 
+- focus
+  `boolean`
+  Default: false
+
 - scrollElastic
   `boolean`
   CSS `-webkit-overflow-scrolling` (true for "touch", false for "auto")
@@ -458,7 +461,7 @@ Defaults:
 - textAlign
   `string`
   CSS text-align
-  Default: LAID.take("../", "textAlign") [for "/": "start"]
+  Default: LAID.take("../", "textAlign") [for "/": "left"]
 
 - textDirection
   `string`
@@ -490,10 +493,10 @@ Defaults:
   `number`
   Default: 0
 
-- textWhitespace
+- textWrap
   `string`
   CSS white-space
-  Default: 'normal'
+  Default: 'nowrap'
 
 - textWordBreak
   `string`
@@ -611,8 +614,6 @@ Defaults:
   `boolean`
   Default: false
 
-
-
 - videoPreload / audioPreload
   `string`
   html5 < video >/< audio > preload
@@ -678,9 +679,6 @@ Defaults:
       This can only be set once using a non-take value with the LSON.
 
     - $inherit
-      This can only be set once using a non-take value with the LSON.
-
-    - $interface
       This can only be set once using a non-take value with the LSON.
 
     - $observe
@@ -814,13 +812,18 @@ LAID.Level methods:
   parent()
   path()
   many()
-  rowsMore()
-  rowsCommit()
-  rowDeleteByID()
-  queryRows()
-  queryFilter()
   addChildren()
   remove()
+  
+  rowAdd()
+  rowsMore()
+  rowsCommit()
+  rowsUpdate()
+  rowDeleteByID()
+  rowsDelete()
+  queryRows()
+  queryFilter()
+
 
 
 ### LAID.take & LAID.Take
@@ -969,7 +972,7 @@ for example:
 
     LAID.run({
       "BigBox": {
-        $inherit [ box ],
+        $inherit: [ box ],
         props: {
           width: 300,
           height: 300
@@ -1040,7 +1043,7 @@ example of `when` stacking up:
         }
       },
       "OtherBox": {
-        $inherit ["Box"],
+        $inherit: ["Box"],
         when: {
           "click": function() {
             console.log("OtherBox clicked");
@@ -1394,10 +1397,7 @@ function touchStartHandler () {
 
 }
 
-
 function touchMoveHandler () {
-
-
 
   var isCollapsingMenu = !(this).attr("data.collapsed");
   // Note the below function call is a dummy function
@@ -1420,14 +1420,3 @@ function touchEndHandler () {
 }
 
 
-
-
-
-
-cry about:
-
-  - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
-
-
-research:
-  - http://jsperf.com/origin-px-vs-percent

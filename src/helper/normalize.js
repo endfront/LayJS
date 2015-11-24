@@ -4,31 +4,27 @@
   var
     normalizedExternalLsonS = [],
     fnCenterToPos,
-    fnEdgeToPos,
-    fnPosToCenter,
-    fnPosToEdge,
+    fnOppEdgeToPos,
     takeWidth,
     takeHeight,
+    takeParentWidth,
+    takeParentHeight,
     key2fnNormalize;
 
   fnCenterToPos = function( center, dim ) {
     return center - ( dim / 2 );
   };
 
-  fnEdgeToPos = function( edge, dim ) {
-    return edge - ( dim );
+  fnOppEdgeToPos = function( edge, dim, parentDim ) {
+    return parentDim - ( edge + dim );
   };
 
-  fnPosToCenter = function( pos, dim ) {
-    return pos + ( dim / 2 );
-  };
-
-  fnPosToEdge = function( pos, dim ) {
-    return pos + ( dim );
-  };
 
   takeWidth = new LAID.Take( "", "width" );
   takeHeight = new LAID.Take( "", "height" );
+
+  takeParentWidth = new LAID.take( "../", "width");
+  takeParentHeight = new LAID.take( "../", "height");
 
   LAID.$normalize = function( lson, isExternal ) {
 
@@ -62,6 +58,9 @@
         throw "LAID Error: State name 'root' is reserved.";
       }
 
+      checkForInconsistentReadonlyKeys( lson );
+      normalizeLazyChildren( lson );
+
       lson.states.root = {
         props: lson.props,
         when: lson.when,
@@ -70,10 +69,12 @@
 
       for ( lsonKey in lson ) {
         if ( lsonKey !== "children" || isRecursive ) {
-          if ( !key2fnNormalize[ lsonKey ] ) {
-            throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
+          if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
+            if ( !key2fnNormalize[ lsonKey ] ) {
+              throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
+            }
+            key2fnNormalize[ lsonKey ]( lson );
           }
-          key2fnNormalize[ lsonKey ]( lson );
         }
       }
 
@@ -83,8 +84,46 @@
 
       lson.$$normalized = true;
 
+
+
     }
   }
+
+  /*
+  * Checks for common naming mistakes with
+  * readonly keys (i.e beginning with "$")
+  */
+  function checkForInconsistentReadonlyKeys( lson ) {
+    var errorReadonly = "";
+    if ( lson.inherits || lson.$inherits ) {
+      throw "LAID Error: Did you mean '$inherit'?";
+    } else if ( lson.load ) {
+      errorReadonly = "load";
+    } else if ( lson.inherit ) {
+      errorReadonly = "inherit";
+    } else if ( lson.gpu ) {
+      errorReadonly = "gpu";
+    } else if ( lson.observe ) {
+      errorReadonly = "observe";
+    } else if ( lson.type ) {
+      errorReadonly = "type"
+    }
+    if ( errorReadonly ) {
+      throw "LAID Error: prefix readonly '" +
+        errorReadonly + "' with '$'";
+    }
+  }
+
+  function normalizeLazyChildren( lson ) {
+    lson.children = lson.children || {};
+    for ( var key in lson ) {
+      if ( !key2fnNormalize[ key ]) {
+        lson.children[ key ] = lson[ key ];
+        lson[ key ] = undefined; 
+      }
+    }
+  }
+
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAID.Take ) {
@@ -157,16 +196,14 @@
 
     $inherit: function ( lson ) {
 
+      if ( !( lson.$inherit instanceof Array ) ) {
+        lson.$inherit = [ lson.$inherit ];
+      }
       checkAndThrowErrorAttrAsTake( "$inherit", lson.$inherit );
       if ( ( lson.$inherit !== undefined ) &&
         LAID.type( lson.$inherit ) !== "array" ) {
           lson.$inherit = [ lson.$inherit ];
         }
-
-    },
-
-    $interface: function ( lson ) {
-      checkAndThrowErrorAttrAsTake( "$interface", lson.$interface );
     },
 
     $observe: function ( lson ) {
@@ -213,8 +250,8 @@
       }
 
       if ( prop2val.right !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnEdgeToPos ) ).fn(
-           prop2val.right, takeWidth );
+        prop2val.left = ( new LAID.Take( fnOppEdgeToPos ) ).fn(
+           prop2val.right, takeWidth, takeParentWidth );
         prop2val.right = undefined;
       }
 
@@ -222,12 +259,11 @@
         prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn(
            prop2val.centerY, takeHeight );
         prop2val.centerY = undefined;
-
       }
 
       if ( prop2val.bottom !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnEdgeToPos ) ).fn(
-           prop2val.bottom, takeHeight );
+        prop2val.top = ( new LAID.Take( fnOppEdgeToPos ) ).fn(
+           prop2val.bottom, takeHeight, takeParentHeight );
         prop2val.bottom = undefined;
       }
 
@@ -382,7 +418,7 @@
       checkAndThrowErrorAttrAsTake( "children",  childName2childLson );
 
       for ( var childName in childName2childLson ) {
-
+        
         normalize( childName2childLson[ childName ], true );
 
       }

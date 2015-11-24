@@ -2,10 +2,21 @@
   "use strict";
 
   // Check for CSS3 color support within the browser
-  document.body.style.color = "rgba(0,0,0,0)";
-  var isCss3ColorSupported = Boolean( window.getComputedStyle( document.body, null ).getPropertyValue( "color" ) );
+  // source inspired from:
+  // http://lea.verou.me/2009/03/check-whether-the-browser-supports-rgba-and-other-css3-values/  
 
+  var isCss3ColorSupported = (function () {
+    var prevColor = document.body.style.color;
+    try {
+      document.body.style.color = "rgba(0,0,0,0)";
+    } catch (e) {}
+    var result = document.body.style.color !== prevColor;
+    document.body.style.color = prevColor;
+    return result;
 
+  })();
+
+  
   // inspiration from: sass (https://github.com/sass/sass/)
 
   LAID.Color = function ( format, key2value, alpha ) {
@@ -86,8 +97,12 @@
       // for IE8 and legacy browsers
       // where rgb is the sole color
       // mode available
-      rgb = this.getRgb();
-      return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+      if ( this.a < 0.1 ) {
+        return "transparent";
+      } else {
+        rgb = this.getRgb();
+        return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+      }
 
     }
 

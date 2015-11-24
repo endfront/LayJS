@@ -147,7 +147,7 @@
       return new CubicBezierTransition( duration, {
         a: 0.42, b: 0, c: 0.58, d: 1
       });
-    },
+    }
     /*
     ease: function ( startCalcVal, duration, delay, done, args ) {
       return new CubicBezierTransition( startCalcVal, duration, delay, done, {

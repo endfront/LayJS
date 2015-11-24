@@ -18,7 +18,7 @@
       mouseover: function () {
         this.$changeAttrVal( "$hovering", true );
       },
-      mouseout:   function () {
+      mouseout: function () {
         this.$changeAttrVal( "$hovering", false );
       }
     },
@@ -37,7 +37,7 @@
       },
       touchup: function () {
         this.$changeAttrVal( "$clicking", false );
-      },
+      }
     },
     $focused: {
       focus: function () {
@@ -92,7 +92,7 @@
     },
     getEventType2fnHandler: function ( attr ) {
       return eventReadonly2_eventType2fnHandler_[ attr ];
-    },
+    }
 
   };
 
