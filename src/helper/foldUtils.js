@@ -25,7 +25,7 @@
     sum: function ( rowS, key, val ) {
       return fold( function ( row, acc ) {
         return acc + row[ key ];
-        }, 0, rowS ); 
+        }, 0, rowS );
     },
 
     

@@ -155,12 +155,12 @@ Defaults:
 - width
   `number`
   Width of part (excluding scale)
-  Default: LAID.take('', '$naturalWidth')
+  Default: LAID.take('', '$naturalWidth') [for "/": LAID.take("", "$windowWidth")]
 
 - height
   `number`
   Height of part (excluding scale)
-  Default: LAID.take('', '$naturalHeight')
+  Default: LAID.take('', '$naturalHeight') [for "/": LAID.take("", "$windowHeight")]
 
 - top
   `number`
@@ -546,10 +546,8 @@ Defaults:
   `boolean`
   Default: false
 
-
 - linkHref
   `string`
-
 
 - linkRel
   `string`
@@ -563,6 +561,9 @@ Defaults:
   HTML a[target]
 
 - imageUrl
+  `string`
+
+- audioSrc / videoSrc
   `string`
 
 - videoSources / audioSources
@@ -594,7 +595,7 @@ Defaults:
   Default: false
 
 
-- videoControls / audioControls
+- videoController / audioController
   `boolean`
   Default: true
 
@@ -684,11 +685,18 @@ Defaults:
     - $observe
       This can only be set once using a non-take value with the LSON.
 
+    - $path
+      This can only be set once using a non-take value with the LSON.
+
     - $dataTravelling (`boolean`)
 
     - $dataTravelDelta (`number`)
 
     - $dataTravelLevel ('LAID.Level')
+
+    - $windowWidth
+
+    - $windowHeight
 
     - $naturalWidth (`number`)
       Width of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the width occupied by the children parts.
@@ -848,7 +856,7 @@ LAID.Take methods
   - negative (unary)
   - index, length (for array)
   - key (for dict)
-  - concat (for string)
+  - concat, lowercase, capitalize, uppercase (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
   - (these return booleans) eq (===), neq (!==), gt, lt, gte, lte, not, contains

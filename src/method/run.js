@@ -38,18 +38,17 @@
         display:false
       }
     };
-
-    
-  
   }
 
   function updateSize () {
 
     var rootLevel = LAID.$pathName2level[ "/" ];
-    rootLevel.$changeAttrVal( "$naturalWidth",
-      window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth );
-    rootLevel.$changeAttrVal( "$naturalHeight",
-     window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight);
+    rootLevel.$changeAttrVal( "$windowWidth", window.innerWidth ||
+         document.documentElement.clientWidth ||
+          document.body.clientWidth );
+    rootLevel.$changeAttrVal( "$windowHeight", window.innerHeight ||
+          document.documentElement.clientHeight ||
+          document.body.clientHeight );
 
   }
 

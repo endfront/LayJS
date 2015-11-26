@@ -3,8 +3,9 @@
 
   LAID.unclog = function () {
 
-    LAID.$isClogged = false;
-    LAID.$solve();
+    if ( --LAID.$numClog === 0 ) {
+      LAID.$solve();
+    }
     
   };
 

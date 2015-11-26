@@ -14,7 +14,7 @@
           return LAID.$arrayUtils.cloneSingleLevel( 
             path.resolve( this ).$getAttrVal( attr ).calcVal );
         } else {
-          return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+          return path.resolve( this ).$getAttrVal( attr ).calcVal;
         }
       };
     } else { // direct value provided
@@ -570,6 +570,31 @@
 
   LAID.Take.prototype.concat = LAID.Take.prototype.add;
 
+  LAID.Take.prototype.lowercase = function () {
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).toLowerCase();
+    };
+    return this;
+  };
+
+  LAID.Take.prototype.uppercase = function () {
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).toUpperCase();
+    };
+    return this;
+  };
+
+  LAID.Take.prototype.capitalize = function () {
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      var val = oldExecutable.call( this );
+      return val.charAt( 0 ).toUpperCase() +
+        val.slice( 1 );
+    };
+    return this;
+  };
 
   LAID.Take.prototype.format = function () {
 

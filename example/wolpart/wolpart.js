@@ -376,7 +376,47 @@ LAID.run( {
 
 
 
-
+var z = ({
+  props: {
+    backgroundColor: LAID.color("gainsboro")
+  },
+  "Box": {
+    props: {
+      centerX: LAID.take("../", "$midpointX"),
+      centerY: LAID.take("../", "$midpointY"),      
+    },
+    "Child": {
+      props: {
+        width:50,
+        height:50,
+        backgroundColor: LAID.color("red")
+      }
+    },
+    "Child2": {
+      $inherit: "../Child",
+      data: {
+        down: false,
+      },
+      props: {
+        top:LAID.take("../Child", "bottom"),
+        backgroundColor:LAID.color("blue")
+      },
+      states: {
+        "down": {
+          onlyif: LAID.take("", "data.down"),
+          props: {
+            top: LAID.take("","root.top").add(10)
+          },
+        }
+      },
+      when: {
+        click: function () {
+          this.data("down", true);
+        }
+      }
+    }
+  }
+});
 
 var y =({
   children: {

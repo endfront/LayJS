@@ -3,7 +3,7 @@
 
   LAID.clog = function () {
 
-    LAID.$isClogged = true;
+    LAID.$numClog++;
 
   };
 

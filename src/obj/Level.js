@@ -6,6 +6,7 @@
     this.pathName = path;
     this.lson = lson;
     this.isGpu = undefined;
+    this.isRemoved = undefined;
 
     this.parentLevel = parent; // parent Level
     this.attr2attrVal = {};
@@ -82,29 +83,35 @@
     return this.isPart && this.part.node;
   };
 
+
   LAID.Level.prototype.attr = function ( attr ) {
 
     if ( this.attr2attrVal[ attr ] ) {
-       
       return this.attr2attrVal[ attr ].calcVal;
-
     } else { 
-      var lazyReadonlyVal = this.isPart &&
-        this.part.getLazyReadonlyValAtRuntime( attr );
-      if ( lazyReadonlyVal ) {
-        return lazyReadonlyVal;
-      } else if ( this.$createLazyAttr( attr ) ) {
+      // Check if it is a doing event
+      if ( attr.charAt( 0 ) === "$" ) {
+        if ( LAID.$checkIfDoingReadonly( attr ) ) {
+          console.error("LAID Error: " + attr + " must be placed in $observe");
+          return undefined;
+        } else if ( LAID.$checkIfImmidiateReadonly( attr ) ) {
+          return this.part.getImmidiateReadonlyVal( attr );
+        }
+      } 
+      if ( this.$createLazyAttr( attr, true ) ) {
         var attrVal = this.attr2attrVal[ attr ];
         attrVal.give( LAID.$emptyAttrVal );
         LAID.$solve();
         return attrVal.calcVal;
-
-      } 
+      } else {
+        return undefined;
+      }
     }
   };
 
   LAID.Level.prototype.data = function ( dataKey, value ) {
     this.$changeAttrVal( "data." + dataKey, value );
+    LAID.$solve();
   };
 
   LAID.Level.prototype.row = function ( rowKey, value ) {
@@ -279,7 +286,7 @@
   };
 
   LAID.Level.prototype.remove = function () {
-      
+    
     if ( this.pathName === "/" ) {
       console.error("LAID Error: Attempt to remove root level '/' prohibited");
     } else {
@@ -300,9 +307,12 @@
      parentPart = parentLevel.part;
 
 
+    this.isRemoved = true;
+
     LAID.$pathName2level[ this.pathName ] = undefined;
     LAID.$arrayUtils.remove( parentLevel.childLevelS, this );
     
+
     if ( this.isPart ) {
       this.part.remove();
     } else {
@@ -507,18 +517,7 @@
       observableReadonlyS = this.lson.$observe ?
        this.lson.$observe : [],
       observableReadonly, i, len;
-    
-    
-    if ( this.pathName === "/" ) {
-      var dataTravelReadonlyS = [ "$dataTravelling",
-        "$dataTravelLevel", "$dataTravelDelta" ];
-      if ( observableReadonlyS ) {
-        observableReadonlyS = observableReadonlyS.concat(
-          dataTravelReadonlyS );
-      } else {
-        observableReadonlyS = dataTravelReadonlyS;
-      }
-    }
+  
 
     if ( this.isPart ) {
       if ( this.lson.states.root.props.scrollX ) {
@@ -529,12 +528,10 @@
       }
       
       if ( this.part.type === "input" &&
-          this.part.inputType !== "line" ) {
-        // since there is a high probability
-        // that the user will reference $input
-        // whilst using an input:line, input:textarea
-        // the "$input" property will observed
-        // by default
+          this.part.inputType === "multiline" ) {
+        // $input will be required to compute
+        // the natural height if it exists
+        // TODO: optimize
         observableReadonlyS.push( "$input" );
       }
     }
@@ -586,6 +583,17 @@
     if ( this.isPart ) { 
       attr2val.right = LAID.$essentialPosAttr2take.right;
       attr2val.bottom = LAID.$essentialPosAttr2take.bottom;
+      if ( this.pathName === "/" ) {
+        attr2val.$dataTravelling = false;
+        attr2val.$dataTravelDelta = 0.0;
+        attr2val.$dataTravelLevel = undefined;
+        attr2val.$windowWidth = window.innerWidth ||
+         document.documentElement.clientWidth ||
+          document.body.clientWidth;
+        attr2val.$windowHeight = window.innerWidth ||
+         document.documentElement.clientWidth ||
+          document.body.clientWidth;
+      }
     } else { // Many
       attr2val.rows = lson.rows || [];
       attr2val.$id = lson.$id;
@@ -621,83 +629,31 @@
   * Return true if attr was created as it exists (in lazy form),
   * false otherwise (it is not present at all to be created)
   */
-  LAID.Level.prototype.$createLazyAttr = function ( attr ) {
+  LAID.Level.prototype.$createLazyAttr = function ( attr, isNoImmidiateReadonly ) {
     var
      splitAttrLsonComponentS, attrLsonComponentObj, i, len,
-     firstAttrLsonComponent, createdAttrVal;
+     firstAttrLsonComponent;
 
     if ( LAID.$miscPosAttr2take[ attr ] ) {
       this.$createAttrVal( attr,
         LAID.$miscPosAttr2take[ attr ] );
-    } else if ( attr.startsWith( "$" ) ) { //readonly
-      createdAttrVal = this.attr2attrVal[ attr ] =
-        new LAID.AttrVal( attr, this );
-
+    } else if ( attr.charAt( 0 ) === "$" ) { //readonly
       if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
             attr ) !== -1 ) {
-          createdAttrVal.update( this.lson[ attr ] );
+          this.$createAttrVal( attr, this.lson[ attr ] );
+      } else if ( attr === "$path" ) {
+        this.$createAttrVal( "$path", this.pathName );
       } else {
-        switch ( attr ) {
-          case "$naturalWidth":
-            if ( this.part.type === "input" ) {
-              this.part.updateNaturalWidthInput();
-            } else {
-              this.part.updateNaturalWidth();
-            }
-            break;
-          case "$naturalHeight":
-            if ( this.part.type === "input" ) {
-              this.part.updateNaturalHeightInput();
-            } else {
-              this.part.updateNaturalHeight();
-            }
-            break;
-          case "$absoluteX":
-            createdAttrVal.update( this.part.absoluteX );
-            break;
-          case "$absoluteY":
-            createdAttrVal.update( this.part.absoluteY );
-            break;
-          case "$focused":
-            createdAttrVal.update( this.part &&
-             this.part.node === document.activeElement );
-            break;
-          case "$scrolledX":
-            createdAttrVal.update( this.part.node.scrollLeft );
-            break;
-          case "$scrolledY":
-            createdAttrVal.update( this.part.node.scrollTop );
-            break;
-          case "$cursorX":
-            createdAttrVal.update( this.part.node.offsetX );
-            break;
-          case "$cursorY":
-            createdAttrVal.update( this.part.node.offsetY );
-            break;
-          case "$input":
-            createdAttrVal.update( this.part.node.value );
-            break;
-          case "$inputChecked":
-            createdAttrVal.update( this.part.node.value );
-            break;
-          case "$hovering":
-            createdAttrVal.update( false );
-            break;
-          case "$clicking":
-            createdAttrVal.update( false );
-            break;
-          case "$dataTravelling":
-            createdAttrVal.update( false );
-            break;
-          case "$dataTravelDelta":
-            createdAttrVal.update( 0.0 );
-            break;
-          case "$dataTravelLevel":
-            createdAttrVal.update( null );
-            break;
-
+        if ( !isNoImmidiateReadonly &&
+         LAID.$checkIfImmidiateReadonly( attr ) ) {
+          this.$createAttrVal( attr, null );
+        } else if ( LAID.$checkIfDoingReadonly( attr ) ) {
+          this.$createAttrVal( attr, false );
+        } else {
+          console.error("LAID Error: Incorrectly named readonly: " + attr );
+          return false;
         }
-      }
+      } 
 
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
@@ -932,7 +888,9 @@
         this.lson.states.root.props.height ) {
         throw "LAID Error: Height of root level unchangeable";
       }
-    }
+    } 
+
+
 
   
     //console.log("LAID INFO: new state", this.pathName, this.stateS );
@@ -943,10 +901,10 @@
   
 
   LAID.Level.prototype.$getAttrVal = function ( attr ) {
-    if ( !this.attr2attrVal[ attr ] ) {
-      this.$createLazyAttr( attr );
-      LAID.$solve();
-    }
+   // if ( !this.attr2attrVal[ attr ] ) {
+     // this.$createLazyAttr( attr );
+     // LAID.$solve();
+   // }
     return this.attr2attrVal[ attr ];
 
   };
@@ -955,6 +913,13 @@
   LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
     if ( this.attr2attrVal[ attr ] ) {
       this.attr2attrVal[ attr ].update( val );
+      LAID.$solve();
+    }
+  };
+
+  LAID.Level.prototype.$requestRecalculation = function ( attr ) {
+    if ( this.attr2attrVal[ attr ] ) {
+      this.attr2attrVal[ attr ].requestRecalculation();
       LAID.$solve();
     }
   };

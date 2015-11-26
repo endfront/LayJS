@@ -1,5 +1,20 @@
 
 Current:
+  - root should be allowed its own naturalwidth/height separate
+    from window width/height
+  - optimize checkIsDependentOnNaturalHeight/Width
+  - automatically id-fy when rows are given without id
+  - audiosources/videosources/tracks should not be multiple type property
+  - should there be naturalwidth/height for image?
+  - dont make naturalwidth/height attrval when creating lazy
+    attr from .attr() call
+  - if say shiftX or any other non used attr is called from
+    .attr() return (0) the default value mentioned in
+    defaultizedPartLson.js
+  - what is "$hovering" or any of the event binding events
+    is called from attr() after having themselves deferenced
+    then what happens?
+  - you should probably stop (from within Part.updateNaturalWidth/Height) 
   - updateNaturalWidth should be a part of attrVal
   - todoMVC Learn section
   - throw error on no id provided
@@ -25,6 +40,7 @@ Current:
   - input:file,select
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
+  - "*/" to reach row level from descendant level
   - LAID.Many.remove()
   - test Textarea
   - test Image
@@ -55,12 +71,13 @@ Current:
 Future:
   - $browser attr
   - $url attr
+  - < img > srcset
   - LAID.transparent() -> LAID.transparent ?
-  - "*/" to reach row level from descendant level
   - selective inheritance where part of lson is inherited
     eg: ($inherit: [{level:"../Button", keys: ["props", "when"]}] )
   - try to remove AttrVal.forceRecalculation()
   - CSS pointer-events optimization
+  - CSS will-change optimization
   - HTML5 aria
   - takes across forbidden objects such as "when", "transition", etc
   - natural width and height dependent upon the rotation of Z axis of children.
@@ -70,18 +87,11 @@ Future:
   - Add $time as a read only property of root '/'
   - $numberOfChildren
   - $numberOfDisplayedChildren
-  - Convert between transition and calc when transition add/delete
-  - Introduce order number key for states
   - feature function which checks for overlapping parts
-hardware acceleration flag
-  - Add constraint which tells you the (x, y) co-ordinates of the mouse position (use observe list for level '/' to activate)
   - Add support for other HTML5 input types
-  - CSS will-change behind-the-scenes optimization
   - optimization: check all the props possible within the level (by checking root and the states) and only set defaults for those which are going to be used (make sure you include important superdefaults such as originX, originY,etc which come into the calculation)
   - 'when' for formation, it should include function handler for insertion of new item into the formation alongwith deletion.
-  - Opacity to 0.999999 research and implementation within LAID
   - LAID.Color mix
-  - Expand out object-typed data values
 
 
 cry about:

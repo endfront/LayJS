@@ -81,8 +81,6 @@ if (!Array.prototype.indexOf) {
     version: function(){ return 1; },
 
     $pathName2level: {},
-    $cloggedLevelS: [],
-
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
@@ -93,7 +91,7 @@ if (!Array.prototype.indexOf) {
 
     $isGpuAccelerated: undefined,
     $isBelowIE9: undefined,
-    $isClogged:false,
+    $numClog: 0,
     $isSolving: false,
     $isSolveRequiredOnRenderFinish: false,
 
@@ -103,8 +101,6 @@ if (!Array.prototype.indexOf) {
     $dataTravellingLevel: undefined,
     $dataTravellingAttrInitialVal: undefined,
     $dataTravellingAttrVal: undefined,
-
-    count : 0
 
   };
 

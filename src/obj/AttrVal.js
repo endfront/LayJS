@@ -188,10 +188,18 @@
       attr = this.attr,
       i, len; 
 
-    LAID.count++;
     //console.log("update", level.pathName, attr, this.val,
     //LAID.count );
     
+    if ( level.isRemoved ) {
+      return true;
+    }
+    if ( attr.charAt( 0 ) === "$" ) {
+      if ( LAID.$checkIfImmidiateReadonly( attr ) ) {
+        this.val = part.getImmidiateReadonlyVal( attr );
+      }
+    }
+
     if ( this.val instanceof LAID.Take ) { // is LAID.Take
       if ( !this.isTaken ) {
         this.isTaken = this.take();
@@ -296,15 +304,11 @@
               parentLevel.part.updateNaturalHeight();
             }
             if ( this.calcVal === false ) {
-              recursivelySwitchOffDoingEvent( level );
+              recursivelySwitchOffDoingEvents( level );
             }
             break;
           case "width":
-            if ( part.isInputText ) {
-              part.updateNaturalHeightInput();              
-            } else if ( level.attr2attrVal.text ) {
-              part.updateNaturalHeightFromText();
-            }
+            part.updateNaturalHeight();
             break;
           case "left":
             part.updateAbsoluteX();
@@ -323,29 +327,29 @@
             var checkIfAttrAffectsTextDimesion =
               function ( attr ) {
               return ([ "text", "textSize",
+                  "textStyle",
                   "textFamily", "textWeight",
                   "textVariant", "textTransform",
                   "textLetterSpacing", "textAlign",
-                  "textWordSpacing", "textLineHeight"
+                  "textDirection", "textRendering",
+                  "textWordSpacing", "textLineHeight",
+                  "textWrap", "textWordBreak",
+                  "textIndent"
                   ]).indexOf( attr ) !== -1;
                 
             };
             if ( checkIfAttrAffectsTextDimesion( attr ) )  {
               
-              if ( part.type === "input" ) {
-                part.updateNaturalWidthInput(); 
-                part.updateNaturalHeightInput(); 
-              } else if ( part.type === "text" ) {
-                part.updateNaturalWidthFromText();
-                part.updateNaturalHeightFromText();
-              } 
+                part.updateNaturalWidth();
+                part.updateNaturalHeight();
+               
             } else if ( ( attr === "borderTopWidth" ) ||
               ( attr === "borderBottomWidth" ) ) {
-                part.updateNaturalHeightFromText();
+                part.updateNaturalHeight();
             } else if ( ( attr === "borderLeftWidth" ) ||
               ( attr === "borderRightWidth" ) ) {
-              part.updateNaturalWidthFromText();
-              part.updateNaturalHeightFromText();
+              part.updateNaturalWidth();
+              part.updateNaturalHeight();
             }
 
         }
@@ -398,14 +402,13 @@
           case "right":
             if ( level.parentLevel !== undefined ) {
              level.parentLevel.part.
-              updateNaturalWidthFromChild( level );
+              updateNaturalWidth();
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
-                updateNaturalHeightFromChild( level );
-
+                updateNaturalHeight();
             }
             break;
           case "$naturalWidth":
@@ -429,10 +432,10 @@
             }
             break;
           case "$input":
-            part.updateNaturalWidthInput();
+            part.updateNaturalWidth();
             if ( part.inputType !== "line" ||
                !part.isInitiallyRendered ) {
-              part.updateNaturalHeightInput();
+              part.updateNaturalHeight();
             }
             break;
         }
@@ -443,10 +446,11 @@
     return true;
   };
 
+
   /*
   * Doing events: clicking, hovering
   */
-  function recursivelySwitchOffDoingEvent( level ) {
+  function recursivelySwitchOffDoingEvents( level ) {
     var 
       hoveringAttrVal = level.attr2attrVal.$hovering,
       clickingAttrVal = level.attr2attrVal.$clicking,
@@ -464,21 +468,22 @@
             i < len; i++ ) {
         childLevel = childLevelS[ i ];
         if ( childLevel.part ) {
-          recursivelySwitchOffDoingEvent( childLevel );
+          recursivelySwitchOffDoingEvents( childLevel );
         }
       } 
     }         
   }
 
+
+
+  LAID.AttrVal.prototype.checkIfDeferenced = function () {
+    return this.takerAttrValS.length === 0;
+  };
+
   LAID.AttrVal.prototype.give = function ( attrVal ) {
     if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
-        /*if ( !this.level.part.isInputText &&
-            ( this.attr === "$naturalWidth" ||
-              this.attr === "$naturalHeight" ) ) {
-          return;
-        }*/
         // Given that a reference exists, add event listeners
         var
           eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
@@ -497,13 +502,9 @@
   };
 
   LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
-    if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && this.takerAttrValS.length === 0 ) {
+    if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && 
+      this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
-        /*if ( !this.level.part.isInputText &&
-            ( this.attr === "$naturalWidth" ||
-              this.attr === "$naturalHeight" ) ) {
-          return;
-        }*/
         // Given that no reference exists, remove event listeners
         var
          eventType2fnHandler =
@@ -541,6 +542,13 @@
 
         if ( ( level.attr2attrVal[ attr ] === undefined ) )  {
           level.$createLazyAttr( attr );
+          // return false to let the lazily created attribute
+          // to calculate itself first (in the case of no
+          // created attrval lazily then returing false
+          // is the only option)
+          // TODO: the above intention could be optimized
+          // to return true in the special case that the
+          // lazily created 
           return false;
         }
 

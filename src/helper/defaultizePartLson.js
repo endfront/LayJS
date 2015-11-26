@@ -132,8 +132,8 @@
   rootEssentialProp2defaultValue = {
     top: 0,
     left: 0,
-    width: LAID.take("", "$naturalWidth"),
-    height: LAID.take("", "$naturalHeight"),
+    width: LAID.take("", "$windowWidth"),
+    height: LAID.take("", "$windowHeight"),
     textSize: 15,
     textFamily: "sans-serif",
     textWeight: "normal",

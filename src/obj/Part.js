@@ -64,7 +64,8 @@
     text: "div",
     image: "img",
     video: "video",
-    audio: "audio"
+    audio: "audio",
+    link: "a"
   };
 
   function stringifyPlusPx ( val ) {
@@ -75,12 +76,12 @@
   textSizeMeasureNode = document.createElement("div");
   textSizeMeasureNode.style.cssText = defaultCss;
   textSizeMeasureNode.style.visibility = "hidden";
-  textSizeMeasureNode.style.zIndex = "-9999";      
+  textSizeMeasureNode.style.zIndex = "-1";      
   textSizeMeasureNode.style.height = "auto";
   textSizeMeasureNode.style.overflow = "visible";
   textSizeMeasureNode.style.borderStyle = "solid";
   textSizeMeasureNode.style.borderColor = "transparent";
-  document.body.appendChild(textSizeMeasureNode);
+  document.body.appendChild( textSizeMeasureNode );
 
   LAID.Part = function ( level ) {
 
@@ -88,10 +89,8 @@
     this.node = undefined;
     this.type = undefined;
     this.inputType = undefined;
+    this.isText = undefined;
     this.isInitiallyRendered = false;
-
-    this.naturalWidthLevel = undefined;
-    this.naturalHeightLevel = undefined;
 
     this.normalRenderDirtyAttrValS = [];
     this.travelRenderDirtyAttrValS = [];
@@ -145,20 +144,20 @@
     if ( this.level.pathName !== "/" ) {
       parentNode = this.level.parentLevel.part.node;
       parentNode.appendChild( this.node );
-      
     }
+
+
+    this.isText = this.type === "input" || 
+      this.level.lson.states.root.props.text !== undefined;
+
   };
 
   // Precondition: not called on "/" level
   LAID.Part.prototype.remove = function () {
     var parentPart = this.level.parentLevel.part;
-    if ( parentPart.naturalWidthLevel === this.level ) {
-      parentPart.updateNaturalWidth();
-    }
-    if ( parentPart.naturalHeightLevel === this.level ) {
-      parentPart.updateNaturalHeight();
-    }    
-
+    parentPart.updateNaturalWidth();
+    parentPart.updateNaturalHeight();
+       
     parentPart.node.removeChild( this.node );
 
   };
@@ -190,7 +189,6 @@
           childLevelAttrVal = childLevel.attr2attrVal[ attr ];
           attrValChildIndepedentOf =
             childLevel.attr2attrVal[ attrChildIndepedentOf ];
-
           if (
               ( childLevelAttrVal !== undefined ) &&
               ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
@@ -207,41 +205,36 @@
       }
      }
     }
+
     return curMaxLevel;
   };
 
-  LAID.Part.prototype.getLazyReadonlyValAtRuntime = function ( attr ) {
+  
+  LAID.Part.prototype.getImmidiateReadonlyVal = function ( attr ) {
+    
     switch ( attr ) {
+      case "$naturalWidth":
+        return this.calculateNaturalWidth();
+      case "$naturalHeight":
+        return this.calculateNaturalHeight();
       case "$scrolledX":
         return this.node.scrollLeft;
-        break;
       case "$scrolledY":
         return this.node.scrollTop;
-        break;
       case "$cursorX":
         return this.node.offsetX;
-        break;
       case "$cursorY":
         return this.node.offsetY;
-        break;
-      case "absoluteX":
+      case "$focused":
+        return node === document.activeElement;
+      case "$absoluteX":
         return this.absoluteX;
-        break;
-      case "absoluteY":
+      case "$absoluteY":
         return this.absoluteY;
-        break;
       case "$input":
         return this.node.value;
-        break;
       case "$inputChecked":
         return this.node.value;
-        break;
-      case "$hovering":
-        console.error("LAID Error: $hovering absent from takes or $observe");
-        break;
-      case "$clicking":
-        console.error("LAID Error: $clicking absent from takes or $observe");
-        break;
     }
   };
 
@@ -291,155 +284,69 @@
 
 
   LAID.Part.prototype.updateNaturalWidth = function () {
-    var attr2attrVal = this.level.attr2attrVal
-    if ( attr2attrVal.$naturalWidth ) {
-      if ( this.level.pathName === "/" ) {
-        attr2attrVal.$naturalWidth.update( window.innerWidth ||
-         document.documentElement.clientWidth ||
-          document.body.clientWidth );
-      } else if ( this.level.attr2attrVal.text ) {
-        this.updateNaturalWidthFromText();
-      } else {
-        this.naturalWidthLevel =
-          this.findChildWithMaxOfAttr( "right", "width",
-          attr2attrVal.$naturalWidth );
-        attr2attrVal.$naturalWidth.update(
-            this.naturalWidthLevel ?
-           ( this.naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
-           0
-        );
-      }
+    var naturalWidthAttrVal =
+      this.level.$getAttrVal("$naturalWidth");
+    if ( naturalWidthAttrVal &&
+       !naturalWidthAttrVal.checkIfDeferenced() ) {
+      naturalWidthAttrVal.requestRecalculation();
     }
   };
-
-
 
   LAID.Part.prototype.updateNaturalHeight = function () {
+    var naturalHeightAttrVal =
+      this.level.$getAttrVal("$naturalHeight");
+    if ( naturalHeightAttrVal &&
+       !naturalHeightAttrVal.checkIfDeferenced() ) {
+      naturalHeightAttrVal.requestRecalculation();
+    }
+  };
+
+  LAID.Part.prototype.calculateNaturalWidth = function () {
     var attr2attrVal = this.level.attr2attrVal
-    if (attr2attrVal.$naturalHeight ) {
-      if ( this.level.pathName === "/" ) {
-        attr2attrVal.$naturalHeight.update( window.innerHeight ||
-          document.documentElement.clientHeight ||
-          document.body.clientHeight );
-      } else if ( this.level.attr2attrVal.text ) {
-        this.updateNaturalHeightFromText();
-      } else {
-        this.naturalHeightLevel =
-          this.findChildWithMaxOfAttr( "bottom", "height",
-        attr2attrVal.$naturalHeight);
+    if ( this.isText ) {
+      return this.calculateTextNaturalDimesion( true );
+    } else {
+      var naturalWidthLevel =
+        this.findChildWithMaxOfAttr( "right", "width",
+        attr2attrVal.$naturalWidth );
 
-        attr2attrVal.$naturalHeight.update(
-            this.naturalHeightLevel ?
-           ( this.naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
-           0
-        );
-      }
+      return naturalWidthLevel ?
+         ( naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
+         0;
+      
     }
   };
 
 
-  LAID.Part.prototype.updateNaturalWidthFromChild = function ( childLevel ) {
 
-    var attr2attrVal = this.level.attr2attrVal;
+  LAID.Part.prototype.calculateNaturalHeight = function () {
+    var attr2attrVal = this.level.attr2attrVal
+    if ( this.isText ) {
+      return this.calculateTextNaturalDimesion( false );
+    } else {
+      var naturalHeightLevel =
+        this.findChildWithMaxOfAttr( "bottom", "height",
+      attr2attrVal.$naturalHeight);
 
-    if ( attr2attrVal.$naturalWidth &&
-      ( this.level.pathName !== "/" ) &&
-      ! (LAID.$checkIsValidUtils.nan( childLevel.attr2attrVal.right.calcVal )) &&
-      ! (childLevel.attr2attrVal.width.checkIsDependentOnAttrVal(
-        attr2attrVal.$naturalWidth)) &&
-        (checkIfLevelIsDisplayed(childLevel) )
-        ) {
-
-
-      if ( this.naturalWidthLevel === undefined ) {
-        this.naturalWidthLevel = childLevel;
-      } else if ( this.naturalWidthLevel === childLevel ) {
-
-        // Check If the current child level responsible for the stretch
-        // of the naturalWidth boundary, has receeded
-        // If this would be the case, then there is
-        // a possibility that it has receded behind another
-        // child element which has a higher right position
-        // than the current child level responsible for the natural width
-        if ( attr2attrVal.$naturalWidth.calcVal >
-           childLevel.attr2attrVal.right.calcVal  ) {
-          // Find the child with the next largest right
-          // This could be the same child level
-          this.naturalWidthLevel =
-            this.findChildWithMaxOfAttr( "right", "width",
-            attr2attrVal.$naturalWidth );
-        }
-      } else {
-        if ( childLevel.attr2attrVal.right.calcVal >
-          this.naturalWidthLevel.attr2attrVal.right.calcVal ) {
-            this.naturalWidthLevel = childLevel;
-        }
-      }
-      attr2attrVal.$naturalWidth.update(
-        this.naturalWidthLevel ?
-        ( this.naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
-        0
-      );
-
-    }
-  };
-
-
-  LAID.Part.prototype.updateNaturalHeightFromChild = function ( childLevel ) {
-
-    var attr2attrVal = this.level.attr2attrVal;
-
-    if ( attr2attrVal.$naturalHeight &&
-        ( this.level.pathName !== "/" ) &&
-       !(LAID.$checkIsValidUtils.nan( childLevel.attr2attrVal.bottom.calcVal )) &&
-       !( childLevel.attr2attrVal.height.checkIsDependentOnAttrVal(
-         attr2attrVal.$naturalHeight) ) &&
-         (checkIfLevelIsDisplayed(childLevel) ) ) {
-
-      if ( this.naturalHeightLevel === undefined ) {
-        this.naturalHeightLevel = childLevel;
-      } else if ( this.naturalHeightLevel === childLevel ) {
-        // Check If the current child level responsible for the stretch
-          // of the naturalHeight boundary, has receeded
-          // If this would be the case, then there is
-          // a possibility that it has receded behind another
-          // child element which has a higher bottom position
-          // than the current child level responsible for the natural height
-         if ( attr2attrVal.$naturalHeight.calcVal >
-           childLevel.attr2attrVal.bottom.calcVal  ) {
-          // Find the child with the next largest bottom
-          // This could be the same child level
-          this.naturalHeightLevel =
-            this.findChildWithMaxOfAttr( "bottom", "height",
-           attr2attrVal.$naturalHeight );
-        }
-      } else {
-        if ( childLevel.attr2attrVal.bottom.calcVal >
-          this.naturalHeightLevel.attr2attrVal.bottom.calcVal ) {
-            this.naturalHeightLevel = childLevel;
-          }
-        }
-
-      attr2attrVal.$naturalHeight.update(
-          this.naturalHeightLevel ?
-          ( this.naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
-          0
-      );
+      return naturalHeightLevel ?
+         ( naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
+         0;
     }
   };
 
   
 
-
   LAID.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
+    
     var dimensionAlteringAttr2fnStyle = {
       textSize: stringifyPxOrString,
       textFamily: null,
       textWeight: null,
       textAlign: null,
-      
+      textStyle: null,      
       textDirection: null,
       textTransform: null,
+      textVariant: null,
       textLetterSpacing: stringifyPxOrString,
       textWordSpacing: stringifyPxOrString,
       textLineHeight: stringifyEmOrString,
@@ -450,6 +357,7 @@
       //convert to "break-all"
       textWordBreak: handleBelowIE9WordBreak,
       textRendering: null,
+
       textPaddingTop: stringifyPlusPx,
       textPaddingRight: stringifyPlusPx,
       textPaddingBottom: stringifyPlusPx,
@@ -465,8 +373,10 @@
       textFamily: "font-family",
       textWeight: "font-weight",
       textAlign: "text-align",
+      textStyle: "font-style",
       textDirection: "direction",
       textTransform: "text-transform",
+      textVariant: "font-variant",
       textLetterSpacing: "letter-spacing",
       textWordSpacing: "word-spacing",
       textLineHeight: "line-height",
@@ -491,10 +401,16 @@
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
-      text = this.type === "text" ? 
-        attr2attrVal.text.calcVal :
+      text = this.type === "input" ? 
         ( attr2attrVal.$input ?
-          attr2attrVal.$input.calcVal : "a" );
+          attr2attrVal.$input.calcVal : "a" ) :
+        attr2attrVal.text.calcVal;
+
+    // restore non default text
+    // altering CSS
+    node.style.padding = "0px";
+    node.style.borderWidth = "0px";
+
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
       textRelatedAttrVal = attr2attrVal[ 
@@ -519,8 +435,7 @@
       node.style.width = "auto";
       node.innerHTML = text;
 
-      this.level.$changeAttrVal( "$naturalWidth",
-       node.offsetWidth );
+      return node.offsetWidth 
 
     } else {
       node.style.display = "block";
@@ -529,64 +444,15 @@
       // If empty we will subsitute with a space character
       // as we wouldn't want the height to resolve to 0
       node.innerHTML = text || "a";
-      this.level.$changeAttrVal( "$naturalHeight",
-        node.offsetHeight );
-      if (node.offsetHeight === 52) {
-        console.log("here", node.innerHTML);
-      }
+      
+      return node.offsetHeight;
+      
     }
-    // restore non default text
-    // altering CSS
-    node.style.padding = "0px";
-    node.style.borderWidth = "0px";
+    
+
   };
 
-  LAID.Part.prototype.updateNaturalWidthFromText = function () {
 
-    var attr2attrVal = this.level.attr2attrVal;
-
-    if ( this.level.pathName !== "/" &&
-        attr2attrVal.$naturalWidth &&
-      this.level.attr2attrVal.text ) {
-      if ( attr2attrVal.$naturalWidth ) {
-        this.calculateTextNaturalDimesion( true );
-      }
-    }
-  };
-
-  LAID.Part.prototype.updateNaturalHeightFromText = function ( arg ) {
-
-    var attr2attrVal = this.level.attr2attrVal;
-
-    if ( this.level.pathName !== "/" &&
-      attr2attrVal.$naturalHeight &&
-      this.level.attr2attrVal.text ) {
-      if ( attr2attrVal.$naturalHeight ) {
-       this.calculateTextNaturalDimesion( false );
-      }
-    }
-  };
-
-  LAID.Part.prototype.updateNaturalWidthInput = function () {
-
-    var attr2attrVal = this.level.attr2attrVal;
-
-    if ( attr2attrVal.$naturalWidth ) {
-      this.calculateTextNaturalDimesion( true );
-    }
-  };
-
-  LAID.Part.prototype.updateNaturalHeightInput = function () {
-
-    var attr2attrVal = this.level.attr2attrVal;
-
-    if ( attr2attrVal.$naturalHeight ) {
-      if ( attr2attrVal.$naturalHeight ) {
-        this.calculateTextNaturalDimesion( false );
-      }
-    }
-  };
-  
 
   LAID.Part.prototype.addNormalRenderDirtyAttrVal = function ( attrVal ) {
 
@@ -893,7 +759,9 @@
   LAID.Part.prototype.renderFn_width = function () {
       this.node.style.width =
         this.level.attr2attrVal.width.transitionCalcVal + "px";
-      if ( this.type === "canvas" ) {
+      if ( this.type === "canvas" ||
+          this.type === "video" || 
+          this.type === "image" ) {
         this.node.width =
         this.level.attr2attrVal.width.transitionCalcVal;
       }
@@ -902,7 +770,9 @@
   LAID.Part.prototype.renderFn_height = function () {
     this.node.style.height =
       this.level.attr2attrVal.height.transitionCalcVal + "px";
-    if ( this.type === "canvas" ) {
+    if ( this.type === "canvas" ||
+        this.type === "video" || 
+        this.type === "image" ) {
       this.node.height =
         this.level.attr2attrVal.height.transitionCalcVal;
     }
@@ -916,7 +786,6 @@
     ( ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) * 100 ) + "% " +
     ( attr2attrVal.originZ !== undefined ? attr2attrVal.originZ.transitionCalcVal : 0  ) + "px";
-    //this.renderFn_positional(); //apply change to transform
   };
 
 
@@ -964,7 +833,7 @@
   LAID.Part.prototype.renderFn_focus = function () {
     if ( this.level.attr2attrVal.focus.transitionCalcVal ) {
       this.node.focus();
-    } else {
+    } else if ( document.activeElement === this.node ) {
       document.body.focus();
     }
   };
@@ -1199,9 +1068,7 @@
     
     this.node.innerHTML =
      this.level.attr2attrVal.text.transitionCalcVal;
-
   };
-
 
   LAID.Part.prototype.renderFn_input = function () {
     this.node.value = inputVal;
@@ -1373,8 +1240,14 @@
   LAID.Part.prototype.renderFn_imageUrl = function () {
     this.node.src = this.level.attr2attrVal.imageUrl.transitionCalcVal;
   };
+  
 
   /* Audio (<audio>) related */
+
+  LAID.Part.prototype.renderFn_audioSrc = function () {
+    this.node.src = this.level.attr2attrVal.audioSrc.transitionCalcVal;
+  };
+
   LAID.Part.prototype.renderFn_audioSources = function () {
     var
       attr2attrVal = this.level.attr2attrVal,
@@ -1424,8 +1297,8 @@
   LAID.Part.prototype.renderFn_audioVolume = function () {
     this.node.volume = this.level.attr2attrVal.audioVolume.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_audioControls = function () {
-    this.node.controls = this.level.attr2attrVal.audioControls.transitionCalcVal;
+  LAID.Part.prototype.renderFn_audioController = function () {
+    this.node.controls = this.level.attr2attrVal.audioController.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_audioLoop = function () {
     this.node.loop = this.level.attr2attrVal.audioLoop.transitionCalcVal;
@@ -1438,6 +1311,11 @@
   };
 
   /* Video (<video>) related */
+
+  LAID.Part.prototype.renderFn_videoSrc = function () {
+    this.node.src = this.level.attr2attrVal.videoSrc.transitionCalcVal;
+  };
+
   LAID.Part.prototype.renderFn_videoSources = function () {
     var
     attr2attrVal = this.level.attr2attrVal,
@@ -1487,8 +1365,8 @@
   LAID.Part.prototype.renderFn_videoAutoplay = function () {
     this.node.autoplay = this.level.attr2attrVal.videoAutoplay.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoControls = function () {
-    this.node.controls = this.level.attr2attrVal.videoControls.transitionCalcVal;
+  LAID.Part.prototype.renderFn_videoController = function () {
+    this.node.controls = this.level.attr2attrVal.videoController.transitionCalcVal;
   };
   LAID.Part.prototype.renderFn_videoCrossorigin = function () {
     this.node.crossorigin = this.level.attr2attrVal.videoCrossorigin.transitionCalcVal;

@@ -1,18 +1,6 @@
 ( function(){
   "use strict";
 
-  var $inputEvent2fn = {
-    click: function () {
-      this.$changeAttrVal( "$input", this.part.node.value );
-    },
-    change: function () {
-      this.$changeAttrVal( "$input", this.part.node.value );
-    },
-    keyup: function () {
-      this.$changeAttrVal( "$input", this.part.node.value );
-    }
-  };
-
   var eventReadonly2_eventType2fnHandler_ = {
     $hovering: {
       mouseover: function () {
@@ -41,44 +29,51 @@
     },
     $focused: {
       focus: function () {
-        this.$changeAttrVal( "$focused", true );
+        this.$requestRecalculation( "$focused" );
       },
       blur: function () {
-        this.$changeAttrVal( "$focused", false );
+       this.$requestRecalculation( "$focused" );
       }
     },
     $scrolledX: {
       scroll: function () {
-        this.$changeAttrVal( "$scrolledX",
-          this.part.node.scrollTop );
+        this.$requestRecalculation( "$scrolledX" );
       }
     },
     $scrolledY: {
       scroll: function () {
-        this.$changeAttrVal( "$scrolledY",
-         this.part.node.scrollLeft );
+        this.$requestRecalculation( "$scrolledY" );
+
       }
     },
     $cursorX: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorX",
-          this.part.node.offsetX );
+        this.$requestRecalculation( "$cursorX" );
+
       }
     },
     $cursorY: {
       mousemove: function () {
-        this.$changeAttrVal( "$cursorY",
-          this.part.node.offsetY );
+        this.$requestRecalculation( "$cursorY" );
+
       }
     },
 
-    $input: $inputEvent2fn,
-    /*$naturalWidth: $inputEvent2fn,
-    $naturalHeight: $inputEvent2fn,*/
+    $input: {
+      click: function () {
+        this.$requestRecalculation( "$input" );
+      },
+      change: function () {
+        this.$requestRecalculation( "$input" );
+      },
+      keyup: function () {
+        this.$requestRecalculation( "$input" );
+      }
+    },
 
     $inputChecked: {
       change: function () {
-        this.$changeAttrVal( "$inputChecked", this.checked );
+        this.$requestRecalculation( "$inputChecked" );
       }
     }
 

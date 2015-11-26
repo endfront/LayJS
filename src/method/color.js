@@ -19,7 +19,7 @@
         return new LAID.Color( 'rgb', colorValue, 1 );
       } else {
         if ( colorName.match(/(rgb)|(hsl)/) ) {
-          var match = colorName.match( colorName );
+          var match = colorName.match( numRegex );
           if ( match ) {
             var
               arg1 = parseInt(match[1]),
@@ -28,10 +28,10 @@
               argAlpha = match[4] === undefined ?
                1 : parseFloat(match[4]);
 
-            if ( colorName.indexOf("rgb") ) {
-              return LAID.rgba(arg1,arg2,arg3, argAlpha );
+            if ( colorName.indexOf("rgb") !== -1 ) {
+              return LAID.rgba( arg1,arg2,arg3, argAlpha );
             } else {
-              return LAID.hsla(arg1,arg2,arg3, argAlpha );
+              return LAID.hsla( arg1,arg2,arg3, argAlpha );
             }
           }
         }

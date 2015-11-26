@@ -4,7 +4,7 @@
 
     if ( LAID.$isRendering ) {
       LAID.$isSolveRequiredOnRenderFinish = true;
-    } else if ( !LAID.$isSolving && !LAID.$isClogged ) {
+    } else if ( !LAID.$isSolving && LAID.$numClog === 0 ) {
       var 
         ret,
         isSolveNewComplete,

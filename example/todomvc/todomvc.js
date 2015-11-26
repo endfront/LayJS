@@ -218,16 +218,17 @@ LAID.run({
                 }
               }
             },
+            data: {
+              category: LAID.take("/App/Container/BottomControls/Strip/Categories/Category", "rows").filterEq("selected", true).index(0).key("id")
+            },           
             states: {
               "active": {
-                onlyif: 
-                  LAID.take("/App/Container/BottomControls/Strip/Categories/Category", "data.selected").eq("Active"),
+                onlyif: LAID.take("", "data.category").eq("active"),
                 filter: LAID.take("", "rows").filterEq("complete", false)
                 
               },
               "completed": {
-                onlyif: 
-                  LAID.take("/App/Container/BottomControls/Strip/Categories/Category", "data.selected").eq("Completed"),
+                onlyif: LAID.take("", "data.category").eq("completed"),
                 filter: LAID.take("", "rows").filterEq("complete", true)
               }
             }
@@ -465,14 +466,45 @@ LAID.run({
               props: {
                 centerX: LAID.take("../", "$midpointX")
               },
-              "Category": {                    
+              "Category": {  
+                many: {
+                  
+                  $load: function () {
+                    var hash = window.location.hash || "#/";
+                    var hashVal = hash.slice(2);
+                    
+                    if ( ["", "active", "completed" ].indexOf( hashVal ) !== -1 ) {
+                      LAID.clog();
+                      this.rowsUpdate("selected", false);
+                      this.rowsUpdate("selected", true,
+                        this.queryRows().filterEq("id", hashVal ));
+                      LAID.unclog();
+                    } 
+                    
+                  },
+                  formation: "totheright",
+                  fargs: {
+                    totheright: {
+                      gap:10
+                    }
+                  },
+                  $id: "id",
+                  rows: [
+                    {id: "", text: "All", selected: true },
+                    {id: "active" , text: "Active", selected: false },
+                    {id: "completed", text: "Completed", selected: false }
+                  ]
+                },
+                $type: "link",             
                 props: {
                   cursor:"pointer",
                   border: {style: "solid", width: 1,
                     color: LAID.transparent()},
                   cornerRadius: 3,
                   text: LAID.take("", "row.text"),
-                  textPadding: {top:2, bottom:2, left:7, right:7}
+                  textPadding: {top:2, bottom:2, left:7, right:7},
+                  linkHref: LAID.take("#/%s").format(
+                    LAID.take("", "row.id")),
 
                 },
                 states: {
@@ -497,42 +529,8 @@ LAID.run({
                       this.many().rowsUpdate("selected", false);
                       this.row("selected", true);
                       LAID.unclog();
-                      updateLocalStorage();
                     }
                   }
-                },
-                many: {
-                  data: {
-                    selected: LAID.take("", "rows").
-                      filterEq("selected", true).
-                      index(0).key("text")
-                  },
-                  $load: function () {
-                    /*if ( window.localStorage ) {
-                      var prevSelectedText = localStorage.getItem("selected");
-                      if ( prevSelectedText ) {
-                        LAID.clog();
-                        //this.rowsUpdate("selected", false );
-                        this.rowsUpdate("selected",
-                          this.queryRows().filterEq("text", prevSelectedText),
-                          "selected", true);
-                        LAID.unclog();
-                
-                      }
-                    }*/
-                  },
-                  formation: "totheright",
-                  fargs: {
-                    totheright: {
-                      gap:10
-                    }
-                  },
-                  $id: "id",
-                  rows: [
-                    {id:1, text: "All", selected: true },
-                    {id:2, text: "Active", selected: false },
-                    {id:3, text: "Completed", selected: false }
-                  ]
                 }
               }                   
             },
@@ -541,7 +539,6 @@ LAID.run({
                 cursor: "pointer",
                 right: 0,
                 centerY: LAID.take("../", "$midpointY"),
-//                height: LAID.take("/", "textSize"),
                 text: "Clear completed"
               },
               when: {
@@ -697,9 +694,9 @@ LAID.run({
             height:2,
             border: {
               top: {style:"dashed", width:1,
-              color: LAID.hex(0xc5c5c5)},
+               color: LAID.hex(0xc5c5c5)},
               bottom: {style:"dashed", width:1,
-              color: LAID.hex(0xf7f7f7)}
+                color: LAID.hex(0xf7f7f7)}
             }
           }
         },
