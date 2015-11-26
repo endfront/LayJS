@@ -4,18 +4,18 @@
   var transitionType2fn,
     epsilon = 1e-6;
 
-  LAID.Transition = function ( type, delay, duration, args, done ) {
+  LAY.Transition = function ( type, delay, duration, args, done ) {
     this.done = done;
     this.delay = delay;
     this.transition = ( transitionType2fn[ type ] )( duration, args );
 
   };
 
-  LAID.Transition.prototype.generateNext = function ( delta ) {
+  LAY.Transition.prototype.generateNext = function ( delta ) {
     return this.transition.generateNext( delta );
   };
 
-  LAID.Transition.prototype.checkIsComplete = function () {
+  LAY.Transition.prototype.checkIsComplete = function () {
     return this.transition.checkIsComplete();
   };
 
@@ -123,7 +123,7 @@
       return new LinearTransition( duration, args );
     },
     "spring": function ( duration, args ) {
-      return new LAID.$springTransition( duration, args );
+      return new LAY.$springTransition( duration, args );
     },
     "cubic-bezier": function ( duration, args ) {
       return new CubicBezierTransition( duration, args );

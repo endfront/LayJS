@@ -18,7 +18,7 @@
 	 * @return {Boolean} equal match
 	 */
 
-  LAID.$identical = function ( a, b ) {
+  LAY.$identical = function ( a, b ) {
   	return deepEqual( a, b, undefined );
   };
 
@@ -27,7 +27,7 @@
 	*/
 
 	function type (x) {
-		return LAID.type(x);
+		return LAY.type(x);
 	}
 
   function deepEqual(a,b,m) {

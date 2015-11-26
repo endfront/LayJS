@@ -1,7 +1,7 @@
 (function() {
   "use strict";
 
-  LAID.Many = function ( level, partLson ) {
+  LAY.Many = function ( level, partLson ) {
 
     this.level = level;
     this.partLson = partLson;
@@ -27,47 +27,47 @@
 
   };
 
-  LAID.Many.prototype.init = function () {
+  LAY.Many.prototype.init = function () {
 
     var
       states = this.partLson.states ||
       ( this.partLson.states = {} );
 
     states.formationDisplayNone =
-      LAID.$formationDisplayNoneState;
+      LAY.$formationDisplayNoneState;
 
-    LAID.$defaultizePartLson( this.partLson, false );
+    LAY.$defaultizePartLson( this.partLson, false );
 
-    LAID.$newManyS.push( this );
+    LAY.$newManyS.push( this );
 
     this.defaultFormationX = this.partLson.states.root.props.left;
     this.defaultFormationY = this.partLson.states.root.props.top;
 
   };
 
-  LAID.Many.prototype.queryRows = function () {
-    return new LAID.Query( 
-       LAID.$arrayUtils.cloneSingleLevel(
+  LAY.Many.prototype.queryRows = function () {
+    return new LAY.Query( 
+       LAY.$arrayUtils.cloneSingleLevel(
         this.level.attr2attrVal.rows.calcVal ) );
   };
 
-  LAID.Many.prototype.queryFilter = function () {
-    return new LAID.Query(
-      LAID.$arrayUtils.cloneSingleLevel(
+  LAY.Many.prototype.queryFilter = function () {
+    return new LAY.Query(
+      LAY.$arrayUtils.cloneSingleLevel(
         this.level.attr2attrVal.filter.calcVal ) );
   };
 
-  LAID.Many.prototype.rowsCommit = function ( newRowS ) {
+  LAY.Many.prototype.rowsCommit = function ( newRowS ) {
 
     var rowsAttrVal = this.level.attr2attrVal.rows;
 
     rowsAttrVal.val = newRowS;
     rowsAttrVal.requestRecalculation();
-    LAID.$solve();
+    LAY.$solve();
 
   };
 
-  LAID.Many.prototype.rowsMore = function ( newRowS ) {
+  LAY.Many.prototype.rowsMore = function ( newRowS ) {
     var
       rowsAttrVal = this.level.attr2attrVal.rows,
       curRowS = rowsAttrVal.calcVal;
@@ -82,27 +82,27 @@
 
     rowsAttrVal.val = rowsAttrVal.calcVal;
     rowsAttrVal.requestRecalculation();
-    LAID.$solve();
+    LAY.$solve();
 
   };
 
-  LAID.Many.prototype.rowDeleteByID = function ( id ) {
+  LAY.Many.prototype.rowDeleteByID = function ( id ) {
     var
       rowsAttrVal = this.level.attr2attrVal.rows,
       curRowS = rowsAttrVal.calcVal,
       row = this.id2row [ id ];
 
     if ( row ) {
-      LAID.$arrayUtils.remove( 
+      LAY.$arrayUtils.remove( 
         curRowS, row );
       rowsAttrVal.val = rowsAttrVal.calcVal;
       rowsAttrVal.requestRecalculation();
-      LAID.$solve();
+      LAY.$solve();
 
     }
   };
 
-  LAID.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+  LAY.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
 
     var rowsAttrVal = this.level.attr2attrVal.rows;
 
@@ -120,11 +120,11 @@
 
     rowsAttrVal.val = rowsAttrVal.calcVal;
     rowsAttrVal.requestRecalculation();
-    LAID.$solve();
+    LAY.$solve();
 
   };
 
-  LAID.Many.prototype.rowsDelete = function ( queryRowS ) {
+  LAY.Many.prototype.rowsDelete = function ( queryRowS ) {
     
     var
       rowsAttrVal = this.level.attr2attrVal.rows,
@@ -137,12 +137,12 @@
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
       var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
-      LAID.$arrayUtils.remove( curRowS, fetchedRow );
+      LAY.$arrayUtils.remove( curRowS, fetchedRow );
     }
 
     rowsAttrVal.val = rowsAttrVal.calcVal;
     rowsAttrVal.requestRecalculation();
-    LAID.$solve();
+    LAY.$solve();
 
   };
 
@@ -166,7 +166,7 @@
   * (1) Creating new levels in accordance to new rows
   * (2) Updating existing levels in accordance to changes in changed rows
   */
-  LAID.Many.prototype.updateRows = function () {
+  LAY.Many.prototype.updateRows = function () {
     var 
   		rowS = this.level.attr2attrVal.rows.calcVal,
   		row,
@@ -199,13 +199,13 @@
       if ( !level ) {
         // create new level with row
         if ( id === undefined ) {
-          throw "LAID Error: No id provided for many " + this.pathName;
+          throw "LAY Error: No id provided for many " + this.pathName;
         }
-  			level = new LAID.Level( this.level.pathName + ":" + id,
+  			level = new LAY.Level( this.level.pathName + ":" + id,
   			 this.partLson, parentLevel, false, this, row, id );
         level.$init();
         // the level has already been normalized
-        // while LAID was parsing the "many" level
+        // while LAY was parsing the "many" level
         level.isNormalized = true;
 
   			parentLevel.childLevelS.push( level );
@@ -239,7 +239,7 @@
 
     // solve as new levels might have been intoduced
     // after "Level.$identifyAndReproduce()"
-    LAID.$solve();
+    LAY.$solve();
 
     for ( id in id2level ) {
       level = id2level[ id ];
@@ -252,12 +252,12 @@
     }
 
     this.allLevelS = updatedAllLevelS;
-    LAID.$solve();
+    LAY.$solve();
 
 
   };
 
-  LAID.Many.prototype.updateFilter = function ( ) {
+  LAY.Many.prototype.updateFilter = function ( ) {
     var  
       allLevelS = this.allLevelS,
       filteredRowS =
@@ -288,12 +288,12 @@
 
   };
 
-  LAID.Many.prototype.updateFilteredPositioning = function () {
+  LAY.Many.prototype.updateFilteredPositioning = function () {
 
     if ( this.isLoaded ) {
       var
         filteredLevelS = this.filteredLevelS,
-        formationFn = LAID.$formationName2fn[
+        formationFn = LAY.$formationName2fn[
           this.level.attr2attrVal.formation.calcVal ],
         firstFilteredLevel = filteredLevelS[ 0 ];
 
@@ -315,14 +315,14 @@
         formationFn( f + 1, filteredLevelS[ f ], filteredLevelS );
       }
 
-      LAID.$solve();
+      LAY.$solve();
     }
 
   };
 
   
 
-  LAID.Many.prototype.sort = function ( rowS ) {
+  LAY.Many.prototype.sort = function ( rowS ) {
     var sortAttrPrefix,
       attr2attrVal = this.level.attr2attrVal,
       numSorts = attr2attrVal["$$num.sort"] ?

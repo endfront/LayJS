@@ -3,7 +3,7 @@
 
   var regexDetails = /^([a-zA-Z]+)(\d+)/;
 
-  LAID.$findMultipleTypePropMatchDetails = function ( prop ) {
+  LAY.$findMultipleTypePropMatchDetails = function ( prop ) {
       return prop.match( regexDetails );
   };
 

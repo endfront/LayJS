@@ -6,16 +6,16 @@
   * Optional argument of `timeNow`
   * which represent the previous time frame
   */
-  LAID.$render = function ( timeNow ) {
-    if ( ( ( LAID.$renderDirtyPartS.length !== 0 ) ||
-       LAID.isDataTravelling
+  LAY.$render = function ( timeNow ) {
+    if ( ( ( LAY.$renderDirtyPartS.length !== 0 ) ||
+       LAY.isDataTravelling
        ) ) {
 
       if ( timeNow ) {
-        LAID.$prevTimeFrame = timeNow;
+        LAY.$prevTimeFrame = timeNow;
         window.requestAnimationFrame( render );
       } else {
-        LAID.$prevTimeFrame = performance.now();
+        LAY.$prevTimeFrame = performance.now();
         render();
       }
       
@@ -27,13 +27,13 @@
   function render() {
     var
       curTimeFrame = performance.now(),
-      timeFrameDiff = curTimeFrame - LAID.$prevTimeFrame,
+      timeFrameDiff = curTimeFrame - LAY.$prevTimeFrame,
       parentNode,
       x, y,
       i, len,
-      isDataTravelling = LAID.$isDataTravelling,
-      dataTravellingDelta = LAID.$dataTravelDelta,
-      renderDirtyPartS = LAID.$renderDirtyPartS,
+      isDataTravelling = LAY.$isDataTravelling,
+      dataTravellingDelta = LAY.$dataTravelDelta,
+      renderDirtyPartS = LAY.$renderDirtyPartS,
       renderDirtyPart,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal,
@@ -62,7 +62,7 @@
         if ( travelRenderDirtyAttrVal.isTransitionable ) {
 
           transitionAttrVal( travelRenderDirtyAttrVal, dataTravellingDelta );
-            LAID.$arrayUtils.pushUnique(
+            LAY.$arrayUtils.pushUnique(
                renderCallS, travelRenderDirtyAttrVal.renderCall );
 
         }
@@ -73,7 +73,7 @@
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
         isNormalAttrValTransitionComplete = true;
         if ( normalRenderDirtyAttrVal.calcVal !== undefined ) {
-          LAID.$arrayUtils.pushUnique( renderCallS,
+          LAY.$arrayUtils.pushUnique( renderCallS,
            normalRenderDirtyAttrVal.renderCall );
         }
         renderDirtyTransition = normalRenderDirtyAttrVal.transition;
@@ -104,7 +104,7 @@
 
           normalRenderDirtyAttrVal.transitionCalcVal =
             normalRenderDirtyAttrVal.calcVal;
-          LAID.$arrayUtils.removeAtIndex( normalRenderDirtyAttrValS, y );
+          LAY.$arrayUtils.removeAtIndex( normalRenderDirtyAttrValS, y );
           y--;
 
         }
@@ -114,10 +114,10 @@
       // scroll positions must be affected last
       // as a dimensional update would require
       // scroll to be updated after
-      if ( LAID.$arrayUtils.remove( renderCallS, "scrollX" ) ) {
+      if ( LAY.$arrayUtils.remove( renderCallS, "scrollX" ) ) {
         renderCallS.push( "scrollX" );
       }
-      if ( LAID.$arrayUtils.remove( renderCallS, "scrollY" ) ) {
+      if ( LAY.$arrayUtils.remove( renderCallS, "scrollY" ) ) {
         renderCallS.push( "scrollY" );
       }
 
@@ -125,7 +125,7 @@
         var fnRender =
           renderDirtyPart[ "renderFn_" + renderCallS[ i ] ];
         if ( !fnRender ) {
-          throw "LAID Error: Inexistent prop: '" +
+          throw "LAY Error: Inexistent prop: '" +
            renderCallS[ i ] + "'"; 
         }
         renderDirtyPart[ "renderFn_" + renderCallS[ i ] ]();
@@ -134,13 +134,13 @@
       if (
          ( normalRenderDirtyAttrValS.length === 0 ) &&
          ( travelRenderDirtyAttrValS.length === 0 ) ) {
-        LAID.$arrayUtils.removeAtIndex( LAID.$renderDirtyPartS, x );
+        LAY.$arrayUtils.removeAtIndex( LAY.$renderDirtyPartS, x );
         x--;
       }
 
       if ( !renderDirtyPart.isInitiallyRendered &&
-         LAID.$renderDirtyPartS.indexOf( renderDirtyPart ) === -1 ) {
-        LAID.$arrayUtils.pushUnique( renderNewLevelS,
+         LAY.$renderDirtyPartS.indexOf( renderDirtyPart ) === -1 ) {
+        LAY.$arrayUtils.pushUnique( renderNewLevelS,
          renderDirtyPart.level );
       }
 
@@ -156,19 +156,19 @@
     }
 
     
-    if ( LAID.$isSolveRequiredOnRenderFinish ) {
-      LAID.$isSolveRequiredOnRenderFinish = false;
-      LAID.$solve();
+    if ( LAY.$isSolveRequiredOnRenderFinish ) {
+      LAY.$isSolveRequiredOnRenderFinish = false;
+      LAY.$solve();
     } else if ( !isAllNormalTransitionComplete ) {
-      LAID.$render( curTimeFrame );
+      LAY.$render( curTimeFrame );
     }
 
   }
 
   function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
-    if ( normalRenderDirtyAttrVal.calcVal instanceof LAID.Color ) {
+    if ( normalRenderDirtyAttrVal.calcVal instanceof LAY.Color ) {
       normalRenderDirtyAttrVal.transitionCalcVal =
-        LAID.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
+        LAY.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
           normalRenderDirtyAttrVal.calcVal,
           delta );
     } else {

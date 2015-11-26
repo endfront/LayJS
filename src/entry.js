@@ -1,5 +1,5 @@
 // Polyfill for Array.indexOf must be implemented
-// before the LAID library executes
+// before the LAY library executes
 //
 // Production steps of ECMA-262, Edition 5, 15.4.4.14
 // Reference: http://es5.github.io/#x15.4.4.14
@@ -73,7 +73,7 @@ if (!Array.prototype.indexOf) {
 (function () {
   "use strict";
 
-  window.laid = window.LAID = {
+  window.LAY = window.LAY = {
 
     // version is a method in order
     // to maintain the consistency of

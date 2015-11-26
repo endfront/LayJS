@@ -1,6 +1,6 @@
 ( function () {
   "use strict";
-  LAID.$solveForRecalculation = function () {
+  LAY.$solveForRecalculation = function () {
 
 
     var 
@@ -8,7 +8,7 @@
       isSolveProgressed,
       isSolveProgressedOnce = false,
       ret,
-      recalculateDirtyLevelS = LAID.$recalculateDirtyLevelS;
+      recalculateDirtyLevelS = LAY.$recalculateDirtyLevelS;
       
     if ( !recalculateDirtyLevelS.length ) {
       return 3;
@@ -22,7 +22,7 @@
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
           if ( ret === 0 ) {
-            LAID.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
+            LAY.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
             i--;
           }
         }

@@ -1,13 +1,13 @@
 (function() {
   "use strict";
 
-  LAID.run =  function ( rootLson ) {
+  LAY.run =  function ( rootLson ) {
 
     setRuntimeGlobals();
 
-    ( new LAID.Level( "/", rootLson, undefined ) ).$init();
+    ( new LAY.Level( "/", rootLson, undefined ) ).$init();
 
-    LAID.$solve();
+    LAY.$solve();
 
     window.onresize = updateSize;
 
@@ -15,25 +15,25 @@
 
   function setRuntimeGlobals () {
     var
-      takeMidpointX = LAID.take("", "width").divide(2),
-      takeMidpointY = LAID.take("", "height").divide(2);
+      takeMidpointX = LAY.take("", "width").divide(2),
+      takeMidpointY = LAY.take("", "height").divide(2);
     
-    LAID.$miscPosAttr2take = {
-      centerX: LAID.take("","left").add( takeMidpointX ),
-      centerY: LAID.take("","top").add( takeMidpointY ),
+    LAY.$miscPosAttr2take = {
+      centerX: LAY.take("","left").add( takeMidpointX ),
+      centerY: LAY.take("","top").add( takeMidpointY ),
       $midpointX: takeMidpointX,
       $midpointY: takeMidpointY
     };
 
-    LAID.$essentialPosAttr2take = {
-      right: LAID.take("","left").add( LAID.take("", "width") ),
-      bottom: LAID.take("","top").add( LAID.take("", "height") )
+    LAY.$essentialPosAttr2take = {
+      right: LAY.take("","left").add( LAY.take("", "width") ),
+      bottom: LAY.take("","top").add( LAY.take("", "height") )
     };
 
-    LAID.$emptyAttrVal = new LAID.AttrVal( "", undefined );
+    LAY.$emptyAttrVal = new LAY.AttrVal( "", undefined );
 
-    LAID.$formationDisplayNoneState = {
-      onlyif: LAID.take("","$f").eq(-1),
+    LAY.$formationDisplayNoneState = {
+      onlyif: LAY.take("","$f").eq(-1),
       props: {
         display:false
       }
@@ -42,7 +42,7 @@
 
   function updateSize () {
 
-    var rootLevel = LAID.$pathName2level[ "/" ];
+    var rootLevel = LAY.$pathName2level[ "/" ];
     rootLevel.$changeAttrVal( "$windowWidth", window.innerWidth ||
          document.documentElement.clientWidth ||
           document.body.clientWidth );

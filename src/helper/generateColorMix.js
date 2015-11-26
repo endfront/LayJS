@@ -1,7 +1,7 @@
 ( function () {
   "use strict";
 
-  LAID.$generateColorMix = function ( startColor, endColor, fraction ) {
+  LAY.$generateColorMix = function ( startColor, endColor, fraction ) {
 
       var
         startColorRgbaDict = startColor.getRgba(),
@@ -9,7 +9,7 @@
         midColor;
 
 
-      return new LAID.Color( "rgb", {
+      return new LAY.Color( "rgb", {
         r: Math.round( startColorRgbaDict.r +
           fraction * ( endColorRgbaDict.r - startColorRgbaDict.r )
         ),

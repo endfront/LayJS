@@ -1,13 +1,13 @@
 ( function () {
   "use strict";
 
-  LAID.$clearDataTravellingAttrVals = function () {
+  LAY.$clearDataTravellingAttrVals = function () {
 
     var
 
       x, y,
       yLen,
-      renderDirtyPartS = LAID.$renderDirtyPartS,
+      renderDirtyPartS = LAY.$renderDirtyPartS,
       renderDirtyPart,
       travelRenderDirtyAttrValS,
       travelRenderDirtyAttrVal;
@@ -32,7 +32,7 @@
               travelRenderDirtyAttrVal
             );
           } else {
-            LAID.$arrayUtils.remove( travelRenderDirtyAttrValS,
+            LAY.$arrayUtils.remove( travelRenderDirtyAttrValS,
               travelRenderDirtyAttrVal
             );
           }

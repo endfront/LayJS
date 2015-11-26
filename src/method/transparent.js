@@ -2,9 +2,9 @@
   "use strict";
 
 
-  LAID.transparent = function ( ) {
+  LAY.transparent = function ( ) {
 
-    return new LAID.Color( 'rgb', { r: 0, g: 0, b: 0 }, 0 );
+    return new LAY.Color( 'rgb', { r: 0, g: 0, b: 0 }, 0 );
 
   };
 

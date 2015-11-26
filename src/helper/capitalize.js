@@ -1,6 +1,6 @@
 (function(){
   "use strict";
-  LAID.$capitalize = function( string ) {
+  LAY.$capitalize = function( string ) {
 
     return string.charAt( 0 ).toUpperCase() + string.slice( 1 );
 

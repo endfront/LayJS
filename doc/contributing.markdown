@@ -131,9 +131,9 @@ province2_majorCityS_
 
 **(User-)Hidden Methods/Functions/Variables**
 
-LAID.Level, LAID (global), LAID.Color, LAID.Take are examples of objects available to the user during runtime. For these objects there exists 2 types of methods, ones which is accessable to the user (such as LAID.Level.attr() ), and the remaining which are to accessed internally by the the engine (such as LAID.Level.$getAttrVal). To distinguish between these two, the "$" prefix is used.
+LAY.Level, LAY (global), LAY.Color, LAY.Take are examples of objects available to the user during runtime. For these objects there exists 2 types of methods, ones which is accessable to the user (such as LAY.Level.attr() ), and the remaining which are to accessed internally by the the engine (such as LAY.Level.$getAttrVal). To distinguish between these two, the "$" prefix is used.
 
-To exaggerate the simplisitc design the user is disallowed to access any variables of instantiable objects (such as LAID.Level.parentLevel), an is provided equivalent methods for access (such as LAID.Level.parent() to access LAID.Level.parentLevel). For this reason none of the object variables require a prefix. However this rule does not fully apply to non-instantiable objects, the only one being LAID, which in this case would have both its functions and variables (which are non-user accessable) to be prefixed with a "$". 
+To exaggerate the simplisitc design the user is disallowed to access any variables of instantiable objects (such as LAY.Level.parentLevel), an is provided equivalent methods for access (such as LAY.Level.parent() to access LAY.Level.parentLevel). For this reason none of the object variables require a prefix. However this rule does not fully apply to non-instantiable objects, the only one being LAY, which in this case would have both its functions and variables (which are non-user accessable) to be prefixed with a "$". 
 
 **Unsure variables**
 
@@ -143,5 +143,5 @@ eg: element3elementS (either an element or array of elements)
 
 **User API**
 
-For the LAID API including its methods and direct variable access, the above rules
+For the LAY API including its methods and direct variable access, the above rules
 mentioned do not apply.

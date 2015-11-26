@@ -14,7 +14,7 @@ var js_fileS = [
 gulp.task( 'concat', function() {
 
 	gulp.src( js_fileS )
-	.pipe( concat( "LAID.js" ) )
+	.pipe( concat( "LAY.js" ) )
 	.pipe( gulp.dest( "./" ) );
 
 });

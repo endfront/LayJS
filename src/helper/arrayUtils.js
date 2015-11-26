@@ -1,7 +1,7 @@
 ( function () {
   "use strict";
 
-  LAID.$arrayUtils = {
+  LAY.$arrayUtils = {
     /*
     * Add to array if element does not exist already
     * Return true the element was added (as it did not exist previously)
@@ -16,7 +16,7 @@
 
     /* Prepend element, if preset already then remove and prepend */
     prependUnique: function ( elementS, element ) {
-      LAID.$arrayUtils.remove( elementS, element );
+      LAY.$arrayUtils.remove( elementS, element );
       elementS.unshift( element );
     },
 

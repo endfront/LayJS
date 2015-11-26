@@ -25,12 +25,12 @@ Current:
   - < state >.bottom/right/centerX/centerY
   - filter.end()
   - todoMVC routing
-  - LAID.color() warning
+  - LAY.color() warning
     so that it doesn't get recalculated a million times
   - "url" hashchange "$url" ??
   - add all remaining filter/fold takes
   - function to get all partLevelS from many?
-  - do you need to clone rows and filter in Take.js? and also in LAID.Many.prototype.queryRows/Filter?
+  - do you need to clone rows and filter in Take.js? and also in LAY.Many.prototype.queryRows/Filter?
   - lazyProp2defaultValue has originX and perspectiveOriginX as 0.5?
   - ONLY 1 NODE to count the goddamn text dimesions is the DREAM COME TRUE
   - grid formation
@@ -41,7 +41,7 @@ Current:
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
   - "*/" to reach row level from descendant level
-  - LAID.Many.remove()
+  - LAY.Many.remove()
   - test Textarea
   - test Image
   - test Video
@@ -55,7 +55,7 @@ Current:
   - many.rows can take array of non-objects
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
-  - add LAID.level.changeNativeInput/ScrollX/Y() to spec
+  - add LAY.level.changeNativeInput/ScrollX/Y() to spec
   - $centerX, $centerY, $right, $bottom
   - update spec to have quotes around state names
   - filter.end() ?
@@ -72,7 +72,7 @@ Future:
   - $browser attr
   - $url attr
   - < img > srcset
-  - LAID.transparent() -> LAID.transparent ?
+  - LAY.transparent() -> LAY.transparent ?
   - selective inheritance where part of lson is inherited
     eg: ($inherit: [{level:"../Button", keys: ["props", "when"]}] )
   - try to remove AttrVal.forceRecalculation()
@@ -91,7 +91,7 @@ Future:
   - Add support for other HTML5 input types
   - optimization: check all the props possible within the level (by checking root and the states) and only set defaults for those which are going to be used (make sure you include important superdefaults such as originX, originY,etc which come into the calculation)
   - 'when' for formation, it should include function handler for insertion of new item into the formation alongwith deletion.
-  - LAID.Color mix
+  - LAY.Color mix
 
 
 cry about:

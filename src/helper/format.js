@@ -1,4 +1,4 @@
-// LAID has taken the below source from 'tmaeda1981jp'
+// LAY has taken the below source from 'tmaeda1981jp'
 // source: https://github.com/tmaeda1981jp/string-format-js/blob/master/format.js
 
 (function() {
@@ -218,7 +218,7 @@
       return Constr;
     }());
 
-    LAID.$format = function() {
+    LAY.$format = function() {
 
       var i,
           result,
@@ -232,7 +232,7 @@
           for ( i = 1; i < argSLength; i++ ) {
             arg = argS[ i ];
             if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
-              arg = arg instanceof LAID.Color ? arg.stringify() : arg; 
+              arg = arg instanceof LAY.Color ? arg.stringify() : arg; 
               result = new Formatter(RegExp.$1).format(result, arg );
             }
           }

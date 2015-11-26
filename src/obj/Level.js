@@ -1,7 +1,7 @@
 ( function () {
   "use strict";
 
-  LAID.Level = function ( path, lson, parent, isHelper, derivedMany, rowDict, id ) {
+  LAY.Level = function ( path, lson, parent, isHelper, derivedMany, rowDict, id ) {
 
     this.pathName = path;
     this.lson = lson;
@@ -56,52 +56,52 @@
 
   };
 
-  LAID.Level.prototype.$init = function () {
+  LAY.Level.prototype.$init = function () {
 
-    LAID.$pathName2level[ this.pathName ] = this;
-    LAID.$newLevelS.push( this );
+    LAY.$pathName2level[ this.pathName ] = this;
+    LAY.$newLevelS.push( this );
    
   };
 
 
-  LAID.Level.prototype.level = function ( relativePath ) {
+  LAY.Level.prototype.level = function ( relativePath ) {
 
-    return ( new LAID.RelPath( relativePath ) ).resolve( this );
+    return ( new LAY.RelPath( relativePath ) ).resolve( this );
   };
 
-  LAID.Level.prototype.parent = function () {
+  LAY.Level.prototype.parent = function () {
     return this.parentLevel;
   };
 
-  LAID.Level.prototype.path = function () {
+  LAY.Level.prototype.path = function () {
     return this.pathName;
   };
 
 
-  LAID.Level.prototype.node = function () {
+  LAY.Level.prototype.node = function () {
 
     return this.isPart && this.part.node;
   };
 
 
-  LAID.Level.prototype.attr = function ( attr ) {
+  LAY.Level.prototype.attr = function ( attr ) {
 
     if ( this.attr2attrVal[ attr ] ) {
       return this.attr2attrVal[ attr ].calcVal;
     } else { 
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
-        if ( LAID.$checkIfDoingReadonly( attr ) ) {
-          console.error("LAID Error: " + attr + " must be placed in $observe");
+        if ( LAY.$checkIfDoingReadonly( attr ) ) {
+          console.error("LAY Error: " + attr + " must be placed in $observe");
           return undefined;
-        } else if ( LAID.$checkIfImmidiateReadonly( attr ) ) {
+        } else if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
           return this.part.getImmidiateReadonlyVal( attr );
         }
       } 
       if ( this.$createLazyAttr( attr, true ) ) {
         var attrVal = this.attr2attrVal[ attr ];
-        attrVal.give( LAID.$emptyAttrVal );
-        LAID.$solve();
+        attrVal.give( LAY.$emptyAttrVal );
+        LAY.$solve();
         return attrVal.calcVal;
       } else {
         return undefined;
@@ -109,198 +109,198 @@
     }
   };
 
-  LAID.Level.prototype.data = function ( dataKey, value ) {
+  LAY.Level.prototype.data = function ( dataKey, value ) {
     this.$changeAttrVal( "data." + dataKey, value );
-    LAID.$solve();
+    LAY.$solve();
   };
 
-  LAID.Level.prototype.row = function ( rowKey, value ) {
+  LAY.Level.prototype.row = function ( rowKey, value ) {
     if ( this.derivedMany ) {
       this.derivedMany.id2row[ this.id ][ rowKey ] = value;
       this.derivedMany.level.attr2attrVal.rows.requestRecalculation();
-      LAID.$solve();
+      LAY.$solve();
     }
   };
 
-  LAID.Level.prototype.changeNativeInput = function ( value ) {
+  LAY.Level.prototype.changeNativeInput = function ( value ) {
     this.part.node.value = value;
   };
 
-  LAID.Level.prototype.changeNativeScrollX = function ( value ) {
+  LAY.Level.prototype.changeNativeScrollX = function ( value ) {
     this.part.node.scrollLeft = value;
   };
 
-  LAID.Level.prototype.changeNativeScrollY = function ( value ) {
+  LAY.Level.prototype.changeNativeScrollY = function ( value ) {
     this.part.node.scrollTop = value;
   };
 
-  LAID.Level.prototype.many = function () {
+  LAY.Level.prototype.many = function () {
 
     return this.derivedMany && this.derivedMany.level;
   };
 
-  LAID.Level.prototype.rowsCommit = function ( newRowS ) {
+  LAY.Level.prototype.rowsCommit = function ( newRowS ) {
 
     if ( !this.isPart ) {
       this.manyObj.rowsCommit( newRowS );
     }
   };
 
-  LAID.Level.prototype.rowsMore = function ( newRowS ) {
+  LAY.Level.prototype.rowsMore = function ( newRowS ) {
 
     if ( !this.isPart ) {
       this.manyObj.rowsMore( newRowS );
     }
   };
 
-  LAID.Level.prototype.rowAdd = function ( newRow ) {
+  LAY.Level.prototype.rowAdd = function ( newRow ) {
     this.rowsMore( [ newRow ] );
   };
 
-  LAID.Level.prototype.rowDeleteByID = function ( id ) {
+  LAY.Level.prototype.rowDeleteByID = function ( id ) {
 
     if ( !this.isPart ) {
       this.manyObj.rowDeleteByID( id );
     }
   };
 
-  LAID.Level.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+  LAY.Level.prototype.rowsUpdate = function ( key, val, queryRowS ) {
     if ( !this.isPart ) {
-      if ( queryRowS instanceof LAID.Query ) {
+      if ( queryRowS instanceof LAY.Query ) {
         queryRowS = queryRowS.rowS;
       }
       this.manyObj.rowsUpdate( key, val, queryRowS );
     }
   };
 
-  LAID.Level.prototype.rowsDelete = function ( queryRowS ) {
+  LAY.Level.prototype.rowsDelete = function ( queryRowS ) {
     if ( !this.isPart ) {
-      if ( queryRowS instanceof LAID.Query ) {
+      if ( queryRowS instanceof LAY.Query ) {
         queryRowS = queryRowS.rowS;
       }
       this.manyObj.rowsDelete( queryRowS );
     }
   };
 
-  LAID.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
+  LAY.Level.prototype.dataTravelBegin = function ( dataKey, finalVal ) {
     var attrVal;
-    if ( LAID.$isDataTravelling ) {
-      console.error("LAID Warning: Existence of another unfinished data travel");
+    if ( LAY.$isDataTravelling ) {
+      console.error("LAY Warning: Existence of another unfinished data travel");
     } else {
       attrVal = this.attr2attrVal[ "data." + dataKey ];
       if ( attrVal === undefined ) {
-        console.error ("LAID Warning: Inexistence of data key for data travel");
+        console.error ("LAY Warning: Inexistence of data key for data travel");
       }
-      LAID.$isDataTravelling = true;
-      LAID.level("/").attr2attrVal.$dataTravelling.update( true );
-      LAID.$dataTravellingLevel = this;
-      LAID.level("/").attr2attrVal.$dataTravelLevel.update( this );
-      LAID.$dataTravellingAttrInitialVal = attrVal.val;
-      LAID.$dataTravellingAttrVal = attrVal;
+      LAY.$isDataTravelling = true;
+      LAY.level("/").attr2attrVal.$dataTravelling.update( true );
+      LAY.$dataTravellingLevel = this;
+      LAY.level("/").attr2attrVal.$dataTravelLevel.update( this );
+      LAY.$dataTravellingAttrInitialVal = attrVal.val;
+      LAY.$dataTravellingAttrVal = attrVal;
 
-      LAID.$isDataTravellingShock = true;
+      LAY.$isDataTravellingShock = true;
       attrVal.update( finalVal );
-      LAID.$solve();
-      LAID.$isDataTravellingShock = false;
+      LAY.$solve();
+      LAY.$isDataTravellingShock = false;
 
     }
   };
 
-  LAID.Level.prototype.dataTravelContinue = function ( delta ) {
-    if ( !LAID.$isDataTravelling ) {
-      console.error( "LAID Warning: Inexistence of a data travel" );
-    } else if ( this !== LAID.$dataTravellingLevel ){
-      console.error( "LAID Warning: Inexistence of a data travel for this Level" );
+  LAY.Level.prototype.dataTravelContinue = function ( delta ) {
+    if ( !LAY.$isDataTravelling ) {
+      console.error( "LAY Warning: Inexistence of a data travel" );
+    } else if ( this !== LAY.$dataTravellingLevel ){
+      console.error( "LAY Warning: Inexistence of a data travel for this Level" );
     } else {
-      if ( LAID.$dataTravelDelta !== delta ) {
-        LAID.$dataTravelDelta = delta;
-        LAID.level("/").attr2attrVal.$dataTravelDelta.update( delta );
-        LAID.$render();
+      if ( LAY.$dataTravelDelta !== delta ) {
+        LAY.$dataTravelDelta = delta;
+        LAY.level("/").attr2attrVal.$dataTravelDelta.update( delta );
+        LAY.$render();
       }
     }
   };
 
-  LAID.Level.prototype.dataTravelArrive = function ( isArrived ) {
-    if ( !LAID.$isDataTravelling ) {
-      console.error( "LAID Warning: Inexistence of a data travel" );
+  LAY.Level.prototype.dataTravelArrive = function ( isArrived ) {
+    if ( !LAY.$isDataTravelling ) {
+      console.error( "LAY Warning: Inexistence of a data travel" );
     } else {
 
-      LAID.$isDataTravelling = false;
-      LAID.level("/").attr2attrVal.$dataTravelling.update( false );
-      LAID.$dataTravellingLevel = undefined;
-      LAID.level("/").attr2attrVal.$dataTravelLevel.update( null );
-      LAID.$dataTravelDelta = 0.0;
-      LAID.level("/").attr2attrVal.$dataTravelDelta.update( 0.0 );
+      LAY.$isDataTravelling = false;
+      LAY.level("/").attr2attrVal.$dataTravelling.update( false );
+      LAY.$dataTravellingLevel = undefined;
+      LAY.level("/").attr2attrVal.$dataTravelLevel.update( null );
+      LAY.$dataTravelDelta = 0.0;
+      LAY.level("/").attr2attrVal.$dataTravelDelta.update( 0.0 );
 
 
       // clear out attrvalues which are data travelling
-      LAID.$clearDataTravellingAttrVals();
+      LAY.$clearDataTravellingAttrVals();
       if ( !isArrived ) {
-        LAID.$dataTravellingAttrVal.update(
-          LAID.$dataTravellingAttrInitialVal );
-        LAID.$solve();
+        LAY.$dataTravellingAttrVal.update(
+          LAY.$dataTravellingAttrInitialVal );
+        LAY.$solve();
 
       } else {
 
       }
 
-      LAID.$render();
+      LAY.$render();
     }
   };
 
 
 
-  LAID.Level.prototype.queryRows = function () {
+  LAY.Level.prototype.queryRows = function () {
     if ( !this.isPart ) {
       return this.manyObj.queryRows();
     }
   };
 
-  LAID.Level.prototype.queryFilter = function () {
+  LAY.Level.prototype.queryFilter = function () {
     if ( !this.isPart ) {
       return this.manyObj.queryFilter();
     }
   };
 
-  LAID.Level.prototype.addChildren = function ( name2lson ) {
+  LAY.Level.prototype.addChildren = function ( name2lson ) {
 
     var childPath, childLevel, name;
     if ( name2lson !== undefined ) {
       for ( name in name2lson ) {
 
-        if ( !LAID.$checkIsValidUtils.levelName( name ) ) {
-          throw ( "LAID Error: Invalid Level Name: " + name );
+        if ( !LAY.$checkIsValidUtils.levelName( name ) ) {
+          throw ( "LAY Error: Invalid Level Name: " + name );
         }
         childPath = this.pathName + ( this.pathName === "/" ? "" : "/" ) + name;
-        if ( LAID.$pathName2level[ childPath ] !== undefined ) {
-          throw ( "LAID Error: Level already exists with path: " + childPath );
+        if ( LAY.$pathName2level[ childPath ] !== undefined ) {
+          throw ( "LAY Error: Level already exists with path: " + childPath );
         }
-        childLevel = new LAID.Level( childPath,
+        childLevel = new LAY.Level( childPath,
          name2lson[ name ], this, name.charAt(0) === "_" );
         childLevel.$init();
         this.childLevelS.push( childLevel );
 
       }
-      LAID.$solve();
+      LAY.$solve();
     }
   };
 
-  LAID.Level.prototype.remove = function () {
+  LAY.Level.prototype.remove = function () {
     
     if ( this.pathName === "/" ) {
-      console.error("LAID Error: Attempt to remove root level '/' prohibited");
+      console.error("LAY Error: Attempt to remove root level '/' prohibited");
     } else {
       if ( this.derivedMany ) {
         this.derivedMany.rowDeleteByID( this.id );
       } else {
         this.$remove();
-        LAID.$solve();
+        LAY.$solve();
       }
     }
     
   };
 
-  LAID.Level.prototype.$remove = function () {
+  LAY.Level.prototype.$remove = function () {
 
     var
      parentLevel = this.parentLevel,
@@ -309,8 +309,8 @@
 
     this.isRemoved = true;
 
-    LAID.$pathName2level[ this.pathName ] = undefined;
-    LAID.$arrayUtils.remove( parentLevel.childLevelS, this );
+    LAY.$pathName2level[ this.pathName ] = undefined;
+    LAY.$arrayUtils.remove( parentLevel.childLevelS, this );
     
 
     if ( this.isPart ) {
@@ -326,11 +326,11 @@
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
   */
-  LAID.Level.prototype.$normalizeAndInherit = function () {
+  LAY.Level.prototype.$normalizeAndInherit = function () {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
   
-    LAID.$normalize( this.lson, false );
+    LAY.$normalize( this.lson, false );
     
     // check if it contains anything to inherit from
     if ( this.lson.$inherit !== undefined ) { 
@@ -343,7 +343,7 @@
           if ( ref === this.pathName ) {
             return false;
           }
-          level = ( new LAID.RelPath( ref ) ).resolve( this );
+          level = ( new LAY.RelPath( ref ) ).resolve( this );
           if ( ( level === undefined ) || !level.isInherited ) {
             return false;
           }
@@ -354,19 +354,19 @@
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
           
-          level = ( new LAID.RelPath( ref ) ).resolve( this );
+          level = ( new LAY.RelPath( ref ) ).resolve( this );
           inheritedAndNormalizedLson = level.lson;
 
         } else { // object reference
-           LAID.$normalize( ref, true );
+           LAY.$normalize( ref, true );
            inheritedAndNormalizedLson = ref;
         }
 
-        LAID.$inherit( lson, inheritedAndNormalizedLson,
+        LAY.$inherit( lson, inheritedAndNormalizedLson,
          false, false, false );
       }
 
-      LAID.$inherit( lson, this.lson, false, false );
+      LAY.$inherit( lson, this.lson, false, false );
       
       this.lson = lson;
     }
@@ -377,7 +377,7 @@
 
   };
 
-  LAID.Level.prototype.$identifyAndReproduce = function () {
+  LAY.Level.prototype.$identifyAndReproduce = function () {
     this.isPart = this.lson.many === undefined;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
@@ -388,15 +388,15 @@
         this.parentLevel.isGpu :
         this.lson.$gpu;
     }
-    this.isGpu = this.isGpu && LAID.$isGpuAccelerated;
+    this.isGpu = this.isGpu && LAY.$isGpuAccelerated;
 
 
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
-        LAID.$defaultizePartLson( this.lson,
+        LAY.$defaultizePartLson( this.lson,
           this.pathName === "/" );
       }
-      this.part = new LAID.Part( this );
+      this.part = new LAY.Part( this );
       this.part.init();
       
       if ( this.lson.children !== undefined ) {
@@ -409,8 +409,8 @@
       // so as to not to associate with the lson
       // with a many creator
       partLson.many = undefined;
-      LAID.$defaultizeManyLson( this.lson );
-      this.manyObj = new LAID.Many( this, partLson );
+      LAY.$defaultizeManyLson( this.lson );
+      this.manyObj = new LAY.Many( this, partLson );
       this.manyObj.init();
       
     }
@@ -511,7 +511,7 @@
     }
   }
 
-  LAID.Level.prototype.$initAllAttrs = function () {
+  LAY.Level.prototype.$initAllAttrs = function () {
 
     var
       observableReadonlyS = this.lson.$observe ?
@@ -540,11 +540,11 @@
       for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
         observableReadonly = observableReadonlyS[ i ];
         if ( !this.$createLazyAttr( observableReadonly ) ) {
-          throw "LAID Error: Unobervable Attr: '" +
+          throw "LAY Error: Unobervable Attr: '" +
             observableReadonly  + "'";
         }
         this.attr2attrVal[ observableReadonly ].give(
-          LAID.$emptyAttrVal );
+          LAY.$emptyAttrVal );
       }
     }
 
@@ -553,7 +553,7 @@
 
   };
 
-  LAID.Level.prototype.$initNonStateProjectedAttrs = function () {
+  LAY.Level.prototype.$initNonStateProjectedAttrs = function () {
 
     var 
       key, val, stateName, state,
@@ -581,8 +581,8 @@
     }
 
     if ( this.isPart ) { 
-      attr2val.right = LAID.$essentialPosAttr2take.right;
-      attr2val.bottom = LAID.$essentialPosAttr2take.bottom;
+      attr2val.right = LAY.$essentialPosAttr2take.right;
+      attr2val.bottom = LAY.$essentialPosAttr2take.bottom;
       if ( this.pathName === "/" ) {
         attr2val.$dataTravelling = false;
         attr2val.$dataTravelDelta = 0.0;
@@ -603,24 +603,24 @@
 
   };
 
-  LAID.Level.prototype.$commitAttr2Val = function ( attr2val ) {
+  LAY.Level.prototype.$commitAttr2Val = function ( attr2val ) {
 
     var attr, val, attrVal;
     for ( attr in attr2val ) {
       val = attr2val[ attr ];
       attrVal = this.attr2attrVal[ attr ];
       if ( ( attrVal === undefined ) ) {
-        attrVal = this.attr2attrVal[ attr ] = new LAID.AttrVal( attr, this );
+        attrVal = this.attr2attrVal[ attr ] = new LAY.AttrVal( attr, this );
       }
       attrVal.update( val );
 
     }
   };
 
-  LAID.Level.prototype.$createAttrVal = function ( attr, val ) {
+  LAY.Level.prototype.$createAttrVal = function ( attr, val ) {
 
     ( this.attr2attrVal[ attr ] =
-      new LAID.AttrVal( attr, this ) ).update( val );
+      new LAY.AttrVal( attr, this ) ).update( val );
 
   };
 
@@ -629,14 +629,14 @@
   * Return true if attr was created as it exists (in lazy form),
   * false otherwise (it is not present at all to be created)
   */
-  LAID.Level.prototype.$createLazyAttr = function ( attr, isNoImmidiateReadonly ) {
+  LAY.Level.prototype.$createLazyAttr = function ( attr, isNoImmidiateReadonly ) {
     var
      splitAttrLsonComponentS, attrLsonComponentObj, i, len,
      firstAttrLsonComponent;
 
-    if ( LAID.$miscPosAttr2take[ attr ] ) {
+    if ( LAY.$miscPosAttr2take[ attr ] ) {
       this.$createAttrVal( attr,
-        LAID.$miscPosAttr2take[ attr ] );
+        LAY.$miscPosAttr2take[ attr ] );
     } else if ( attr.charAt( 0 ) === "$" ) { //readonly
       if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
             attr ) !== -1 ) {
@@ -645,12 +645,12 @@
         this.$createAttrVal( "$path", this.pathName );
       } else {
         if ( !isNoImmidiateReadonly &&
-         LAID.$checkIfImmidiateReadonly( attr ) ) {
+         LAY.$checkIfImmidiateReadonly( attr ) ) {
           this.$createAttrVal( attr, null );
-        } else if ( LAID.$checkIfDoingReadonly( attr ) ) {
+        } else if ( LAY.$checkIfDoingReadonly( attr ) ) {
           this.$createAttrVal( attr, false );
         } else {
-          console.error("LAID Error: Incorrectly named readonly: " + attr );
+          console.error("LAY Error: Incorrectly named readonly: " + attr );
           return false;
         }
       } 
@@ -670,7 +670,7 @@
             firstAttrLsonComponent = splitAttrLsonComponentS[ 0 ];
 
             // Get down to state level
-            if ( LAID.$checkIsValidUtils.stateName(
+            if ( LAY.$checkIsValidUtils.stateName(
              firstAttrLsonComponent ) ) {
               attrLsonComponentObj = this.lson.states[ firstAttrLsonComponent ];
             } else {
@@ -720,7 +720,7 @@
   * that onlyif AttrVals (i.e. <state>.onlyif)
   * appear first in order
   */
-  LAID.Level.prototype.$prioritizeRecalculateOrder = function () {
+  LAY.Level.prototype.$prioritizeRecalculateOrder = function () {
     var
       recalculateDirtyAttrValS = this.recalculateDirtyAttrValS,
       recalculateDirtyAttrVal;
@@ -729,14 +729,14 @@
         i < len; i++ ) {
       recalculateDirtyAttrVal = recalculateDirtyAttrValS[ i ];
       if ( recalculateDirtyAttrVal.onlyIfStateName ) {
-        LAID.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
+        LAY.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
       }
     }
     /*
     if ( fIndexAttrVal ) {
       fIndexAttrValIndex = recalculateDirtyAttrValS.indexOf( fIndexAttrVal );
       if ( fIndexAttrValIndex !== -1 ) {
-        LAID.$arrayUtils.removeAtIndex(
+        LAY.$arrayUtils.removeAtIndex(
           recalculateDirtyAttrValS,
          fIndexAttrValIndex );
         recalculateDirtyAttrValS.push( fIndexAttrVal );
@@ -751,7 +751,7 @@
   * Return 2 if some attributes were solved
   * Return 3 if no attributes were solved
   */
-  LAID.Level.prototype.$solveForRecalculation = function () {
+  LAY.Level.prototype.$solveForRecalculation = function () {
 
     var i,
       isSolveProgressed,
@@ -767,7 +767,7 @@
   //        recalculateDirtyAttrValS[ i ].attr );
         if ( isSolveProgressed ) {
           isSolveProgressedOnce = true;
-          LAID.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
+          LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
           i--;
         }
       }
@@ -783,7 +783,7 @@
   Undefine all current attributes which are influencable
   by states: props, transition, when, $$num, $$max
   */
-  LAID.Level.prototype.$undefineStateProjectedAttrs = function() {
+  LAY.Level.prototype.$undefineStateProjectedAttrs = function() {
 
     var attr;
     for ( attr in this.attr2attrVal ) {
@@ -796,7 +796,7 @@
 
   /* Return the attr2value generated
   by the current states */
-  LAID.Level.prototype.$getStateAttr2val = function () {
+  LAY.Level.prototype.$getStateAttr2val = function () {
 
     var
       attr2val = {},
@@ -823,20 +823,20 @@
   /*
   * TODO: fill in details of priority
   */
-  LAID.Level.prototype.$sortStates = function ( stateS ) {
+  LAY.Level.prototype.$sortStates = function ( stateS ) {
 
     var
       sortedStateS = this.stateS.sort(),
       i, len, sortedState;
 
     // Push the "root" state to the start for least priority
-    LAID.$arrayUtils.remove( sortedStateS, "root" );
+    LAY.$arrayUtils.remove( sortedStateS, "root" );
     sortedStateS.unshift("root");
 
     // Push the "formationDisplayNone" state to the end of the
     // list of states for maximum priority.
     if ( sortedStateS.indexOf( "formationDisplayNone" ) !== -1 ) {
-      LAID.$arrayUtils.remove( sortedStateS, "formationDisplayNone" );
+      LAY.$arrayUtils.remove( sortedStateS, "formationDisplayNone" );
       sortedStateS.push( "formationDisplayNone" );
     }
 
@@ -847,13 +847,13 @@
   *  correspinding SLSON (state projected lson)
   *  Requirement: the order of states must be sorted
   */
-  LAID.Level.prototype.$generateSLSON =  function () {
+  LAY.Level.prototype.$generateSLSON =  function () {
 
     this.$sortStates();
 
     var slson = {}, attr2val;
     for ( var i = 0, len = this.stateS.length; i < len; i++ ) {
-      LAID.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
+      LAY.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
         !this.isPart, true, true );
     }
 
@@ -862,7 +862,7 @@
   };
 
 
-  LAID.Level.prototype.$updateStates = function () {
+  LAY.Level.prototype.$updateStates = function () {
 
     var attr2attrVal = this.attr2attrVal;
 
@@ -882,49 +882,49 @@
     if ( this.pathName === "/" ) {
       if ( this.attr2attrVal.width.val !==
         this.lson.states.root.props.width ) {
-        throw "LAID Error: Width of root level unchangeable";
+        throw "LAY Error: Width of root level unchangeable";
       }
       if ( this.attr2attrVal.height.val !==
         this.lson.states.root.props.height ) {
-        throw "LAID Error: Height of root level unchangeable";
+        throw "LAY Error: Height of root level unchangeable";
       }
     } 
 
 
 
   
-    //console.log("LAID INFO: new state", this.pathName, this.stateS );
+    //console.log("LAY INFO: new state", this.pathName, this.stateS );
 
   };
 
 
   
 
-  LAID.Level.prototype.$getAttrVal = function ( attr ) {
+  LAY.Level.prototype.$getAttrVal = function ( attr ) {
    // if ( !this.attr2attrVal[ attr ] ) {
      // this.$createLazyAttr( attr );
-     // LAID.$solve();
+     // LAY.$solve();
    // }
     return this.attr2attrVal[ attr ];
 
   };
 
   /* Manually change attr value */
-  LAID.Level.prototype.$changeAttrVal = function ( attr, val ) {
+  LAY.Level.prototype.$changeAttrVal = function ( attr, val ) {
     if ( this.attr2attrVal[ attr ] ) {
       this.attr2attrVal[ attr ].update( val );
-      LAID.$solve();
+      LAY.$solve();
     }
   };
 
-  LAID.Level.prototype.$requestRecalculation = function ( attr ) {
+  LAY.Level.prototype.$requestRecalculation = function ( attr ) {
     if ( this.attr2attrVal[ attr ] ) {
       this.attr2attrVal[ attr ].requestRecalculation();
-      LAID.$solve();
+      LAY.$solve();
     }
   };
 
-  LAID.Level.prototype.$setFormationXY = function ( x, y ) {
+  LAY.Level.prototype.$setFormationXY = function ( x, y ) {
     var
       topAttrVal = this.attr2attrVal.top,
       leftAttrVal = this.attr2attrVal.left;
@@ -948,10 +948,10 @@
  
   };
 
-  LAID.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
+  LAY.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$recalculateDirtyLevelS, this );
+    LAY.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
+    LAY.$arrayUtils.pushUnique( LAY.$recalculateDirtyLevelS, this );
 
   };
 

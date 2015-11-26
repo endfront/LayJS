@@ -7,7 +7,7 @@
     lazyProp2defaultValue;
 
 
-  LAID.$defaultizePartLson = function ( lson, isRootLevel ) {
+  LAY.$defaultizePartLson = function ( lson, isRootLevel ) {
     var
       essentialProp,
       rootState = lson.states.root,
@@ -43,20 +43,20 @@
         metaMax = state.$$max;
 
         /*if ( props.left || props.left === 0 ) {
-          takeLeft = new LAID.Take( "",  stateName + ".left" );
+          takeLeft = new LAY.Take( "",  stateName + ".left" );
 
-          props.centerX = new LAID.Take( fnPosToCenter ).fn(
+          props.centerX = new LAY.Take( fnPosToCenter ).fn(
             takeLeft, takeWidth );
-          props.right = new LAID.Take( fnPosToEdge ).fn(
+          props.right = new LAY.Take( fnPosToEdge ).fn(
             takeLeft, takeWidth );
         }
 
         if ( props.top || props.top === 0 ) {
-          takeTop = new LAID.Take( "",  stateName + ".top" );
+          takeTop = new LAY.Take( "",  stateName + ".top" );
 
-          props.centerY = new LAID.Take( fnPosToCenter ).fn(
+          props.centerY = new LAY.Take( fnPosToCenter ).fn(
             takeTop, takeHeight );
-          props.bottom = new LAID.Take( fnPosToEdge ).fn(
+          props.bottom = new LAY.Take( fnPosToEdge ).fn(
             takeTop, takeHeight );  
        }*/
 
@@ -103,7 +103,7 @@
 
   };
 /*
-  takeActualBottomWithRotateZ = new LAID.Take(function( top, height, width,
+  takeActualBottomWithRotateZ = new LAY.Take(function( top, height, width,
      rotateZ, originX, originY ){
 
     var
@@ -118,12 +118,12 @@
         Math.sin( -rotateZradians ) * rightSegmentLength
       );
 
-    }).fn( LAID.take("", "top"),
-        LAID.take("", "height"),
-        LAID.take("", "width"),
-        LAID.take("", "rotateZ"),
-        LAID.take("", "originX"),
-        LAID.take("", "originY")
+    }).fn( LAY.take("", "top"),
+        LAY.take("", "height"),
+        LAY.take("", "width"),
+        LAY.take("", "rotateZ"),
+        LAY.take("", "originX"),
+        LAY.take("", "originY")
         );
 
 */
@@ -132,12 +132,12 @@
   rootEssentialProp2defaultValue = {
     top: 0,
     left: 0,
-    width: LAID.take("", "$windowWidth"),
-    height: LAID.take("", "$windowHeight"),
+    width: LAY.take("", "$windowWidth"),
+    height: LAY.take("", "$windowHeight"),
     textSize: 15,
     textFamily: "sans-serif",
     textWeight: "normal",
-    textColor: LAID.color("black"),
+    textColor: LAY.color("black"),
     textVariant: "normal",
     textTransform: "none",
     textStyle: "normal",
@@ -155,35 +155,35 @@
   nonRootEssentialProp2defaultValue = {
     top: 0,
     left: 0,
-    width: LAID.take("", "$naturalWidth"),
-    height: LAID.take("", "$naturalHeight"),
-    textSize: LAID.take("../", "textSize"),
-    textFamily: LAID.take("../", "textFamily"),
-    textWeight: LAID.take("../", "textWeight"),
-    textColor: LAID.take("../", "textColor"),
-    textVariant: LAID.take("../", "textVariant"),
-    textTransform: LAID.take("../", "textTransform"),
-    textStyle: LAID.take("../", "textStyle"),
-    textLetterSpacing: LAID.take("../", "textLetterSpacing"),
-    textWordSpacing: LAID.take("../", "textWordSpacing"),
-    textDecoration: LAID.take("../", "textDecoration"),
-    textAlign: LAID.take("../", "textAlign"),
-    textDirection: LAID.take("../", "textDirection"),
-    textLineHeight: LAID.take("../", "textLineHeight"),
-    textSmoothing: LAID.take("../", "textSmoothing"),
-    textRendering: LAID.take("../", "textRendering"),
-    userSelect: LAID.take("../", "userSelect")
+    width: LAY.take("", "$naturalWidth"),
+    height: LAY.take("", "$naturalHeight"),
+    textSize: LAY.take("../", "textSize"),
+    textFamily: LAY.take("../", "textFamily"),
+    textWeight: LAY.take("../", "textWeight"),
+    textColor: LAY.take("../", "textColor"),
+    textVariant: LAY.take("../", "textVariant"),
+    textTransform: LAY.take("../", "textTransform"),
+    textStyle: LAY.take("../", "textStyle"),
+    textLetterSpacing: LAY.take("../", "textLetterSpacing"),
+    textWordSpacing: LAY.take("../", "textWordSpacing"),
+    textDecoration: LAY.take("../", "textDecoration"),
+    textAlign: LAY.take("../", "textAlign"),
+    textDirection: LAY.take("../", "textDirection"),
+    textLineHeight: LAY.take("../", "textLineHeight"),
+    textSmoothing: LAY.take("../", "textSmoothing"),
+    textRendering: LAY.take("../", "textRendering"),
+    userSelect: LAY.take("../", "userSelect")
   };
 
 
   /*
-  takeLeft = new LAID.Take( "", "left" );
-  takeTop = new LAID.Take( "", "top" );
+  takeLeft = new LAY.Take( "", "left" );
+  takeTop = new LAY.Take( "", "top" );
   
-  takeLeftToCenterX = new LAID.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
-  takeLeftToRight = new LAID.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
-  takeTopToCenterY = new LAID.Take( fnPosToCenter ).fn( takeTop, takeHeight );
-  takeTopToBottom = new LAID.Take( fnPosToEdge ).fn( takeTop, takeHeight );
+  takeLeftToCenterX = new LAY.Take( fnPosToCenter ).fn( takeLeft, takeWidth );
+  takeLeftToRight = new LAY.Take( fnPosToEdge ).fn( takeLeft, takeWidth );
+  takeTopToCenterY = new LAY.Take( fnPosToCenter ).fn( takeTop, takeHeight );
+  takeTopToBottom = new LAY.Take( fnPosToEdge ).fn( takeTop, takeHeight );
   */
 
   // These match the psuedo defaults for non expander props
@@ -217,7 +217,7 @@
     focus: false,
     scrollElastic: true,
     cursor: "auto",
-    backgroundColor: LAID.transparent(),
+    backgroundColor: LAY.transparent(),
     backgroundImage: "none",
     backgroundAttachment: "scroll",
     backgroundRepeat: true,
@@ -242,19 +242,19 @@
     borderLeftWidth: 0,
 
 
-    borderTopColor: LAID.transparent(),
-    borderBottomColor: LAID.transparent(),
-    borderRightColor: LAID.transparent(),
-    borderLeftColor: LAID.transparent(),
+    borderTopColor: LAY.transparent(),
+    borderBottomColor: LAY.transparent(),
+    borderRightColor: LAY.transparent(),
+    borderLeftColor: LAY.transparent(),
 
     text: "",
-    /*textSize: LAID.take("../", "textSize"),
-    textFamily: LAID.take("../", "textFamily"),
-    textWeight: LAID.take("../", "textWeight"),
-    textColor: LAID.take("../", "textColor"),
-    textVariant: LAID.take("../", "textVariant"),
+    /*textSize: LAY.take("../", "textSize"),
+    textFamily: LAY.take("../", "textFamily"),
+    textWeight: LAY.take("../", "textWeight"),
+    textColor: LAY.take("../", "textColor"),
+    textVariant: LAY.take("../", "textVariant"),
     textTransform: "none"
-    textStyle: LAID.take("../", "textStyle"),
+    textStyle: LAY.take("../", "textStyle"),
     textLetterSpacing: "normal",
     textWordSpacing: "normal",
     textDecoration: "none",

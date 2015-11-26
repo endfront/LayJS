@@ -1,12 +1,12 @@
 ( function () {
   "use strict";
-  LAID.$solveForNew = function () {
+  LAY.$solveForNew = function () {
 
     var
       i, len,
       isSolveProgressed,
       isSolveProgressedOnce = false,
-      newLevelS = LAID.$newLevelS,
+      newLevelS = LAY.$newLevelS,
       newLevel,
       solvedLevelS = [],
       manyWithNewLevelS = [],
@@ -25,10 +25,10 @@
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
           solvedLevelS.push( newLevel );
-          LAID.$arrayUtils.removeAtIndex( newLevelS, i );
+          LAY.$arrayUtils.removeAtIndex( newLevelS, i );
           i--;
           if ( newLevel.derivedMany ) {
-            LAID.$arrayUtils.pushUnique(
+            LAY.$arrayUtils.pushUnique(
              manyWithNewLevelS, newLevel.derivedMany );
           }
         }

@@ -6,11 +6,11 @@ Case 1 (row take problem):
 
 	{
 		"A": {
-			cons: LAID.take("../I", "rows").filterFetch(0, "num" ) //first item price 
+			cons: LAY.take("../I", "rows").filterFetch(0, "num" ) //first item price 
 		},
 		"I": {
 			many: {
-				rows: LAID.take("/", "transactions")
+				rows: LAY.take("/", "transactions")
 			}
 		}
 	}
@@ -42,12 +42,12 @@ IOS app screen (assuming no holes)
 				numScrollPage: 0
 			},
 			props: {
-				width: LAID.take("", "$naturalWidth").add(
-					LAID.take( "",
+				width: LAY.take("", "$naturalWidth").add(
+					LAY.take( "",
 						"data.pageSize")
 				),
 				overflowX: "scroll",
-				scrollX: LAID.take("", "data.numScrollPage")
+				scrollX: LAY.take("", "data.numScrollPage")
 			},
 			when: {
 				// scroll end
@@ -65,28 +65,28 @@ IOS app screen (assuming no holes)
 			},
 			"Icons": {
 				props: {
-					top: LAID.take("", "row.y").multiply(
-						LAID.take("../Icons", "data.vgap").add(LAID.take("", "height"))),
-					left: LAID.take("", "row.x").multiply(
-						LAID.take("../Icons", "data.hgap").add(LAID.take("", "width"))).plus(
-							LAID.take("", "row.pageNum").multiply(
-							LAID.take("../Icons", "data.pageSize")
+					top: LAY.take("", "row.y").multiply(
+						LAY.take("../Icons", "data.vgap").add(LAY.take("", "height"))),
+					left: LAY.take("", "row.x").multiply(
+						LAY.take("../Icons", "data.hgap").add(LAY.take("", "width"))).plus(
+							LAY.take("", "row.pageNum").multiply(
+							LAY.take("../Icons", "data.pageSize")
 							)
 						),
 						
 				states: {
 					"drag": {
-						onlyif: LAID.take("", "data.drag"),
+						onlyif: LAY.take("", "data.drag"),
 						props: {
-							top: LAID.take("", "data.x"),
-							left: LAID.take("", "data.y")
+							top: LAY.take("", "data.x"),
+							left: LAY.take("", "data.y")
 						}
 					}
 				},
 				},
 				many: {
 					
-					filter: LAID.take("", "rows").filterEq("recentlyDeleted", false),
+					filter: LAY.take("", "rows").filterEq("recentlyDeleted", false),
 					load: function () {
 						var ajaxIcons = getOverAjax("icons");
 						this.rows(ajaxIcons)
@@ -97,8 +97,8 @@ IOS app screen (assuming no holes)
 		"IconPage": {
 
 			many: {
-				rows: LAID.take("/", "data.apps").length().mod(
-					LAID.take("/", "appsPerPage")
+				rows: LAY.take("/", "data.apps").length().mod(
+					LAY.take("/", "appsPerPage")
 				)
 			}
 		}

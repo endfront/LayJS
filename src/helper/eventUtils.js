@@ -3,7 +3,7 @@
 
   var GUID = 1;
 
-  LAID.$eventUtils = {
+  LAY.$eventUtils = {
     add: function (element, type, handler) {
       if (element.addEventListener) {
         element.addEventListener(type, handler, false);

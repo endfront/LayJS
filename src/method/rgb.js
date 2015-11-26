@@ -2,9 +2,9 @@
   "use strict";
 
 
-  LAID.rgb = function ( r, g, b ) {
+  LAY.rgb = function ( r, g, b ) {
 
-    return LAID.rgba( r, g, b, 1 );
+    return LAY.rgba( r, g, b, 1 );
 
   };
 

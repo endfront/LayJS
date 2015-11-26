@@ -11,7 +11,7 @@
   /*
   * Inherit the root, state, or many LSON from `from` into `into`.
   */
-  LAID.$inherit = function ( into, from, isMany, isState, isRootState ) {
+  LAY.$inherit = function ( into, from, isMany, isState, isRootState ) {
 
     if ( !isState ) {
       for ( var key in from ) {
@@ -127,7 +127,7 @@
 
         fromKeyValue = fromKey2value[ fromKey ];
         intoKey2value[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
-          LAID.$clone( fromKeyValue ) :
+          LAY.$clone( fromKeyValue ) :
           fromKeyValue;
 
 
@@ -136,7 +136,7 @@
 
 
 
-    // Precondition: `into<Scope>.key (eg: intoLAID.key)` is already defined
+    // Precondition: `into<Scope>.key (eg: intoLAY.key)` is already defined
     var key2fnInherit = {
 
 
@@ -228,7 +228,7 @@
           intoLson.many = {};
         }
 
-        LAID.$inherit( intoLson.many, fromLson.many,
+        LAY.$inherit( intoLson.many, fromLson.many,
           false, false, false );
 
       },
@@ -247,7 +247,7 @@
 
             fromLsonRow = fromLsonRowS[ i ];
             intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
-              LAID.$clone( fromLsonRow ) : fromLsonRow;
+              LAY.$clone( fromLsonRow ) : fromLsonRow;
 
           }
         }
@@ -293,7 +293,7 @@
             intoChildName2lson[ name ] = {};
 
           }
-          LAID.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
+          LAY.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
              false, false, false );
 
         }
@@ -318,7 +318,7 @@
 
           }
 
-          LAID.$inherit( intoStateName2state[ name ],
+          LAY.$inherit( intoStateName2state[ name ],
            fromStateName2state[ name ], isMany, true, false );
 
         }
@@ -343,21 +343,21 @@
 
           if ( fnIntoEventHandlerS === undefined ) {
 
-            intoEventType2_fnEventHandlerS_[ fromEventType ] = LAID.$arrayUtils.cloneSingleLevel( fnFromEventHandlerS );
+            intoEventType2_fnEventHandlerS_[ fromEventType ] = LAY.$arrayUtils.cloneSingleLevel( fnFromEventHandlerS );
 
           } else {
 
             intoEventType2_fnEventHandlerS_[ fromEventType ] = fnIntoEventHandlerS.concat( fnFromEventHandlerS );
           }
 
-          LAID.$meta.set( intoLson, "num", "when." + fromEventType,
+          LAY.$meta.set( intoLson, "num", "when." + fromEventType,
           ( intoEventType2_fnEventHandlerS_[ fromEventType ] ).length );
 
         }
       },
 
       $$max: function ( intoLson, fromLson ) {
-        LAID.$meta.inherit.$$max( intoLson, fromLson );
+        LAY.$meta.inherit.$$max( intoLson, fromLson );
       }
 
     };

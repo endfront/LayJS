@@ -21,7 +21,7 @@
 
 
    // source: xicooc (http://stackoverflow.com/a/29837441)
-  LAID.$isBelowIE9 = (/MSIE\s/.test(navigator.userAgent) && parseFloat(navigator.appVersion.split("MSIE")[1]) < 10);
+  LAY.$isBelowIE9 = (/MSIE\s/.test(navigator.userAgent) && parseFloat(navigator.appVersion.split("MSIE")[1]) < 10);
 
   allStyles = document.body.style;
 
@@ -30,14 +30,14 @@
   // source: https://gist.github.com/webinista/3626934 (http://tiffanybbrown.com/2012/09/04/testing-for-css-3d-transforms-support/)
   allStyles[ (cssPrefix + "transform" ) ] = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)';
   if ( window.getComputedStyle ) {
-    LAID.$isGpuAccelerated =
+    LAY.$isGpuAccelerated =
       Boolean(
         window.getComputedStyle(
           document.body, null ).getPropertyValue(
             ( cssPrefix + "transform" ) ) ) &&
-        !LAID.$isBelowIE9;
+        !LAY.$isBelowIE9;
   } else {
-    LAID.$isGpuAccelerated = false;
+    LAY.$isGpuAccelerated = false;
   }
 
   allStyles = undefined;
@@ -83,7 +83,7 @@
   textSizeMeasureNode.style.borderColor = "transparent";
   document.body.appendChild( textSizeMeasureNode );
 
-  LAID.Part = function ( level ) {
+  LAY.Part = function ( level ) {
 
     this.level = level;
     this.node = undefined;
@@ -111,7 +111,7 @@
 
   }
 
-  LAID.Part.prototype.init = function () {
+  LAY.Part.prototype.init = function () {
 
     var inputTag, parentNode;
 
@@ -153,7 +153,7 @@
   };
 
   // Precondition: not called on "/" level
-  LAID.Part.prototype.remove = function () {
+  LAY.Part.prototype.remove = function () {
     var parentPart = this.level.parentLevel.part;
     parentPart.updateNaturalWidth();
     parentPart.updateNaturalHeight();
@@ -171,7 +171,7 @@
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAID.Part.prototype.findChildWithMaxOfAttr =
+  LAY.Part.prototype.findChildWithMaxOfAttr =
    function ( attr, attrChildIndepedentOf,
       attrValIndependentOf ) {
     var
@@ -210,7 +210,7 @@
   };
 
   
-  LAID.Part.prototype.getImmidiateReadonlyVal = function ( attr ) {
+  LAY.Part.prototype.getImmidiateReadonlyVal = function ( attr ) {
     
     switch ( attr ) {
       case "$naturalWidth":
@@ -238,7 +238,7 @@
     }
   };
 
-  LAID.Part.prototype.updateAbsoluteX = function () {
+  LAY.Part.prototype.updateAbsoluteX = function () {
 
     var 
       attr2attrVal = this.level.attr2attrVal,
@@ -260,7 +260,7 @@
     }
   };
 
-  LAID.Part.prototype.updateAbsoluteY = function () {
+  LAY.Part.prototype.updateAbsoluteY = function () {
 
     var 
       attr2attrVal = this.level.attr2attrVal,
@@ -283,7 +283,7 @@
   };
 
 
-  LAID.Part.prototype.updateNaturalWidth = function () {
+  LAY.Part.prototype.updateNaturalWidth = function () {
     var naturalWidthAttrVal =
       this.level.$getAttrVal("$naturalWidth");
     if ( naturalWidthAttrVal &&
@@ -292,7 +292,7 @@
     }
   };
 
-  LAID.Part.prototype.updateNaturalHeight = function () {
+  LAY.Part.prototype.updateNaturalHeight = function () {
     var naturalHeightAttrVal =
       this.level.$getAttrVal("$naturalHeight");
     if ( naturalHeightAttrVal &&
@@ -301,7 +301,7 @@
     }
   };
 
-  LAID.Part.prototype.calculateNaturalWidth = function () {
+  LAY.Part.prototype.calculateNaturalWidth = function () {
     var attr2attrVal = this.level.attr2attrVal
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( true );
@@ -319,7 +319,7 @@
 
 
 
-  LAID.Part.prototype.calculateNaturalHeight = function () {
+  LAY.Part.prototype.calculateNaturalHeight = function () {
     var attr2attrVal = this.level.attr2attrVal
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( false );
@@ -336,7 +336,7 @@
 
   
 
-  LAID.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
+  LAY.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
     
     var dimensionAlteringAttr2fnStyle = {
       textSize: stringifyPxOrString,
@@ -454,23 +454,23 @@
 
 
 
-  LAID.Part.prototype.addNormalRenderDirtyAttrVal = function ( attrVal ) {
+  LAY.Part.prototype.addNormalRenderDirtyAttrVal = function ( attrVal ) {
 
-    LAID.$arrayUtils.remove( this.travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
-
-  };
-
-  LAID.Part.prototype.addTravelRenderDirtyAttrVal = function ( attrVal ) {
-
-    LAID.$arrayUtils.remove( this.normalRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( this.travelRenderDirtyAttrValS, attrVal );
-    LAID.$arrayUtils.pushUnique( LAID.$renderDirtyPartS, this );
+    LAY.$arrayUtils.remove( this.travelRenderDirtyAttrValS, attrVal );
+    LAY.$arrayUtils.pushUnique( this.normalRenderDirtyAttrValS, attrVal );
+    LAY.$arrayUtils.pushUnique( LAY.$renderDirtyPartS, this );
 
   };
 
-  LAID.Part.prototype.updateWhenEventType = function ( eventType ) {
+  LAY.Part.prototype.addTravelRenderDirtyAttrVal = function ( attrVal ) {
+
+    LAY.$arrayUtils.remove( this.normalRenderDirtyAttrValS, attrVal );
+    LAY.$arrayUtils.pushUnique( this.travelRenderDirtyAttrValS, attrVal );
+    LAY.$arrayUtils.pushUnique( LAY.$renderDirtyPartS, this );
+
+  };
+
+  LAY.Part.prototype.updateWhenEventType = function ( eventType ) {
 
     var
       numFnHandlersForEventType =
@@ -479,7 +479,7 @@
       thisLevel = this.level;
 
     if ( this.whenEventType2fnMainHandler[ eventType ] !== undefined ) {
-      LAID.$eventUtils.remove( 
+      LAY.$eventUtils.remove( 
         this.node, eventType,
           this.whenEventType2fnMainHandler[ eventType ] );
     }
@@ -496,7 +496,7 @@
           }
         }
       };
-      LAID.$eventUtils.add( this.node, eventType, fnMainHandler );
+      LAY.$eventUtils.add( this.node, eventType, fnMainHandler );
       this.whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
@@ -505,14 +505,14 @@
     }
   };
 
-  LAID.Part.prototype.checkIsPropInTransition = function ( prop ) {
+  LAY.Part.prototype.checkIsPropInTransition = function ( prop ) {
     return ( this.level.attr2attrVal[ "transition." + prop  + ".type" ] !==
       undefined )  ||
       ( this.level.attr2attrVal[ "transition." + prop  + ".delay" ] !==
         undefined );
   };
 
-  LAID.Part.prototype.updateTransitionProp = function ( transitionProp ) {
+  LAY.Part.prototype.updateTransitionProp = function ( transitionProp ) {
 
     if ( this.isInitiallyRendered ) {
       var
@@ -561,8 +561,8 @@
         ( attr2attrVal[ transitionPrefix + "done" ] ?
         attr2attrVal[ transitionPrefix + "done" ].calcVal :
         undefined );
-      transitionArgS = LAID.$transitionType2args[ transitionType ] ?
-        LAID.$transitionType2args[ transitionType ] : [];
+      transitionArgS = LAY.$transitionType2args[ transitionType ] ?
+        LAY.$transitionType2args[ transitionType ] : [];
 
 
       for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
@@ -606,7 +606,7 @@
     }
   };
 
-  LAID.Part.prototype.updateTransitionAttrVal = function ( attrVal,
+  LAY.Part.prototype.updateTransitionAttrVal = function ( attrVal,
     transitionType, transitionDelay, transitionDuration,
     transitionArg2val, transitionDone  ) {
 
@@ -621,7 +621,7 @@
 
       attrVal.startCalcVal =  attrVal.transitionCalcVal;
 
-      attrVal.transition = new LAID.Transition (
+      attrVal.transition = new LAY.Transition (
           transitionType,
           transitionDelay,
           transitionDuration, transitionArg2val,
@@ -662,12 +662,12 @@
     var transitionCalcVal =
       attrVal && attrVal.transitionCalcVal;
     return ( transitionCalcVal === undefined ) ?
-        defaultVal : ( transitionCalcVal instanceof LAID.Color ?
+        defaultVal : ( transitionCalcVal instanceof LAY.Color ?
         transitionCalcVal.stringify() : transitionCalcVal );
   }
   
   function handleBelowIE9WordBreak( val ) {
-    return ( val === "break-word" && LAID.$isBelowIE9) ? "break-all" : val;
+    return ( val === "break-word" && LAY.$isBelowIE9) ? "break-all" : val;
   }
 
   // Below we will customize prototypical functions
@@ -679,7 +679,7 @@
   // The renderable prop can be
   // accessed via `part.renderFn_<prop>`
 
-  LAID.Part.prototype.renderFn_x =  function () {
+  LAY.Part.prototype.renderFn_x =  function () {
       var attr2attrVal = this.level.attr2attrVal;
       this.node.style.left =
         ( attr2attrVal.left.transitionCalcVal +
@@ -688,7 +688,7 @@
             "px";
     };
 
-  LAID.Part.prototype.renderFn_y =  function () {
+  LAY.Part.prototype.renderFn_y =  function () {
       var attr2attrVal = this.level.attr2attrVal;
       this.node.style.top =
         ( attr2attrVal.top.transitionCalcVal +
@@ -697,10 +697,10 @@
             "px";
     };
 
-  if ( LAID.$isGpuAccelerated ) {
+  if ( LAY.$isGpuAccelerated ) {
 
     // TODO: optimize to enter matrix3d directly
-    LAID.Part.prototype.renderFn_positionAndTransform =   
+    LAY.Part.prototype.renderFn_positionAndTransform =   
     function () {
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
@@ -727,7 +727,7 @@
 
     };
 
-    LAID.Part.prototype.renderFn_transform =   
+    LAY.Part.prototype.renderFn_transform =   
     function () {
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
@@ -747,16 +747,16 @@
   } else {
     // legacy browser usage or forced non-gpu mode
 
-    LAID.Part.prototype.renderFn_positionAndTransform =
+    LAY.Part.prototype.renderFn_positionAndTransform =
       function () {
         this.renderFn_x();
         this.renderFn_y();
       }
 
-    LAID.Part.prototype.renderFn_transform = function () {};
+    LAY.Part.prototype.renderFn_transform = function () {};
   }
 
-  LAID.Part.prototype.renderFn_width = function () {
+  LAY.Part.prototype.renderFn_width = function () {
       this.node.style.width =
         this.level.attr2attrVal.width.transitionCalcVal + "px";
       if ( this.type === "canvas" ||
@@ -767,7 +767,7 @@
       }
     };
 
-  LAID.Part.prototype.renderFn_height = function () {
+  LAY.Part.prototype.renderFn_height = function () {
     this.node.style.height =
       this.level.attr2attrVal.height.transitionCalcVal + "px";
     if ( this.type === "canvas" ||
@@ -779,7 +779,7 @@
   };
 
 
-  LAID.Part.prototype.renderFn_origin = function () {
+  LAY.Part.prototype.renderFn_origin = function () {
     var attr2attrVal = this.level.attr2attrVal;
 
     this.node.style[ cssPrefix + "transform-origin" ] =
@@ -789,12 +789,12 @@
   };
 
 
-  LAID.Part.prototype.renderFn_perspective = function () {
+  LAY.Part.prototype.renderFn_perspective = function () {
     this.node.style[ cssPrefix + "perspective" ] =
      this.level.attr2attrVal.perspective.transitionCalcVal + "px";
   };
 
-  LAID.Part.prototype.renderFn_perspectiveOrigin = function () {
+  LAY.Part.prototype.renderFn_perspectiveOrigin = function () {
     var attr2attrVal = this.level.attr2attrVal;
     this.node.style[ cssPrefix + "perspective-origin" ] =
     ( attr2attrVal.perspectiveOriginX ?
@@ -805,17 +805,17 @@
       : 0 ) + "%";
   };
 
-  LAID.Part.prototype.renderFn_backfaceVisibility = function () {
+  LAY.Part.prototype.renderFn_backfaceVisibility = function () {
     this.node.style[ cssPrefix + "backface-visibility" ] =
       this.level.attr2attrVal.backfaceVisibility.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.renderFn_opacity = function () {
+  LAY.Part.prototype.renderFn_opacity = function () {
     this.node.style.opacity = this.level.attr2attrVal.opacity.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_display = function () {
+  LAY.Part.prototype.renderFn_display = function () {
     
     this.node.style.visibility =
       this.level.attr2attrVal.display.transitionCalcVal ?
@@ -823,14 +823,14 @@
 
   };
 
-  LAID.Part.prototype.renderFn_zIndex = function () {
+  LAY.Part.prototype.renderFn_zIndex = function () {
 
     this.node.style.zIndex =
       this.level.attr2attrVal.zIndex.transitionCalcVal || "auto";
   };
 
 
-  LAID.Part.prototype.renderFn_focus = function () {
+  LAY.Part.prototype.renderFn_focus = function () {
     if ( this.level.attr2attrVal.focus.transitionCalcVal ) {
       this.node.focus();
     } else if ( document.activeElement === this.node ) {
@@ -838,40 +838,40 @@
     }
   };
 
-  LAID.Part.prototype.renderFn_scrollX = function () {
+  LAY.Part.prototype.renderFn_scrollX = function () {
     this.node.scrollLeft =
       this.level.attr2attrVal.scrollX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_scrollY = function () {
+  LAY.Part.prototype.renderFn_scrollY = function () {
     this.node.scrollTop =
       this.level.attr2attrVal.scrollY.transitionCalcVal;
   };
 
 
 
-  LAID.Part.prototype.renderFn_scrollElastic = function () {
+  LAY.Part.prototype.renderFn_scrollElastic = function () {
     this.node["-webkit-overflow-scrolling"] =
       this.level.attr2attrVal.scrollElastic.transitionCalcVal ?
        "touch" : "auto";
   };
 
-  LAID.Part.prototype.renderFn_overflowX = function () {
+  LAY.Part.prototype.renderFn_overflowX = function () {
     this.node.style.overflowX =
       this.level.attr2attrVal.overflowX.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_overflowY = function () {
+  LAY.Part.prototype.renderFn_overflowY = function () {
     this.node.style.overflowY =
       this.level.attr2attrVal.overflowY.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_cursor = function () {
+  LAY.Part.prototype.renderFn_cursor = function () {
     this.node.style.cursor =
       this.level.attr2attrVal.
       cursor.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_userSelect = function () {
+  LAY.Part.prototype.renderFn_userSelect = function () {
     if ( this.type !== "input" ) {
       this.node.style[ cssPrefix + "user-select" ] = 
         this.level.attr2attrVal.userSelect.transitionCalcVal;
@@ -879,28 +879,28 @@
     }
   };
 
-  LAID.Part.prototype.renderFn_backgroundColor = function () {
+  LAY.Part.prototype.renderFn_backgroundColor = function () {
     this.node.style.backgroundColor =
       this.level.attr2attrVal.
       backgroundColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.renderFn_backgroundImage = function () {
+  LAY.Part.prototype.renderFn_backgroundImage = function () {
     this.node.style.backgroundImage =
       this.level.attr2attrVal.
       backgroundImage.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_backgroundAttachment = function () {
+  LAY.Part.prototype.renderFn_backgroundAttachment = function () {
     this.node.style.backgroundAttachment = this.level.attr2attrVal.backgroundAttachment.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_backgroundRepeat = function () {
+  LAY.Part.prototype.renderFn_backgroundRepeat = function () {
     this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundColor.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.renderFn_backgroundSize = function () {
+  LAY.Part.prototype.renderFn_backgroundSize = function () {
     
     this.node.style.backgroundSize =
       computePxOrString( 
@@ -911,7 +911,7 @@
 
   };
 
-  LAID.Part.prototype.renderFn_backgroundPosition = function () {
+  LAY.Part.prototype.renderFn_backgroundPosition = function () {
     this.node.style.backgroundPosition =
       computePxOrString(
         this.level.attr2attrVal.backgroundPositionX, "0px" ) +
@@ -921,8 +921,8 @@
     
   };
 
-  LAID.Part.prototype.renderFn_boxShadows = function () {
-    if ( !LAID.$isBelowIE9 ) {
+  LAY.Part.prototype.renderFn_boxShadows = function () {
+    if ( !LAY.$isBelowIE9 ) {
       var
       attr2attrVal = this.level.attr2attrVal,
       s = "",
@@ -953,7 +953,7 @@
 
 
 
-  LAID.Part.prototype.renderFn_filters = function () {
+  LAY.Part.prototype.renderFn_filters = function () {
     var
     attr2attrVal = this.level.attr2attrVal,
     s = "",
@@ -981,7 +981,7 @@
           s += "url(" + attr2attrVal[ "filters" + i + "Url" ] + ") ";
           break;
         default:
-          s += filterType + "(" + ( attr2attrVal[ "filters" + i + LAID.$capitalize( filterType ) ] * 100 ) + "%) ";
+          s += filterType + "(" + ( attr2attrVal[ "filters" + i + LAY.$capitalize( filterType ) ] * 100 ) + "%) ";
 
       }
     }
@@ -989,73 +989,73 @@
 
   };
 
-  LAID.Part.prototype.renderFn_cornerRadiusTopLeft = function () {
+  LAY.Part.prototype.renderFn_cornerRadiusTopLeft = function () {
     this.node.style.borderTopLeftRadius =
      this.level.attr2attrVal.cornerRadiusTopLeft.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_cornerRadiusTopRight = function () {
+  LAY.Part.prototype.renderFn_cornerRadiusTopRight = function () {
     this.node.style.borderTopRightRadius =
       this.level.attr2attrVal.cornerRadiusTopRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_cornerRadiusBottomRight = function () {
+  LAY.Part.prototype.renderFn_cornerRadiusBottomRight = function () {
     this.node.style.borderBottomRightRadius =
       this.level.attr2attrVal.cornerRadiusBottomRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_cornerRadiusBottomLeft = function () {
+  LAY.Part.prototype.renderFn_cornerRadiusBottomLeft = function () {
     this.node.style.borderBottomLeftRadius =
       this.level.attr2attrVal.cornerRadiusBottomLeft.transitionCalcVal + "px";
   };
 
 
 
-  LAID.Part.prototype.renderFn_borderTopStyle = function () {
+  LAY.Part.prototype.renderFn_borderTopStyle = function () {
     this.node.style.borderTopStyle =
       this.level.attr2attrVal.borderTopStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_borderRightStyle = function () {
+  LAY.Part.prototype.renderFn_borderRightStyle = function () {
     this.node.style.borderRightStyle =
       this.level.attr2attrVal.borderRightStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_borderBottomStyle = function () {
+  LAY.Part.prototype.renderFn_borderBottomStyle = function () {
     this.node.style.borderBottomStyle =
       this.level.attr2attrVal.borderBottomStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_borderLeftStyle = function () {
+  LAY.Part.prototype.renderFn_borderLeftStyle = function () {
     this.node.style.borderLeftStyle =
       this.level.attr2attrVal.borderLeftStyle.transitionCalcVal;
   };
 
 
-  LAID.Part.prototype.renderFn_borderTopColor = function () {
+  LAY.Part.prototype.renderFn_borderTopColor = function () {
     this.node.style.borderTopColor =
       this.level.attr2attrVal.borderTopColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.renderFn_borderRightColor = function () {
+  LAY.Part.prototype.renderFn_borderRightColor = function () {
     this.node.style.borderRightColor =
       this.level.attr2attrVal.borderRightColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.renderFn_borderBottomColor = function () {
+  LAY.Part.prototype.renderFn_borderBottomColor = function () {
     this.node.style.borderBottomColor =
       this.level.attr2attrVal.borderBottomColor.transitionCalcVal.stringify();
   };
-  LAID.Part.prototype.renderFn_borderLeftColor = function () {
+  LAY.Part.prototype.renderFn_borderLeftColor = function () {
     this.node.style.borderLeftColor =
       this.level.attr2attrVal.borderLeftColor.transitionCalcVal.stringify();
   };
 
-  LAID.Part.prototype.renderFn_borderTopWidth = function () {
+  LAY.Part.prototype.renderFn_borderTopWidth = function () {
     this.node.style.borderTopWidth =
       this.level.attr2attrVal.borderTopWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_borderRightWidth = function () {
+  LAY.Part.prototype.renderFn_borderRightWidth = function () {
     this.node.style.borderRightWidth =
       this.level.attr2attrVal.borderRightWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_borderBottomWidth = function () {
+  LAY.Part.prototype.renderFn_borderBottomWidth = function () {
     this.node.style.borderBottomWidth =
       this.level.attr2attrVal.borderBottomWidth.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_borderLeftWidth = function () {
+  LAY.Part.prototype.renderFn_borderLeftWidth = function () {
     this.node.style.borderLeftWidth =
       this.level.attr2attrVal.borderLeftWidth.transitionCalcVal + "px";
   };
@@ -1064,118 +1064,118 @@
 
   /* Text Related */
 
-  LAID.Part.prototype.renderFn_text = function () {
+  LAY.Part.prototype.renderFn_text = function () {
     
     this.node.innerHTML =
      this.level.attr2attrVal.text.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_input = function () {
+  LAY.Part.prototype.renderFn_input = function () {
     this.node.value = inputVal;
   };
 
-  LAID.Part.prototype.renderFn_textSize = function () {
+  LAY.Part.prototype.renderFn_textSize = function () {
     this.node.style.fontSize =
       computePxOrString( this.level.attr2attrVal.textSize );
   };
-  LAID.Part.prototype.renderFn_textFamily = function () {
+  LAY.Part.prototype.renderFn_textFamily = function () {
     this.node.style.fontFamily =
       this.level.attr2attrVal.textFamily.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_textWeight = function () {
+  LAY.Part.prototype.renderFn_textWeight = function () {
     this.node.style.fontWeight =
       this.level.attr2attrVal.textWeight.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textColor = function () {
+  LAY.Part.prototype.renderFn_textColor = function () {
     this.node.style.color = 
       computeColorOrString( 
         this.level.attr2attrVal.textColor );
   };
 
-  LAID.Part.prototype.renderFn_textVariant = function () {
+  LAY.Part.prototype.renderFn_textVariant = function () {
     this.node.style.fontVariant =
       this.level.attr2attrVal.textVariant.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textTransform = function () {
+  LAY.Part.prototype.renderFn_textTransform = function () {
     this.node.style.textTransform =
       this.level.attr2attrVal.textTransform.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textStyle = function () {
+  LAY.Part.prototype.renderFn_textStyle = function () {
     this.node.style.fontStyle =
       this.level.attr2attrVal.textStyle.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textDecoration = function () {
+  LAY.Part.prototype.renderFn_textDecoration = function () {
     this.node.style.textDecoration =
       this.level.attr2attrVal.textDecoration.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textLetterSpacing = function () {
+  LAY.Part.prototype.renderFn_textLetterSpacing = function () {
     this.node.style.letterSpacing = computePxOrString( 
         this.level.attr2attrVal.textLetterSpacing ) ;
   };
-  LAID.Part.prototype.renderFn_textWordSpacing = function () {
+  LAY.Part.prototype.renderFn_textWordSpacing = function () {
     this.node.style.wordSpacing = computePxOrString( 
         this.level.attr2attrVal.textWordSpacing );
   };
-  LAID.Part.prototype.renderFn_textAlign = function () {
+  LAY.Part.prototype.renderFn_textAlign = function () {
     this.node.style.textAlign =
       this.level.attr2attrVal.textAlign.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textDirection = function () {
+  LAY.Part.prototype.renderFn_textDirection = function () {
     //var dir = this.level.attr2attrVal.textDirection.transitionCalcVal;
     //if ( dir ) { //IE <8 throws error when given undefined value
     this.node.style.direction =
       this.level.attr2attrVal.textDirection.transitionCalcVal;
     //}
   };
-  LAID.Part.prototype.renderFn_textLineHeight = function () {
+  LAY.Part.prototype.renderFn_textLineHeight = function () {
     this.node.style.lineHeight = computeEmOrString( 
         this.level.attr2attrVal.textLineHeight );
   };
 
-  LAID.Part.prototype.renderFn_textOverflow = function () {
+  LAY.Part.prototype.renderFn_textOverflow = function () {
     this.node.style.textOverflow =
       this.level.attr2attrVal.textOverflow.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textIndent = function () {
+  LAY.Part.prototype.renderFn_textIndent = function () {
     this.node.style.textIndent =
       this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_textWrap = function () {
+  LAY.Part.prototype.renderFn_textWrap = function () {
     this.node.style.whiteSpace =
       this.level.attr2attrVal.textWrap.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textWordBreak = function () {
+  LAY.Part.prototype.renderFn_textWordBreak = function () {
     this.node.style.wordBreak =
       handleBelowIE9WordBreak(
       this.level.attr2attrVal.textWordBreak.transitionCalcVal);
   };
-  LAID.Part.prototype.renderFn_textSmoothing = function () {
+  LAY.Part.prototype.renderFn_textSmoothing = function () {
     this.node.style[ cssPrefix + "font-smoothing" ] =
      this.level.attr2attrVal.textSmoothing.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textRendering = function () {
+  LAY.Part.prototype.renderFn_textRendering = function () {
     this.node.style.textRendering =
       this.level.attr2attrVal.textRendering.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_textPaddingTop = function () {
+  LAY.Part.prototype.renderFn_textPaddingTop = function () {
     this.node.style.paddingTop =
       this.level.attr2attrVal.textPaddingTop.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_textPaddingRight = function () {
+  LAY.Part.prototype.renderFn_textPaddingRight = function () {
     this.node.style.paddingRight =
       this.level.attr2attrVal.textPaddingRight.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_textPaddingBottom = function () {
+  LAY.Part.prototype.renderFn_textPaddingBottom = function () {
     this.node.style.paddingBottom =
       this.level.attr2attrVal.textPaddingBottom.transitionCalcVal + "px";
   };
-  LAID.Part.prototype.renderFn_textPaddingLeft = function () {
+  LAY.Part.prototype.renderFn_textPaddingLeft = function () {
     this.node.style.paddingLeft =
       this.level.attr2attrVal.textPaddingLeft.transitionCalcVal + "px";
   };
 
-  LAID.Part.prototype.renderFn_textShadows = function () {
+  LAY.Part.prototype.renderFn_textShadows = function () {
     var attr2attrVal = this.level.attr2attrVal,
       s = "",
       i, len;
@@ -1198,57 +1198,57 @@
 
   /* Input (<input/> and <textarea>) Related */
 
-  LAID.Part.prototype.renderFn_inputLabel = function () {
+  LAY.Part.prototype.renderFn_inputLabel = function () {
     this.node.label = this.level.attr2attrVal.inputLabel.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_inputRows = function () {
+  LAY.Part.prototype.renderFn_inputRows = function () {
     this.node.rows = this.level.attr2attrVal.inputRows.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_input = function () {
+  LAY.Part.prototype.renderFn_input = function () {
     this.node.value = this.level.attr2attrVal.input.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_inputPlaceholder = function () {
+  LAY.Part.prototype.renderFn_inputPlaceholder = function () {
     this.node.placeholder = this.level.attr2attrVal.inputPlaceholder.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_inputAutocomplete = function () {
+  LAY.Part.prototype.renderFn_inputAutocomplete = function () {
     this.node.autocomplete = this.level.attr2attrVal.inputAutocomplete.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_inputAutocorrect = function () {
+  LAY.Part.prototype.renderFn_inputAutocorrect = function () {
     this.node.autocorrect = this.level.attr2attrVal.inputAutocorrect.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_inputDisabled = function () {
+  LAY.Part.prototype.renderFn_inputDisabled = function () {
     this.node.disabled = this.level.attr2attrVal.inputDisabled.transitionCalcVal;
   };
 
 
   /* Link (<a>) Related */
 
-  LAID.Part.prototype.renderFn_linkHref = function () {
+  LAY.Part.prototype.renderFn_linkHref = function () {
     this.node.href = this.level.attr2attrVal.linkHref.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_linkRel = function () {
+  LAY.Part.prototype.renderFn_linkRel = function () {
     this.node.rel = this.level.attr2attrVal.linkRel.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_linkDownload = function () {
+  LAY.Part.prototype.renderFn_linkDownload = function () {
     this.node.download = this.level.attr2attrVal.linkDownload.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_linkTarget = function () {
+  LAY.Part.prototype.renderFn_linkTarget = function () {
     this.node.target = this.level.attr2attrVal.linkTarget.transitionCalcVal;
   };
 
   /* Image (<img>) related */
-  LAID.Part.prototype.renderFn_imageUrl = function () {
+  LAY.Part.prototype.renderFn_imageUrl = function () {
     this.node.src = this.level.attr2attrVal.imageUrl.transitionCalcVal;
   };
   
 
   /* Audio (<audio>) related */
 
-  LAID.Part.prototype.renderFn_audioSrc = function () {
+  LAY.Part.prototype.renderFn_audioSrc = function () {
     this.node.src = this.level.attr2attrVal.audioSrc.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_audioSources = function () {
+  LAY.Part.prototype.renderFn_audioSources = function () {
     var
       attr2attrVal = this.level.attr2attrVal,
       i, len,
@@ -1271,7 +1271,7 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.renderFn_audioTracks = function () {
+  LAY.Part.prototype.renderFn_audioTracks = function () {
     var
     attr2attrVal = this.level.attr2attrVal,
     i, len,
@@ -1294,29 +1294,29 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.renderFn_audioVolume = function () {
+  LAY.Part.prototype.renderFn_audioVolume = function () {
     this.node.volume = this.level.attr2attrVal.audioVolume.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_audioController = function () {
+  LAY.Part.prototype.renderFn_audioController = function () {
     this.node.controls = this.level.attr2attrVal.audioController.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_audioLoop = function () {
+  LAY.Part.prototype.renderFn_audioLoop = function () {
     this.node.loop = this.level.attr2attrVal.audioLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_audioMuted = function () {
+  LAY.Part.prototype.renderFn_audioMuted = function () {
     this.node.muted = this.level.attr2attrVal.audioMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_audioPreload = function () {
+  LAY.Part.prototype.renderFn_audioPreload = function () {
     this.node.preload = this.level.attr2attrVal.audioPreload.transitionCalcVal;
   };
 
   /* Video (<video>) related */
 
-  LAID.Part.prototype.renderFn_videoSrc = function () {
+  LAY.Part.prototype.renderFn_videoSrc = function () {
     this.node.src = this.level.attr2attrVal.videoSrc.transitionCalcVal;
   };
 
-  LAID.Part.prototype.renderFn_videoSources = function () {
+  LAY.Part.prototype.renderFn_videoSources = function () {
     var
     attr2attrVal = this.level.attr2attrVal,
     i, len,
@@ -1339,7 +1339,7 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.renderFn_videoTracks = function () {
+  LAY.Part.prototype.renderFn_videoTracks = function () {
     var
     attr2attrVal = this.level.attr2attrVal,
     i, len,
@@ -1362,25 +1362,25 @@
     this.node.appendChild( documentFragment );
   };
 
-  LAID.Part.prototype.renderFn_videoAutoplay = function () {
+  LAY.Part.prototype.renderFn_videoAutoplay = function () {
     this.node.autoplay = this.level.attr2attrVal.videoAutoplay.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoController = function () {
+  LAY.Part.prototype.renderFn_videoController = function () {
     this.node.controls = this.level.attr2attrVal.videoController.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoCrossorigin = function () {
+  LAY.Part.prototype.renderFn_videoCrossorigin = function () {
     this.node.crossorigin = this.level.attr2attrVal.videoCrossorigin.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoLoop = function () {
+  LAY.Part.prototype.renderFn_videoLoop = function () {
     this.node.loop = this.level.attr2attrVal.videoLoop.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoMuted = function () {
+  LAY.Part.prototype.renderFn_videoMuted = function () {
     this.node.muted = this.level.attr2attrVal.videoMuted.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoPreload = function () {
+  LAY.Part.prototype.renderFn_videoPreload = function () {
     this.node.preload = this.level.attr2attrVal.videoPreload.transitionCalcVal;
   };
-  LAID.Part.prototype.renderFn_videoPoster = function () {
+  LAY.Part.prototype.renderFn_videoPoster = function () {
     this.node.poster = this.level.attr2attrVal.videoPoster.transitionCalcVal;
   };
 

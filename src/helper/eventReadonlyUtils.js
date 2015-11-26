@@ -80,7 +80,7 @@
   };
 
 
-  LAID.$eventReadonlyUtils = {
+  LAY.$eventReadonlyUtils = {
     checkIsEventReadonlyAttr: function ( attr ) {
       return eventReadonly2_eventType2fnHandler_[ attr ] !==
         undefined;

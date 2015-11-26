@@ -1,16 +1,16 @@
 
-LAID.run({
+LAY.run({
   data: {
     mobileResponsiveWidth: 550,
     sidebarResponsiveWidth: 900,
-    gray230: LAID.rgb(230,230,230)
+    gray230: LAY.rgb(230,230,230)
   },
   props: {
-    backgroundColor: LAID.color("whitesmoke"),
+    backgroundColor: LAY.color("whitesmoke"),
     overflowY: "scroll",
     textFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     textSmoothing: "antialiased",
-    textColor: LAID.rgb(77,77,77),
+    textColor: LAY.rgb(77,77,77),
     textSize: 14,
     textWeight: "300",
     textLineHeight: 1.4
@@ -18,29 +18,29 @@ LAID.run({
 
   "App": {
     props: {
-      centerX: LAID.take("../", "$midpointX").plus(
-        LAID.take("../Learn", "$midpointX")),
+      centerX: LAY.take("../", "$midpointX").plus(
+        LAY.take("../Learn", "$midpointX")),
       overflow: "visible"
     },
     states: {
       "nosidebar": {
-        onlyif: LAID.take("/", "width").lt(
-          LAID.take("/", "data.sidebarResponsiveWidth")),
+        onlyif: LAY.take("/", "width").lt(
+          LAY.take("/", "data.sidebarResponsiveWidth")),
         props: {
-          centerX: LAID.take("../", "$midpointX")
+          centerX: LAY.take("../", "$midpointX")
         }
       }
     },
 
     "Header": {
       props: {
-        width: LAID.take("../", "width"),
+        width: LAY.take("../", "width"),
         text: "todos",
         textSize: 100,
        // textPadding: {
         //  top:9, bottom: 9
         //},
-        textColor: LAID.rgba(175, 47, 47, 0.15),
+        textColor: LAY.rgba(175, 47, 47, 0.15),
         textAlign:"center",
         textRendering: "optimizeLegibility",
         textWeight: "100"
@@ -48,93 +48,93 @@ LAID.run({
     },
     "Container": {
       props:{
-        top: LAID.take("../Header", "bottom"),
-        centerX: LAID.take("../", "$midpointX"),
-        width: LAID.take("/", "data.mobileResponsiveWidth"),
-        backgroundColor:  LAID.color("white"),
+        top: LAY.take("../Header", "bottom"),
+        centerX: LAY.take("../", "$midpointX"),
+        width: LAY.take("/", "data.mobileResponsiveWidth"),
+        backgroundColor:  LAY.color("white"),
         overflow: "visible",
         boxShadows: [
-          {x:0, y:2, blur:4, color: LAID.rgba(0,0,0,0.2)  },
-          {x:0, y:25, blur:50, color: LAID.rgba(0,0,0,0.1) }, 
+          {x:0, y:2, blur:4, color: LAY.rgba(0,0,0,0.2)  },
+          {x:0, y:25, blur:50, color: LAY.rgba(0,0,0,0.1) }, 
         ]
       },
       states: {
         "responsive": {
-          onlyif: LAID.take("/", "width").lt(
-            LAID.take("/", "data.mobileResponsiveWidth")),
+          onlyif: LAY.take("/", "width").lt(
+            LAY.take("/", "data.mobileResponsiveWidth")),
           props: {
-            width: LAID.take("/", "width")
+            width: LAY.take("/", "width")
           }
         },
         "sheets-displayed": {
-          onlyif: LAID.take("Sheets", "hidden.onlyif").not(),
+          onlyif: LAY.take("Sheets", "hidden.onlyif").not(),
           props: {
-            height: LAID.take("", "$naturalHeight").subtract(
-          LAID.take("Sheets", "height"))
+            height: LAY.take("", "$naturalHeight").subtract(
+          LAY.take("Sheets", "height"))
           }
         }
       },
       
       "TopControls": {
         props: {
-          width: LAID.take("../", "width"),
+          width: LAY.take("../", "width"),
           boxShadows: [ 
                     {inset:true, x:0, y:-2, blur: 1,
-                    color: LAID.rgba(0,0,0,0.03) }
+                    color: LAY.rgba(0,0,0,0.03) }
                   ]
 
         },
         "CompleteToggle": {
           data: {
             allCompleted:
-              LAID.take("/App/Container/Todos/Todo", "rows").length().gt(0).and(
-                LAID.take("/App/Container/Todos/Todo", "rows").filterEq(
+              LAY.take("/App/Container/Todos/Todo", "rows").length().gt(0).and(
+                LAY.take("/App/Container/Todos/Todo", "rows").filterEq(
                   "complete", false).length().eq(0))
            
           },
           props: {
             width:40,
             height: 40,
-            centerY: LAID.take("../Input", "centerY"),
+            centerY: LAY.take("../Input", "centerY"),
             cursor: "default",
             text: "❯",
             textSize: 22,
             // Text line height should equal
             // the width (division for conversion
             // to "em")
-            textLineHeight: LAID.take("", "width").divide(
-              LAID.take("", "textSize")),
+            textLineHeight: LAY.take("", "width").divide(
+              LAY.take("", "textSize")),
             textAlign: "center",
             rotateZ: 90
           },
           states: {
             "hidden": {
-              onlyif: LAID.take("/App/Container/Todos/Todo", "rows").length().eq(0),
+              onlyif: LAY.take("/App/Container/Todos/Todo", "rows").length().eq(0),
               props: {
                 display: false
               }
             },
             "incomplete": {
-              onlyif: LAID.take("", "data.allCompleted").not(),
+              onlyif: LAY.take("", "data.allCompleted").not(),
               props: {
-                textColor: LAID.take("/", "data.gray230")
+                textColor: LAY.take("/", "data.gray230")
               },
               when: {
                 click: function () {
-                  LAID.level("/App/Container/Todos/Todo").rowsUpdate(
+                  LAY.level("/App/Container/Todos/Todo").rowsUpdate(
                   "complete", true );
                   updateLocalStorage();
                 }
               }
             },
             "completed": {
-              onlyif: LAID.take("", "data.allCompleted"),
+              onlyif: LAY.take("", "data.allCompleted"),
               props: {
-                textColor: LAID.rgb(115,115,155)
+                textColor: LAY.rgb(115,115,155)
               },
               when: {
                 click: function () {
-                  LAID.level("/App/Container/Todos/Todo").rowsUpdate(
+                  LAY.level("/App/Container/Todos/Todo").rowsUpdate(
                   "complete", false );
                   updateLocalStorage();
                 }
@@ -145,10 +145,10 @@ LAID.run({
         "Input": {
           $type: "input:line",
           props: {
-            left: LAID.take("../CompleteToggle", "right"),
-            width: LAID.take("../", "width").subtract(
-              LAID.take("../CompleteToggle", "height")),
-            backgroundColor: LAID.rgba(0, 0, 0, 0.003),
+            left: LAY.take("../CompleteToggle", "right"),
+            width: LAY.take("../", "width").subtract(
+              LAY.take("../CompleteToggle", "height")),
+            backgroundColor: LAY.rgba(0, 0, 0, 0.003),
             textSize: 24,
             textPadding: 16,
             textSmoothing: "antialiased",
@@ -158,7 +158,7 @@ LAID.run({
             focus: true
           //  boxShadows: [
            //   { inset:true, x:0, y: -2, blur: 1,
-           //        color:LAID.rgba(0, 0, 0, 0.03) }
+           //        color:LAY.rgba(0, 0, 0, 0.03) }
             //]
 
           },
@@ -168,7 +168,7 @@ LAID.run({
                 var val = this.attr("$input").trim();
                 if ( val ) {
                   this.changeNativeInput("");
-                  LAID.level("/App/Container/Todos/Todo").rowAdd(
+                  LAY.level("/App/Container/Todos/Todo").rowAdd(
                     {id:Date.now(), title:val, complete:false});
                   updateLocalStorage();
                 }
@@ -179,17 +179,17 @@ LAID.run({
       },
       "Todos": {
         props:{
-          top: LAID.take("../TopControls", "bottom"),
-          width: LAID.take("../", "width"),
+          top: LAY.take("../TopControls", "bottom"),
+          width: LAY.take("../", "width"),
           borderTop:{ 
             style:"solid",
             width:1,
-            color: LAID.take("/", "data.gray230")
+            color: LAY.take("/", "data.gray230")
           }
         },
         states: {
           "hidden": {
-            onlyif: LAID.take("Todo", "rows").length().eq(0),
+            onlyif: LAY.take("Todo", "rows").length().eq(0),
             props: {
               display:false
             }
@@ -200,10 +200,10 @@ LAID.run({
             isEditing: false
           },
           props: {
-            width:LAID.take("../", "width"),
+            width:LAY.take("../", "width"),
             borderBottom: {
               width:1, style:"solid",
-              color: LAID.rgb(237,237,237)
+              color: LAY.rgb(237,237,237)
             },
             overflow: "visible" //border overflow of input
           },
@@ -219,17 +219,17 @@ LAID.run({
               }
             },
             data: {
-              category: LAID.take("/App/Container/BottomControls/Strip/Categories/Category", "rows").filterEq("selected", true).index(0).key("id")
+              category: LAY.take("/App/Container/BottomControls/Strip/Categories/Category", "rows").filterEq("selected", true).index(0).key("id")
             },           
             states: {
               "active": {
-                onlyif: LAID.take("", "data.category").eq("active"),
-                filter: LAID.take("", "rows").filterEq("complete", false)
+                onlyif: LAY.take("", "data.category").eq("active"),
+                filter: LAY.take("", "rows").filterEq("complete", false)
                 
               },
               "completed": {
-                onlyif: LAID.take("", "data.category").eq("completed"),
-                filter: LAID.take("", "rows").filterEq("complete", true)
+                onlyif: LAY.take("", "data.category").eq("completed"),
+                filter: LAY.take("", "rows").filterEq("complete", true)
               }
             }
           
@@ -239,20 +239,20 @@ LAID.run({
               props: {
                 width: 40,
                 height: 40,
-                centerY: LAID.take("../", "$midpointY")
+                centerY: LAY.take("../", "$midpointY")
               },
               states: {
                 "hidden": {
-                  onlyif: LAID.take("../", "data.isEditing"),
+                  onlyif: LAY.take("../", "data.isEditing"),
                   props: {
                     display: false
                   }
                 },
                 "complete": {
-                  onlyif: LAID.take("../", "row.complete"),
+                  onlyif: LAY.take("../", "row.complete"),
                   props: {
-                    text: LAID.take('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#bddad5" stroke-width="3"/><path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"/></svg>').format(
-                      LAID.take("", "width"),LAID.take("", "height"))
+                    text: LAY.take('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#bddad5" stroke-width="3"/><path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"/></svg>').format(
+                      LAY.take("", "width"),LAY.take("", "height"))
                   },
                   when: {
                     click: function () {
@@ -262,10 +262,10 @@ LAID.run({
                   }
                 },
                 "incomplete": {
-                  onlyif: LAID.take("../", "row.complete").not(),
+                  onlyif: LAY.take("../", "row.complete").not(),
                   props: {
-                    text: LAID.take('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#ededed" stroke-width="3"/></svg>').format(
-                      LAID.take("", "width"),LAID.take("", "height"))
+                    text: LAY.take('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#ededed" stroke-width="3"/></svg>').format(
+                      LAY.take("", "width"),LAY.take("", "height"))
                   },
                   when: {
                     click: function () {
@@ -278,10 +278,10 @@ LAID.run({
             },
             "Title": {
               props: {
-                left: LAID.take("../Tick", "right"),
-                width: LAID.take("../", "width").subtract(
-                  LAID.take("", "left")),
-                text: LAID.take("../", "row.title"),
+                left: LAY.take("../Tick", "right"),
+                width: LAY.take("../", "width").subtract(
+                  LAY.take("", "left")),
+                text: LAY.take("../", "row.title"),
                 textPadding:15,
                 textSize: 24,
                 textWordBreak: "break-word",
@@ -291,20 +291,20 @@ LAID.run({
               },
               states: {
                 "hidden": {
-                  onlyif: LAID.take("../", "data.isEditing"),
+                  onlyif: LAY.take("../", "data.isEditing"),
                   props: {
                     display: false
                   }
                 },
                 "complete": {
-                  onlyif: LAID.take("../", "row.complete"),
+                  onlyif: LAY.take("../", "row.complete"),
                   props: {
                     textDecoration: "line-through",
-                    textColor: LAID.color("gainsboro")
+                    textColor: LAY.color("gainsboro")
                   }
                 },
                 "incomplete": {
-                  onlyif: LAID.take("../", "row.complete").not()
+                  onlyif: LAY.take("../", "row.complete").not()
                 }
               },
               transition: {
@@ -323,25 +323,25 @@ LAID.run({
               $type: "input:line",
               props: {
                 display: false,
-                left: LAID.take("../Tick", "right"),
-                width: LAID.take("../", "width").subtract(
-                  LAID.take("", "left")),
+                left: LAY.take("../Tick", "right"),
+                width: LAY.take("../", "width").subtract(
+                  LAY.take("", "left")),
                 border: {
                   style:"solid", width:1,
-                    color: LAID.hex(0x999999)
+                    color: LAY.hex(0x999999)
                 },
                 boxShadows: [
                   { inset:true, x:0, y: -1, blur: 5,
-                   color:LAID.rgba(0, 0, 0, 0.2) }
+                   color:LAY.rgba(0, 0, 0, 0.2) }
                 ],
-                input: LAID.take("../", "row.title"),
+                input: LAY.take("../", "row.title"),
                 textPadding:15,
                 textSize: 24,
                 textLineHeight:1.2
               },
               states: {
                 "shown": {
-                  onlyif: LAID.take("../", "data.isEditing"),
+                  onlyif: LAY.take("../", "data.isEditing"),
                   props: {
                     display: true,
                     focus: true
@@ -380,7 +380,7 @@ LAID.run({
             },
             "Cross": {
               props: {
-                centerY: LAID.take("../", "$midpointY"),
+                centerY: LAY.take("../", "$midpointY"),
                 right: 10,
                 width:40,
                 height:40,
@@ -389,20 +389,20 @@ LAID.run({
                 textSize: 30,
                 textLineHeight:1,
                 textAlign: "center",
-                textColor: LAID.hex(0xcc9a9a)
+                textColor: LAY.hex(0xcc9a9a)
               },
               states:{
                 "hidden": {
-                  onlyif: LAID.take("../", "$hovering").not().or(
-                    LAID.take("../", "data.isEditing")),
+                  onlyif: LAY.take("../", "$hovering").not().or(
+                    LAY.take("../", "data.isEditing")),
                   props: {
                     display: false
                   }
                 },
                 "hovering":{
-                  onlyif: LAID.take("","$hovering"),
+                  onlyif: LAY.take("","$hovering"),
                   props: {
-                    textColor: LAID.hex(0xaf5b5e)
+                    textColor: LAY.hex(0xaf5b5e)
                   }
                 }
               },
@@ -414,7 +414,7 @@ LAID.run({
               },
               when: {
                 click: function () {
-                  LAID.level("/App/Container/Todos/Todo").rowDeleteByID(
+                  LAY.level("/App/Container/Todos/Todo").rowDeleteByID(
                     this.level("../").attr("row.id"));
                   updateLocalStorage();
                 }
@@ -425,15 +425,15 @@ LAID.run({
         "BottomControls": {
           props: {
             height: 42,
-            width:LAID.take("../", 'width'),
-            top: LAID.take("../Todos", "bottom"),
-            textColor: LAID.rgb(119, 119, 119),
+            width:LAY.take("../", 'width'),
+            top: LAY.take("../Todos", "bottom"),
+            textColor: LAY.rgb(119, 119, 119),
             borderTop: {style:"solid", width: 1,
-              color: LAID.hex(0xe6e6e6)}
+              color: LAY.hex(0xe6e6e6)}
           },
           states: {
             "hidden": {
-              onlyif: LAID.take("../Sheets", "hidden.onlyif"),
+              onlyif: LAY.take("../Sheets", "hidden.onlyif"),
               props: {
                 display: false
               }
@@ -441,21 +441,21 @@ LAID.run({
           },
           "Strip": {
             props: {
-              width: LAID.take("../", "width").subtract(30),
-              centerX: LAID.take("../", "$midpointX"),
-              centerY: LAID.take("../", "$midpointY")
+              width: LAY.take("../", "width").subtract(30),
+              centerX: LAY.take("../", "$midpointX"),
+              centerY: LAY.take("../", "$midpointY")
             },
             "RemainingCount": {
               data: {
-                remaining: LAID.take("/App/Container/Todos/Todo", "rows").filterEq("complete", false).length()
+                remaining: LAY.take("/App/Container/Todos/Todo", "rows").filterEq("complete", false).length()
               },
               props: {
-                centerY: LAID.take("../", "$midpointY"),
-                text: LAID.take("%d items left").format(LAID.take("", "data.remaining")),
+                centerY: LAY.take("../", "$midpointY"),
+                text: LAY.take("%d items left").format(LAY.take("", "data.remaining")),
               },
               states: {
                 "single": {
-                  onlyif: LAID.take("", "data.remaining").eq(1),
+                  onlyif: LAY.take("", "data.remaining").eq(1),
                   props: {
                     text: "1 item left"
                   }
@@ -464,7 +464,7 @@ LAID.run({
             },
             "Categories": {
               props: {
-                centerX: LAID.take("../", "$midpointX")
+                centerX: LAY.take("../", "$midpointX")
               },
               "Category": {  
                 many: {
@@ -474,11 +474,11 @@ LAID.run({
                     var hashVal = hash.slice(2);
                     
                     if ( ["", "active", "completed" ].indexOf( hashVal ) !== -1 ) {
-                      LAID.clog();
+                      LAY.clog();
                       this.rowsUpdate("selected", false);
                       this.rowsUpdate("selected", true,
                         this.queryRows().filterEq("id", hashVal ));
-                      LAID.unclog();
+                      LAY.unclog();
                     } 
                     
                   },
@@ -499,36 +499,36 @@ LAID.run({
                 props: {
                   cursor:"pointer",
                   border: {style: "solid", width: 1,
-                    color: LAID.transparent()},
+                    color: LAY.transparent()},
                   cornerRadius: 3,
-                  text: LAID.take("", "row.text"),
+                  text: LAY.take("", "row.text"),
                   textPadding: {top:2, bottom:2, left:7, right:7},
-                  linkHref: LAID.take("#/%s").format(
-                    LAID.take("", "row.id")),
+                  linkHref: LAY.take("#/%s").format(
+                    LAY.take("", "row.id")),
 
                 },
                 states: {
                   "selected": {
-                    onlyif: LAID.take("", "row.selected"),
+                    onlyif: LAY.take("", "row.selected"),
                     props: {
-                      borderColor: LAID.rgba(175, 47, 47, 0.2)
+                      borderColor: LAY.rgba(175, 47, 47, 0.2)
                     }
                   },
                   "hover": {
-                    onlyif: LAID.take("", "$hovering").eq(true).and(
-                      LAID.take("", "row.selected").not()),
+                    onlyif: LAY.take("", "$hovering").eq(true).and(
+                      LAY.take("", "row.selected").not()),
                     props: {
-                      borderColor: LAID.rgba(175, 47, 47, 0.1)
+                      borderColor: LAY.rgba(175, 47, 47, 0.1)
                     }
                   }
                 },
                 when: {
                   click: function () {
                     if ( !this.attr("row.selected") ) {
-                      LAID.clog();
+                      LAY.clog();
                       this.many().rowsUpdate("selected", false);
                       this.row("selected", true);
-                      LAID.unclog();
+                      LAY.unclog();
                     }
                   }
                 }
@@ -538,12 +538,12 @@ LAID.run({
               props: {
                 cursor: "pointer",
                 right: 0,
-                centerY: LAID.take("../", "$midpointY"),
+                centerY: LAY.take("../", "$midpointY"),
                 text: "Clear completed"
               },
               when: {
                 click: function () {
-                  var many = LAID.level("/App/Container/Todos/Todo");
+                  var many = LAY.level("/App/Container/Todos/Todo");
                   many.rowsDelete(
                     many.queryRows().filterEq("complete", true ) );
                   updateLocalStorage();
@@ -551,13 +551,13 @@ LAID.run({
               },
               states: {
                 "hidden": {
-                  onlyif: LAID.take("/App/Container/Todos/Todo", "rows").filterEq("complete", true).length().eq(0),
+                  onlyif: LAY.take("/App/Container/Todos/Todo", "rows").filterEq("complete", true).length().eq(0),
                   props: {
                     display: false
                   }
                 },
                 "hover": {
-                  onlyif: LAID.take("", "$hovering"),
+                  onlyif: LAY.take("", "$hovering"),
                   props: {
                     textDecoration: "underline"
                   }
@@ -568,23 +568,23 @@ LAID.run({
         },
         "Sheets": {
           props: {
-            width: LAID.take("../", "width"),
+            width: LAY.take("../", "width"),
             height:50,
-            shiftY:LAID.take("", "height").negative(),
-            backgroundColor: LAID.transparent(),
-            top: LAID.take("../BottomControls", "bottom"),
+            shiftY:LAY.take("", "height").negative(),
+            backgroundColor: LAY.transparent(),
+            top: LAY.take("../BottomControls", "bottom"),
             zIndex: "-1",
             boxShadows: [
-              {x:0, y:1, blur:1, color: LAID.rgba(0,0,0,0.2) },
-              {x:0, y:8, blur:0, spread:-3, color: LAID.rgb(246,246,246) },
-              {x:0, y:9, blur:1, spread:-3 ,color: LAID.rgba(0,0,0,0.2) },
-              {x:0, y:16, blur:0, spread:-6, color: LAID.rgb(246,246,246) },
-              {x:0, y:17, blur:2, spread:-6, color: LAID.rgba(0,0,0,0.2) }
+              {x:0, y:1, blur:1, color: LAY.rgba(0,0,0,0.2) },
+              {x:0, y:8, blur:0, spread:-3, color: LAY.rgb(246,246,246) },
+              {x:0, y:9, blur:1, spread:-3 ,color: LAY.rgba(0,0,0,0.2) },
+              {x:0, y:16, blur:0, spread:-6, color: LAY.rgb(246,246,246) },
+              {x:0, y:17, blur:2, spread:-6, color: LAY.rgba(0,0,0,0.2) }
             ]
           },
           states: {
             "hidden": {
-              onlyif: LAID.take("/App/Container/Todos/Todo", "rows").length().eq(0),
+              onlyif: LAY.take("/App/Container/Todos/Todo", "rows").length().eq(0),
               props: {
                 display: false
               }
@@ -594,15 +594,15 @@ LAID.run({
       },
       "Footer": {
         props: {
-          top: LAID.take("../Container", "bottom").add(40),
-          width: LAID.take("../", "width"),
+          top: LAY.take("../Container", "bottom").add(40),
+          width: LAY.take("../", "width"),
           textAlign:"center",
           textShadows: [
-            {x: 0, y:1, blur:1, color: LAID.rgba(255,255,255,0.5)}
+            {x: 0, y:1, blur:1, color: LAY.rgba(255,255,255,0.5)}
           ],
           textSize:10,
-          textColor: LAID.rgb(191,191,191),
-          text: LAID.take("", "row.text"),
+          textColor: LAY.rgb(191,191,191),
+          text: LAY.take("", "row.text"),
           textLineHeight: 1
         },
 
@@ -628,15 +628,15 @@ LAID.run({
       props: {
         width: 300,
         height:200,
-        backgroundColor: LAID.rgba(255,255,255,0.6),
+        backgroundColor: LAY.rgba(255,255,255,0.6),
         userSelect: "auto"         
       },
       states: {
         "hidden": {
-          onlyif: LAID.take("/", "width").lt(
-            LAID.take("/", "data.sidebarResponsiveWidth")),
+          onlyif: LAY.take("/", "width").lt(
+            LAY.take("/", "data.sidebarResponsiveWidth")),
           props: {
-            left: LAID.take("", "width").negative()
+            left: LAY.take("", "width").negative()
           }
         }
       },
@@ -649,23 +649,23 @@ LAID.run({
       
       "Wrapper": {
         props: {
-          width: LAID.take("../", "width").minus(40),
-          height: LAID.take("../", "height").minus(40),
-          centerX: LAID.take("../", "$midpointX")
+          width: LAY.take("../", "width").minus(40),
+          height: LAY.take("../", "height").minus(40),
+          centerX: LAY.take("../", "$midpointX")
         },
         
         "Name": {
           props: {
             top: 20,
-            text: "LAID.JS",
+            text: "LAY.JS",
             textWeight: "bold",
             textSize: 24
           }
         },
         "Examples": {
           props: {
-            top: LAID.take("../Name", "bottom").add(
-              LAID.take("Example", "fargs.onebelow.gap"))
+            top: LAY.take("../Name", "bottom").add(
+              LAY.take("Example", "fargs.onebelow.gap"))
           },          
           "Example": {
             many: {
@@ -675,41 +675,41 @@ LAID.run({
             },
             "Title": {
               props: {
-                text: LAID.take("../", "row.title"),
+                text: LAY.take("../", "row.title"),
                 textWeight: "bold"
               }
             },
             "Links": {
               props: {
-                top: LAID.take("../Title", "bottom"),
-                text: LAID.take("../", "row.links")
+                top: LAY.take("../Title", "bottom"),
+                text: LAY.take("../", "row.links")
               }
             }
           }
         },
         "FirstLine": {
           props: {
-            top: LAID.take("../Examples", "bottom").add(10),
-            width: LAID.take("../", "width"),
+            top: LAY.take("../Examples", "bottom").add(10),
+            width: LAY.take("../", "width"),
             height:2,
             border: {
               top: {style:"dashed", width:1,
-               color: LAID.hex(0xc5c5c5)},
+               color: LAY.hex(0xc5c5c5)},
               bottom: {style:"dashed", width:1,
-                color: LAID.hex(0xf7f7f7)}
+                color: LAY.hex(0xf7f7f7)}
             }
           }
         },
         "Quote": {
           props: {
-            top: LAID.take("../FirstLine", "bottom").add(10),
-            text: "dump css and get laid"
+            top: LAY.take("../FirstLine", "bottom").add(10),
+            text: "dump css and get LAY"
           }
         },
         "SecondLine": {
           $inherit: "../FirstLine",
           props: {
-            top: LAID.take("../Quote", "bottom").add(10)
+            top: LAY.take("../Quote", "bottom").add(10)
           }
         }
         
@@ -720,15 +720,15 @@ LAID.run({
 });
 
 /*
-LAID.run({
+LAY.run({
   props: {
-    backgroundColor: LAID.color("gainsboro")
+    backgroundColor: LAY.color("gainsboro")
   },
   "Container": {
     props: {
-      centerX: LAID.take("../", "$midpointX"),
-      centerY: LAID.take("../", "$midpointY"),
-      backgroundColor: LAID.color("pink")
+      centerX: LAY.take("../", "$midpointX"),
+      centerY: LAY.take("../", "$midpointY"),
+      backgroundColor: LAY.color("pink")
     },
     transition: {
       all: {
@@ -741,14 +741,14 @@ LAID.run({
         width: 180,
         cursor: "default",
         border: {style:"solid",
-         color: LAID.color("red"),
+         color: LAY.color("red"),
          width:1
       },
-        backgroundColor: LAID.color("blue"),
-        text: LAID.take("", "row.content"),
+        backgroundColor: LAY.color("blue"),
+        text: LAY.take("", "row.content"),
         textSize:20,
         textPadding: 10,
-        textColor: LAID.color("white")
+        textColor: LAY.color("white")
       },
       when: {
         click: function () {
@@ -764,9 +764,9 @@ LAID.run({
       },
       states: {
         "hover": {
-          onlyif: LAID.take("","$hovering"),
+          onlyif: LAY.take("","$hovering"),
           props: {
-            textColor: LAID.color("grey")
+            textColor: LAY.color("grey")
 
           }
         }
@@ -778,7 +778,7 @@ LAID.run({
         },
         formation: "onebelow",            
         sort: [{key: "content",
-          ascending: LAID.take("", "data.asc")}],
+          ascending: LAY.take("", "data.asc")}],
         rows: [
           {id:1, content: "Airbus" },
           {id:2, content: "Boeing" },
@@ -787,7 +787,7 @@ LAID.run({
         ],
         states: {
           "sidebiz": {
-            onlyif: LAID.take("", "data.sidebiz"),
+            onlyif: LAY.take("", "data.sidebiz"),
             formation: "totheright",
             fargs: {
               totheright: {gap:10}
@@ -802,29 +802,29 @@ LAID.run({
 
 
 /*
-LAID.run({
+LAY.run({
   props: {
-    backgroundColor: LAID.color("pink")
+    backgroundColor: LAY.color("pink")
   },
   
   "First": {
     props: {
-      centerX: LAID.take("../", "$midpointX"),
-      centerY: LAID.take("../", "$midpointY"),
+      centerX: LAY.take("../", "$midpointX"),
+      centerY: LAY.take("../", "$midpointY"),
 
       width:100,
       height:100,
      border: {
         style: "solid",
         width:1,
-        color:LAID.color("green")
+        color:LAY.color("green")
       }
     }
   },
  "Second": {
     $inherit: ["../First"],
     props: {
-      top: LAID.take("../First", "bottom")
+      top: LAY.take("../First", "bottom")
     }
   }
 });
@@ -838,7 +838,7 @@ if (!String.prototype.trim) {
 }
 
 function updateLocalStorage () {
-  var rows = LAID.level("/App/Container/Todos/Todo").attr("rows");
+  var rows = LAY.level("/App/Container/Todos/Todo").attr("rows");
   if ( window.localStorage ) {
     window.localStorage.setItem("todos", JSON.stringify(rows));
   }

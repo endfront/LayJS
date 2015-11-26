@@ -1,17 +1,17 @@
 ( function () {
   "use strict";
 
-  LAID.Take = function ( relativePath, attr ) {
+  LAY.Take = function ( relativePath, attr ) {
 
     var _relPath00attr_S;
 
     if ( attr !== undefined ) {
-      var path = new LAID.RelPath( relativePath );
+      var path = new LAY.RelPath( relativePath );
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
         if ( attr === "rows" || attr === "filter" ) {
-          return LAID.$arrayUtils.cloneSingleLevel( 
+          return LAY.$arrayUtils.cloneSingleLevel( 
             path.resolve( this ).$getAttrVal( attr ).calcVal );
         } else {
           return path.resolve( this ).$getAttrVal( attr ).calcVal;
@@ -23,7 +23,7 @@
       // here in this second overloaded case
       var directValue = relativePath;
 
-      if ( directValue instanceof LAID.Take ) {
+      if ( directValue instanceof LAY.Take ) {
           this.$mergePathAndAttrs( directValue );
       }
       this.executable = function () {
@@ -35,14 +35,14 @@
 
   };
 
-  LAID.Take.prototype.execute = function ( contextPart ) {
+  LAY.Take.prototype.execute = function ( contextPart ) {
 
     // pass in context part for relative path lookups
     return this.executable.call( contextPart );
 
   };
 
-  LAID.Take.prototype.$mergePathAndAttrs = function ( take ) {
+  LAY.Take.prototype.$mergePathAndAttrs = function ( take ) {
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
@@ -51,10 +51,10 @@
     }
   };
 
-  LAID.Take.prototype.add = function ( val ) {
+  LAY.Take.prototype.add = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -69,12 +69,12 @@
     return this;
   };
 
-  LAID.Take.prototype.plus = LAID.Take.prototype.add;
+  LAY.Take.prototype.plus = LAY.Take.prototype.add;
 
-  LAID.Take.prototype.subtract = function ( val ) {
+  LAY.Take.prototype.subtract = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -89,12 +89,12 @@
     return this;
   };
 
-  LAID.Take.prototype.minus = LAID.Take.prototype.subtract;
+  LAY.Take.prototype.minus = LAY.Take.prototype.subtract;
 
-  LAID.Take.prototype.divide = function ( val ) {
+  LAY.Take.prototype.divide = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -109,10 +109,10 @@
     return this;
   };
 
-  LAID.Take.prototype.multiply = function ( val ) {
+  LAY.Take.prototype.multiply = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -127,10 +127,10 @@
     return this;
   };
 
-  LAID.Take.prototype.remainder = function ( val ) {
+  LAY.Take.prototype.remainder = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -145,7 +145,7 @@
     return this;
   };
 
-  LAID.Take.prototype.half = function ( ) {
+  LAY.Take.prototype.half = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -156,7 +156,7 @@
     return this;
   };
 
-  LAID.Take.prototype.double = function ( ) {
+  LAY.Take.prototype.double = function ( ) {
 
     var oldExecutable = this.executable;
 
@@ -168,10 +168,10 @@
   };
 
 
-  LAID.Take.prototype.contains = function ( val ) {
+  LAY.Take.prototype.contains = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -186,29 +186,29 @@
     return this;
   };
 
-  LAID.Take.prototype.identical = function ( val ) {
+  LAY.Take.prototype.identical = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return LAID.identical( oldExecutable.call( this ),
+        return LAY.identical( oldExecutable.call( this ),
           val.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return LAID.identical( oldExecutable.call( this ), val );
+        return LAY.identical( oldExecutable.call( this ), val );
       };
     }
     return this;
   };
 
-  LAID.Take.prototype.eq = function ( val ) {
+  LAY.Take.prototype.eq = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -225,10 +225,10 @@
 
 
 
-  LAID.Take.prototype.neq = function ( val ) {
+  LAY.Take.prototype.neq = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -243,10 +243,10 @@
     return this;
   };
 
-  LAID.Take.prototype.gt = function ( val ) {
+  LAY.Take.prototype.gt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -261,10 +261,10 @@
     return this;
   };
 
-  LAID.Take.prototype.gte = function ( val ) {
+  LAY.Take.prototype.gte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -279,10 +279,10 @@
     return this;
   };
 
-  LAID.Take.prototype.lt = function ( val ) {
+  LAY.Take.prototype.lt = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -297,10 +297,10 @@
     return this;
   };
 
-  LAID.Take.prototype.lte = function ( val ) {
+  LAY.Take.prototype.lte = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -315,10 +315,10 @@
     return this;
   };
 
-  LAID.Take.prototype.or = function ( val ) {
+  LAY.Take.prototype.or = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -333,10 +333,10 @@
     return this;
   };
 
-  LAID.Take.prototype.and = function ( val ) {
+  LAY.Take.prototype.and = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -351,7 +351,7 @@
     return this;
   };
 
-  LAID.Take.prototype.not = function () {
+  LAY.Take.prototype.not = function () {
 
     var oldExecutable = this.executable;
 
@@ -363,7 +363,7 @@
   };
 
 
-  LAID.Take.prototype.negative = function () {
+  LAY.Take.prototype.negative = function () {
 
     var oldExecutable = this.executable;
 
@@ -376,10 +376,10 @@
 
 
 
-  LAID.Take.prototype.key = function ( val ) {
+  LAY.Take.prototype.key = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -394,9 +394,9 @@
     return this;
   };
 
-  LAID.Take.prototype.index = LAID.Take.prototype.key;
+  LAY.Take.prototype.index = LAY.Take.prototype.key;
 
-  LAID.Take.prototype.length = function ( val ) {
+  LAY.Take.prototype.length = function ( val ) {
     var oldExecutable = this.executable;
 
     this.executable = function () {
@@ -407,10 +407,10 @@
   };
 
 
-  LAID.Take.prototype.min = function ( val ) {
+  LAY.Take.prototype.min = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -425,10 +425,10 @@
     return this;
   };
 
-  LAID.Take.prototype.max = function ( val ) {
+  LAY.Take.prototype.max = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -444,7 +444,7 @@
   };
 
 
-  LAID.Take.prototype.ceil = function () {
+  LAY.Take.prototype.ceil = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -453,7 +453,7 @@
     return this;
   };
 
-  LAID.Take.prototype.floor = function () {
+  LAY.Take.prototype.floor = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -463,7 +463,7 @@
   };
 
 
-  LAID.Take.prototype.sin = function () {
+  LAY.Take.prototype.sin = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -473,7 +473,7 @@
   };
 
 
-  LAID.Take.prototype.cos = function () {
+  LAY.Take.prototype.cos = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -483,7 +483,7 @@
   };
 
 
-  LAID.Take.prototype.tan = function () {
+  LAY.Take.prototype.tan = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -492,7 +492,7 @@
     return this;
   };
 
-  LAID.Take.prototype.abs = function () {
+  LAY.Take.prototype.abs = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -502,10 +502,10 @@
   };
 
 
-  LAID.Take.prototype.pow = function ( val ) {
+  LAY.Take.prototype.pow = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -520,7 +520,7 @@
     return this;
   };
 
-  LAID.Take.prototype.log = function () {
+  LAY.Take.prototype.log = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -530,10 +530,10 @@
   };
 
 
-  LAID.Take.prototype.match = function ( val ) {
+  LAY.Take.prototype.match = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -549,10 +549,10 @@
 
   };
 
-  LAID.Take.prototype.test = function ( val ) {
+  LAY.Take.prototype.test = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -568,9 +568,9 @@
 
   };
 
-  LAID.Take.prototype.concat = LAID.Take.prototype.add;
+  LAY.Take.prototype.concat = LAY.Take.prototype.add;
 
-  LAID.Take.prototype.lowercase = function () {
+  LAY.Take.prototype.lowercase = function () {
     var oldExecutable = this.executable;
     this.executable = function () {
       return oldExecutable.call( this ).toLowerCase();
@@ -578,7 +578,7 @@
     return this;
   };
 
-  LAID.Take.prototype.uppercase = function () {
+  LAY.Take.prototype.uppercase = function () {
     var oldExecutable = this.executable;
     this.executable = function () {
       return oldExecutable.call( this ).toUpperCase();
@@ -586,7 +586,7 @@
     return this;
   };
 
-  LAID.Take.prototype.capitalize = function () {
+  LAY.Take.prototype.capitalize = function () {
     var oldExecutable = this.executable;
     this.executable = function () {
       var val = oldExecutable.call( this );
@@ -596,10 +596,10 @@
     return this;
   };
 
-  LAID.Take.prototype.format = function () {
+  LAY.Take.prototype.format = function () {
 
     var argS = Array.prototype.slice.call( arguments ),
-      takeFormat = new LAID.Take( LAID.$format );
+      takeFormat = new LAY.Take( LAY.$format );
 
     argS.unshift( this );
 
@@ -610,12 +610,12 @@
 
 
 
-  LAID.Take.prototype.i18nFormat = function () {
+  LAY.Take.prototype.i18nFormat = function () {
 
-    this._relPath00attr_S.push( [ new LAID.RelPath( '/' ), 'data.lang' ] );
+    this._relPath00attr_S.push( [ new LAY.RelPath( '/' ), 'data.lang' ] );
 
     var argS = Array.prototype.slice.call(arguments),
-      takeFormat = new LAID.Take( fnWrapperI18nFormat );
+      takeFormat = new LAY.Take( fnWrapperI18nFormat );
 
     argS.unshift( this );
 
@@ -630,21 +630,21 @@
   function fnWrapperI18nFormat () {
 
     var argS = Array.prototype.slice.call( arguments );
-    argS[ 0 ] = ( argS[ 0 ] )[ LAID.level( '/' ).attr( 'data.lang' ) ];
+    argS[ 0 ] = ( argS[ 0 ] )[ LAY.level( '/' ).attr( 'data.lang' ) ];
 
     if ( argS[ 0 ] === undefined ) {
-      throw "LAID Error: No language defined for i18nFormat";
+      throw "LAY Error: No language defined for i18nFormat";
     }
 
-    return LAID.$format.apply( undefined, argS );
+    return LAY.$format.apply( undefined, argS );
 
   }
 
 
-  LAID.Take.prototype.colorEquals = function ( val ) {
+  LAY.Take.prototype.colorEquals = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -661,10 +661,10 @@
   };
 
 
-  LAID.Take.prototype.colorLighten = function ( val ) {
+  LAY.Take.prototype.colorLighten = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -681,10 +681,10 @@
   };
 
 
-  LAID.Take.prototype.colorDarken = function ( val ) {
+  LAY.Take.prototype.colorDarken = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -701,7 +701,7 @@
   };
 
 
-  LAID.Take.prototype.colorStringify = function ( ) {
+  LAY.Take.prototype.colorStringify = function ( ) {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -712,7 +712,7 @@
 
   };
 
-  LAID.Take.prototype.colorInvert = function ( ) {
+  LAY.Take.prototype.colorInvert = function ( ) {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -723,10 +723,10 @@
 
   };
 
-  LAID.Take.prototype.colorSaturate = function ( val ) {
+  LAY.Take.prototype.colorSaturate = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -742,10 +742,10 @@
 
   };
 
-  LAID.Take.prototype.colorDesaturate = function ( val ) {
+  LAY.Take.prototype.colorDesaturate = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -762,10 +762,10 @@
   };
 
 
-  LAID.Take.prototype.colorAlpha = function ( val ) {
+  LAY.Take.prototype.colorAlpha = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -781,10 +781,10 @@
 
   };
 
-  LAID.Take.prototype.colorRed = function ( val ) {
+  LAY.Take.prototype.colorRed = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -800,10 +800,10 @@
   };
 
 
-  LAID.Take.prototype.colorGreen = function ( val ) {
+  LAY.Take.prototype.colorGreen = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -818,10 +818,10 @@
     return this;
   };
 
-  LAID.Take.prototype.colorBlue = function ( val ) {
+  LAY.Take.prototype.colorBlue = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -836,10 +836,10 @@
     return this;
   };
 
-  LAID.Take.prototype.colorHue = function ( val ) {
+  LAY.Take.prototype.colorHue = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -854,10 +854,10 @@
     return this;
   };
 
-  LAID.Take.prototype.colorSaturation = function ( val ) {
+  LAY.Take.prototype.colorSaturation = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -872,10 +872,10 @@
     return this;
   };
 
-  LAID.Take.prototype.colorLightness = function ( val ) {
+  LAY.Take.prototype.colorLightness = function ( val ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAID.Take ) {
+    if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
@@ -890,17 +890,17 @@
     return this;
   };
 
-  LAID.Take.prototype.filterEq = function ( attr, val ) {
+  LAY.Take.prototype.filterEq = function ( attr, val ) {
 
     var oldExecutable = this.executable;
 
-    if ( attr instanceof LAID.Take ) {
+    if ( attr instanceof LAY.Take ) {
       this.$mergePathAndAttrs( attr );
 
-      if ( val instanceof LAID.Take ) {
+      if ( val instanceof LAY.Take ) {
         this.$mergePathAndAttrs( val );
         this.executable = function () {
-          return LAID.$filterUtils.eq(
+          return LAY.$filterUtils.eq(
             oldExecutable.call( this ),
             attr.execute( this ),
             val.execute( this )
@@ -909,17 +909,17 @@
 
       } else {
         this.executable = function () {
-          return LAID.$filterUtils.eq(
+          return LAY.$filterUtils.eq(
             oldExecutable.call( this ),
             attr.execute( this ),
             val
           );
         }
       }
-    } else if ( val instanceof LAID.Take ) {
+    } else if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
       this.executable = function () {
-        return LAID.$filterUtils.eq(
+        return LAY.$filterUtils.eq(
             oldExecutable.call( this ),
             attr,
             val.execute( this )
@@ -929,7 +929,7 @@
     } else {
 
       this.executable = function () {
-        return LAID.$filterUtils.eq(
+        return LAY.$filterUtils.eq(
             oldExecutable.call( this ),
             attr,
             val
@@ -943,9 +943,9 @@
 
   /*
   * Call custom function with arguments, where arguments
-  * can be LAID.Take objects.
+  * can be LAY.Take objects.
   */
-  LAID.Take.prototype.fn = function ( ) {
+  LAY.Take.prototype.fn = function ( ) {
 
     var fnExecutable = this.executable;
     //console.log(fnExecutable.call(this));
@@ -960,7 +960,7 @@
 
       var arg = arguments[ 0 ];
 
-      if ( arg instanceof LAID.Take ) {
+      if ( arg instanceof LAY.Take ) {
 
         this.$mergePathAndAttrs( arg );
         this.executable = function () {
@@ -979,11 +979,11 @@
       var arg1 = arguments[ 0 ];
       var arg2 = arguments[ 1 ];
 
-      if ( arg1 instanceof LAID.Take ) {
+      if ( arg1 instanceof LAY.Take ) {
 
         this.$mergePathAndAttrs( arg1 );
 
-        if ( arg2 instanceof LAID.Take ) {
+        if ( arg2 instanceof LAY.Take ) {
 
           this.$mergePathAndAttrs( arg2 );
 
@@ -998,7 +998,7 @@
           };
         }
 
-      } else if ( arg2 instanceof LAID.Take ) {
+      } else if ( arg2 instanceof LAY.Take ) {
 
         this.$mergePathAndAttrs( arg2 );
         this.executable = function () {
@@ -1023,7 +1023,7 @@
 
         curArg = arguments[ i ];
 
-        if ( curArg instanceof LAID.Take ) {
+        if ( curArg instanceof LAY.Take ) {
 
           this.$mergePathAndAttrs( curArg );
 
@@ -1038,7 +1038,7 @@
 
           arg = argS[ i ];
 
-          executedArgS[ i ] = arg instanceof LAID.Take ? arg.execute( this ) : arg;
+          executedArgS[ i ] = arg instanceof LAY.Take ? arg.execute( this ) : arg;
 
         }
 

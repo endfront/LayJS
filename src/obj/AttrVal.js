@@ -5,7 +5,7 @@
   // attr -> string attr name
   // attrVal -> class AttrVal
 
-  LAID.AttrVal = function ( attr, level ) {
+  LAY.AttrVal = function ( attr, level ) {
 
     // undefined initializations:
     // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
@@ -31,10 +31,10 @@
 
     this.isStateProjectedAttr = checkIsStateProjectedAttr( attr );
     this.isEventReadonlyAttr =
-      LAID.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
+      LAY.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall =
       level && ( level.isPart ) &&
-        ( LAID.$findRenderCall( attr, level.isGpu ) );
+        ( LAY.$findRenderCall( attr, level.isGpu ) );
 
     this.takerAttrValS = [];
 
@@ -83,7 +83,7 @@
 
   function checkIsStateProjectedAttr( attr ) {
     var i = attr.indexOf( "." );
-    if ( LAID.$checkIsValidUtils.propAttr( attr ) &&
+    if ( LAY.$checkIsValidUtils.propAttr( attr ) &&
       [ "centerX", "right",
        "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
@@ -102,11 +102,11 @@
 
   Returns true if the value is different,
   false otherwise */
-  LAID.AttrVal.prototype.update = function ( val ) {
+  LAY.AttrVal.prototype.update = function ( val ) {
     
     this.val = val;
-    if ( !LAID.$identical( val, this.prevVal ) ) {
-      if ( this.val instanceof LAID.Take ) {
+    if ( !LAY.$identical( val, this.prevVal ) ) {
+      if ( this.val instanceof LAY.Take ) {
         this.takeNot();
       }
 
@@ -124,7 +124,7 @@
   * Request the level corresponding to the given AttrVal
   * to recalculate this AttrVal.
   */
-  LAID.AttrVal.prototype.requestRecalculation = function () {
+  LAY.AttrVal.prototype.requestRecalculation = function () {
     this.isRecalculateRequired = true;
     if ( this.level ) { // check for empty level
       this.level.addRecalculateDirtyAttrVal( this );
@@ -135,14 +135,14 @@
   * Force the level corresponding to the given AttrVal
   * to recalculate this AttrVal.
   */
-  LAID.AttrVal.prototype.forceRecalculation = function () {
+  LAY.AttrVal.prototype.forceRecalculation = function () {
 
     this.isForceRecalculate = true;
     this.requestRecalculation();
   };
 
 
-  LAID.AttrVal.prototype.checkIsTransitionable = function () {
+  LAY.AttrVal.prototype.checkIsTransitionable = function () {
 
     return this.renderCall &&
       ( this.startCalcVal !== this.calcVal ) &&
@@ -154,9 +154,9 @@
         )
           ||
         (
-          ( this.startCalcVal instanceof LAID.Color  )
+          ( this.startCalcVal instanceof LAY.Color  )
               &&
-          ( this.calcVal instanceof LAID.Color )
+          ( this.calcVal instanceof LAY.Color )
         )
       ) &&
       this.attr !== "zIndex";
@@ -169,7 +169,7 @@
   * TODO: update this doc below
   *
   * Recalculate the value of the attr value.
-  * Propagate the change across the LOM (LAID object model)
+  * Propagate the change across the LOM (LAY object model)
   * if the change in value produces a change.
   * For constraint (take) based attributes, recalculate the
   * value, for non constraint based use the `value` parameter
@@ -177,7 +177,7 @@
   * Return true if calculation successful, false if
   * a circular reference rendered it unsuccessful
   */
-  LAID.AttrVal.prototype.recalculate = function () {
+  LAY.AttrVal.prototype.recalculate = function () {
 
     var
       isDirty = false,
@@ -189,18 +189,18 @@
       i, len; 
 
     //console.log("update", level.pathName, attr, this.val,
-    //LAID.count );
+    //LAY.count );
     
     if ( level.isRemoved ) {
       return true;
     }
     if ( attr.charAt( 0 ) === "$" ) {
-      if ( LAID.$checkIfImmidiateReadonly( attr ) ) {
+      if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
         this.val = part.getImmidiateReadonlyVal( attr );
       }
     }
 
-    if ( this.val instanceof LAID.Take ) { // is LAID.Take
+    if ( this.val instanceof LAY.Take ) { // is LAY.Take
       if ( !this.isTaken ) {
         this.isTaken = this.take();
         // if the attrval has not been taken
@@ -213,12 +213,12 @@
       }
 
       recalcVal = this.val.execute( this.level );
-      if ( !LAID.$identical( recalcVal, this.calcVal ) ) {
+      if ( !LAY.$identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = recalcVal;
       }
     } else {
-      if ( !LAID.$identical( this.val, this.calcVal ) ) {
+      if ( !LAY.$identical( this.val, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = this.val;
       }
@@ -283,7 +283,7 @@
         this.takerAttrValS[ i ].requestRecalculation();
       }
 
-      if ( LAID.$isDataTravellingShock ) {
+      if ( LAY.$isDataTravellingShock ) {
         part.addTravelRenderDirtyAttrVal( this );
       }
 
@@ -292,7 +292,7 @@
         this.isTransitionable = this.checkIsTransitionable();
 
 
-        if ( !LAID.$isDataTravellingShock ) {
+        if ( !LAY.$isDataTravellingShock ) {
           part.addNormalRenderDirtyAttrVal( this );
         }
 
@@ -360,25 +360,25 @@
 
       } else if ( stateName !== "" ) {
         if ( this.calcVal ) { // state
-          if ( LAID.$arrayUtils.pushUnique( level.stateS, stateName ) ) {
+          if ( LAY.$arrayUtils.pushUnique( level.stateS, stateName ) ) {
             level.$updateStates();
             // remove from the list of uninstalled states (which may/may not be present within)
-            LAID.$arrayUtils.remove( level.newlyUninstalledStateS, stateName );
+            LAY.$arrayUtils.remove( level.newlyUninstalledStateS, stateName );
             // add state to the list of newly installed states
-            LAID.$arrayUtils.pushUnique( level.newlyInstalledStateS, stateName );
+            LAY.$arrayUtils.pushUnique( level.newlyInstalledStateS, stateName );
             // add level to the list of levels which have newly installed states
-            LAID.$arrayUtils.pushUnique( LAID.$newlyInstalledStateLevelS, level );
+            LAY.$arrayUtils.pushUnique( LAY.$newlyInstalledStateLevelS, level );
           }
         } else { // remove state
-          if ( LAID.$arrayUtils.remove( level.stateS, stateName ) ) {
+          if ( LAY.$arrayUtils.remove( level.stateS, stateName ) ) {
 
             level.$updateStates();
             // remove from the list of installed states (which may/may not be present within)
-            LAID.$arrayUtils.remove( level.newlyInstalledStateS, stateName );
+            LAY.$arrayUtils.remove( level.newlyInstalledStateS, stateName );
             // add state to the list of newly uninstalled states
-            LAID.$arrayUtils.pushUnique( level.newlyUninstalledStateS, stateName );
+            LAY.$arrayUtils.pushUnique( level.newlyUninstalledStateS, stateName );
             // add level to the list of levels which have newly uninstalled states
-            LAID.$arrayUtils.pushUnique( LAID.$newlyUninstalledStateLevelS, level );
+            LAY.$arrayUtils.pushUnique( LAY.$newlyUninstalledStateLevelS, level );
           }
         }
       } else if ( whenEventType !== "" ) {
@@ -417,7 +417,7 @@
               setTimeout(function(){
                 self.level.attr2attrVal.scrollX.
                   requestRecalculation();
-                LAID.$solve();
+                LAY.$solve();
               });
             }
             break;
@@ -427,7 +427,7 @@
               setTimeout(function(){
                 self.level.attr2attrVal.scrollY.
                   requestRecalculation();
-                LAID.$solve();
+                LAY.$solve();
               });
             }
             break;
@@ -476,23 +476,23 @@
 
 
 
-  LAID.AttrVal.prototype.checkIfDeferenced = function () {
+  LAY.AttrVal.prototype.checkIfDeferenced = function () {
     return this.takerAttrValS.length === 0;
   };
 
-  LAID.AttrVal.prototype.give = function ( attrVal ) {
-    if ( LAID.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
+  LAY.AttrVal.prototype.give = function ( attrVal ) {
+    if ( LAY.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
         // Given that a reference exists, add event listeners
         var
-          eventType2fnHandler = LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
+          eventType2fnHandler = LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
           eventType,
           fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
-          LAID.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
+          LAY.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            fnBoundHandler;
@@ -501,19 +501,19 @@
     }
   };
 
-  LAID.AttrVal.prototype.giveNot = function ( attrVal ) {
-    if ( LAID.$arrayUtils.remove( this.takerAttrValS, attrVal ) && 
+  LAY.AttrVal.prototype.giveNot = function ( attrVal ) {
+    if ( LAY.$arrayUtils.remove( this.takerAttrValS, attrVal ) && 
       this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
         // Given that no reference exists, remove event listeners
         var
          eventType2fnHandler =
-         LAID.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
+         LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
          eventType,
          fnBoundHandler;
         for ( eventType in eventType2fnHandler ) {
           fnBoundHandler = this.eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAID.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
+          LAY.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            undefined;
         }
@@ -522,12 +522,12 @@
   };
 
 
-  LAID.AttrVal.prototype.take = function () {
+  LAY.AttrVal.prototype.take = function () {
 
-    if ( this.val instanceof LAID.Take ) {
+    if ( this.val instanceof LAY.Take ) {
       var _relPath00attr_S, relPath, level, attr,
       i, len;
-      // value is of type `LAID.Take`
+      // value is of type `LAY.Take`
       _relPath00attr_S = this.val._relPath00attr_S;
 
       for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
@@ -570,9 +570,9 @@
 
   };
 
-  LAID.AttrVal.prototype.takeNot = function ( attrVal ) {
+  LAY.AttrVal.prototype.takeNot = function ( attrVal ) {
 
-    if ( this.val instanceof LAID.Take ) {
+    if ( this.val instanceof LAY.Take ) {
       var _relPath00attr_S, relPath, level, attr;
       _relPath00attr_S = this.val._relPath00attr_S;
 
@@ -591,7 +591,7 @@
 
   };
 
-  LAID.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
+  LAY.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
 
     if ( !attrVal ) {
       return false;
@@ -601,7 +601,7 @@
 
       var _relPath00attr_S, i, len, takingLevel, takingAttrVal;
 
-      if ( !( this.val instanceof LAID.Take ) ) {
+      if ( !( this.val instanceof LAY.Take ) ) {
         return false;
       } else {
         _relPath00attr_S = this.val._relPath00attr_S;

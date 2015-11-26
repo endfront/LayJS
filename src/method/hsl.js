@@ -2,9 +2,9 @@
   "use strict";
 
 
-  LAID.hsl = function ( h, s, l ) {
+  LAY.hsl = function ( h, s, l ) {
 
-    return LAID.hsla( h, s, l, 1 );
+    return LAY.hsla( h, s, l, 1 );
 
   };
 

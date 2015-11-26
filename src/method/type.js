@@ -16,14 +16,14 @@
 };
 
 
-  LAID.type = function( obj ) {
+  LAY.type = function( obj ) {
     if ( obj === null ) {
       return obj + "";
-    } else if ( obj instanceof LAID.Color ) {
+    } else if ( obj instanceof LAY.Color ) {
       return "color";
-    } else if ( obj instanceof LAID.Take ) {
+    } else if ( obj instanceof LAY.Take ) {
       return "take";
-    } else if ( obj instanceof LAID.Level ) {
+    } else if ( obj instanceof LAY.Level ) {
       return "level";
     }
     // Support: Android < 4.0, iOS < 6 (functionish RegExp)

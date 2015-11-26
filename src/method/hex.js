@@ -3,17 +3,17 @@
 
   function takeHex ( hex ) {
 
-    return LAID.hex( hex );
+    return LAY.hex( hex );
 
   }
 
-  LAID.hex = function ( hexVal ) {
+  LAY.hex = function ( hexVal ) {
 
-    if ( hexVal instanceof LAID.Take ) {
-        return new LAID.Take( takeHex ).fn( hexVal );
+    if ( hexVal instanceof LAY.Take ) {
+        return new LAY.Take( takeHex ).fn( hexVal );
     } else {
 
-      return new LAID.Color( 'rgb', hexToRgb(hexVal), 1 );        
+      return new LAY.Color( 'rgb', hexToRgb(hexVal), 1 );        
     }
 
   };

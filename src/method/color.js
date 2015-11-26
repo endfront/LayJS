@@ -3,20 +3,20 @@
 
   function takeColor ( color ) {
 
-    return LAID.color( color );
+    return LAY.color( color );
 
   }
 
   var numRegex = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,?\s*((\d+\.\d+)|(\d+))?/;
-  LAID.color = function ( colorName ) {
+  LAY.color = function ( colorName ) {
 
-    if ( colorName instanceof LAID.Take ) {
-      return new LAID.Take( takeColor ).fn( colorName );
+    if ( colorName instanceof LAY.Take ) {
+      return new LAY.Take( takeColor ).fn( colorName );
     } else {
       colorName = colorName.toLowerCase();
       var colorValue = colorName2colorValue[ colorName ];
       if ( colorValue !== undefined ) {
-        return new LAID.Color( 'rgb', colorValue, 1 );
+        return new LAY.Color( 'rgb', colorValue, 1 );
       } else {
         if ( colorName.match(/(rgb)|(hsl)/) ) {
           var match = colorName.match( numRegex );
@@ -29,15 +29,15 @@
                1 : parseFloat(match[4]);
 
             if ( colorName.indexOf("rgb") !== -1 ) {
-              return LAID.rgba( arg1,arg2,arg3, argAlpha );
+              return LAY.rgba( arg1,arg2,arg3, argAlpha );
             } else {
-              return LAID.hsla( arg1,arg2,arg3, argAlpha );
+              return LAY.hsla( arg1,arg2,arg3, argAlpha );
             }
           }
         }
       } 
     }
-    throw ("LAID Error: Color name: " + colorName +  " not found." );
+    throw ("LAY Error: Color name: " + colorName +  " not found." );
 
   };
 

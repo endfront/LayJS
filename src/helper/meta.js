@@ -2,7 +2,7 @@
   "use strict";
 
 
-  LAID.$meta = {
+  LAY.$meta = {
 
 
     set: function ( lson, metaDomain, attr, val  ) {
@@ -46,10 +46,10 @@
             fromKeyS = fromAttr2keyS[ fromAttr ];
             intoKeyS = intoAttr2keyS[ fromAttr ];
             if ( intoKeyS === undefined ) {
-              intoAttr2keyS[ fromAttr ] = LAID.$arrayUtils.cloneSingleLevel( fromKeyS );
+              intoAttr2keyS[ fromAttr ] = LAY.$arrayUtils.cloneSingleLevel( fromKeyS );
             } else {
               for ( i = 0, len = fromKeyS.length; i < len; i++ ) {
-                LAID.$arrayUtils.pushUnique( intoKeys, fromKeyS[ i ] );
+                LAY.$arrayUtils.pushUnique( intoKeys, fromKeyS[ i ] );
               }
           }
         }

@@ -1,7 +1,7 @@
 ( function () {
   "use strict";
 
-  LAID.$foldlUtils = {
+  LAY.$foldlUtils = {
     min: function ( rowS, key, val ) {
       return fold( function ( row, acc ) {
         var val = row[ key ];

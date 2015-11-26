@@ -11,18 +11,18 @@
   };*/
 
 
-  LAID.$findRenderCall = function( prop, isPositionGpu ) {
+  LAY.$findRenderCall = function( prop, isPositionGpu ) {
 
     var
       renderCall,
       multipleTypePropMatchDetails;
 
-    if ( !LAID.$checkIsValidUtils.propAttr( prop ) ||
+    if ( !LAY.$checkIsValidUtils.propAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
-      LAID.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {
+      LAY.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {
         return undefined;
       } else {
-        multipleTypePropMatchDetails = LAID.$findMultipleTypePropMatchDetails(
+        multipleTypePropMatchDetails = LAY.$findMultipleTypePropMatchDetails(
         prop );
 
         if ( multipleTypePropMatchDetails ) {
@@ -30,7 +30,7 @@
         }
 
         renderCall = 
-          LAID.$shorthandPropsUtils.getShorthandPropCenteralized(
+          LAY.$shorthandPropsUtils.getShorthandPropCenteralized(
             prop );
         if ( renderCall !== undefined ) {
           if ( isPositionGpu &&

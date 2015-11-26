@@ -10,7 +10,7 @@
     "$input", "$inputFocused"
   ];
   
-  LAID.$checkIfImmidiateReadonly = function ( attr ) {
+  LAY.$checkIfImmidiateReadonly = function ( attr ) {
     return immidiateReadonlyS.indexOf( attr ) !== -1;
 
   };

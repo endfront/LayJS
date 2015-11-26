@@ -1,7 +1,7 @@
 ( function () {
 	"use strict";
 
-	LAID.$filterUtils = {
+	LAY.$filterUtils = {
 		eq: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return row[ key ] === val;

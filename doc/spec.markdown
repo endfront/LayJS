@@ -1,30 +1,30 @@
 
 
-### LAID
+### LAY
 
-LAID involves writing LSON (Layout Syntax Object Notation)
-
-
-### LAID methods
-
-  LAID.run()
-  LAID.level()
-  LAID.part()
-  LAID.take()
-  LAID.filter()
-
-  LAID.rgb()
-  LAID.rgba()
-  LAID.hsla()
-  LAID.hsl()
-  LAID.color()
+LAY involves writing LSON (Layout Syntax Object Notation)
 
 
-### LAID.run()
+### LAY methods
+
+  LAY.run()
+  LAY.level()
+  LAY.part()
+  LAY.take()
+  LAY.filter()
+
+  LAY.rgb()
+  LAY.rgba()
+  LAY.hsla()
+  LAY.hsl()
+  LAY.color()
+
+
+### LAY.run()
   
-  The input to `LAID.run()` is an object known as LSON.
+  The input to `LAY.run()` is an object known as LSON.
 
-    LAID.run( {
+    LAY.run( {
       children: {
         "ChildName": {
 
@@ -46,7 +46,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
               data: object,
               formation: string,
               sort: [sortDict, ...],
-              filter: LAID.take,
+              filter: LAY.take,
               rows: array,
               fargs: obj,
 
@@ -56,7 +56,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
                 < name >: {
                   formation: string,
                   sort: [sortDict, ...],
-                  filter: LAID.take,
+                  filter: LAY.take,
                   fargs: obj,
                   install: function
                   uninstall: function
@@ -68,7 +68,7 @@ LAID involves writing LSON (Layout Syntax Object Notation)
               < name >: {
                   props: object,
                   when: object,
-                  onlyif: LAID.Take,
+                  onlyif: LAY.Take,
                   transition: transitionObj,
                   install: function,
                   uninstall: function
@@ -135,7 +135,7 @@ take either a number (in pixels) or
 a string.
 An example would be "background-position"
 which can be "10px" or "center".
-Within LAID, both types are accepted as well,
+Within LAY, both types are accepted as well,
 however to ensure transitionability the input
 must be numerical. Therefore it is still
 possible to use "center", "auto", "10%", and
@@ -155,12 +155,12 @@ Defaults:
 - width
   `number`
   Width of part (excluding scale)
-  Default: LAID.take('', '$naturalWidth') [for "/": LAID.take("", "$windowWidth")]
+  Default: LAY.take('', '$naturalWidth') [for "/": LAY.take("", "$windowWidth")]
 
 - height
   `number`
   Height of part (excluding scale)
-  Default: LAID.take('', '$naturalHeight') [for "/": LAID.take("", "$windowHeight")]
+  Default: LAY.take('', '$naturalHeight') [for "/": LAY.take("", "$windowHeight")]
 
 - top
   `number`
@@ -326,12 +326,12 @@ Defaults:
 - userSelect
   `string`
   CSS user-select
-  Default: LAID.take("../", "userSelect") [for "/": "none"]
+  Default: LAY.take("../", "userSelect") [for "/": "none"]
 
 - background (no support for multiple backgrounds)
   This is an "object-type" prop.
   {
-    color: LAID.Color (Default: transparent),
+    color: LAY.Color (Default: transparent),
     image: string (Default: none),
     attachment: string (CSS background-attachment) (Default: "scroll"),
     repeat: string (CSS background-repeat) (Default: true),
@@ -351,7 +351,7 @@ Defaults:
       y: number (in pixels),
       blur: number,
       spread: number (Default: 0),
-      color: LAID.Color
+      color: LAY.Color
     }
     ...
   ]
@@ -368,7 +368,7 @@ Defaults:
   Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >
   { top/right/bottom/left/< undefined >: {
     style: string (CSS border-style) (Default: 'solid'),
-    color: LAID.Color (Default: transparent),
+    color: LAY.Color (Default: transparent),
     width: number (Default: 0)
 
   } }
@@ -388,7 +388,7 @@ Defaults:
         blur: number (in pixels),
         spread: number (in pixel) [ currently disabled due
         to lack of browser support],
-        color: LAID.Color
+        color: LAY.Color
       } |
       grayscale: number (in fraction (percent)) |
       hueRotate: number (in degrees) |
@@ -410,79 +410,79 @@ Defaults:
 - textSize
   in pixels
   `number`
-  Default: LAID.take("../", "textSize") [for "/": 15]
+  Default: LAY.take("../", "textSize") [for "/": 15]
 
 - textFamily
   `string`
   CSS font-family
-  Default: LAID.take("../", "textFamily") [for "/": "sans-serif"]
+  Default: LAY.take("../", "textFamily") [for "/": "sans-serif"]
 
 - textWeight
   `string`
   CSS font-weight
-  Default: LAID.take("../", "textWeight") [for "/": "normal"]
+  Default: LAY.take("../", "textWeight") [for "/": "normal"]
 
 - textColor
-  `LAID.Color`
-  Default: LAID.take("../", "textColor") [for "/": LAID.color("black")]
+  `LAY.Color`
+  Default: LAY.take("../", "textColor") [for "/": LAY.color("black")]
 
 - textVariant
   `string`
   CSS font-variant
-  Default: LAID.take("../", "textVariant") [for "/": "normal"]
+  Default: LAY.take("../", "textVariant") [for "/": "normal"]
 
 - textTransform
   `string`
   CSS text-transform
-  Default: LAID.take("../", "textTransform") [for "/": "none"]
+  Default: LAY.take("../", "textTransform") [for "/": "none"]
 
 - textStyle
   `string`
   CSS font-style
-  Default: LAID.take("../", "textStyle") [for "/": "normal"]
+  Default: LAY.take("../", "textStyle") [for "/": "normal"]
 
 - textDecoration
   `string`
   CSS text-decoration
-  Default: LAID.take("../", "textDecoration") [for "/": "none"]
+  Default: LAY.take("../", "textDecoration") [for "/": "none"]
 
 - textLetterSpacing
   `number` / `string`  
   `number`: In pixels.  
   `string`: CSS letter-spacing [non-transitionable]
-  Default: LAID.take("../", "textLetterSpacing") [for "/": "normal"]
+  Default: LAY.take("../", "textLetterSpacing") [for "/": "normal"]
 
 - textWordSpacing
   `number` / `string`  
   `number`: In pixels.  
   `string`: CSS word-spacing [non-transitionable]
-  Default: LAID.take("../", "textWordSpacing") [for "/": "normal"]
+  Default: LAY.take("../", "textWordSpacing") [for "/": "normal"]
 
 - textAlign
   `string`
   CSS text-align
-  Default: LAID.take("../", "textAlign") [for "/": "left"]
+  Default: LAY.take("../", "textAlign") [for "/": "left"]
 
 - textDirection
   `string`
   CSS direction
-  Default: LAID.take("../", "textDirection") [for "/": "ltr"]
+  Default: LAY.take("../", "textDirection") [for "/": "ltr"]
 
 - textLineHeight
   `number` / `string`
   `number`: In em.  
   `string`: CSS line-height [non-transitionable]
-  Default: LAID.take("../", "textLineHeight") [for "/": 1]
+  Default: LAY.take("../", "textLineHeight") [for "/": 1]
 
 - textSmoothing
   `string`
   CSS -webkit-font-smoothing
-  Default: LAID.take("../", "textSmoothing") [for "/": "antialised"]
+  Default: LAY.take("../", "textSmoothing") [for "/": "antialised"]
 
 - textRendering
   `string`
   CSS text-rendering
-  Default: LAID.take("../", "textRendering") [for "/": "auto"]
+  Default: LAY.take("../", "textRendering") [for "/": "auto"]
 
 - textOverflow
   `string`
@@ -517,7 +517,7 @@ Defaults:
       x: number ,
       y: number ,
       blur: number ,
-      color: LAID.Color
+      color: LAY.Color
     }
     ...
   ]
@@ -634,8 +634,8 @@ Defaults:
 ### Attributes
 
   The below values can be directly accessed through
-  the LAID Level through `.attr(< access key >)`
-  The same access keys are used as the 2nd argument in LAID.Take
+  the LAY Level through `.attr(< access key >)`
+  The same access keys are used as the 2nd argument in LAY.Take
 
   - <prop>
 
@@ -692,7 +692,7 @@ Defaults:
 
     - $dataTravelDelta (`number`)
 
-    - $dataTravelLevel ('LAID.Level')
+    - $dataTravelLevel ('LAY.Level')
 
     - $windowWidth
 
@@ -740,8 +740,8 @@ Defaults:
 
 ### LSON.$observe
 
-  such as "$hovering", "$focused" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these read-onlys using "Level.attr()", since lexical parsing of internal functions is out of the question there is no viable way for LAID to be aware and switch on the event listeners for the corresponding read-only.
-  This is the purpose behind `$observe`, `$observe` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$observe` LAID will switch on the event listeners for the
+  such as "$hovering", "$focused" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these read-onlys using "Level.attr()", since lexical parsing of internal functions is out of the question there is no viable way for LAY to be aware and switch on the event listeners for the corresponding read-only.
+  This is the purpose behind `$observe`, `$observe` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$observe` LAY will switch on the event listeners for the
   read-only.
 
 ### LSON.many
@@ -768,7 +768,7 @@ The context of the handler function will be the corresponding `Level`.
 
 example with a single callback function specified:
 
-    LAID.start({
+    LAY.start({
         Box: {
           props: {
             text: "Hello World"
@@ -783,7 +783,7 @@ example with a single callback function specified:
 
 example with multiple callback functions specified (with the aid on array):
 
-    LAID.start({
+    LAY.start({
       Box: {
         props: {
           text: "Hello World"
@@ -806,14 +806,14 @@ example with multiple callback functions specified (with the aid on array):
 
 Functions called upon loading of level, with the context of the level.
 
-### LAID.Level
+### LAY.Level
 
-To get the LAID.Level:
+To get the LAY.Level:
 
-  LAID.level(level) // fetches level
-  LAID.level(< LAID.Part reference >, level) // fetches level wrt reference
+  LAY.level(level) // fetches level
+  LAY.level(< LAY.Part reference >, level) // fetches level wrt reference
 
-LAID.Level methods:
+LAY.Level methods:
 
   attr( attr ) //gets attr value
   data( changedData ) //changes data value
@@ -834,18 +834,18 @@ LAID.Level methods:
 
 
 
-### LAID.take & LAID.Take
+### LAY.take & LAY.Take
 
-creates LAID.Take object:
+creates LAY.Take object:
 
-  LAID.take(level, property)
+  LAY.take(level, property)
 
 or
 
-  LAID.take(property) //this will refer to self
+  LAY.take(property) //this will refer to self
 
 
-LAID.Take methods
+LAY.Take methods
 
   - add(alias:plus),subtract(alias:minus),divide,multiply
   - remainder
@@ -862,7 +862,7 @@ LAID.Take methods
   - (these return booleans) eq (===), neq (!==), gt, lt, gte, lte, not, contains
   - (these return booleans) and, or, xor
   - (these return booleans) match, test (for regex)
-  - (LAID.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
+  - (LAY.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
   - (many) filterEq, filterNeq, filterGt, filterLt, filterLte, filterGte, filterRegex,
   filterContains, filterWithin, filterFn,
   foldMax, foldMin, foldSum, foldFn,
@@ -870,47 +870,47 @@ LAID.Take methods
 
 
   takes one argument, either:
-    - LAID.Take object
+    - LAY.Take object
     - anything else
 
-  LAID.take(levelPath, property).add(10).divide(LAID.take(levelPath2,attr2)).subtract(10).multiply(1.2)
-  LAID.take(level, attr).min(LAID.take(levelPath2,attr2), 20, 30)
-  LAID.take("foo:%s, bar:%s, baz:%s").format(LAID.take(levelPath1, attr1), LAID.take(levelPath2, attr2), LAID.take(levelPath3, attr3) )
-  LAID.take(function).fn(LAID.take(levelPath1, attr1), LAID.take(levelPath2, attr2), LAID.take(levelPath3, attr3), function( arg1, arg2, arg3 ) {
+  LAY.take(levelPath, property).add(10).divide(LAY.take(levelPath2,attr2)).subtract(10).multiply(1.2)
+  LAY.take(level, attr).min(LAY.take(levelPath2,attr2), 20, 30)
+  LAY.take("foo:%s, bar:%s, baz:%s").format(LAY.take(levelPath1, attr1), LAY.take(levelPath2, attr2), LAY.take(levelPath3, attr3) )
+  LAY.take(function).fn(LAY.take(levelPath1, attr1), LAY.take(levelPath2, attr2), LAY.take(levelPath3, attr3), function( arg1, arg2, arg3 ) {
     return something
   })
-  LAID.take('/', 'data.lang').i18nFormat(
+  LAY.take('/', 'data.lang').i18nFormat(
   {
     lang-code: formattable string
     .....
   },
-  LAID.take(level1, attr1), LAID.take(level2,attr2)
+  LAY.take(level1, attr1), LAY.take(level2,attr2)
   )
 
-  LAID.take(manyLevelPath, "many").filterGt("age", 10).filterLt(
-  "age", LAID.take(level, attr)).length()
+  LAY.take(manyLevelPath, "many").filterGt("age", 10).filterLt(
+  "age", LAY.take(level, attr)).length()
 
 
 
 )
 
 
-### LAID.Color (LAID.rgb, LAID.rgba, LAID.hsl, LAID.hsla, LAID.color)
+### LAY.Color (LAY.rgb, LAY.rgba, LAY.hsl, LAY.hsla, LAY.color)
 
-LAID.rgb(r,g,b)   (r,g,b:[0,255])
-LAID.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
-LAID.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
-LAID.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
-LAID.color(name)  [name: XML recognized color]
-LAID.hex(hex) [hex: hexadecimal number]
-LAID.transparent()
+LAY.rgb(r,g,b)   (r,g,b:[0,255])
+LAY.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
+LAY.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
+LAY.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
+LAY.color(name)  [name: XML recognized color]
+LAY.hex(hex) [hex: hexadecimal number]
+LAY.transparent()
 
 
 
 eg of take with color:
 
-  color: LAID.take('header', 'color').colorDarken(0.5)
-  color: LAID.rgb(100, LAID.take('','data.green'),200).colorLighten(0.1)
+  color: LAY.take('header', 'color').colorDarken(0.5)
+  color: LAY.rgb(100, LAY.take('','data.green'),200).colorLighten(0.1)
 
 
 
@@ -921,7 +921,7 @@ Scale -> Position -> Skew -> Rotate
 
 ### Inheritance
 
-    LAID.run({
+    LAY.run({
       "BigBox": {
         $inherit < level string >
       }
@@ -929,7 +929,7 @@ Scale -> Position -> Skew -> Rotate
 
 or
 
-    LAID.run({
+    LAY.run({
       "BigBox": {
         $inherit < object reference >
       }
@@ -938,7 +938,7 @@ or
 
 also together using an array (the order of the array is respected from left to right)
 
-  LAID.run({
+  LAY.run({
     "BigBox": {
       $inherit [ < object reference > | < level string >, ... ]
     }
@@ -947,7 +947,7 @@ also together using an array (the order of the array is respected from left to r
 
 looks like:
 
-  LAID.run({
+  LAY.run({
     "BigBox": {
       $inherit [ '../Box', someBoxObject ]
     }
@@ -969,8 +969,8 @@ for example:
         children: {
           LeftSide: {
             props: {
-              width: LAID.take('parent', 'width').half(),
-              height: LAID.take('parent', 'height').half()
+              width: LAY.take('parent', 'width').half(),
+              height: LAY.take('parent', 'height').half()
             }
           }
       }
@@ -978,7 +978,7 @@ for example:
 
 
 
-    LAID.run({
+    LAY.run({
       "BigBox": {
         $inherit: [ box ],
         props: {
@@ -988,13 +988,13 @@ for example:
         children: {
         LeftSide: {
           props: {
-            backgroundColor: LAID.color('blue')
+            backgroundColor: LAY.color('blue')
           }
         },
         RightSide: {
           props: {
-            left: LAID.take('../LeftSide', 'right'),
-            width: LAID.take('', 'textWidth'),
+            left: LAY.take('../LeftSide', 'right'),
+            width: LAY.take('', 'textWidth'),
             text: 'nothing here'
           }
           }
@@ -1016,14 +1016,14 @@ becomes:
         children: {
           LeftSide: {
             props: {
-              width: LAID.take('parent', 'width').half(),
-              height: LAID.take('parent', 'height').half(),
-              backgroundColor: LAID.color('red')
+              width: LAY.take('parent', 'width').half(),
+              height: LAY.take('parent', 'height').half(),
+              backgroundColor: LAY.color('red')
             }
           }
           RightSide: {
             props: {
-              left: LAID.take('prev-sibling', 'right'),
+              left: LAY.take('prev-sibling', 'right'),
               text: 'nothing here'
             }
           }
@@ -1032,7 +1032,7 @@ becomes:
     }
 
 
-##### LAID inheritance rules
+##### LAY inheritance rules
 
 - events within 'when' key stacks up as an array
 - the scope of `states[state]` and `many` are inherited recursively iwth the same inheritance rulest
@@ -1042,7 +1042,7 @@ becomes:
 
 example of `when` stacking up:
 
-  LAID.run({
+  LAY.run({
       "Box": {
         when: {
           "click": function() {
@@ -1077,7 +1077,7 @@ would essentially compile to:
 
 
 
-### LAID references
+### LAY references
 
   - Root
     '/'
@@ -1102,27 +1102,27 @@ would essentially compile to:
 
 
 
-### LAID states
+### LAY states
 
   Reserved state name: "root"
 
-  LAID.run({
+  LAY.run({
     LeaderBoard: {
           children: {
             Nav: {
               props: {
                 width:200,
                 left: 0,
-                backgroundColor: LAID.color('black'),
-                textColor:LAID.color('white')
+                backgroundColor: LAY.color('black'),
+                textColor:LAY.color('white')
               },
               state: ['closed'],
               states: {
                 closed: {
                   props: {
-                    left: LAID.take('', 'width').negative()
+                    left: LAY.take('', 'width').negative()
                   },
-                  onlyif: LAID.take('', 'data.locked').and(LAID.take('../', 'state.collapsed'))
+                  onlyif: LAY.take('', 'data.locked').and(LAY.take('../', 'state.collapsed'))
                 }
               }
             }
@@ -1137,16 +1137,16 @@ The inheritance mechanism governing states matches that mentioned for the `$inhe
 onlyif is the condition for which a state needs to be activated.
 Takes across states and root lson takes place by prefixing "< state name >." to the corresponding "props", "when", and "transition" keys:
 
-LAID.run({
+LAY.run({
     Box: {
       props: {
-        backgroundColor: LAID.rgba(245, 100, 145, 0.5)
+        backgroundColor: LAY.rgba(245, 100, 145, 0.5)
       },
       states: {
         hovering: {
-          onlyif: LAID.take("", "$hovering"),
+          onlyif: LAY.take("", "$hovering"),
           props: {
-            backgroundColor: LAID.take("", "root.backgroundColor").colorDarken(0.8)
+            backgroundColor: LAY.take("", "root.backgroundColor").colorDarken(0.8)
           }
         }
       }
@@ -1163,7 +1163,7 @@ LAID.run({
     - rowsCommit()
 
 
-  LAID.run({
+  LAY.run({
       "BioData": {
         children: {
           "Person": {
@@ -1195,8 +1195,8 @@ LAID.run({
               ],
               states: {
                 "starks": {
-                  onlyif: LAID.take("", "data.onlyStarks"),
-                  filter: LAID.take("", "$all").filterEq("family", "Stark")
+                  onlyif: LAY.take("", "data.onlyStarks"),
+                  filter: LAY.take("", "$all").filterEq("family", "Stark")
                 }
               }
             }
@@ -1230,12 +1230,12 @@ example:
 
 more can be added by:
 
-  LAID.level('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
+  LAY.level('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
 
 
 or committed (facebook react style)
 
-  LAID.level('/BioData/Person').rowsCommit( [
+  LAY.level('/BioData/Person').rowsCommit( [
     {_id:'00423', name:'Eddard Stark', age: 50},
     {_id:'08383', name:'Tyrion Lannister', age: 40},
     {_id:'01919', name:'Joffrey Baratheon', age: 16},
@@ -1267,7 +1267,7 @@ Below are formation arguments for corresponding formations:
 Formation Creation:
 
 
-Formations can be added on the go, using `LAID.formation()`,
+Formations can be added on the go, using `LAY.formation()`,
 with a unique formation name and formation function to it.
 An example of the "onebelow" formation:
 

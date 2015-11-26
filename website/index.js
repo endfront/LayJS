@@ -15,28 +15,28 @@ var docTree = [
 
 
 
-LAID.run({
+LAY.run({
   data: {
-    lightWhite: LAID.rgb(235,235,235),
-    lightBlack: LAID.rgb(70,70,70)
+    lightWhite: LAY.rgb(235,235,235),
+    lightBlack: LAY.rgb(70,70,70)
   },
   "Header": {
     props: {
-      height: LAID.take("", "$naturalHeight").plus(10),
-      width: LAID.take("../", "width"),
-      backgroundColor: LAID.take("/", "data.lightWhite"),
+      height: LAY.take("", "$naturalHeight").plus(10),
+      width: LAY.take("../", "width"),
+      backgroundColor: LAY.take("/", "data.lightWhite"),
       textWeight: "100"
     },
     "Title": {
       props: {
-        centerX: LAID.take("../", "$midpointX"),
-        centerY: LAID.take("../", "$midpointY"),
-        backgroundColor: LAID.take("/", "data.lightBlack"),
+        centerX: LAY.take("../", "$midpointX"),
+        centerY: LAY.take("../", "$midpointY"),
+        backgroundColor: LAY.take("/", "data.lightBlack"),
         cornerRadius: {topLeft: 0, topRight:15,
           bottomRight:0, bottomLeft:15 },
-        text: "LAID.JS",
+        text: "LAY.JS",
         textSize: 50,
-        textColor: LAID.take("/", "data.lightWhite"),
+        textColor: LAY.take("/", "data.lightWhite"),
         textPadding:10
       }
     }
@@ -44,7 +44,7 @@ LAID.run({
   "Docs": {
     "TreeContainer": {
       props: {
-        top: LAID.take("/Header", "bottom")
+        top: LAY.take("/Header", "bottom")
       },
       "_Tree": {
         many: {
@@ -53,12 +53,12 @@ LAID.run({
         "Line": {
           props: {
             display: false,
-            text: LAID.take("line: %s").format(
-              LAID.take("../", "row.text"))
+            text: LAY.take("line: %s").format(
+              LAY.take("../", "row.text"))
           },
           states: {
             "active": {
-              onlyif: LAID.take("../", "row.tree").length().eq(0),
+              onlyif: LAY.take("../", "row.tree").length().eq(0),
               props: {
                 display: true
               }
@@ -68,12 +68,12 @@ LAID.run({
         "Expander": {
           props: {
             display: false,
-            text: LAID.take("Expander: %s").format(
-              LAID.take("../", "row.text"))
+            text: LAY.take("Expander: %s").format(
+              LAY.take("../", "row.text"))
           },
           states: {
             "active": {
-              onlyif: LAID.take("../", "row.tree").length().gt(0),
+              onlyif: LAY.take("../", "row.tree").length().gt(0),
               props: {
                 display: true
               }

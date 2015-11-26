@@ -1,10 +1,10 @@
 ( function () {
   "use strict";
-  LAID.$solve = function () {
+  LAY.$solve = function () {
 
-    if ( LAID.$isRendering ) {
-      LAID.$isSolveRequiredOnRenderFinish = true;
-    } else if ( !LAID.$isSolving && LAID.$numClog === 0 ) {
+    if ( LAY.$isRendering ) {
+      LAY.$isSolveRequiredOnRenderFinish = true;
+    } else if ( !LAY.$isSolving && LAY.$numClog === 0 ) {
       var 
         ret,
         isSolveNewComplete,
@@ -12,7 +12,7 @@
         isSolveProgressed,
         isSolveHaltedForOneLoop = false;
 
-      LAID.$isSolving = true;
+      LAY.$isSolving = true;
 
       do {
 
@@ -20,13 +20,13 @@
         isSolveNewComplete = false;
         isSolveRecalculationComplete = false;
 
-        ret = LAID.$solveForNew();
+        ret = LAY.$solveForNew();
 
         if ( ret < 2 ) {
           isSolveProgressed = true;
         }
           
-        ret = LAID.$solveForRecalculation();
+        ret = LAY.$solveForRecalculation();
         if ( ret < 2 ) {
           isSolveProgressed = true;
         }
@@ -43,9 +43,9 @@
         // levels could have been created 
 
         isSolveRecalculationComplete =
-          LAID.$recalculateDirtyLevelS.length === 0;
+          LAY.$recalculateDirtyLevelS.length === 0;
         isSolveNewComplete =
-          LAID.$newLevelS.length === 0;
+          LAY.$newLevelS.length === 0;
 
         if ( !isSolveProgressed ) {
           if ( isSolveHaltedForOneLoop ) {
@@ -61,11 +61,11 @@
       } while ( !( isSolveNewComplete && isSolveRecalculationComplete ) );
 
       if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
-        var msg = "LAID Error: Circular/Undefined Reference Encountered [";
+        var msg = "LAY Error: Circular/Undefined Reference Encountered [";
         if ( !isSolveNewComplete ) {
-          msg += "Uninheritable Level: " + LAID.$newLevelS[ 0 ].pathName;
+          msg += "Uninheritable Level: " + LAY.$newLevelS[ 0 ].pathName;
         } else {
-          var uninstantiableLevel = LAID.$recalculateDirtyLevelS[ 0 ];
+          var uninstantiableLevel = LAY.$recalculateDirtyLevelS[ 0 ];
           msg += "Uninstantiable Attr: " +
              uninstantiableLevel.recalculateDirtyAttrValS[ 0 ].attr +
             " (Level: " + uninstantiableLevel.pathName  + ")";
@@ -76,15 +76,15 @@
 
       }
 
-      LAID.$isSolving = false;
-      LAID.$render();
+      LAY.$isSolving = false;
+      LAY.$render();
 
     }
 
   };
 
   function executeManyLoads () {
-    var newManyS = LAID.$newManyS, newMany, fnLoad;
+    var newManyS = LAY.$newManyS, newMany, fnLoad;
 
     for ( var i = 0, len = newManyS.length; i < len; i++ ) {
       newMany = newManyS[ i ];
@@ -95,7 +95,7 @@
         fnLoad.call( newMany.level );
       }
     }
-    LAID.$newManyS = [];
+    LAY.$newManyS = [];
  
   }
 
@@ -103,11 +103,11 @@
 
     var
       i, j, len, jLen,
-      newlyInstalledStateLevelS = LAID.$newlyInstalledStateLevelS,
+      newlyInstalledStateLevelS = LAY.$newlyInstalledStateLevelS,
       newlyInstalledStateLevel,
       newlyInstalledStateS,
       attrValNewlyInstalledStateInstall,
-      newlyUninstalledStateLevelS = LAID.$newlyUninstalledStateLevelS,
+      newlyUninstalledStateLevelS = LAY.$newlyUninstalledStateLevelS,
       newlyUninstalledStateLevel,
       newlyUninstalledStateS,
       attrValNewlyUninstalledStateUninstall;
@@ -120,7 +120,7 @@
           newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
           ".install" ];
         attrValNewlyInstalledStateInstall &&
-          ( LAID.type(attrValNewlyInstalledStateInstall.calcVal ) ===
+          ( LAY.type(attrValNewlyInstalledStateInstall.calcVal ) ===
           "function") &&
           attrValNewlyInstalledStateInstall.calcVal.call(
           newlyInstalledStateLevel );
@@ -128,7 +128,7 @@
       // empty the list
       newlyInstalledStateLevel.newlyInstalledStateS = [];
     }
-    LAID.$newlyInstalledStateLevelS = [];
+    LAY.$newlyInstalledStateLevelS = [];
 
     for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
@@ -138,7 +138,7 @@
           newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
           ".uninstall" ];
         attrValNewlyUninstalledStateUninstall &&
-          ( LAID.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
+          ( LAY.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
           "function") &&
           attrValNewlyUninstalledStateUninstall.calcVal.call( 
           newlyUninstalledStateLevel );
@@ -146,7 +146,7 @@
       // empty the list
       newlyUninstalledStateLevel.newlyUninstalledStateS = [];
     }
-    LAID.$newlyUninstalledStateLevelS = [];
+    LAY.$newlyUninstalledStateLevelS = [];
   }
 
 

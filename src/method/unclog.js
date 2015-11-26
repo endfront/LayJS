@@ -1,10 +1,10 @@
 (function() {
   "use strict";
 
-  LAID.unclog = function () {
+  LAY.unclog = function () {
 
-    if ( --LAID.$numClog === 0 ) {
-      LAID.$solve();
+    if ( --LAY.$numClog === 0 ) {
+      LAY.$solve();
     }
     
   };

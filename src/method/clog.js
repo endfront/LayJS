@@ -1,9 +1,9 @@
 ( function () {
   "use strict";
 
-  LAID.clog = function () {
+  LAY.clog = function () {
 
-    LAID.$numClog++;
+    LAY.$numClog++;
 
   };
 

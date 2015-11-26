@@ -62,7 +62,7 @@
     return longhandPropS;
   })();
 
-  LAID.$shorthandPropsUtils = {
+  LAY.$shorthandPropsUtils = {
     getLonghandProps: function ( shorthandProp ) {
       return shorthandProp2_longhandPropS_[ shorthandProp ];
     },
@@ -85,7 +85,7 @@
       return undefined;
     },
     getShorthandPropCenteralized:  function ( longhandProp ) {
-      var shorthandProp = LAID.$shorthandPropsUtils.getShorthandProp( longhandProp );
+      var shorthandProp = LAY.$shorthandPropsUtils.getShorthandProp( longhandProp );
       if ( shorthandProp !== undefined && centeralizedShorthandPropS.indexOf( shorthandProp ) !== -1 ) {
         return shorthandProp;
       } else {

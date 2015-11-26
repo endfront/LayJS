@@ -8,7 +8,7 @@
   "use strict";
 
 
-  LAID.$springTransition = function( duration, args ) {
+  LAY.$springTransition = function( duration, args ) {
     this.curTime = 0;
     this.value = 0;
     this.friction = parseFloat( args.friction );
@@ -19,7 +19,7 @@
     this.isComplete = false;
   };
 
-  LAID.$springTransition.prototype.generateNext = function ( delta ) {
+  LAY.$springTransition.prototype.generateNext = function ( delta ) {
     var
       finalVelocity, net1DVelocity, netFloat,
        netValueIsLow, netVelocityIsLow, stateAfter, stateBefore;
@@ -47,7 +47,7 @@
     return this.value;
   };
 
-  LAID.$springTransition.prototype.checkIsComplete = function() {
+  LAY.$springTransition.prototype.checkIsComplete = function() {
     return this.isComplete;
   };
 

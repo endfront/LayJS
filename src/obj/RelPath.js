@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  LAID.RelPath = function ( relativePath ) {
+  LAY.RelPath = function ( relativePath ) {
 
 
     this.me = false;
@@ -35,7 +35,7 @@
   };
 
 
-  LAID.RelPath.prototype.resolve = function ( referenceLevel ) {
+  LAY.RelPath.prototype.resolve = function ( referenceLevel ) {
 
     if ( this.me ) {
       return referenceLevel;
@@ -43,14 +43,14 @@
       return referenceLevel.derivedMany.level;
     } else {
       if ( this.absolute ) {
-          return LAID.$pathName2level[ this.absolutePath ];
+          return LAY.$pathName2level[ this.absolutePath ];
       } else {
         for ( var i = 0; i < this.numberOfParentTraversals;
          ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
         }
 
           return ( this.childPath === "" ) ? referenceLevel :
-              LAID.$pathName2level[ referenceLevel.pathName +
+              LAY.$pathName2level[ referenceLevel.pathName +
               ( ( referenceLevel.pathName === "/" ) ? "" : "/" )+
               this.childPath ];
       }

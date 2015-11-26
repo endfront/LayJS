@@ -4,23 +4,23 @@
 
   function takeRGBA ( r, g, b, a ) {
 
-    return new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
+    return new LAY.Color( "rgb", { r: r, g: g, b: b }, a );
 
   }
 
-  LAID.rgba = function ( r, g, b, a ) {
+  LAY.rgba = function ( r, g, b, a ) {
 
 
-    if ( r instanceof LAID.Take ||
-      g instanceof LAID.Take ||
-      b instanceof LAID.Take ||
-      a instanceof LAID.Take ) {
+    if ( r instanceof LAY.Take ||
+      g instanceof LAY.Take ||
+      b instanceof LAY.Take ||
+      a instanceof LAY.Take ) {
 
-          return new LAID.Take( takeRGBA ).fn( r, g, b, a );
+          return new LAY.Take( takeRGBA ).fn( r, g, b, a );
 
       } else {
 
-        return new LAID.Color( "rgb", { r: r, g: g, b: b }, a );
+        return new LAY.Color( "rgb", { r: r, g: g, b: b }, a );
       }
 
     };

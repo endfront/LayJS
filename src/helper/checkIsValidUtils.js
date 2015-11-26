@@ -26,7 +26,7 @@
     }
   }
 
-  LAID.$checkIsValidUtils = {
+  LAY.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
   		return ( /^[\w\-]+$/ ).test( levelName ) &&
         ( reservedNameS.indexOf( levelName ) === -1 );

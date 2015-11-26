@@ -20,13 +20,13 @@
   };
 
 
-  takeWidth = new LAID.Take( "", "width" );
-  takeHeight = new LAID.Take( "", "height" );
+  takeWidth = new LAY.Take( "", "width" );
+  takeHeight = new LAY.Take( "", "height" );
 
-  takeParentWidth = new LAID.take( "../", "width");
-  takeParentHeight = new LAID.take( "../", "height");
+  takeParentWidth = new LAY.take( "../", "width");
+  takeParentHeight = new LAY.take( "../", "height");
 
-  LAID.$normalize = function( lson, isExternal ) {
+  LAY.$normalize = function( lson, isExternal ) {
 
     if ( isExternal ) {
       // If we haven't previously normalized it, only then proceed
@@ -55,7 +55,7 @@
       }
 
       if ( lson.states.root ) {
-        throw "LAID Error: State name 'root' is reserved.";
+        throw "LAY Error: State name 'root' is reserved.";
       }
 
       checkForInconsistentReadonlyKeys( lson );
@@ -71,7 +71,7 @@
         if ( lsonKey !== "children" || isRecursive ) {
           if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
             if ( !key2fnNormalize[ lsonKey ] ) {
-              throw "LAID Error: LSON key: '" + lsonKey  + "' not found";
+              throw "LAY Error: LSON key: '" + lsonKey  + "' not found";
             }
             key2fnNormalize[ lsonKey ]( lson );
           }
@@ -96,7 +96,7 @@
   function checkForInconsistentReadonlyKeys( lson ) {
     var errorReadonly = "";
     if ( lson.inherits || lson.$inherits ) {
-      throw "LAID Error: Did you mean '$inherit'?";
+      throw "LAY Error: Did you mean '$inherit'?";
     } else if ( lson.load ) {
       errorReadonly = "load";
     } else if ( lson.inherit ) {
@@ -109,7 +109,7 @@
       errorReadonly = "type"
     }
     if ( errorReadonly ) {
-      throw "LAID Error: prefix readonly '" +
+      throw "LAY Error: prefix readonly '" +
         errorReadonly + "' with '$'";
     }
   }
@@ -126,8 +126,8 @@
 
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
-    if ( val instanceof LAID.Take ) {
-      throw ( "LAID Error: takes for special/expander props such as '" + name  + "' are not permitted." );
+    if ( val instanceof LAY.Take ) {
+      throw ( "LAY Error: takes for special/expander props such as '" + name  + "' are not permitted." );
     }
   }
 
@@ -138,7 +138,7 @@
 
     var val, type, flattenedProp;
     val = obj[ key ];
-    type = LAID.type( val );
+    type = LAY.type( val );
     if ( type === "array" ) {
       for ( var i = 0, len = val.length; i < len; i++ ) {
         flattenedProp = prefix + ( i + 1 );
@@ -150,7 +150,7 @@
 
       for ( var subKey in val ) {
 
-        flattenedProp = prefix + LAID.$capitalize( subKey );
+        flattenedProp = prefix + LAY.$capitalize( subKey );
         flattenProp( props, val, subKey, flattenedProp );
 
         obj[ key ] = undefined;
@@ -158,7 +158,7 @@
 
     } else {
 
-      if ( LAID.$checkIsValidUtils.checkIsPropAttrExpandable( prefix ) ) {
+      if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable( prefix ) ) {
         checkAndThrowErrorAttrAsTake( prefix, val );
       }
 
@@ -182,7 +182,7 @@
       }
       var type = lson.type;
       if ( ( type === "text" ) && ( lson.children !== undefined ) ) {
-        throw( "LAID Error: Text type Level with child Levels found" );
+        throw( "LAY Error: Text type Level with child Levels found" );
       }
       if ( type.startsWith( "input" ) ) {
         lson.type = "input";
@@ -201,7 +201,7 @@
       }
       checkAndThrowErrorAttrAsTake( "$inherit", lson.$inherit );
       if ( ( lson.$inherit !== undefined ) &&
-        LAID.type( lson.$inherit ) !== "array" ) {
+        LAY.type( lson.$inherit ) !== "array" ) {
           lson.$inherit = [ lson.$inherit ];
         }
     },
@@ -244,25 +244,25 @@
 
 
       if ( prop2val.centerX !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnCenterToPos ) ).fn(
+        prop2val.left = ( new LAY.Take( fnCenterToPos ) ).fn(
            prop2val.centerX, takeWidth );
         prop2val.centerX = undefined;
       }
 
       if ( prop2val.right !== undefined ) {
-        prop2val.left = ( new LAID.Take( fnOppEdgeToPos ) ).fn(
+        prop2val.left = ( new LAY.Take( fnOppEdgeToPos ) ).fn(
            prop2val.right, takeWidth, takeParentWidth );
         prop2val.right = undefined;
       }
 
       if ( prop2val.centerY !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnCenterToPos ) ).fn(
+        prop2val.top = ( new LAY.Take( fnCenterToPos ) ).fn(
            prop2val.centerY, takeHeight );
         prop2val.centerY = undefined;
       }
 
       if ( prop2val.bottom !== undefined ) {
-        prop2val.top = ( new LAID.Take( fnOppEdgeToPos ) ).fn(
+        prop2val.top = ( new LAY.Take( fnOppEdgeToPos ) ).fn(
            prop2val.bottom, takeHeight, takeParentHeight );
         prop2val.bottom = undefined;
       }
@@ -274,7 +274,7 @@
       }
 
       for ( prop in prop2val ) {
-        longhandPropS = LAID.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
+        longhandPropS = LAY.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
         if ( longhandPropS !== undefined ) {
           shorthandVal = prop2val[ prop ];
           for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
@@ -289,17 +289,17 @@
       for ( prop in prop2val ) {
         if ( prop.lastIndexOf("Color") !== -1 ) {
           if ( typeof prop2val[ prop ] === "string" ) {
-            throw "LAID Error: '" + prop + "' must be LAID.color()/LAID.rgb()/LAID.rgba()/LAID.hsl()/LAID.hsla()";
+            throw "LAY Error: '" + prop + "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()";
           }
         }
         multipleTypePropMatchDetails =
-          LAID.$findMultipleTypePropMatchDetails( prop );
+          LAY.$findMultipleTypePropMatchDetails( prop );
         if ( multipleTypePropMatchDetails !== null ) {
           curMultipleMax =
-            LAID.$meta.get( lson, "max", multipleTypePropMatchDetails[ 1 ] );
+            LAY.$meta.get( lson, "max", multipleTypePropMatchDetails[ 1 ] );
           if ( ( curMultipleMax === undefined ) ||
             ( curMultipleMax < parseInt( multipleTypePropMatchDetails[ 2 ] ) ) ) {
-            LAID.$meta.set( lson, "max", multipleTypePropMatchDetails[ 1 ],
+            LAY.$meta.set( lson, "max", multipleTypePropMatchDetails[ 1 ],
               parseInt( multipleTypePropMatchDetails[ 2 ] ) );
           }
         }
@@ -328,7 +328,7 @@
         }
         checkAndThrowErrorAttrAsTake( "when." + eventType,
           fnCallbackS );
-        //LAID.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
+        //LAY.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
       }
     }
   },
@@ -360,8 +360,8 @@
         }
 
         for ( transitionProp in transition ) {
-          if ( LAID.$checkIsValidUtils.checkIsPropAttrExpandable( transitionProp ) ) {
-            throw ( "LAID Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
+          if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable( transitionProp ) ) {
+            throw ( "LAY Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
           checkAndThrowErrorAttrAsTake( "transition." + transitionProp,
@@ -388,8 +388,8 @@
 
       for ( var stateName in stateName2state ) {
 
-        if ( !LAID.$checkIsValidUtils.stateName( stateName ) ) {
-          throw ( "LAID Error: Invalid state name: " + stateName );
+        if ( !LAY.$checkIsValidUtils.stateName( stateName ) ) {
+          throw ( "LAY Error: Invalid state name: " + stateName );
         }
 
         state = stateName2state[ stateName ];

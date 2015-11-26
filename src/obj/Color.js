@@ -19,7 +19,7 @@
   
   // inspiration from: sass (https://github.com/sass/sass/)
 
-  LAID.Color = function ( format, key2value, alpha ) {
+  LAY.Color = function ( format, key2value, alpha ) {
 
     this.format = format;
 
@@ -35,42 +35,42 @@
 
   };
 
-  LAID.Color.prototype.getFormat = function () {
+  LAY.Color.prototype.getFormat = function () {
     return this.format;
   };
 
-  LAID.Color.prototype.getRed = function () {
+  LAY.Color.prototype.getRed = function () {
     return this.r;
 
   };
 
-  LAID.Color.prototype.getGreen = function () {
+  LAY.Color.prototype.getGreen = function () {
     return this.g;
   };
 
-  LAID.Color.prototype.getBlue = function () {
+  LAY.Color.prototype.getBlue = function () {
     return this.b;
   };
 
-  LAID.Color.prototype.getHue = function () {
+  LAY.Color.prototype.getHue = function () {
     return this.h;
   };
 
-  LAID.Color.prototype.getSaturation = function () {
+  LAY.Color.prototype.getSaturation = function () {
     return this.s;
 
   };
 
-  LAID.Color.prototype.getLightness = function () {
+  LAY.Color.prototype.getLightness = function () {
     return this.l;
 
   };
 
-  LAID.Color.prototype.getAlpha = function () {
+  LAY.Color.prototype.getAlpha = function () {
     return this.a;
   };
 
-  LAID.Color.prototype.stringify = function () {
+  LAY.Color.prototype.stringify = function () {
 
     var rgb, hsl;
     if ( isCss3ColorSupported ) {
@@ -108,15 +108,15 @@
 
   };
 
-  LAID.Color.prototype.copy = function () {
+  LAY.Color.prototype.copy = function () {
 
     return this.format === "rgb" ?
-      new LAID.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
-      new LAID.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
+      new LAY.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
+      new LAY.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
 
   };
 
-  LAID.Color.prototype.equals = function ( otherColor ) {
+  LAY.Color.prototype.equals = function ( otherColor ) {
 
      return ( this.format === otherColor.format ) &&
       ( this.a === otherColor.a ) &&
@@ -139,7 +139,7 @@
 
   };
 
-  LAID.Color.prototype.getRgb = function () {
+  LAY.Color.prototype.getRgb = function () {
     if ( this.format === "rgb" ) {
 
       return { r: this.r, g: this.g, b: this.b };
@@ -152,7 +152,7 @@
     }
   };
 
-  LAID.Color.prototype.getHsl = function () {
+  LAY.Color.prototype.getHsl = function () {
     if ( this.format === "hsl" ) {
 
       return { h: this.h, s: this.s, l: this.l };
@@ -164,7 +164,7 @@
   };
 
 
-  LAID.Color.prototype.getRgba = function () {
+  LAY.Color.prototype.getRgba = function () {
 
     var rgb = this.getRgb();
     rgb.a = this.a;
@@ -174,7 +174,7 @@
 
 
 
-  LAID.Color.prototype.getHsla = function () {
+  LAY.Color.prototype.getHsla = function () {
 
     var hsl = this.getHsl();
     hsl.a = this.a;
@@ -186,7 +186,7 @@
 
 
 
-  LAID.Color.prototype.red = function ( val ) {
+  LAY.Color.prototype.red = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.r = val;
@@ -200,7 +200,7 @@
     return this;
   };
 
-  LAID.Color.prototype.green = function ( val ) {
+  LAY.Color.prototype.green = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.g = val;
@@ -214,7 +214,7 @@
     return this;
   };
 
-  LAID.Color.prototype.blue = function ( val ) {
+  LAY.Color.prototype.blue = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.b = val;
@@ -228,7 +228,7 @@
     return this;
   };
 
-  LAID.Color.prototype.hue = function ( val ) {
+  LAY.Color.prototype.hue = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.h = val;
@@ -242,7 +242,7 @@
     return this;
   };
 
-  LAID.Color.prototype.saturation = function ( val ) {
+  LAY.Color.prototype.saturation = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.s = val;
@@ -256,7 +256,7 @@
     return this;
   };
 
-  LAID.Color.prototype.lightness = function ( val ) {
+  LAY.Color.prototype.lightness = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.l = val;
@@ -272,12 +272,12 @@
 
 
   /* Sets alpha */
-  LAID.Color.prototype.alpha = function ( alpha ) {
+  LAY.Color.prototype.alpha = function ( alpha ) {
     this.a = alpha;
     return this;
   };
 
-  LAID.Color.prototype.darken = function ( fraction ) {
+  LAY.Color.prototype.darken = function ( fraction ) {
 
     var hsl = this.getHsl();
     hsl.l = hsl.l - ( hsl.l * fraction );
@@ -292,7 +292,7 @@
     return this;
   };
 
-  LAID.Color.prototype.lighten = function ( fraction ) {
+  LAY.Color.prototype.lighten = function ( fraction ) {
 
     var hsl = this.getHsl();
     hsl.l = hsl.l + ( hsl.l * fraction );
@@ -307,7 +307,7 @@
     return this;
   };
 
-  LAID.Color.prototype.saturate = function ( fraction ) {
+  LAY.Color.prototype.saturate = function ( fraction ) {
 
     var hsl = this.getHsl();
     hsl.s = hsl.s + ( hsl.s * fraction );
@@ -322,7 +322,7 @@
     return this;
   };
 
-  LAID.Color.prototype.desaturate = function ( fraction ) {
+  LAY.Color.prototype.desaturate = function ( fraction ) {
 
     var hsl = this.getHsl();
     hsl.s = hsl.s - ( hsl.s * fraction );
@@ -338,7 +338,7 @@
   };
 
 
-  LAID.Color.prototype.invert = function ( ) {
+  LAY.Color.prototype.invert = function ( ) {
 
     var rgb = this.getRgb();
     rgb.r = 255 - rgb.r;
