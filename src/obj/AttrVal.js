@@ -14,7 +14,7 @@
     this.level = level;
     this.val = undefined;
     this.prevVal = undefined;
-    this.isTaken = undefined;
+    this.isTakeValReady = undefined;
     this.attr = attr;
     this.isRecalculateRequired = true;
 
@@ -34,7 +34,7 @@
       LAY.$eventReadonlyUtils.checkIsEventReadonlyAttr( attr );
     this.renderCall =
       level && ( level.isPart ) &&
-        ( LAY.$findRenderCall( attr, level.isGpu ) );
+        ( LAY.$findRenderCall( attr, level ) );
 
     this.takerAttrValS = [];
 
@@ -48,10 +48,13 @@
   * Else return the empty string.
   */
   function getStateNameOfOnlyIf ( attr ) {
-    var match = attr.match( /^([\w\-:]+).onlyif$/ );
-
-    return ( match !== null && match[ 1 ] !== "data" ) ?
-    match[ 1 ] : "";
+    if ( attr.lastIndexOf( ".onlyif" ) !== -1 &&
+      !attr.startsWith("data.") && 
+      !attr.startsWith("row.")  ) {
+      return attr.slice(0, attr.indexOf(".") );
+    } else {
+      return "";
+    }
 
   }
 
@@ -106,18 +109,17 @@
     
     this.val = val;
     if ( !LAY.$identical( val, this.prevVal ) ) {
-      if ( this.val instanceof LAY.Take ) {
-        this.takeNot();
+      if ( this.prevVal instanceof LAY.Take ) {
+        this.takeNot( this.prevVal );
       }
-
-      this.isTaken = false;
-      
+      if ( this.attr.startsWith("row.") ) {
+        this.val = LAY.$clone( this.val );
+      }
+      this.isTakeValReady = false;
       this.requestRecalculation();
-
       return true;
 
     }
-
   };
 
   /*
@@ -160,13 +162,9 @@
         )
       ) &&
       this.attr !== "zIndex";
-
-
   };
 
-
   /*
-  * TODO: update this doc below
   *
   * Recalculate the value of the attr value.
   * Propagate the change across the LOM (LAY object model)
@@ -186,23 +184,27 @@
       part = level.part,
       many = level.manyObj,
       attr = this.attr,
-      i, len; 
-
-    //console.log("update", level.pathName, attr, this.val,
-    //LAY.count );
+      i, len;
     
     if ( level.isRemoved ) {
       return true;
     }
+
+    if ( attr === "$$layout") {
+      many.reLayout();
+      return true;
+    }
+
     if ( attr.charAt( 0 ) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
+
         this.val = part.getImmidiateReadonlyVal( attr );
       }
     }
 
     if ( this.val instanceof LAY.Take ) { // is LAY.Take
-      if ( !this.isTaken ) {
-        this.isTaken = this.take();
+      if ( !this.isTakeValReady ) {
+        this.isTakeValReady = this.take();
         // if the attrval has not been taken
         // as yet then there is chance that
         // the giver attrval has not been
@@ -213,11 +215,19 @@
       }
 
       recalcVal = this.val.execute( this.level );
+
+      if ( attr.startsWith("data.") ) {
+        recalcVal = LAY.$clone( recalcVal );
+      }
+
       if ( !LAY.$identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = recalcVal;
       }
     } else {
+      if ( attr.startsWith("data.") ) {
+        this.val = LAY.$clone( this.val );
+      }
       if ( !LAY.$identical( this.val, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = this.val;
@@ -251,26 +261,17 @@
         }
         isDirty = true;
         break;
-      /*case "input":
-        // TODO: investigate the below code block's
-        // redundancy
-        if ( level.attr2attrVal.$input ) {
-          level.$changeAttrVal( "$input",
-           this.calcVal );
-        }
-        isDirty = true;
-        break;*/
-      // rows is always dirty when recalculated
-      // as changes made to rows would have rows
-      // retain the same pointer to the array
-      // TODO: possibly change to .forceRecalculation()
-      case "rows":
-        isDirty = true;
-        break;
 
     }
 
-
+    // rows is always dirty when recalculated
+    // as changes made to rows would have rows
+    // retain the same pointer to the array
+    if ( attr === "rows" ) {
+      isDirty = true;
+      level.attr2attrVal.filter.forceRecalculation();
+    }
+    
     if ( isDirty ) {
       var
         stateName = this.onlyIfStateName,
@@ -290,8 +291,7 @@
       if ( this.renderCall ) {
         this.startCalcVal = this.transitionCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
-
-
+        
         if ( !LAY.$isDataTravellingShock ) {
           part.addNormalRenderDirtyAttrVal( this );
         }
@@ -305,6 +305,12 @@
             }
             if ( this.calcVal === false ) {
               recursivelySwitchOffDoingEvents( level );
+            }
+            break;
+          case "input":
+            if ( part.inputType === "multiple" ||
+                part.inputType === "select" ) {
+              level.attr2attrVal.$input.requestRecalculation();
             }
             break;
           case "width":
@@ -326,20 +332,16 @@
           default:
             var checkIfAttrAffectsTextDimesion =
               function ( attr ) {
-              return ([ "text", "textSize",
-                  "textStyle",
-                  "textFamily", "textWeight",
-                  "textVariant", "textTransform",
-                  "textLetterSpacing", "textAlign",
-                  "textDirection", "textRendering",
-                  "textWordSpacing", "textLineHeight",
-                  "textWrap", "textWordBreak",
-                  "textIndent"
-                  ]).indexOf( attr ) !== -1;
-                
+                return attr.startsWith("text") &&
+                  !attr.startsWith("textShadows") &&
+                  ([ "textColor",
+                    "textDecoration",
+                    "textSmoothing",
+                    "textShadows"
+                  ]).indexOf( attr ) === -1;
             };
             if ( checkIfAttrAffectsTextDimesion( attr ) )  {
-              
+
                 part.updateNaturalWidth();
                 part.updateNaturalHeight();
                
@@ -386,15 +388,18 @@
       } else if ( transitionProp !== "" ) {
         part.updateTransitionProp( transitionProp );
       } else if ( many ) {
-        if ( this.attr === "rows" ) {
-          many.updateRows();
-        } else if ( attr === "filter" ) {
-          many.updateFilter();
-        } else if ( attr.startsWith( "sort.") ) {
-          many.updateRows();
-        } else if ( attr.startsWith("args.") ||
+          if ( attr === "rows" ) {
+            many.updateRows();
+          } else if ( attr === "filter" ) {
+            if ( !many.updateFilter() ) {
+              return false;
+            }
+            many.updateLayout()
+          } else if ( attr.startsWith("sort.") ) {
+            many.updateRows();
+          } else if ( attr.startsWith("fargs.") ||
            attr === "formation" ) {
-          many.updateFilteredPositioning();
+            many.updateLayout();
         }
           
       } else {  
@@ -481,6 +486,7 @@
   };
 
   LAY.AttrVal.prototype.give = function ( attrVal ) {
+    
     if ( LAY.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
@@ -546,9 +552,6 @@
           // to calculate itself first (in the case of no
           // created attrval lazily then returing false
           // is the only option)
-          // TODO: the above intention could be optimized
-          // to return true in the special case that the
-          // lazily created 
           return false;
         }
 
@@ -562,6 +565,9 @@
         relPath = _relPath00attr_S[ i ][ 0 ];
         attr = _relPath00attr_S[ i ][ 1 ];
 
+        if ( attr === "$naturalWidth" ) {
+
+        }
         relPath.resolve( this.level ).$getAttrVal( attr ).give( this );
 
       }

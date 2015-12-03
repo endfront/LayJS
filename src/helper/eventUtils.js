@@ -1,57 +1,60 @@
 ( function () {
   "use strict";
 
-  var GUID = 1;
+
+  // Modified Source of: Dean Edwards, 2005
+  // with input from Tino Zijdel, Matthias Miller, Diego Perini
+  // Original Source: http://dean.edwards.name/weblog/2005/10/add-event/
 
   LAY.$eventUtils = {
-    add: function (element, type, handler) {
-      if (element.addEventListener) {
+    add: function ( element, type, handler ) {
+      if ( element.addEventListener ) {
         element.addEventListener(type, handler, false);
       } else {
-        // assign each event handler a unique ID
-        if (!handler.$$guid) handler.$$guid = GUID++;
         // create a hash table of event types for the element
         if (!element.events) element.events = {};
         // create a hash table of event handlers for each element/event pair
         var handlers = element.events[type];
         if (!handlers) {
-          handlers = element.events[type] = {};
+          handlers = element.events[type] = [];
           // store the existing event handler (if there is one)
           if (element["on" + type]) {
-            handlers[0] = element["on" + type];
+            handlers.push( element["on" + type] );
           }
         }
-        // store the event handler in the hash table
-        handlers[handler.$$guid] = handler;
+        // add the event handler to the list of handlers
+        handlers.push( handler );
         // assign a global event handler to do all the work
         element["on" + type] = handle;
       }
     },
 
-    remove: function (element, type, handler) {
-      if (element.removeEventListener) {
+    remove: function ( element, type, handler ) {
+      if ( element.removeEventListener ) {
         element.removeEventListener(type, handler, false);
       } else {
         // delete the event handler from the hash table
         if (element.events && element.events[type]) {
-          delete element.events[type][handler.$$guid];
+          var handlers = element.events[type];
+          LAY.$arrayUtils.remove(handlers, handler);
         }
       }
     }
   };
 
-  function handle(event) {
+  function handle( event ) {
     var returnValue = true;
     // grab the event object (IE uses a global event object)
     event = event || fix(((this.ownerDocument || this.document || this).parentWindow || window).event);
     // get a reference to the hash table of event handlers
     var handlers = this.events[event.type];
     // execute each event handler
-    for (var i in handlers) {
+    for ( var i=0, len=handlers.length; i<len; i++ ) {
       this.$$handleEvent = handlers[i];
       if (this.$$handleEvent(event) === false) {
         returnValue = false;
       }
+    
     }
     return returnValue;
   }

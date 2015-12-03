@@ -1,6 +1,6 @@
 
-QUnit.test( "LAID.rgba()", function ( assert ) {
-  var color = LAID.rgba(150, 200, 250, 0.7);
+QUnit.test( "LAY.rgba()", function ( assert ) {
+  var color = LAY.rgba(150, 200, 250, 0.7);
   assert.strictEqual( color.format, "rgb" );
   assert.strictEqual( color.r, 150 );
   assert.strictEqual( color.g, 200 );
@@ -8,8 +8,8 @@ QUnit.test( "LAID.rgba()", function ( assert ) {
   assert.strictEqual( color.a, 0.7 );
 });
 
-QUnit.test( "LAID.rgb()", function ( assert ) {
-  var color = LAID.rgb(150, 200, 250);
+QUnit.test( "LAY.rgb()", function ( assert ) {
+  var color = LAY.rgb(150, 200, 250);
   assert.strictEqual( color.format, "rgb" );
   assert.strictEqual( color.r, 150 );
   assert.strictEqual( color.g, 200 );
@@ -17,8 +17,8 @@ QUnit.test( "LAID.rgb()", function ( assert ) {
   assert.strictEqual( color.a, 1 );
 });
 
-QUnit.test( "LAID.hsla()", function ( assert ) {
-  var color = LAID.hsla(100, 0.5, 0.4, 0.35 );
+QUnit.test( "LAY.hsla()", function ( assert ) {
+  var color = LAY.hsla(100, 0.5, 0.4, 0.35 );
   assert.strictEqual( color.format, "hsl" );
   assert.strictEqual( color.h, 100 );
   assert.strictEqual( color.s, 0.5 );
@@ -26,8 +26,8 @@ QUnit.test( "LAID.hsla()", function ( assert ) {
   assert.strictEqual( color.a, 0.35 );
 });
 
-QUnit.test( "LAID.hsl()", function ( assert ) {
-  var color = LAID.hsl(100, 0.5, 0.4 );
+QUnit.test( "LAY.hsl()", function ( assert ) {
+  var color = LAY.hsl(100, 0.5, 0.4 );
   assert.strictEqual( color.format, "hsl" );
   assert.strictEqual( color.h, 100 );
   assert.strictEqual( color.s, 0.5 );
@@ -36,23 +36,23 @@ QUnit.test( "LAID.hsl()", function ( assert ) {
 });
 
 
-QUnit.test( "LAID.Color.equals()", function ( assert ) {
-  assert.ok( LAID.rgb(60,50,100).equals(LAID.rgb(60,50,100)),
+QUnit.test( "LAY.Color.equals()", function ( assert ) {
+  assert.ok( LAY.rgb(60,50,100).equals(LAY.rgb(60,50,100)),
     "rgb === rgb");
-  assert.ok( LAID.rgba(60,50,100, 1).equals(LAID.rgb(60,50,100)),
+  assert.ok( LAY.rgba(60,50,100, 1).equals(LAY.rgb(60,50,100)),
     "rgba === rgb"
   );
-  assert.ok( LAID.rgba(60,50,100, 0.5).equals(LAID.rgba(60,50,100, 0.5)),
+  assert.ok( LAY.rgba(60,50,100, 0.5).equals(LAY.rgba(60,50,100, 0.5)),
     "rgba === rgba"
   );
 
-  assert.ok( LAID.hsl(70,0.4,0.5).equals(LAID.hsl(70,0.4,0.5)),
+  assert.ok( LAY.hsl(70,0.4,0.5).equals(LAY.hsl(70,0.4,0.5)),
     "hsl === hsl"
   );
-  assert.ok( LAID.hsla(70,0.4,0.5,1).equals(LAID.hsl(70,0.4,0.5)),
+  assert.ok( LAY.hsla(70,0.4,0.5,1).equals(LAY.hsl(70,0.4,0.5)),
     "hsla === hsla"
   );
-  assert.ok( LAID.hsla(70,0.4,0.5, 0.3).equals(LAID.hsla(70,0.4,0.5, 0.3)),
+  assert.ok( LAY.hsla(70,0.4,0.5, 0.3).equals(LAY.hsla(70,0.4,0.5, 0.3)),
     "hsla === hsla"
   );
 
@@ -61,12 +61,12 @@ QUnit.test( "LAID.Color.equals()", function ( assert ) {
 });
 
 // TODO: test
-QUnit.test( "LAID.Color [rgb-to-hsl]", function ( assert ) {
+QUnit.test( "LAY.Color [rgb-to-hsl]", function ( assert ) {
     assert.ok (true);
 });
 
-QUnit.test( "LAID.color()", function ( assert ) {
-  assert.ok( LAID.color("red").equals(LAID.color("red")));
-  assert.ok( LAID.color("red").equals(LAID.rgb(255,0,0)));
-  assert.ok( LAID.color("red").equals(LAID.rgba(255,0,0, 1)));
+QUnit.test( "LAY.color()", function ( assert ) {
+  assert.ok( LAY.color("red").equals(LAY.color("red")));
+  assert.ok( LAY.color("red").equals(LAY.rgb(255,0,0)));
+  assert.ok( LAY.color("red").equals(LAY.rgba(255,0,0, 1)));
 });

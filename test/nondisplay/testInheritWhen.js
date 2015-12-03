@@ -31,7 +31,7 @@ var externalInherit = {
 };
 
 
-LAID.run({
+LAY.run({
   children:{
     "Body": {
       children: {
@@ -66,7 +66,7 @@ LAID.run({
                 },
                 states: {
                   "state1": {
-                    onlyif: LAID.take("", "data.state1"),
+                    onlyif: LAY.take("", "data.state1"),
                     when: {
                       none: [
                         fnState1
@@ -80,7 +80,7 @@ LAID.run({
                     }
                   },
                   "state2": {
-                    onlyif: LAID.take("", "data.state2"),
+                    onlyif: LAY.take("", "data.state2"),
                     when: {
                       none: [
                         fnState2
@@ -108,7 +108,7 @@ LAID.run({
 QUnit.test( "LSON.inherit", function( assert ) {
 
 
-  var lvl = LAID.level("/Body/Content/Box");
+  var lvl = LAY.level("/Body/Content/Box");
   var noneLvl = lvl.level("None");
   var mixedLvl = lvl.level("Mixed");
   var internalLvl = lvl.level("Internal");

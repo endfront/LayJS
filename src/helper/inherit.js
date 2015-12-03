@@ -126,11 +126,10 @@
       for ( fromKey in fromKey2value ) {
 
         fromKeyValue = fromKey2value[ fromKey ];
-        intoKey2value[ fromKey ] = ( isDuplicateOn && checkIsMutable( fromKeyValue ) ) ?
+        intoKey2value[ fromKey ] = ( isDuplicateOn &&
+            checkIsMutable( fromKeyValue ) ) ?
           LAY.$clone( fromKeyValue ) :
           fromKeyValue;
-
-
       }
     }
 

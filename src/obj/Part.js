@@ -4,8 +4,10 @@
 
 
   var cssPrefix, allStyles,
-    defaultCss, inputType2tag, nonInputType2tag,
-    textSizeMeasureNode;
+    defaultCss, defaultTextCss,
+    textDimensionCalculateNodeCss,
+    inputType2tag, nonInputType2tag,
+    textSizeMeasureNode, supportedInputTypeS;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -44,7 +46,6 @@
 
   defaultCss = "position:absolute;display:block;visibility:inherit;" + 
     "margin:0;padding:0;" +
-    "webkit-font-smoothing:antialiased;" + 
     "backface-visibility: hidden;" +
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
@@ -55,8 +56,29 @@
     "white-space:nowrap;" +
     "outline:none;border:none;";
 
+  // Most CSS text(/font) properties
+  // match the defaults of LAY, however
+  // for ones which do not match the
+  // below list contains their default css
+  defaultTextCss = defaultCss +
+    "font-size:15px;" +
+    "font-family:sans-serif;color:black;" +
+    "text-decoration:none;" +
+    "text-align:left;direction:ltr;line-height:1em;" +
+    "white-space:nowrap;" +
+    "-webkit-font-smoothing:antialiased;"
+
+  textDimensionCalculateNodeCss = 
+    defaultTextCss + 
+    "visibility:hidden;height:auto;" +
+    ( LAY.$isBelowIE9 ? "left:-9999px;" : "" ) +
+    "overflow:visible;border-style:none;" +
+    "border-color:transparent;";
+
   inputType2tag = {
-    multiline: "textarea"
+    multiline: "textarea",
+    select: "select",
+    multiple: "select"
   };
 
   nonInputType2tag = {
@@ -68,19 +90,31 @@
     link: "a"
   };
 
+  supportedInputTypeS = [
+    "line", "multiline", "password", "select",
+    "multiple" ];
+
   function stringifyPlusPx ( val ) {
     return val + "px";
   }
 
+  function generateSelectOptionsHTML( optionS ) {
+
+    var option, html = "";
+    for ( var i=0, len=optionS.length; i<len; i++ ) {
+      option = optionS[ i ];
+      html += "<option value='" + option.value + "'" +
+        ( option.selected ? " selected='true'" : "" ) +
+        ( option.disabled ? " disabled='true'" : "" ) +
+        ">" + option.content + "</option>";
+    }
+    return html;
+  }
 
   textSizeMeasureNode = document.createElement("div");
-  textSizeMeasureNode.style.cssText = defaultCss;
-  textSizeMeasureNode.style.visibility = "hidden";
-  textSizeMeasureNode.style.zIndex = "-1";      
-  textSizeMeasureNode.style.height = "auto";
-  textSizeMeasureNode.style.overflow = "visible";
-  textSizeMeasureNode.style.borderStyle = "solid";
-  textSizeMeasureNode.style.borderColor = "transparent";
+  textSizeMeasureNode.style.cssText =
+    textDimensionCalculateNodeCss;
+  
   document.body.appendChild( textSizeMeasureNode );
 
   LAY.Part = function ( level ) {
@@ -100,9 +134,6 @@
     this.absoluteY = undefined;
     this.absoluteX = undefined;
 
-    this.formationX = undefined;
-    this.formationY = undefined;
-
   };
 
   function getInputType ( type ) {
@@ -113,30 +144,55 @@
 
   LAY.Part.prototype.init = function () {
 
-    var inputTag, parentNode;
-
-    this.inputType = getInputType( 
+    var inputTag, parentNode, inputType;
+    inputType = this.inputType = getInputType( 
         this.level.lson.$type );
     this.type = this.inputType ? "input" :
      this.level.lson.$type;
+    if ( inputType && supportedInputTypeS.indexOf(
+        inputType ) === -1 ) {
+      throw "LAY Error: Unsupported $type: input:" +
+        inputType;
+    }
     if ( this.level.pathName === "/" ) {
       this.node = document.body;
     } else if ( this.inputType ) {
       inputTag = inputType2tag[ this.inputType ];
       if ( inputTag ) {
         this.node = document.createElement( inputTag );
+        if ( inputType === "multiple" ) {
+          this.node.multiple = true;
+        }
       } else {        
         this.node = document.createElement( "input" );
         this.node.type = this.inputType === "line" ?
           "text" : this.inputType;
+        if ( inputType === "password" ) {
+          // we wil treat password as a line
+          // for logic purposes, as we we will
+          // not alter the input[type] during
+          // runtime
+          this.inputType = "line";
+        }
       }
 
     } else {
       this.node = document.createElement(
         nonInputType2tag[ this.type]);
     }
-    this.node.style.cssText = defaultCss;
 
+    this.isText = this.type === "input" || 
+      this.level.lson.states.root.props.text !== undefined;
+
+
+    if ( this.isText ) {
+      this.node.style.cssText = defaultTextCss;
+    } else {
+      this.node.style.cssText = defaultCss;
+    }
+
+
+    
     if ( this.level.isHelper ) {
       this.node.style.display = "none";
     }
@@ -147,9 +203,7 @@
     }
 
 
-    this.isText = this.type === "input" || 
-      this.level.lson.states.root.props.text !== undefined;
-
+   
   };
 
   // Precondition: not called on "/" level
@@ -171,11 +225,11 @@
   * Additional constraint of not being dependent upon
   * parent for the attr
   */
-  LAY.Part.prototype.findChildWithMaxOfAttr =
+  LAY.Part.prototype.findChildMaxOfAttr =
    function ( attr, attrChildIndepedentOf,
       attrValIndependentOf ) {
     var
-       curMaxVal, curMaxLevel,
+       curMaxVal = 0,
        childLevel, childLevelAttrVal,
        attrValChildIndepedentOf;
 
@@ -195,18 +249,15 @@
               (  ( !attrValChildIndepedentOf ) ||
                 ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
                    attrValIndependentOf )  ) ) ) {
-            if ( curMaxLevel === undefined ) {
-              curMaxLevel = childLevel;
+            if ( childLevelAttrVal.calcVal > curMaxVal ) {
               curMaxVal = childLevelAttrVal.calcVal;
-            } else if ( childLevelAttrVal.calcVal > curMaxVal ) {
-              curMaxLevel = childLevel;
             }
           }
       }
      }
     }
 
-    return curMaxLevel;
+    return curMaxVal;
   };
 
   
@@ -221,10 +272,6 @@
         return this.node.scrollLeft;
       case "$scrolledY":
         return this.node.scrollTop;
-      case "$cursorX":
-        return this.node.offsetX;
-      case "$cursorY":
-        return this.node.offsetY;
       case "$focused":
         return node === document.activeElement;
       case "$absoluteX":
@@ -232,9 +279,35 @@
       case "$absoluteY":
         return this.absoluteY;
       case "$input":
-        return this.node.value;
-      case "$inputChecked":
-        return this.node.value;
+        if ( this.inputType === "multiple" ||
+          this.inputType === "select" ) {
+          var optionS =
+            this.isInitiallyRendered ?
+            this.node.options : 
+            ( // input might not be calculated
+              // as yet, thus OR with the empty array
+            this.level.attr2attrVal.input.calcVal || [] );
+
+          var valS = [];
+          for ( var i = 0, len = optionS.length;
+            i < len; i++ ) {
+            if ( optionS[ i ].selected ) {
+              valS.push( optionS[ i ].value )
+            }
+          }
+          // Select the first option if none is selected
+          // as that will be the default
+          if ( optionS.length && !valS.length &&
+              this.inputType === "select" ) {
+            valS.push(optionS[ 0 ].value );
+          }
+          return this.inputType === "select" ? 
+            valS[ 0 ] : valS ;
+          
+        } else {
+          return this.node.value;
+        }
+
     }
   };
 
@@ -284,10 +357,10 @@
 
 
   LAY.Part.prototype.updateNaturalWidth = function () {
+
     var naturalWidthAttrVal =
       this.level.$getAttrVal("$naturalWidth");
-    if ( naturalWidthAttrVal &&
-       !naturalWidthAttrVal.checkIfDeferenced() ) {
+    if ( naturalWidthAttrVal ) {
       naturalWidthAttrVal.requestRecalculation();
     }
   };
@@ -295,24 +368,18 @@
   LAY.Part.prototype.updateNaturalHeight = function () {
     var naturalHeightAttrVal =
       this.level.$getAttrVal("$naturalHeight");
-    if ( naturalHeightAttrVal &&
-       !naturalHeightAttrVal.checkIfDeferenced() ) {
+    if ( naturalHeightAttrVal ) {
       naturalHeightAttrVal.requestRecalculation();
     }
   };
 
   LAY.Part.prototype.calculateNaturalWidth = function () {
-    var attr2attrVal = this.level.attr2attrVal
+    var attr2attrVal = this.level.attr2attrVal;
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( true );
     } else {
-      var naturalWidthLevel =
-        this.findChildWithMaxOfAttr( "right", "width",
+      return this.findChildMaxOfAttr( "right", "width",
         attr2attrVal.$naturalWidth );
-
-      return naturalWidthLevel ?
-         ( naturalWidthLevel.attr2attrVal.right.calcVal || 0 ) :
-         0;
       
     }
   };
@@ -320,17 +387,13 @@
 
 
   LAY.Part.prototype.calculateNaturalHeight = function () {
-    var attr2attrVal = this.level.attr2attrVal
+    var attr2attrVal = this.level.attr2attrVal;
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( false );
     } else {
-      var naturalHeightLevel =
-        this.findChildWithMaxOfAttr( "bottom", "height",
+      return this.findChildMaxOfAttr( "bottom", "height",
       attr2attrVal.$naturalHeight);
 
-      return naturalHeightLevel ?
-         ( naturalHeightLevel.attr2attrVal.bottom.calcVal || 0 ) :
-         0;
     }
   };
 
@@ -347,15 +410,15 @@
       textDirection: null,
       textTransform: null,
       textVariant: null,
-      textLetterSpacing: stringifyPxOrString,
-      textWordSpacing: stringifyPxOrString,
+      textLetterSpacing: stringifyPxOrStringOrNormal,
+      textWordSpacing: stringifyPxOrStringOrNormal,
       textLineHeight: stringifyEmOrString,
       textOverflow: null,
       textIndent: stringifyPlusPx,
-      textWrap: null,
-      //IE <8 cannot handle "break-word" 
-      //convert to "break-all"
-      textWordBreak: handleBelowIE9WordBreak,
+      textWhitespace: null,
+
+      textWordBreak: null,
+      textWordWrap: null,
       textRendering: null,
 
       textPaddingTop: stringifyPlusPx,
@@ -382,8 +445,9 @@
       textLineHeight: "line-height",
       textOverflow: "text-overflow",
       textIndent: "text-indent",
-      textWrap: "white-space",
+      textWhitespace: "white-space",
       textWordBreak: "word-break",
+      textWordWrap: "word-wrap",
       textRendering: "text-rendering",
       textPaddingTop: "padding-top",
       textPaddingRight: "padding-right",
@@ -395,21 +459,31 @@
       borderLeftWidth: "border-left-width"
     };
 
-
     var
-      node = textSizeMeasureNode,
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
-      text = this.type === "input" ? 
-        ( attr2attrVal.$input ?
-          attr2attrVal.$input.calcVal : "a" ) :
-        attr2attrVal.text.calcVal;
+      html, ret;
 
-    // restore non default text
-    // altering CSS
-    node.style.padding = "0px";
-    node.style.borderWidth = "0px";
+    if ( this.type === "input" ) {
+      if ( this.inputType === "select" ||
+        this.inputType === "multiple" ) {
+        html = "<select" +
+          ( this.inputType === "multiple" ? 
+          " multiple='true' " : "" ) +  ">" +
+          generateSelectOptionsHTML(
+            attr2attrVal.input.calcVal
+           ) + "</select>";
+      } else {
+        html = attr2attrVal.$input ?
+          attr2attrVal.$input.calcVal : "a";
+      }
+    } else {
+      if ( attr2attrVal.text.isRecalculateRequired ) {
+        return 0;
+      }
+      html = attr2attrVal.text.calcVal;
+    }
 
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
@@ -421,7 +495,7 @@
         fnStyle = dimensionAlteringAttr2fnStyle[ 
             dimensionAlteringAttr ];
         
-        node.style[
+        textSizeMeasureNode.style[
         dimensionAlteringAttr2cssProp[
           dimensionAlteringAttr ] ] = (fnStyle === null) ?
           textRelatedAttrVal.calcVal :
@@ -430,24 +504,32 @@
       }
     }
 
+  
     if ( isWidth ) {
-      node.style.display = "inline";
-      node.style.width = "auto";
-      node.innerHTML = text;
+      textSizeMeasureNode.style.display = "inline";
+      textSizeMeasureNode.style.width = "auto";
+      textSizeMeasureNode.innerHTML = html;
 
-      return node.offsetWidth 
+      ret = textSizeMeasureNode.offsetWidth;
 
     } else {
-      node.style.display = "block";
-      node.style.width = ( attr2attrVal.width.calcVal || 0 ) + "px";
+      textSizeMeasureNode.style.width =
+        ( attr2attrVal.width.calcVal || 0 ) + "px";
       
-      // If empty we will subsitute with a space character
+      // If empty we will subsitute with the character "a"
       // as we wouldn't want the height to resolve to 0
-      node.innerHTML = text || "a";
+      textSizeMeasureNode.innerHTML = html || "a";
       
-      return node.offsetHeight;
+      ret = textSizeMeasureNode.offsetHeight;
       
     }
+
+    // restore the base CSS
+    textSizeMeasureNode.style.cssText =
+      textDimensionCalculateNodeCss;
+
+    return ret;
+
     
 
   };
@@ -620,7 +702,6 @@
         ) {
 
       attrVal.startCalcVal =  attrVal.transitionCalcVal;
-
       attrVal.transition = new LAY.Transition (
           transitionType,
           transitionDelay,
@@ -638,6 +719,14 @@
         ( val + "px" ) : val );
   }
 
+  function stringifyPxOrStringOrNormal( val, defaultVal ) {
+    if ( val === 0 ) {
+      return "normal";
+    } else {
+      return stringifyPlusPx( val, defaultVal );
+    }
+  }
+
   function stringifyEmOrString( val, defaultVal ) {
     return ( val === undefined ) ?
         defaultVal : ( typeof val === "number" ?
@@ -647,6 +736,14 @@
   function computePxOrString( attrVal, defaultVal ) {
     
     return stringifyPxOrString(
+      attrVal && attrVal.transitionCalcVal,
+      defaultVal );
+    
+  }
+
+  function computePxOrStringOrNormal( attrVal, defaultVal ) {
+  
+    return stringifyPxOrStringOrNormal(
       attrVal && attrVal.transitionCalcVal,
       defaultVal );
     
@@ -666,9 +763,6 @@
         transitionCalcVal.stringify() : transitionCalcVal );
   }
   
-  function handleBelowIE9WordBreak( val ) {
-    return ( val === "break-word" && LAY.$isBelowIE9) ? "break-all" : val;
-  }
 
   // Below we will customize prototypical functions
   // using conditionals. As per the results from
@@ -680,21 +774,21 @@
   // accessed via `part.renderFn_<prop>`
 
   LAY.Part.prototype.renderFn_x =  function () {
-      var attr2attrVal = this.level.attr2attrVal;
-      this.node.style.left =
-        ( attr2attrVal.left.transitionCalcVal +
-          ( attr2attrVal.shiftX !== undefined ?
-            attr2attrVal.shiftX.transitionCalcVal : 0 ) ) +
-            "px";
+    var attr2attrVal = this.level.attr2attrVal;
+    this.node.style.left =
+      ( attr2attrVal.left.transitionCalcVal +
+        ( attr2attrVal.shiftX !== undefined ?
+          attr2attrVal.shiftX.transitionCalcVal : 0 ) ) +
+          "px";
     };
 
   LAY.Part.prototype.renderFn_y =  function () {
-      var attr2attrVal = this.level.attr2attrVal;
-      this.node.style.top =
-        ( attr2attrVal.top.transitionCalcVal +
-          ( attr2attrVal.shiftY !== undefined ?
-            attr2attrVal.shiftY.transitionCalcVal : 0 ) ) +
-            "px";
+    var attr2attrVal = this.level.attr2attrVal;
+    this.node.style.top =
+      ( attr2attrVal.top.transitionCalcVal +
+        ( attr2attrVal.shiftY !== undefined ?
+          attr2attrVal.shiftY.transitionCalcVal : 0 ) ) +
+          "px";
     };
 
   if ( LAY.$isGpuAccelerated ) {
@@ -705,25 +799,19 @@
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
-      "scale3d(" +
-      ( attr2attrVal.scaleX !== undefined ? attr2attrVal.scaleX.transitionCalcVal : 1 ) + "," +
-      ( attr2attrVal.scaleY !== undefined ? attr2attrVal.scaleY.transitionCalcVal : 1 ) + "," +
-      ( attr2attrVal.scaleZ !== undefined ? attr2attrVal.scaleZ.transitionCalcVal : 1 ) + ") " +
-      "translate3d(" +
-      
+      ( attr2attrVal.scaleX !== undefined ? "scaleX(" + attr2attrVal.scaleX.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleY !== undefined ? "scaleY(" + attr2attrVal.scaleY.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleZ !== undefined ? "scaleZ(" + attr2attrVal.scaleZ.transitionCalcVal + ") " : "" ) +
+      "translate(" +
       ( ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px, " ) +
-      //attr2attrVal.width.transitionCalcVal * ( attr2attrVal.originX !== undefined ? attr2attrVal.originX.transitionCalcVal : 0.5 ) )  + "px ," ) +
 
-      ( ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px, " ) +
-      //attr2attrVal.height.transitionCalcVal * ( attr2attrVal.originY !== undefined ? attr2attrVal.originY.transitionCalcVal : 0.5 ) )  + "px ," ) +
-
-      ( attr2attrVal.z ? attr2attrVal.z.transitionCalcVal : 0 )  + "px) " +
-      "skew(" +
-      ( attr2attrVal.skewX !== undefined ? attr2attrVal.skewX.transitionCalcVal : 0 ) + "deg," +
-      ( attr2attrVal.skewY !== undefined ? attr2attrVal.skewY.transitionCalcVal : 0 ) + "deg) " +
-      "rotateX(" + ( attr2attrVal.rotateX !== undefined ? attr2attrVal.rotateX.transitionCalcVal : 0 ) + "deg) " +
-      "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
-      "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
+      ( ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px) " ) +
+      ( attr2attrVal.z !== undefined ? "translateZ(" + attr2attrVal.z.transitionCalcVal + "px) " : "" ) +
+      ( attr2attrVal.skewX !== undefined ? "skewX(" + attr2attrVal.skewX.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.skewY !== undefined ? "skewY(" + attr2attrVal.skewY.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.rotateX !== undefined ? "rotateX(" + attr2attrVal.rotateX.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.rotateY !== undefined ? "rotateY(" + attr2attrVal.rotateY.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.rotateZ !== undefined ? "rotateZ(" + attr2attrVal.rotateZ.transitionCalcVal + "deg)" : "" );
 
     };
 
@@ -732,16 +820,14 @@
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
-      "scale3d(" +
-      ( attr2attrVal.scaleX !== undefined ? attr2attrVal.scaleX.transitionCalcVal : 1 ) + "," +
-      ( attr2attrVal.scaleY !== undefined ? attr2attrVal.scaleY.transitionCalcVal : 1 ) + "," +
-      ( attr2attrVal.scaleZ !== undefined ? attr2attrVal.scaleZ.transitionCalcVal : 1 ) + ") " +
-      "skew(" +
-      ( attr2attrVal.skewX !== undefined ? attr2attrVal.skewX.transitionCalcVal : 0 ) + "deg," +
-      ( attr2attrVal.skewY !== undefined ? attr2attrVal.skewY.transitionCalcVal : 0 ) + "deg) " +
-      "rotateX(" + ( attr2attrVal.rotateX !== undefined ? attr2attrVal.rotateX.transitionCalcVal : 0 ) + "deg) " +
-      "rotateY(" + ( attr2attrVal.rotateY !== undefined ? attr2attrVal.rotateY.transitionCalcVal : 0 ) + "deg) " +
-      "rotateZ(" + ( attr2attrVal.rotateZ !== undefined ? attr2attrVal.rotateZ.transitionCalcVal : 0 ) + "deg)";
+      ( attr2attrVal.scaleX !== undefined ? "scaleX(" + attr2attrVal.scaleX.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleY !== undefined ? "scaleY(" + attr2attrVal.scaleY.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleZ !== undefined ? "scaleZ(" + attr2attrVal.scaleZ.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.skewX !== undefined ? "skewX(" + attr2attrVal.skewX.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.skewY !== undefined ? "skewY(" + attr2attrVal.skewY.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.rotateX !== undefined ? "rotateX(" + attr2attrVal.rotateX.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.rotateY !== undefined ? "rotateY(" + attr2attrVal.rotateY.transitionCalcVal + "deg) " : "" ) +
+      ( attr2attrVal.rotateZ !== undefined ? "rotateZ(" + attr2attrVal.rotateZ.transitionCalcVal + "deg)" : "" );
     };
 
   } else {
@@ -848,8 +934,6 @@
       this.level.attr2attrVal.scrollY.transitionCalcVal;
   };
 
-
-
   LAY.Part.prototype.renderFn_scrollElastic = function () {
     this.node["-webkit-overflow-scrolling"] =
       this.level.attr2attrVal.scrollElastic.transitionCalcVal ?
@@ -875,9 +959,14 @@
     if ( this.type !== "input" ) {
       this.node.style[ cssPrefix + "user-select" ] = 
         this.level.attr2attrVal.userSelect.transitionCalcVal;
-
     }
   };
+  LAY.Part.prototype.renderFn_title = function () {
+    this.node.title.cursor =
+      this.level.attr2attrVal.
+      title.transitionCalcVal;
+  };
+
 
   LAY.Part.prototype.renderFn_backgroundColor = function () {
     this.node.style.backgroundColor =
@@ -1070,10 +1159,6 @@
      this.level.attr2attrVal.text.transitionCalcVal;
   };
 
-  LAY.Part.prototype.renderFn_input = function () {
-    this.node.value = inputVal;
-  };
-
   LAY.Part.prototype.renderFn_textSize = function () {
     this.node.style.fontSize =
       computePxOrString( this.level.attr2attrVal.textSize );
@@ -1110,11 +1195,11 @@
       this.level.attr2attrVal.textDecoration.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_textLetterSpacing = function () {
-    this.node.style.letterSpacing = computePxOrString( 
+    this.node.style.letterSpacing = computePxOrStringOrNormal( 
         this.level.attr2attrVal.textLetterSpacing ) ;
   };
   LAY.Part.prototype.renderFn_textWordSpacing = function () {
-    this.node.style.wordSpacing = computePxOrString( 
+    this.node.style.wordSpacing = computePxOrStringOrNormal( 
         this.level.attr2attrVal.textWordSpacing );
   };
   LAY.Part.prototype.renderFn_textAlign = function () {
@@ -1141,14 +1226,17 @@
     this.node.style.textIndent =
       this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
   };
-  LAY.Part.prototype.renderFn_textWrap = function () {
+  LAY.Part.prototype.renderFn_textWhitespace = function () {
     this.node.style.whiteSpace =
-      this.level.attr2attrVal.textWrap.transitionCalcVal;
+      this.level.attr2attrVal.textWhitespace.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_textWordBreak = function () {
     this.node.style.wordBreak =
-      handleBelowIE9WordBreak(
-      this.level.attr2attrVal.textWordBreak.transitionCalcVal);
+      this.level.attr2attrVal.textWordBreak.transitionCalcVal;
+  };
+  LAY.Part.prototype.renderFn_textWordWrap = function () {
+    this.node.style.wordWrap =
+      this.level.attr2attrVal.textWordWrap.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_textSmoothing = function () {
     this.node.style[ cssPrefix + "font-smoothing" ] =
@@ -1196,16 +1284,25 @@
 
   /* Non <div> */
 
-  /* Input (<input/> and <textarea>) Related */
+  /* Input Related */
+
+
+  LAY.Part.prototype.renderFn_input = function () {
+    var inputVal = this.level.attr2attrVal.input.transitionCalcVal;
+    if ( this.inputType === "select" || this.inputType === "multiple" ) {
+      this.node.innerHTML = generateSelectOptionsHTML( inputVal );
+      console.log(generateSelectOptionsHTML( inputVal ));
+    } else {
+      this.node.value = inputVal;
+    }
+  };
+
 
   LAY.Part.prototype.renderFn_inputLabel = function () {
     this.node.label = this.level.attr2attrVal.inputLabel.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_inputRows = function () {
     this.node.rows = this.level.attr2attrVal.inputRows.transitionCalcVal;
-  };
-  LAY.Part.prototype.renderFn_input = function () {
-    this.node.value = this.level.attr2attrVal.input.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_inputPlaceholder = function () {
     this.node.placeholder = this.level.attr2attrVal.inputPlaceholder.transitionCalcVal;
@@ -1219,7 +1316,6 @@
   LAY.Part.prototype.renderFn_inputDisabled = function () {
     this.node.disabled = this.level.attr2attrVal.inputDisabled.transitionCalcVal;
   };
-
 
   /* Link (<a>) Related */
 
@@ -1239,6 +1335,9 @@
   /* Image (<img>) related */
   LAY.Part.prototype.renderFn_imageUrl = function () {
     this.node.src = this.level.attr2attrVal.imageUrl.transitionCalcVal;
+  };
+  LAY.Part.prototype.renderFn_imageAlt = function () {
+    this.node.alt = this.level.attr2attrVal.imageAlt.transitionCalcVal;
   };
   
 

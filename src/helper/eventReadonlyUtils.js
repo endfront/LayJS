@@ -47,33 +47,32 @@
       }
     },
     $cursorX: {
-      mousemove: function () {
-        this.$requestRecalculation( "$cursorX" );
-
+      mousemove: function (e) {
+        this.$changeAttrVal( "$cursorX", e.clientX );
       }
     },
     $cursorY: {
-      mousemove: function () {
-        this.$requestRecalculation( "$cursorY" );
+      mousemove: function (e) {
+        this.$changeAttrVal( "$cursorY", e.clientY );
 
       }
     },
 
     $input: {
       click: function () {
-        this.$requestRecalculation( "$input" );
+        if ( this.part.inputType === "multiline" ||
+            this.part.inputType === "line" ) {
+          this.$requestRecalculation( "$input" );
+        }
       },
       change: function () {
         this.$requestRecalculation( "$input" );
       },
       keyup: function () {
-        this.$requestRecalculation( "$input" );
-      }
-    },
-
-    $inputChecked: {
-      change: function () {
-        this.$requestRecalculation( "$inputChecked" );
+        if ( this.part.inputType === "multiline" ||
+            this.part.inputType === "line" ) {
+          this.$requestRecalculation( "$input" );
+        }
       }
     }
 

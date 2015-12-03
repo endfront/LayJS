@@ -2,14 +2,14 @@
 var springTransition = {
   type:"spring",
     args: {
-      velocity: 20,
-      tension: 200.0,
-      friction: 15.9
-  }
+      velocity: 4,
+      tension: 220,
+      friction: 14
+    }
 };
 
 
-LAY.run( {
+var x = ( {
   data: {
     lang: "en",
     menu: false
@@ -56,6 +56,7 @@ LAY.run( {
       props: {
         width:LAY.take("/", "width"),
         height:LAY.take("/", "height")
+
       },
       transition: {
         left: springTransition
@@ -76,7 +77,6 @@ LAY.run( {
             backgroundColor: LAY.color( "black" )
           },
           
-
           children: {
             "MenuInvoke": {
               props: {
@@ -188,7 +188,7 @@ LAY.run( {
               props: {
                 centerX: LAY.take("../", "$midpointX"),
                 centerY: LAY.take("../", "$midpointY"),
-                text: "WOLPART",
+                text: "NAME",
                 textAlign: "center",
                 textColor: LAY.color( "white"),
                 textPadding:{top: 20,bottom:20},
@@ -278,7 +278,7 @@ LAY.run( {
             fnCalculateDelta: function (e) {
               var startMove = this.attr("data.startMove");
               var menuWidth = LAY.level("/Menu").attr("width");
-              var curMove = e.pageX;
+              var curMove = e.pageX || e.clientX;
               var delta = (startMove - curMove) / menuWidth;
               return delta;
             },
@@ -289,7 +289,7 @@ LAY.run( {
             top: LAY.take("../Body", "top"),
             width:LAY.take("../Body", "width"),
             height:LAY.take("../Body", "height"),
-            backgroundColor:LAY.color("black")
+            backgroundColor: LAY.color("black")
           },
           transition: {
             opacity: springTransition
@@ -310,14 +310,11 @@ LAY.run( {
               when: {
                 mousemove: [
                   function (e) {
-//                    if ( LAY.level("/").attr("$dataTravellingLevel")  ) {
                       this.data("didMouseMove", true);
                       LAY.level("/").dataTravelContinue(
                         this.attr("data.fnCalculateDelta").call( this, e)
                       );
-
                     }
-//                  }
                 ],
                 mouseup: [
                   function (e) {
@@ -352,7 +349,7 @@ LAY.run( {
                 mousedown: [
                   function (e) {
                     if ( !LAY.level("/").attr("$dataTravelling" ) ) {
-                      this.data("startMove", e.pageX );
+                      this.data("startMove", e.pageX || e.clientX );
                       LAY.level("/").dataTravelBegin( "menu", false );
 
                     }
@@ -375,78 +372,9 @@ LAY.run( {
 });
 
 
-
-var z = ({
+LAY.run({
   props: {
-    backgroundColor: LAY.color("gainsboro")
-  },
-  "Box": {
-    props: {
-      centerX: LAY.take("../", "$midpointX"),
-      centerY: LAY.take("../", "$midpointY"),      
-    },
-    "Child": {
-      props: {
-        width:50,
-        height:50,
-        backgroundColor: LAY.color("red")
-      }
-    },
-    "Child2": {
-      $inherit: "../Child",
-      data: {
-        down: false,
-      },
-      props: {
-        top:LAY.take("../Child", "bottom"),
-        backgroundColor:LAY.color("blue")
-      },
-      states: {
-        "down": {
-          onlyif: LAY.take("", "data.down"),
-          props: {
-            top: LAY.take("","root.top").add(10)
-          },
-        }
-      },
-      when: {
-        click: function () {
-          this.data("down", true);
-        }
-      }
-    }
+    backgroundColor: LAY.color("beige")
   }
 });
 
-var y =({
-  children: {
-    "Grand": {
-      props:{
-        centerY: LAY.take("../", "$midpointY")
-      },
-      children: {
-        "Parent": {
-          props:{
-          //  centerX: LAY.take("../", "$midpointX"),
-        //    centerY: LAY.take("../", "$midpointY"),
-            width: 1000,
-                height:100,
-                backgroundColor:LAY.color("red")
-          },
-          children: {
-            "Baby": {
-              props: {
-                width: 100,
-                height:50,
-                backgroundColor:LAY.color("blue")
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-});
-
-/**/

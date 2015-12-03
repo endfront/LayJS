@@ -139,7 +139,7 @@
     var val, type, flattenedProp;
     val = obj[ key ];
     type = LAY.type( val );
-    if ( type === "array" ) {
+    if ( type === "array" && key !== "input" ) {
       for ( var i = 0, len = val.length; i < len; i++ ) {
         flattenedProp = prefix + ( i + 1 );
         flattenProp( props, val, i, flattenedProp );

@@ -20,6 +20,10 @@ LAY.run({
     lightWhite: LAY.rgb(235,235,235),
     lightBlack: LAY.rgb(70,70,70)
   },
+  props: {
+    userSelect: true,
+    textFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif"
+  },
   "Header": {
     props: {
       height: LAY.take("", "$naturalHeight").plus(10),
@@ -31,13 +35,10 @@ LAY.run({
       props: {
         centerX: LAY.take("../", "$midpointX"),
         centerY: LAY.take("../", "$midpointY"),
-        backgroundColor: LAY.take("/", "data.lightBlack"),
-        cornerRadius: {topLeft: 0, topRight:15,
-          bottomRight:0, bottomLeft:15 },
-        text: "LAY.JS",
+        text: "LAY",
+        textLetterSpacing:20,
         textSize: 50,
-        textColor: LAY.take("/", "data.lightWhite"),
-        textPadding:10
+        textColor: LAY.take("/", "data.lightBlack"),
       }
     }
   },

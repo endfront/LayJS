@@ -78,7 +78,7 @@ if (!Array.prototype.indexOf) {
     // version is a method in order
     // to maintain the consistency of
     // only method accesses from the user
-    version: function(){ return 1; },
+    version: function(){ return "beta"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -88,6 +88,7 @@ if (!Array.prototype.indexOf) {
     $renderDirtyPartS: [],
     $prevFrameTime: 0,
     $newManyS: [],
+    $isRendering: false,
 
     $isGpuAccelerated: undefined,
     $isBelowIE9: undefined,
@@ -100,7 +101,7 @@ if (!Array.prototype.indexOf) {
     $dataTravelDelta: 0.0,
     $dataTravellingLevel: undefined,
     $dataTravellingAttrInitialVal: undefined,
-    $dataTravellingAttrVal: undefined,
+    $dataTravellingAttrVal: undefined
 
   };
 

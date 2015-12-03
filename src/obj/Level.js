@@ -6,6 +6,7 @@
     this.pathName = path;
     this.lson = lson;
     this.isGpu = undefined;
+    this.isInitialized = false;
     this.isRemoved = undefined;
 
     this.parentLevel = parent; // parent Level
@@ -53,6 +54,10 @@
     this.stringHashedStates2_cachedAttr2val_ =  {};
     this.newlyInstalledStateS = [];
     this.newlyUninstalledStateS = [];
+
+    // for many derived levels
+    this.formationX = undefined;
+    this.formationY = undefined;
 
   };
 
@@ -394,7 +399,7 @@
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
         LAY.$defaultizePartLson( this.lson,
-          this.pathName === "/" );
+          this.parentLevel );
       }
       this.part = new LAY.Part( this );
       this.part.init();
@@ -403,6 +408,9 @@
         this.addChildren( this.lson.children );
       }
     } else {
+      if ( this.pathName === "/" ) {
+        throw "LAY Error: 'many' prohibited for root level /";
+      }
       var partLson = this.lson;
       this.lson = this.lson.many;
       // deference the "many" key from part lson
@@ -416,7 +424,8 @@
     }
   };
 
-  function initAttrsObj( attrPrefix, key2val, attr2val, isNoUndefinedAllowed ) {
+  function initAttrsObj( attrPrefix, key2val,
+   attr2val, isNoUndefinedAllowed ) {
 
     var key, val;
 
@@ -518,6 +527,7 @@
        this.lson.$observe : [],
       observableReadonly, i, len;
   
+    this.isInitialized = true;
 
     if ( this.isPart ) {
       if ( this.lson.states.root.props.scrollX ) {
@@ -528,7 +538,7 @@
       }
       
       if ( this.part.type === "input" &&
-          this.part.inputType === "multiline" ) {
+          this.part.inputType !== "line" ) {
         // $input will be required to compute
         // the natural height if it exists
         // TODO: optimize
@@ -561,11 +571,8 @@
       lson = this.lson,
       attr2val = {};
 
-    initAttrsObj( "data.", lson.data, attr2val, false );
 
-    if ( this.derivedMany ) {
-      initAttrsObj( "row.", this.rowDict, attr2val, false  );
-    }
+    initAttrsObj( "data.", lson.data, attr2val, false );
 
     for ( stateName in states ) {
         state = states[ stateName ];
@@ -590,13 +597,18 @@
         attr2val.$windowWidth = window.innerWidth ||
          document.documentElement.clientWidth ||
           document.body.clientWidth;
-        attr2val.$windowHeight = window.innerWidth ||
-         document.documentElement.clientWidth ||
-          document.body.clientWidth;
+        attr2val.$windowHeight = window.innerHeight ||
+         document.documentElement.clientHeight ||
+          document.body.clientHeight;
+      } else if ( this.derivedMany ) {
+        initAttrsObj( "row.", this.rowDict, attr2val, false );
+        attr2val.$i = 1;
+        attr2val.$f = -1;
       }
     } else { // Many
       attr2val.rows = lson.rows || [];
       attr2val.$id = lson.$id;
+      attr2val.$$layout = null;
     }
 
     this.$commitAttr2Val( attr2val );
@@ -638,7 +650,7 @@
       this.$createAttrVal( attr,
         LAY.$miscPosAttr2take[ attr ] );
     } else if ( attr.charAt( 0 ) === "$" ) { //readonly
-      if ( [ "$type", "$interface", "$inherit", "$observe" ].indexOf(
+      if ( [ "$type", "$load", "$id", "$inherit", "$observe" ].indexOf(
             attr ) !== -1 ) {
           this.$createAttrVal( attr, this.lson[ attr ] );
       } else if ( attr === "$path" ) {
@@ -653,11 +665,16 @@
           console.error("LAY Error: Incorrectly named readonly: " + attr );
           return false;
         }
-      } 
-
+      }
     } else {
       if ( attr.indexOf( "." ) === -1 ) {
-        return false;
+        var lazyVal = LAY.$getLazyPropVal( attr,
+          this.parentLevel === undefined );
+        if ( lazyVal !== undefined ) {
+          this.$createAttrVal( attr, lazyVal );
+        } else {
+          return false;
+        }
       } else {
         if ( attr.startsWith( "data." ||
             attr.startsWith("row.") ) ) {
@@ -678,12 +695,16 @@
             }
             splitAttrLsonComponentS.shift();
 
-            // rempve the state part of the attr components
+            // remove the state part of the attr components
             if ( splitAttrLsonComponentS[ 0 ]  === "when" ) {
               splitAttrLsonComponentS[ splitAttrLsonComponentS.length - 1 ] =
                 parseInt( splitAttrLsonComponentS[
                   splitAttrLsonComponentS.length -1 ] ) - 1;
-            } else if ( splitAttrLsonComponentS[ 0 ]  !== "transition" ) {
+            } else if ( ["fargs", "sort",
+             "formation", "filter", "rows"].indexOf(
+              splitAttrLsonComponentS[ 0 ]) !== -1 ) {
+
+            } else if ( splitAttrLsonComponentS[ 0 ] !== "transition" ) {
               // props
               if ( attrLsonComponentObj.props !== undefined ) {
                 attrLsonComponentObj = attrLsonComponentObj.props; 
@@ -728,7 +749,7 @@
     for ( var i = 0, len = recalculateDirtyAttrValS.length;
         i < len; i++ ) {
       recalculateDirtyAttrVal = recalculateDirtyAttrValS[ i ];
-      if ( recalculateDirtyAttrVal.onlyIfStateName ) {
+      if ( recalculateDirtyAttrVal.onlyIfStateName !== "" ) {
         LAY.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
       }
     }
@@ -762,6 +783,7 @@
       isSolveProgressed = false;
       this.$prioritizeRecalculateOrder();
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
+//        console.log(this.pathName, recalculateDirtyAttrValS.map(function(el){return el.attr}));
         isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
 //        console.log( "\trecalculate", this.pathName, isSolveProgressed,
   //        recalculateDirtyAttrValS[ i ].attr );
@@ -870,12 +892,10 @@
     this.$commitAttr2Val( this.$getStateAttr2val() );
 
     if ( this.derivedMany &&
-       !this.derivedMany.level.
-        attr2attrVal.filter.isRecalculateRequired &&
-        attr2attrVal.$f &&
+        !this.derivedMany.level.attr2attrVal.filter.isRecalculateRequired &&
         attr2attrVal.$f.calcVal !== 1 ) {
-      this.$setFormationXY( this.part.formationX,
-          this.part.formationY );
+      this.$setFormationXY( this.formationX,
+          this.formationY );
     }
 
 
@@ -898,13 +918,7 @@
   };
 
 
-  
-
   LAY.Level.prototype.$getAttrVal = function ( attr ) {
-   // if ( !this.attr2attrVal[ attr ] ) {
-     // this.$createLazyAttr( attr );
-     // LAY.$solve();
-   // }
     return this.attr2attrVal[ attr ];
 
   };
@@ -925,26 +939,29 @@
   };
 
   LAY.Level.prototype.$setFormationXY = function ( x, y ) {
-    var
-      topAttrVal = this.attr2attrVal.top,
-      leftAttrVal = this.attr2attrVal.left;
 
-    if ( x === undefined ) {
-      leftAttrVal.update( this.derivedMany.defaultFormationX );
-    } else {
-      leftAttrVal.update( x );
+    this.formationX = x;
+    this.formationY = y;
+
+    if ( this.part ) { //level might not initialized as yet
+      var
+        topAttrVal = this.attr2attrVal.top,
+        leftAttrVal = this.attr2attrVal.left;
+
+      if ( x === undefined ) {
+        leftAttrVal.update( this.derivedMany.defaultFormationX );
+      } else {
+        leftAttrVal.update( x );
+      }
+      if ( y === undefined ) {
+        topAttrVal.update( this.derivedMany.defaultFormationY );
+      } else {
+        topAttrVal.update( y );
+      }
+
+      topAttrVal.requestRecalculation();
+      leftAttrVal.requestRecalculation();
     }
-    if ( y === undefined ) {
-      topAttrVal.update( this.derivedMany.defaultFormationY );
-    } else {
-      topAttrVal.update( y );
-    }
-
-    topAttrVal.requestRecalculation();
-    leftAttrVal.requestRecalculation();
-
-    this.part.formationX = x;
-    this.part.formationY = y;
  
   };
 

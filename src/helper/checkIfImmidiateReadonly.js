@@ -4,7 +4,6 @@
   var immidiateReadonlyS = [
     "$naturalWidth", "$naturalHeight",
     "$scrolledX", "$scrolledY",
-    "$cursorX", "$cursorY",
     "$focused",
     "$absoluteX", "$absoluteY",
     "$input", "$inputFocused"

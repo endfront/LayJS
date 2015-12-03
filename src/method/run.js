@@ -3,6 +3,7 @@
 
   LAY.run =  function ( rootLson ) {
 
+    
     setRuntimeGlobals();
 
     ( new LAY.Level( "/", rootLson, undefined ) ).$init();

@@ -50,7 +50,7 @@ LAY involves writing LSON (Layout Syntax Object Notation)
               rows: array,
               fargs: obj,
 
-              load: function,
+              $load: function,
 
               states: {
                 < name >: {
@@ -95,9 +95,11 @@ LAY involves writing LSON (Layout Syntax Object Notation)
     ( inputs ...)
     "input:line"
     "input:multiline"
-    "input:select" [coming soon]
+    "input:password"
+    "input:select"
+    "input:multiple"
     "input:file" [coming soon]
-    "input:< any other valid input[type] html property i.e color, date, optgroup, etc >" [coming soon]
+    "input:< any other valid input[type] html property i.e color, date, etc >" [coming soon]
 
 
 ### LSON.$inherit
@@ -286,7 +288,6 @@ Defaults:
   `number`
   Default: 1
 
-
 - overflowX
   `string`
   CSS overflow property
@@ -326,7 +327,11 @@ Defaults:
 - userSelect
   `string`
   CSS user-select
-  Default: LAY.take("../", "userSelect") [for "/": "none"]
+  Default: "all"
+
+- title
+  `string`
+  Default: none
 
 - background (no support for multiple backgrounds)
   This is an "object-type" prop.
@@ -444,19 +449,19 @@ Defaults:
 - textDecoration
   `string`
   CSS text-decoration
-  Default: LAY.take("../", "textDecoration") [for "/": "none"]
+  Default: "none"
 
 - textLetterSpacing
   `number` / `string`  
   `number`: In pixels.  
   `string`: CSS letter-spacing [non-transitionable]
-  Default: LAY.take("../", "textLetterSpacing") [for "/": "normal"]
+  Default: LAY.take("../", "textLetterSpacing") [for "/": 0]
 
 - textWordSpacing
   `number` / `string`  
   `number`: In pixels.  
   `string`: CSS word-spacing [non-transitionable]
-  Default: LAY.take("../", "textWordSpacing") [for "/": "normal"]
+  Default: LAY.take("../", "textWordSpacing") [for "/": 0]
 
 - textAlign
   `string`
@@ -487,21 +492,27 @@ Defaults:
 - textOverflow
   `string`
   CSS text-overflow
-  Default: 'clip'
+  Default: "clip"
 
 - textIndent
   `number`
-  Default: 0
+  Default: LAY.take("../", "textIndent") [for "/": 0]
 
 - textWrap
   `string`
   CSS white-space
-  Default: 'nowrap'
+  Default: LAY.take("../", "textWrap") [for "/": "nowrap"]
 
 - textWordBreak
   `string`
   CSS word-break
-  Default: 'normal'
+  Default: LAY.take("../", "textWordBreak") [for "/": "normal"]
+
+- textWordWrap
+  `string`
+  CSS word-wrap
+  Default: LAY.take("../", "textWordWrap") [for "/": "normal"]
+
 
 - textPadding
   `number`
@@ -521,14 +532,15 @@ Defaults:
     }
     ...
   ]
-  
+
 - inputLabel
   `string`
   Default: ""
 
 - input
-  `string`
-  Default: ""
+  `string` / `array`
+  `array` for "input:select", "" for remaining 
+  Default: [] for "input:select", "" for remaining 
 
 - inputPlaceholder
   `string`
@@ -561,6 +573,9 @@ Defaults:
   HTML a[target]
 
 - imageUrl
+  `string`
+
+- imageAlt
   `string`
 
 - audioSrc / videoSrc
@@ -622,13 +637,12 @@ Defaults:
 
 
 - videoPoster
-  `string` / `null`
-  Default: null
+  `string`
 
 
 - audioVolume
   `number`
-  Default: 0.7
+  Default: 1.0
 
 
 ### Attributes
@@ -710,32 +724,27 @@ Defaults:
     - $absoluteY (`number`)
       Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
 
-    - $id
+    - $id (`string`)
       The name of the unique key which is reponsible for id for each row in `rows` for many-level
 
-    - $i
-      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` and `ascending` keys.
+    - $i (`number`)
+      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` key.
 
-    - $f
-      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` and `ascending` keys.
+    - $f (`number`)
+      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` keys.
 
-    - $focused (`boolean`)
 
     - $clicking (`boolean`)
 
     - $hovering (`boolean`)
 
+    - $focused (`boolean`)
+
     - $scrolledX (`number`)
 
     - $scrolledY (`number`)
 
-    - $cursorX (`number`)
-
-    - $cursorY ('number')
-
-    - $input (`string`)
-
-    - $inputChecked (`boolean`)
+    - $input (`string` )
 
 
 ### LSON.$observe
@@ -851,9 +860,10 @@ LAY.Take methods
   - remainder
   - half, double (unary)
   - min, max
-  - ceil, floor, abs, sin, cos, tan
+  - ceil, floor, round, abs, sin, cos, tan
   - log, pow
   - negative (unary)
+  - number (converts to number)
   - index, length (for array)
   - key (for dict)
   - concat, lowercase, capitalize, uppercase (for string)

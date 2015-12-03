@@ -11,7 +11,7 @@
   };*/
 
 
-  LAY.$findRenderCall = function( prop, isPositionGpu ) {
+  LAY.$findRenderCall = function( prop, level ) {
 
     var
       renderCall,
@@ -33,7 +33,7 @@
           LAY.$shorthandPropsUtils.getShorthandPropCenteralized(
             prop );
         if ( renderCall !== undefined ) {
-          if ( isPositionGpu &&
+          if ( level.isGpu &&
             ( renderCall === "x" ||
               renderCall === "y" ||
               renderCall === "transform" ) ) {
@@ -41,7 +41,12 @@
           } else {
             return renderCall;
           }
-        } 
+        } else {
+          if ( prop.startsWith("text") &&
+           ( !level.part || level.part.type === "none" ) ) {
+            return undefined;
+          }
+        }
         return prop;
         
       }

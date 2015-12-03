@@ -3,8 +3,8 @@
 
 
   var reservedNameS = [ 
-    "$type", "$load", "$gpu", "$inherit", "$observe",
-    "root", "transition", "data", "when", 
+    "root", "transition", "data", "when", "onlyif",
+    "states",
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
@@ -26,29 +26,32 @@
     }
   }
 
+  /* 
+  * Must not contain ".", "/" or ":"
+  */
+  function checkIfNoIllegalCharacters ( name ) {
+    return ( name.indexOf(".") === -1 ) &&
+      ( name.indexOf("/") === -1 ) &&
+      ( name.indexOf(":") === -1);
+  }
+
   LAY.$checkIsValidUtils = {
   	levelName: function ( levelName ) {
-  		return ( /^[\w\-]+$/ ).test( levelName ) &&
+  		return checkIfNoIllegalCharacters( levelName ) &&
         ( reservedNameS.indexOf( levelName ) === -1 );
   	},
   	/*
   	* Rules of a state name:
-  	* (1) Must only contain alphanumeric characters, the underscore ("_"), or the hyphen ("-")
-  	* (2) Must contain atleast one character
-  	* (3) Must not be a reserved name with the exception of "root"
+  	* (1) Must not contain any illegal characters
+l  	* (2) Must not be a reserved name with the exception of "root"
+    * as "root" state name has already been checked at the
+    * start of normalizing 
   	*/
   	stateName: function ( stateName ) {
-  		 return (
-       ( ( ( /^[\w\-]+$/ ).test( stateName ) ) &&
-		    ( 
-          ( reservedNameS.indexOf( stateName ) === -1 ) ||
-          stateName === "root"
-        )
-      )
-       || 
-       ( stateName === "formation") || 
-       ( stateName === "formationDisplayNone")
-       );
+  		 return checkIfNoIllegalCharacters( stateName ) &&
+        ( ( reservedNameS.indexOf( stateName ) === -1 ) ||
+           ( stateName === "root" ) );
+		           
   	},
 
     checkIsAttrExpandable: function ( attr ) {

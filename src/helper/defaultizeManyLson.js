@@ -1,7 +1,9 @@
 ( function () {
   "use strict";
 
-  var essentialProp2defaultValue;
+  var
+    essentialProp2defaultValue,
+    formation2defaultArgs;
 
   LAY.$defaultizeManyLson = function ( lson ) {
     
@@ -16,22 +18,17 @@
           essentialProp2defaultValue[ essentialProp ];
       }
     }
+    // TODO: defaultize fargs here?
+  
   };
+
 
   essentialProp2defaultValue = {
     filter:  new LAY.Take( "", "rows" ),
-    sort: [],
+    sort: [{key:"id", ascending:true}],
     formation: "onebelow",
     rows: [],
-    fargs: {
-      onebelow: {
-        gap: 0
-      },
-      totheright: {
-        gap: 0
-      }
-    }
-    
+    fargs: {}
   };
 
 

@@ -3,10 +3,10 @@ var
   internalDimension = 20,
   noneDimension = 30,
   stateDimension = 40,
-  externalColor = LAID.rgba(10,10,10),
-  internalColor = LAID.rgba(20,20,20),
-  noneColor = LAID.rgba(30,30,30),
-  stateColor = LAID.rgba(30,30,30);
+  externalColor = LAY.rgba(10,10,10),
+  internalColor = LAY.rgba(20,20,20),
+  noneColor = LAY.rgba(30,30,30),
+  stateColor = LAY.rgba(30,30,30);
   
 
 
@@ -26,7 +26,7 @@ var externalInherit = {
 };
 
 
-LAID.run({
+LAY.run({
   children:{
     "Body": {
       children: {
@@ -57,7 +57,7 @@ LAID.run({
                 
                 states: {
                   "state": {
-                    onlyif:LAID.take("", "data.state"),
+                    onlyif:LAY.take("", "data.state"),
                     props: {
                       width: stateDimension,
                       borderRightWidth: stateDimension,
@@ -81,7 +81,7 @@ LAID.run({
 QUnit.test( "LSON.inherit", function( assert ) {
 
 
-  var lvl = LAID.level("/Body/Content/Box");
+  var lvl = LAY.level("/Body/Content/Box");
   var noneLvl = lvl.level("None");
   var mixedLvl = lvl.level("Mixed");
   var internalLvl = lvl.level("Internal");

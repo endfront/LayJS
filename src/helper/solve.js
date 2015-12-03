@@ -16,6 +16,8 @@
 
       do {
 
+        //alert("solve");
+
         isSolveProgressed = false;
         isSolveNewComplete = false;
         isSolveRecalculationComplete = false;
@@ -30,9 +32,6 @@
         if ( ret < 2 ) {
           isSolveProgressed = true;
         }
-
-        executeStateInstallation();
-        executeManyLoads();
 
 
         // The reason we cannot use `ret` to confirm
@@ -71,14 +70,22 @@
             " (Level: " + uninstantiableLevel.pathName  + ")";
         } 
         msg += "]";
-        console.log(msg);
         throw msg;
 
       }
 
+      executeManyLoads();
+      executeStateInstallation();
+      // If the load/install functions of 
+      // many or level demands a recalculation
+      // then we will solve, otherwise we shall
+      // render
       LAY.$isSolving = false;
-      LAY.$render();
-
+      if ( LAY.$recalculateDirtyLevelS.length ) {
+        LAY.$solve();
+      } else {
+        LAY.$render();
+      }
     }
 
   };
@@ -89,14 +96,12 @@
     for ( var i = 0, len = newManyS.length; i < len; i++ ) {
       newMany = newManyS[ i ];
       newMany.isLoaded = true;
-      newMany.updateFilteredPositioning();
       fnLoad = newMany.level.lson.$load;
       if ( fnLoad ) {
         fnLoad.call( newMany.level );
       }
     }
     LAY.$newManyS = [];
- 
   }
 
   function executeStateInstallation () {

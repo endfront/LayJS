@@ -10,12 +10,8 @@
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        if ( attr === "rows" || attr === "filter" ) {
-          return LAY.$arrayUtils.cloneSingleLevel( 
-            path.resolve( this ).$getAttrVal( attr ).calcVal );
-        } else {
-          return path.resolve( this ).$getAttrVal( attr ).calcVal;
-        }
+        return path.resolve( this ).$getAttrVal( attr ).calcVal;
+        
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -374,6 +370,17 @@
     return this;
   };
 
+  LAY.Take.prototype.number = function () {
+
+    var oldExecutable = this.executable;
+
+    this.executable = function () {
+      return parseInt( oldExecutable.call( this ) );
+    };
+
+    return this;
+  };
+
 
 
   LAY.Take.prototype.key = function ( val ) {
@@ -458,6 +465,15 @@
     var oldExecutable = this.executable;
     this.executable = function () {
       return Math.floor( oldExecutable.call( this ) );
+    };
+    return this;
+  };
+
+  LAY.Take.prototype.round = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return Math.round( oldExecutable.call( this ) );
     };
     return this;
   };

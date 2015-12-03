@@ -15,14 +15,12 @@
         LAY.$prevTimeFrame = timeNow;
         window.requestAnimationFrame( render );
       } else {
-        LAY.$prevTimeFrame = performance.now();
+        LAY.$prevTimeFrame = performance.now() - 16.7;
         render();
       }
       
     }
   }
-
-
 
   function render() {
     var
@@ -45,6 +43,8 @@
       renderNewLevel,
       fnLoad,
       isAllNormalTransitionComplete = true;
+
+    LAY.$isRendering = true;
 
     for ( x = 0; x < renderDirtyPartS.length; x++ ) {
 
@@ -77,9 +77,7 @@
            normalRenderDirtyAttrVal.renderCall );
         }
         renderDirtyTransition = normalRenderDirtyAttrVal.transition;
-
         if ( renderDirtyTransition !== undefined ) { // if transitioning
-
           if ( renderDirtyTransition.delay &&
             renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
@@ -101,14 +99,12 @@
         }
 
         if ( isNormalAttrValTransitionComplete ) {
-
           normalRenderDirtyAttrVal.transitionCalcVal =
             normalRenderDirtyAttrVal.calcVal;
           LAY.$arrayUtils.removeAtIndex( normalRenderDirtyAttrValS, y );
           y--;
 
         }
-
       }
 
       // scroll positions must be affected last
@@ -143,7 +139,6 @@
         LAY.$arrayUtils.pushUnique( renderNewLevelS,
          renderDirtyPart.level );
       }
-
     }
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
@@ -155,6 +150,7 @@
       }
     }
 
+    LAY.$isRendering = false;
     
     if ( LAY.$isSolveRequiredOnRenderFinish ) {
       LAY.$isSolveRequiredOnRenderFinish = false;
@@ -165,7 +161,10 @@
 
   }
 
-  function transitionAttrVal ( normalRenderDirtyAttrVal, delta ) {
+  function transitionAttrVal( normalRenderDirtyAttrVal, delta ) {
+    console.log(normalRenderDirtyAttrVal.attr,
+      normalRenderDirtyAttrVal.startCalcVal,
+      normalRenderDirtyAttrVal.calcVal, delta );
     if ( normalRenderDirtyAttrVal.calcVal instanceof LAY.Color ) {
       normalRenderDirtyAttrVal.transitionCalcVal =
         LAY.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,

@@ -8,16 +8,16 @@ function doNothing2() {
 
 
 
-LAID.run({
+LAY.run({
   data: {
     lang: "en"
   },
   children:{
     "Header": {
       props: {
-        width: LAID.take("../", "width"),
-        height: LAID.take("", "$naturalHeight").add(20),
-        backgroundColor: LAID.color("red")
+        width: LAY.take("../", "width"),
+        height: LAY.take("", "$naturalHeight").add(20),
+        backgroundColor: LAY.color("red")
       },
       when: {
         click: [
@@ -32,10 +32,10 @@ LAID.run({
             notTrue: false
           },
           props: {
-            centerX: LAID.take("../", "width").divide(2),
-            centerY: LAID.take("../", "height").divide(2),
-            text: LAID.take("", "data.content"),
-            textColor: LAID.rgb(255, 255, 255)
+            centerX: LAY.take("../", "width").divide(2),
+            centerY: LAY.take("../", "height").divide(2),
+            text: LAY.take("", "data.content"),
+            textColor: LAY.rgb(255, 255, 255)
           }
         }
       }
@@ -66,26 +66,26 @@ QUnit.test( "Level: root width", function( assert ) {
   //assert.strictEqual( 1 == 1, "Passed!" );
 });
 
-QUnit.test( "LAID.level()", function( assert ) {
-  assert.strictEqual( LAID.level("/") , LAID.$path2level[ "/" ],
+QUnit.test( "LAY.level()", function( assert ) {
+  assert.strictEqual( LAY.level("/") , LAY.$path2level[ "/" ],
    "root level" );
-  assert.strictEqual( LAID.level("/Header/Text") ,
-   LAID.$path2level[ "/Header/Text" ], "non-root level" );
+  assert.strictEqual( LAY.level("/Header/Text") ,
+   LAY.$path2level[ "/Header/Text" ], "non-root level" );
 });
 
 
 QUnit.test( "Level.level()", function( assert ) {
-  assert.strictEqual( LAID.level("/Header").level("Text") ,
-   LAID.$path2level[ "/Header/Text" ],
+  assert.strictEqual( LAY.level("/Header").level("Text") ,
+   LAY.$path2level[ "/Header/Text" ],
     "Child" );
-  assert.strictEqual( LAID.level("/Header/Text").level("../") ,
-   LAID.$path2level[ "/Header" ], "Parent" );
-  assert.strictEqual( LAID.level("/Header").level("../Body") ,
-    LAID.$path2level[ "/Body" ], "Sibling" );
-  assert.strictEqual( LAID.level("/Header/Text").level("../../") ,
-    LAID.$path2level[ "/" ], "Ancestor" );
-  assert.strictEqual( LAID.level("/Header/Text").level("../../Body") ,
-    LAID.$path2level[ "/Body" ], "Cousin" );
+  assert.strictEqual( LAY.level("/Header/Text").level("../") ,
+   LAY.$path2level[ "/Header" ], "Parent" );
+  assert.strictEqual( LAY.level("/Header").level("../Body") ,
+    LAY.$path2level[ "/Body" ], "Sibling" );
+  assert.strictEqual( LAY.level("/Header/Text").level("../../") ,
+    LAY.$path2level[ "/" ], "Ancestor" );
+  assert.strictEqual( LAY.level("/Header/Text").level("../../Body") ,
+    LAY.$path2level[ "/Body" ], "Cousin" );
 
 });
 
@@ -93,12 +93,12 @@ QUnit.test( "Level.level()", function( assert ) {
 
 
 
-QUnit.test( "LAID.attr()", function( assert ) {
-  assert.strictEqual( LAID.level("/Header/Text").attr("data.content") ,
+QUnit.test( "LAY.attr()", function( assert ) {
+  assert.strictEqual( LAY.level("/Header/Text").attr("data.content") ,
    "Testing", "Passed!" );
-  assert.strictEqual( LAID.level("/Header/Text").attr("text") ,
+  assert.strictEqual( LAY.level("/Header/Text").attr("text") ,
    "Testing", "Passed!" );
-  assert.strictEqual( LAID.level("/Header/Text").attr("data.notTrue") ,
+  assert.strictEqual( LAY.level("/Header/Text").attr("data.notTrue") ,
     false, "Passed!" );
 });
 
@@ -109,9 +109,9 @@ QUnit.test( "LAID.attr()", function( assert ) {
 
 
 QUnit.test( "LSON.when", function( assert ) {
-  assert.strictEqual( LAID.level("/Header").attr("when.click.1") ,
+  assert.strictEqual( LAY.level("/Header").attr("when.click.1") ,
    doNothing1, "single" );
-  assert.strictEqual( LAID.level("/Header").attr("when.click.2") ,
+  assert.strictEqual( LAY.level("/Header").attr("when.click.2") ,
    doNothing2, "multiple" );
 
 });
@@ -130,13 +130,13 @@ TODO: Remaining Tests:
       - two inherit (from external and within)
 
 
-  - LAID.Color
+  - LAY.Color
 
-  - LAID.Take
+  - LAY.Take
 
-  - LAID.take()
+  - LAY.take()
 
-  - LAID.RelPath
+  - LAY.RelPath
 
 
   - Normalize
@@ -178,7 +178,7 @@ TODO: Remaining Tests:
   - transition
     - position int
     - negative int
-    - LAID.Color
+    - LAY.Color
 
   - valid level name
   - For illegal take references to expander props or expander props

@@ -13,7 +13,8 @@ LAY.run({
     textColor: LAY.rgb(77,77,77),
     textSize: 14,
     textWeight: "300",
-    textLineHeight: 1.4
+    textLineHeight: 1.4,
+    userSelect: "none"
   },
 
   "App": {
@@ -37,9 +38,6 @@ LAY.run({
         width: LAY.take("../", "width"),
         text: "todos",
         textSize: 100,
-       // textPadding: {
-        //  top:9, bottom: 9
-        //},
         textColor: LAY.rgba(175, 47, 47, 0.15),
         textAlign:"center",
         textRendering: "optimizeLegibility",
@@ -152,7 +150,6 @@ LAY.run({
             textSize: 24,
             textPadding: 16,
             textSmoothing: "antialiased",
-            textWeight: "inherit",
             textLineHeight:1.4,
             inputPlaceholder: "What needs to be done?",
             focus: true
@@ -196,28 +193,19 @@ LAY.run({
           }
         },
         "Todo": {
-          data: {
-            isEditing: false
-          },
-          props: {
-            width:LAY.take("../", "width"),
-            borderBottom: {
-              width:1, style:"solid",
-              color: LAY.rgb(237,237,237)
-            },
-            overflow: "visible" //border overflow of input
-          },
-          
           many: {
             formation: "onebelow",
             $load: function () {
-              if ( window.localStorage ) {
+              if ( window.localStorage && window.JSON ) {
                 var todos = localStorage.getItem("todos");
                 if (todos) {
                   this.rowsCommit(JSON.parse(todos));
                 }
               }
             },
+            sort: [
+              {key: "id"}
+            ],
             data: {
               category: LAY.take("/App/Container/BottomControls/Strip/Categories/Category", "rows").filterEq("selected", true).index(0).key("id")
             },           
@@ -232,50 +220,60 @@ LAY.run({
                 filter: LAY.take("", "rows").filterEq("complete", true)
               }
             }
-          
           },
-          
-            "Tick": {
-              props: {
-                width: 40,
-                height: 40,
-                centerY: LAY.take("../", "$midpointY")
+          data: {
+            isEditing: false
+          },
+          props: {
+            width:LAY.take("../", "width"),
+            borderBottom: {
+              width:1, style:"solid",
+              color: LAY.rgb(237,237,237)
+            },
+            overflow: "visible" //border overflow of input
+          },
+                    
+          "Tick": {
+            props: {
+              width: 40,
+              height: 40,
+              centerY: LAY.take("../", "$midpointY")
+            },
+            states: {
+              "hidden": {
+                onlyif: LAY.take("../", "data.isEditing"),
+                props: {
+                  display: false
+                }
               },
-              states: {
-                "hidden": {
-                  onlyif: LAY.take("../", "data.isEditing"),
-                  props: {
-                    display: false
-                  }
+              "complete": {
+                onlyif: LAY.take("../", "row.complete"),
+                props: {
+                  text: LAY.take('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#bddad5" stroke-width="3"/><path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"/></svg>').format(
+                    LAY.take("", "width"),LAY.take("", "height"))
                 },
-                "complete": {
-                  onlyif: LAY.take("../", "row.complete"),
-                  props: {
-                    text: LAY.take('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#bddad5" stroke-width="3"/><path fill="#5dc2af" d="M72 25L42 71 27 56l-4 4 20 20 34-52z"/></svg>').format(
-                      LAY.take("", "width"),LAY.take("", "height"))
-                  },
-                  when: {
-                    click: function () {
-                      this.level("../").row("complete", false);
-                      updateLocalStorage();
-                    }
+                when: {
+                  click: function () {
+                    this.level("../").row("complete", false);
+                    updateLocalStorage();
                   }
+                }
+              },
+              "incomplete": {
+                onlyif: LAY.take("../", "row.complete").not(),
+                props: {
+                  text: LAY.take('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#ededed" stroke-width="3"/></svg>').format(
+                    LAY.take("", "width"),LAY.take("", "height"))
                 },
-                "incomplete": {
-                  onlyif: LAY.take("../", "row.complete").not(),
-                  props: {
-                    text: LAY.take('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="-10 -18 100 135"><circle cx="50" cy="50" r="50" fill="none" stroke="#ededed" stroke-width="3"/></svg>').format(
-                      LAY.take("", "width"),LAY.take("", "height"))
-                  },
-                  when: {
-                    click: function () {
-                      this.level("../").row("complete", true);
-                      updateLocalStorage();
-                    }
+                when: {
+                  click: function () {
+                    this.level("../").row("complete", true);
+                    updateLocalStorage();
                   }
                 }
               }
-            },
+            }
+          },
             "Title": {
               props: {
                 left: LAY.take("../Tick", "right"),
@@ -284,8 +282,8 @@ LAY.run({
                 text: LAY.take("../", "row.title"),
                 textPadding:15,
                 textSize: 24,
-                textWordBreak: "break-word",
-                textWrap: "pre",
+                textWordWrap: "break-word",
+                textWhitespace: "pre",
                 textLineHeight: 1.2,
                 userSelect: "text"
               },
@@ -451,7 +449,7 @@ LAY.run({
               },
               props: {
                 centerY: LAY.take("../", "$midpointY"),
-                text: LAY.take("%d items left").format(LAY.take("", "data.remaining")),
+                text: LAY.take("%d items left").format(LAY.take("", "data.remaining"))
               },
               states: {
                 "single": {
@@ -504,8 +502,7 @@ LAY.run({
                   text: LAY.take("", "row.text"),
                   textPadding: {top:2, bottom:2, left:7, right:7},
                   linkHref: LAY.take("#/%s").format(
-                    LAY.take("", "row.id")),
-
+                    LAY.take("", "row.id"))
                 },
                 states: {
                   "selected": {
@@ -602,10 +599,9 @@ LAY.run({
           ],
           textSize:10,
           textColor: LAY.rgb(191,191,191),
-          text: LAY.take("", "row.text"),
+          text: LAY.take("", "row.content"),
           textLineHeight: 1
         },
-
         many: {
           formation: "onebelow",
           fargs: {
@@ -613,13 +609,12 @@ LAY.run({
               gap: 10
             }
           },
-          $id: "id",
           rows: [
-            { id: 1, text: "Double-click to edit a todo" },
-            { id: 2, text: "Created by <a href='https://github.com/relfor' " +
-          "class='link'>Relfor</a>"},
-            { id: 3, text: "Part of <a href='http://todomvc.com' " +
-          "class='link'>TodoMVC</a>"}
+            "Double-click to edit a todo",
+            "Created by <a href='https://github.com/relfor' " +
+              "class='link'>Relfor</a>",
+            "Part of <a href='http://todomvc.com' " +
+              "class='link'>TodoMVC</a>"
           ]
         }
       }
@@ -703,7 +698,10 @@ LAY.run({
         "Quote": {
           props: {
             top: LAY.take("../FirstLine", "bottom").add(10),
-            text: "dump css and get LAY"
+            text: "LAY is a rendering engine written " +
+              "in Javascript with the purpose to " +
+              "augment and substitute for the shortcomings " +
+              "of HTML markup and CSS stylesheets."
           }
         },
         "SecondLine": {
@@ -839,7 +837,7 @@ if (!String.prototype.trim) {
 
 function updateLocalStorage () {
   var rows = LAY.level("/App/Container/Todos/Todo").attr("rows");
-  if ( window.localStorage ) {
+  if ( window.localStorage && window.JSON ) {
     window.localStorage.setItem("todos", JSON.stringify(rows));
   }
 }

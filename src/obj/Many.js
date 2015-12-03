@@ -36,7 +36,8 @@
     states.formationDisplayNone =
       LAY.$formationDisplayNoneState;
 
-    LAY.$defaultizePartLson( this.partLson, false );
+    LAY.$defaultizePartLson( this.partLson,
+      this.level.parentLevel );
 
     LAY.$newManyS.push( this );
 
@@ -73,7 +74,7 @@
       curRowS = rowsAttrVal.calcVal;
 
     if ( checkIfRowsIsNotObjectified( newRowS ) ) {
-       newRowS = objectifyRows;
+       newRowS = objectifyRows( newRowS );
     }
 
     for ( var i = 0; i < newRowS.length; i++ ) {
@@ -188,7 +189,11 @@
     }
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
       rowS = objectifyRows( rowS );
+      var rowsAttrVal = this.level.attr2attrVal.rows;
+      rowsAttrVal.calcVal = rowS;
     }
+
+    this.sort( rowS );
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
@@ -203,24 +208,18 @@
         }
   			level = new LAY.Level( this.level.pathName + ":" + id,
   			 this.partLson, parentLevel, false, this, row, id );
-        level.$init();
         // the level has already been normalized
         // while LAY was parsing the "many" level
         level.isNormalized = true;
+        level.$init();
 
   			parentLevel.childLevelS.push( level );
   			id2level[ id ] = level;
         id2row[ id ] = row;
 
-        level.$createAttrVal( "$i", i + 1 );
-        level.$createAttrVal( "$f", -1 );
-
         newLevelS.push( level );
 
-		  } else {
-        // update level with new row changes
-        level.attr2attrVal.$i.update( i + 1 );
-
+		  } else if ( level.isInitialized ) {
         for ( rowKey in row ) {
           rowVal = row[ rowKey ];
           rowAttr = "row." + rowKey;
@@ -237,10 +236,6 @@
 
   	}
 
-    // solve as new levels might have been intoduced
-    // after "Level.$identifyAndReproduce()"
-    LAY.$solve();
-
     for ( id in id2level ) {
       level = id2level[ id ];
       if ( level &&
@@ -252,23 +247,32 @@
     }
 
     this.allLevelS = updatedAllLevelS;
-    LAY.$solve();
-
-
   };
 
-  LAY.Many.prototype.updateFilter = function ( ) {
+
+  /* Return false if not all levels have been
+  * initialized, else return true
+  */
+  LAY.Many.prototype.updateFilter = function () {
     var  
       allLevelS = this.allLevelS,
       filteredRowS =
         this.level.attr2attrVal.filter.calcVal || [],
       filteredLevelS = [],
-      filteredLevel, f = 1;
+      filteredLevel, f = 1,
+      level;
 
     for ( 
       var i = 0, len = allLevelS.length;
       i < len; i++ ) {
-      allLevelS[ i ].attr2attrVal.$f.update( -1 );
+      level = allLevelS[ i ];
+      // has not been initialized as yet
+      if ( !level.isInitialized ) {
+        return false;
+      } 
+      level.attr2attrVal.$i.update( i + 1 );      
+      level.attr2attrVal.$f.update( -1 );        
+      
     }
 
     for ( 
@@ -278,46 +282,78 @@
       if ( filteredLevel ) {
         filteredLevelS.push( filteredLevel );
         filteredLevel.attr2attrVal.$f.update( f++ );
+        
       }
     }
 
-
     this.filteredLevelS = filteredLevelS;
 
-    this.updateFilteredPositioning();
+    return true;
 
   };
 
-  LAY.Many.prototype.updateFilteredPositioning = function () {
+  LAY.Many.prototype.updateLayout = function () {
+    this.level.attr2attrVal.$$layout.requestRecalculation();
+  };
 
-    if ( this.isLoaded ) {
+  LAY.Many.prototype.reLayout = function () {
+
+    var
+      filteredLevelS = this.filteredLevelS,
+      firstFilteredLevel = filteredLevelS[ 0 ],
+      attr2attrVal = this.level.attr2attrVal,
+      formationAttrVal = 
+        attr2attrVal.formation;
+      
+    if ( attr2attrVal.filter.isRecalculateRequired ||
+     formationAttrVal.isRecalculateRequired ) {
+      return;
+    } else {
       var
-        filteredLevelS = this.filteredLevelS,
-        formationFn = LAY.$formationName2fn[
-          this.level.attr2attrVal.formation.calcVal ],
-        firstFilteredLevel = filteredLevelS[ 0 ];
+        formation = formationAttrVal.calcVal,
+        defaultFargs = LAY.$formation2fargs[ formation ],
+        fargs = {},
+        fargAttrVal;
 
-      if ( firstFilteredLevel && firstFilteredLevel.part ) {
+      for ( var farg in defaultFargs ) {
+        fargAttrVal = attr2attrVal[ "fargs." + 
+          formation + "." + farg ];
+        if ( !fargAttrVal ) {
+          fargs[ farg ] = defaultFargs[ farg ]; 
+        } else if ( !fargAttrVal.isRecalculateRequired ) {
+          fargs[ farg ] = fargAttrVal.calcVal;
+        } else {
+          return;
+        }
+      }
+
+      var 
+        formationFn = LAY.$formation2fn[ formation ];
+
+      if ( firstFilteredLevel ) {
         firstFilteredLevel.$setFormationXY(
           undefined, undefined );
       }
+
       for ( 
-        var f = 1, len = filteredLevelS.length, filteredLevel;
+        var f = 1, len = filteredLevelS.length, filteredLevel, xy;
         f < len;
         f++
        ) {
         filteredLevel = filteredLevelS[ f ];
-        // if the level is not initialized then
+        /*// if the level is not initialized then
         // discontinue the filtered positioning
         if ( !filteredLevel.part ) {
           return;
-        }
-        formationFn( f + 1, filteredLevelS[ f ], filteredLevelS );
-      }
-
-      LAY.$solve();
+        }*/
+        xy = formationFn( f + 1, filteredLevel,
+         filteredLevelS, fargs );
+        filteredLevel.$setFormationXY(
+          xy[ 0 ],
+          xy[ 1 ]
+        );
+      } 
     }
-
   };
 
   

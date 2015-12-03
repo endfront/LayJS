@@ -1,52 +1,40 @@
 
 Current:
-  - root should be allowed its own naturalwidth/height separate
-    from window width/height
-  - optimize checkIsDependentOnNaturalHeight/Width
+  - checkisdependent optimization
+  - $one for many
+  - custom when events
+  - text calculation innercss optimize
+  - fix safari
+  - complete reorder example
+  - defaultize many lson fargs which are mentioned in states but
+    not otherwise
   - automatically id-fy when rows are given without id
-  - audiosources/videosources/tracks should not be multiple type property
-  - should there be naturalwidth/height for image?
-  - dont make naturalwidth/height attrval when creating lazy
-    attr from .attr() call
-  - if say shiftX or any other non used attr is called from
-    .attr() return (0) the default value mentioned in
-    defaultizedPartLson.js
+  - naturalwidth/height for image
   - what is "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
-  - you should probably stop (from within Part.updateNaturalWidth/Height) 
-  - updateNaturalWidth should be a part of attrVal
   - todoMVC Learn section
-  - throw error on no id provided
+  - transition multiple props comma separated, eg: "textColor, left, opacity"
   - many.rows inheritance
-  - `filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;`
-
-  - TODOMVC: There is still a problem with height changes on filter
   - < state >.bottom/right/centerX/centerY
   - filter.end()
-  - todoMVC routing
-  - LAY.color() warning
-    so that it doesn't get recalculated a million times
-  - "url" hashchange "$url" ??
   - add all remaining filter/fold takes
   - function to get all partLevelS from many?
-  - do you need to clone rows and filter in Take.js? and also in LAY.Many.prototype.queryRows/Filter?
-  - lazyProp2defaultValue has originX and perspectiveOriginX as 0.5?
-  - ONLY 1 NODE to count the goddamn text dimesions is the DREAM COME TRUE
-  - grid formation
   - height/width change should trigger scrollY/X change if
     applicable, similarly double-check is naturalHeight/Width
     changes does the trigger without using setTimeout
-  - input:file,select
+  - input:file
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
   - "*/" to reach row level from descendant level
   - LAY.Many.remove()
+  - add copyright to js files
   - test Textarea
   - test Image
   - test Video
   - test Canvas
-  - refactor many key to be above props key
+  - test Filter
+  - netflix example
   - website
 
 
@@ -62,15 +50,12 @@ Current:
   - $filtered and $all
   - queryAll, queryFiltered
 
-  todomvc:
-  - delete item
-  - check all to complete
-  - routing
-
-
 Future:
   - $browser attr
   - $url attr
+  - IE ms-filter
+  - IE7 text width issue
+  - optimize by putting "right" and "bottom" at end (or atleast after left, top, width, and height) of recalculate attr list
   - < img > srcset
   - LAY.transparent() -> LAY.transparent ?
   - selective inheritance where part of lson is inherited
@@ -89,7 +74,6 @@ Future:
   - $numberOfDisplayedChildren
   - feature function which checks for overlapping parts
   - Add support for other HTML5 input types
-  - optimization: check all the props possible within the level (by checking root and the states) and only set defaults for those which are going to be used (make sure you include important superdefaults such as originX, originY,etc which come into the calculation)
   - 'when' for formation, it should include function handler for insertion of new item into the formation alongwith deletion.
   - LAY.Color mix
 
