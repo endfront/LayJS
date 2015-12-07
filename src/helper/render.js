@@ -162,9 +162,6 @@
   }
 
   function transitionAttrVal( normalRenderDirtyAttrVal, delta ) {
-    console.log(normalRenderDirtyAttrVal.attr,
-      normalRenderDirtyAttrVal.startCalcVal,
-      normalRenderDirtyAttrVal.calcVal, delta );
     if ( normalRenderDirtyAttrVal.calcVal instanceof LAY.Color ) {
       normalRenderDirtyAttrVal.transitionCalcVal =
         LAY.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,

@@ -2,7 +2,7 @@
   "use strict";
 
   LAY.$foldlUtils = {
-    min: function ( rowS, key, val ) {
+    min: function ( rowS, key ) {
       return fold( function ( row, acc ) {
         var val = row[ key ];
           if ( ( acc === undefined ) || ( val < acc ) ) {
@@ -12,7 +12,7 @@
           }
         }, undefined, rowS ); 
     },
-    max: function ( rowS, key, val ) {
+    max: function ( rowS, key ) {
       return fold( function ( row, acc ) {
         var val = row[ key ];
           if ( ( acc === undefined ) || ( val > acc ) ) {
@@ -22,7 +22,7 @@
           }
         }, undefined, rowS ); 
     },
-    sum: function ( rowS, key, val ) {
+    sum: function ( rowS, key ) {
       return fold( function ( row, acc ) {
         return acc + row[ key ];
         }, 0, rowS );

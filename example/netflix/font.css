@@ -1,0 +1,9 @@
+@font-face {
+    font-family:nf-icon;
+    src:url(http://cdn.nflximg.com/ffe/siteui/fonts/nf-icon-v1-72.eot);
+    src:url(http://cdn.nflximg.com/ffe/siteui/fonts/nf-icon-v1-72.eot?#iefix) format('embedded-opentype'),
+    url(http://cdn.nflximg.com/ffe/siteui/fonts/nf-icon-v1-72.woff) format('woff'),
+    url(http://cdn.nflximg.com/ffe/siteui/fonts/nf-icon-v1-72.ttf) format('truetype'),url(http://cdn.nflximg.com/ffe/siteui/fonts/nf-icon-v1-72.svg#nf-icon-v1-72) format('svg');
+    font-weight:400;
+    font-style:normal;
+  }

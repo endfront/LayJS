@@ -84,7 +84,7 @@ if (!Array.prototype.indexOf) {
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
-    $recalculateDirtyLevelS: [],
+    $recalculateDirtyAttrValS: [],
     $renderDirtyPartS: [],
     $prevFrameTime: 0,
     $newManyS: [],
@@ -95,6 +95,11 @@ if (!Array.prototype.indexOf) {
     $numClog: 0,
     $isSolving: false,
     $isSolveRequiredOnRenderFinish: false,
+    // The below refer to dimension
+    // dirty parts whereby the dimensions
+    // depend upon the child parts
+    $naturalHeightDirtyPartS: [],
+    $naturalWidthDirtyPartS: [],
 
     $isDataTravellingShock: false,
     $isDataTravelling: false,

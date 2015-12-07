@@ -46,8 +46,6 @@
 
     this.isInherited = false;
 
-    this.recalculateDirtyAttrValS = [];
-
     this.childLevelS = [];
 
     this.stateS = [ "root" ];
@@ -602,8 +600,8 @@
           document.body.clientHeight;
       } else if ( this.derivedMany ) {
         initAttrsObj( "row.", this.rowDict, attr2val, false );
-        attr2val.$i = 1;
-        attr2val.$f = -1;
+        attr2val.$i = 0;
+        attr2val.$f = 0;
       }
     } else { // Many
       attr2val.rows = lson.rows || [];
@@ -735,71 +733,7 @@
     return true;
   };
 
-
-  /*
-  * Prioritize the recalculation of AttrVals of such
-  * that onlyif AttrVals (i.e. <state>.onlyif)
-  * appear first in order
-  */
-  LAY.Level.prototype.$prioritizeRecalculateOrder = function () {
-    var
-      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS,
-      recalculateDirtyAttrVal;
-
-    for ( var i = 0, len = recalculateDirtyAttrValS.length;
-        i < len; i++ ) {
-      recalculateDirtyAttrVal = recalculateDirtyAttrValS[ i ];
-      if ( recalculateDirtyAttrVal.onlyIfStateName !== "" ) {
-        LAY.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
-      }
-    }
-    /*
-    if ( fIndexAttrVal ) {
-      fIndexAttrValIndex = recalculateDirtyAttrValS.indexOf( fIndexAttrVal );
-      if ( fIndexAttrValIndex !== -1 ) {
-        LAY.$arrayUtils.removeAtIndex(
-          recalculateDirtyAttrValS,
-         fIndexAttrValIndex );
-        recalculateDirtyAttrValS.push( fIndexAttrVal );
-      }
-    }*/
-
-  };
-  /*
-  * Solve by recalculating each attr within the
-  * level which requires recalculation
-  * Return 1 if all attributes were solved
-  * Return 2 if some attributes were solved
-  * Return 3 if no attributes were solved
-  */
-  LAY.Level.prototype.$solveForRecalculation = function () {
-
-    var i,
-      isSolveProgressed,
-      isSolveProgressedOnce = false,
-      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS;
-
-    do {
-      isSolveProgressed = false;
-      this.$prioritizeRecalculateOrder();
-      for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-//        console.log(this.pathName, recalculateDirtyAttrValS.map(function(el){return el.attr}));
-        isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-//        console.log( "\trecalculate", this.pathName, isSolveProgressed,
-  //        recalculateDirtyAttrValS[ i ].attr );
-        if ( isSolveProgressed ) {
-          isSolveProgressedOnce = true;
-          LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
-          i--;
-        }
-      }
-
-    } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
-
-    return recalculateDirtyAttrValS.length === 0 ? 0 :
-     ( isSolveProgressedOnce ? 1 : 2 );
-
-  };
+ 
 
   /*
   Undefine all current attributes which are influencable
@@ -909,12 +843,6 @@
         throw "LAY Error: Height of root level unchangeable";
       }
     } 
-
-
-
-  
-    //console.log("LAY INFO: new state", this.pathName, this.stateS );
-
   };
 
 
@@ -965,13 +893,14 @@
  
   };
 
+  /*
   LAY.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
 
     LAY.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
     LAY.$arrayUtils.pushUnique( LAY.$recalculateDirtyLevelS, this );
 
   };
-
+  */
 
 
   

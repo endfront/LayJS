@@ -941,9 +941,7 @@
             val.execute( this )
           );
       }
-
     } else {
-
       this.executable = function () {
         return LAY.$filterUtils.eq(
             oldExecutable.call( this ),
@@ -952,16 +950,555 @@
           );
       }
     }
-
     return this;
-
   };
 
+  LAY.Take.prototype.filterNeq = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterGt = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterGte = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterLt = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterLte = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterRegex = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterContains = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterWithin = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterFn = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldMin = function ( attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+        this.executable = function () {
+          return LAY.$foldUtils.min(
+            oldExecutable.call( this ),
+            attr.execute( this )
+        );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.min(
+          oldExecutable.call( this ),
+          attr
+        );
+      }
+      
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldMax = function ( attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+        this.executable = function () {
+          return LAY.$foldUtils.max(
+            oldExecutable.call( this ),
+            attr.execute( this )
+        );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.max(
+          oldExecutable.call( this ),
+          attr
+        );
+      }
+      
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldSum = function ( attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+        this.executable = function () {
+          return LAY.$foldUtils.sum(
+            oldExecutable.call( this ),
+            attr.execute( this )
+        );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.sum(
+          oldExecutable.call( this ),
+          attr
+        );
+      }
+      
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldFn = function ( attr, acc ) {
+
+     var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( acc instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( acc );
+        this.executable = function () {
+          return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            acc.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            acc
+          );
+        }
+      }
+    } else if ( acc instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( acc );
+      this.executable = function () {
+        return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            acc.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            ac
+          );
+      }
+    }
+    return this;
+  };
   /*
   * Call custom function with arguments, where arguments
   * can be LAY.Take objects.
   */
-  LAY.Take.prototype.fn = function ( ) {
+  LAY.Take.prototype.fn = function () {
 
     var fnExecutable = this.executable;
     //console.log(fnExecutable.call(this));

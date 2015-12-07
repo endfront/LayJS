@@ -15,7 +15,7 @@
     "textDirection",
     "textLineHeight",
     "textIndent",
-    "textWhitespace",
+    "textWrap",
     "textWordBreak",
     "textWordWrap",
     "textSmoothing",

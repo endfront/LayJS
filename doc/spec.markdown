@@ -154,6 +154,11 @@ Defaults:
   `boolean`
   Default: true
 
+- visible
+  `boolean`
+  CSS visibility (true for "inherit", false for "hidden")
+  Default: true
+
 - width
   `number`
   Width of part (excluding scale)
@@ -337,7 +342,7 @@ Defaults:
   This is an "object-type" prop.
   {
     color: LAY.Color (Default: transparent),
-    image: string (Default: none),
+    image: string (CSS background-image)(Default: none),
     attachment: string (CSS background-attachment) (Default: "scroll"),
     repeat: string (CSS background-repeat) (Default: true),
     positionX: string (CSS background-position-x) [non-transitionable] / number (in pixels) (Default: 0),

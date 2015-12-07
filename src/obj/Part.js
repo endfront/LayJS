@@ -7,7 +7,9 @@
     defaultCss, defaultTextCss,
     textDimensionCalculateNodeCss,
     inputType2tag, nonInputType2tag,
-    textSizeMeasureNode, supportedInputTypeS;
+    textSizeMeasureNode,
+    imageSizeMeasureNode,
+    supportedInputTypeS;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -49,7 +51,7 @@
     "backface-visibility: hidden;" +
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
-    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
+//    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
     "user-drag:none;" +
@@ -66,12 +68,11 @@
     "text-decoration:none;" +
     "text-align:left;direction:ltr;line-height:1em;" +
     "white-space:nowrap;" +
-    "-webkit-font-smoothing:antialiased;"
+    "-webkit-font-smoothing:antialiased;";
 
   textDimensionCalculateNodeCss = 
     defaultTextCss + 
     "visibility:hidden;height:auto;" +
-    ( LAY.$isBelowIE9 ? "left:-9999px;" : "" ) +
     "overflow:visible;border-style:none;" +
     "border-color:transparent;";
 
@@ -117,6 +118,12 @@
   
   document.body.appendChild( textSizeMeasureNode );
 
+  imageSizeMeasureNode = document.createElement("img");
+  imageSizeMeasureNode.style.cssText = defaultCss + 
+    "visibility:hidden;"
+  
+  document.body.appendChild( imageSizeMeasureNode );
+
   LAY.Part = function ( level ) {
 
     this.level = level;
@@ -134,12 +141,13 @@
     this.absoluteY = undefined;
     this.absoluteX = undefined;
 
+    this.isImageLoaded = false;
+
   };
 
   function getInputType ( type ) {
     return type.startsWith( "input:" ) &&
       type.slice( "input:".length );
-
   }
 
   LAY.Part.prototype.init = function () {
@@ -190,9 +198,17 @@
     } else {
       this.node.style.cssText = defaultCss;
     }
-
-
     
+
+    if ( this.type === "image" ) {
+      var part = this;
+      LAY.$eventUtils.add( this.node, "load", function() {
+        part.isImageLoaded = true;
+        part.updateNaturalWidth();
+        part.updateNaturalHeight();
+        LAY.$solve();
+      });
+    }
     if ( this.level.isHelper ) {
       this.node.style.display = "none";
     }
@@ -201,8 +217,6 @@
       parentNode = this.level.parentLevel.part.node;
       parentNode.appendChild( this.node );
     }
-
-
    
   };
 
@@ -211,9 +225,7 @@
     var parentPart = this.level.parentLevel.part;
     parentPart.updateNaturalWidth();
     parentPart.updateNaturalHeight();
-       
     parentPart.node.removeChild( this.node );
-
   };
 
 
@@ -226,12 +238,10 @@
   * parent for the attr
   */
   LAY.Part.prototype.findChildMaxOfAttr =
-   function ( attr, attrChildIndepedentOf,
-      attrValIndependentOf ) {
+   function ( attr ) {
     var
        curMaxVal = 0,
-       childLevel, childLevelAttrVal,
-       attrValChildIndepedentOf;
+       childLevel, childLevelAttrVal;
 
     for ( var i = 0,
          childLevelS = this.level.childLevelS,
@@ -241,20 +251,17 @@
       if ( childLevel.isPart && !childLevel.isHelper ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
           childLevelAttrVal = childLevel.attr2attrVal[ attr ];
-          attrValChildIndepedentOf =
-            childLevel.attr2attrVal[ attrChildIndepedentOf ];
+       
           if (
               ( childLevelAttrVal !== undefined ) &&
-              ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
-              (  ( !attrValChildIndepedentOf ) ||
-                ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
-                   attrValIndependentOf )  ) ) ) {
+              ( childLevelAttrVal.calcVal )
+            ) {
             if ( childLevelAttrVal.calcVal > curMaxVal ) {
               curMaxVal = childLevelAttrVal.calcVal;
             }
           }
+        }
       }
-     }
     }
 
     return curMaxVal;
@@ -361,7 +368,9 @@
     var naturalWidthAttrVal =
       this.level.$getAttrVal("$naturalWidth");
     if ( naturalWidthAttrVal ) {
-      naturalWidthAttrVal.requestRecalculation();
+      LAY.$arrayUtils.pushUnique(
+        LAY.$naturalWidthDirtyPartS, 
+        this );     
     }
   };
 
@@ -369,7 +378,9 @@
     var naturalHeightAttrVal =
       this.level.$getAttrVal("$naturalHeight");
     if ( naturalHeightAttrVal ) {
-      naturalHeightAttrVal.requestRecalculation();
+      LAY.$arrayUtils.pushUnique(
+        LAY.$naturalHeightDirtyPartS, 
+        this ); 
     }
   };
 
@@ -377,30 +388,50 @@
     var attr2attrVal = this.level.attr2attrVal;
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( true );
+    } else if ( this.type === "image" ) {
+      return this.calculateImageNaturalDimesion( true );
     } else {
-      return this.findChildMaxOfAttr( "right", "width",
-        attr2attrVal.$naturalWidth );
-      
+      return this.findChildMaxOfAttr( "right" );
     }
   };
-
 
 
   LAY.Part.prototype.calculateNaturalHeight = function () {
     var attr2attrVal = this.level.attr2attrVal;
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( false );
+    } else if ( this.type === "image" ) {
+      return this.calculateImageNaturalDimesion( false );
     } else {
-      return this.findChildMaxOfAttr( "bottom", "height",
-      attr2attrVal.$naturalHeight);
-
+      return this.findChildMaxOfAttr( "bottom" );
     }
   };
 
-  
+  LAY.Part.prototype.calculateImageNaturalDimesion = function ( isWidth ) {
+    if ( !this.isImageLoaded ) {
+      return 0;
+    } else {
+      imageSizeMeasureNode.src =
+        this.level.attr2attrVal.imageUrl.calcVal;
+      var otherDim = isWidth ? "height" : "width",
+        otherDimAttrVal = this.level.attr2attrVal[ 
+        otherDim ],
+        otherDimVal = otherDimAttrVal ? 
+          ( otherDimAttrVal.calcVal !== undefined ?
+          otherDimAttrVal.calcVal + "px" : "auto" ) : "auto";
+
+      if ( isWidth ) {
+        imageSizeMeasureNode.style.height = otherDimVal;
+        return imageSizeMeasureNode.offsetWidth;
+      } else {
+        imageSizeMeasureNode.style.width = otherDimVal;        
+        return imageSizeMeasureNode.offsetHeight;
+      }
+    }
+  };
 
   LAY.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
-    
+
     var dimensionAlteringAttr2fnStyle = {
       textSize: stringifyPxOrString,
       textFamily: null,
@@ -415,7 +446,7 @@
       textLineHeight: stringifyEmOrString,
       textOverflow: null,
       textIndent: stringifyPlusPx,
-      textWhitespace: null,
+      textWrap: null,
 
       textWordBreak: null,
       textWordWrap: null,
@@ -445,7 +476,7 @@
       textLineHeight: "line-height",
       textOverflow: "text-overflow",
       textIndent: "text-indent",
-      textWhitespace: "white-space",
+      textWrap: "white-space",
       textWordBreak: "word-break",
       textWordWrap: "word-wrap",
       textRendering: "text-rendering",
@@ -463,7 +494,8 @@
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
-      html, ret;
+      html, ret,
+      cssText = textDimensionCalculateNodeCss;
 
     if ( this.type === "input" ) {
       if ( this.inputType === "select" ||
@@ -484,6 +516,7 @@
       }
       html = attr2attrVal.text.calcVal;
     }
+    var startTime = performance.now();
 
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
@@ -495,27 +528,29 @@
         fnStyle = dimensionAlteringAttr2fnStyle[ 
             dimensionAlteringAttr ];
         
-        textSizeMeasureNode.style[
-        dimensionAlteringAttr2cssProp[
-          dimensionAlteringAttr ] ] = (fnStyle === null) ?
+        cssText += 
+          dimensionAlteringAttr2cssProp[
+          dimensionAlteringAttr ] + ":" +
+          ( (fnStyle === null) ?
           textRelatedAttrVal.calcVal :
-          fnStyle( textRelatedAttrVal.calcVal );
+          fnStyle( textRelatedAttrVal.calcVal ) ) + ";";
     
       }
     }
+    
 
-  
     if ( isWidth ) {
-      textSizeMeasureNode.style.display = "inline";
-      textSizeMeasureNode.style.width = "auto";
+      cssText += "display:inline;width:auto;";
+      textSizeMeasureNode.style.cssText = cssText;
       textSizeMeasureNode.innerHTML = html;
 
       ret = textSizeMeasureNode.offsetWidth;
 
     } else {
-      textSizeMeasureNode.style.width =
-        ( attr2attrVal.width.calcVal || 0 ) + "px";
-      
+      cssText += "width:" + 
+        ( attr2attrVal.width.calcVal || 0 ) + "px;";
+      textSizeMeasureNode.style.cssText = cssText;
+
       // If empty we will subsitute with the character "a"
       // as we wouldn't want the height to resolve to 0
       textSizeMeasureNode.innerHTML = html || "a";
@@ -523,14 +558,7 @@
       ret = textSizeMeasureNode.offsetHeight;
       
     }
-
-    // restore the base CSS
-    textSizeMeasureNode.style.cssText =
-      textDimensionCalculateNodeCss;
-
-    return ret;
-
-    
+    return ret;    
 
   };
 
@@ -682,8 +710,7 @@
            attr2attrVal[ allAffectedProp || transitionProp ],
            transitionType, transitionDelay, transitionDuration,
            transitionArg2val, transitionDone
-         );
-
+        );
       }
     }
   };
@@ -837,7 +864,7 @@
       function () {
         this.renderFn_x();
         this.renderFn_y();
-      }
+      };
 
     LAY.Part.prototype.renderFn_transform = function () {};
   }
@@ -903,8 +930,15 @@
 
   LAY.Part.prototype.renderFn_display = function () {
     
-    this.node.style.visibility =
+    this.node.style.display =
       this.level.attr2attrVal.display.transitionCalcVal ?
+        "block" : "none";
+  };
+
+  LAY.Part.prototype.renderFn_visible = function () {
+    
+    this.node.style.visibility =
+      this.level.attr2attrVal.visible.transitionCalcVal ?
         "inherit" : "hidden";
 
   };
@@ -1226,9 +1260,9 @@
     this.node.style.textIndent =
       this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
   };
-  LAY.Part.prototype.renderFn_textWhitespace = function () {
+  LAY.Part.prototype.renderFn_textWrap = function () {
     this.node.style.whiteSpace =
-      this.level.attr2attrVal.textWhitespace.transitionCalcVal;
+      this.level.attr2attrVal.textWrap.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_textWordBreak = function () {
     this.node.style.wordBreak =
@@ -1291,7 +1325,6 @@
     var inputVal = this.level.attr2attrVal.input.transitionCalcVal;
     if ( this.inputType === "select" || this.inputType === "multiple" ) {
       this.node.innerHTML = generateSelectOptionsHTML( inputVal );
-      console.log(generateSelectOptionsHTML( inputVal ));
     } else {
       this.node.value = inputVal;
     }

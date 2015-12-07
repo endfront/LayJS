@@ -1,29 +1,26 @@
 
 Current:
-  - checkisdependent optimization
-  - $one for many
-  - custom when events
-  - text calculation innercss optimize
-  - fix safari
-  - complete reorder example
-  - defaultize many lson fargs which are mentioned in states but
-    not otherwise
+  - take.colorRed -> take.colorSetRed? or take.colorGetRed?
+  - LAY.take.slice (array)
+  - grid formation fill vertically
+  - deliberate non calculation of nw/nh the first time
+  - invesitagte width (Recalc) undefined in switch-case
+  - break up dirtyattrvals?
+  - row key undefined forgiveness (no error, lazy create undefined)
+  - prepend to naturalwidth/heightdirtyparts?
+  - $radio for many
+  - defaultize many lson fargs which are mentioned in states but not otherwise
   - automatically id-fy when rows are given without id
   - naturalwidth/height for image
   - what is "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
   - todoMVC Learn section
-  - transition multiple props comma separated, eg: "textColor, left, opacity"
   - many.rows inheritance
   - < state >.bottom/right/centerX/centerY
   - filter.end()
   - add all remaining filter/fold takes
   - function to get all partLevelS from many?
-  - height/width change should trigger scrollY/X change if
-    applicable, similarly double-check is naturalHeight/Width
-    changes does the trigger without using setTimeout
-  - input:file
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
   - "*/" to reach row level from descendant level
@@ -34,6 +31,7 @@ Current:
   - test Video
   - test Canvas
   - test Filter
+  - non display test cases
   - netflix example
   - website
 
@@ -53,6 +51,13 @@ Current:
 Future:
   - $browser attr
   - $url attr
+  - input:file
+  - custom when events
+
+  - complete reorder example
+  - fix drawer (example) $clicking problem on ios
+  - catch call stack exceeded and show meaningful argument
+  - transition multiple props comma separated, eg: "textColor, left, opacity"
   - IE ms-filter
   - IE7 text width issue
   - optimize by putting "right" and "bottom" at end (or atleast after left, top, width, and height) of recalculate attr list

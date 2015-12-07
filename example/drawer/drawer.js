@@ -9,7 +9,7 @@ var springTransition = {
 };
 
 
-var x = ( {
+LAY.run( {
   data: {
     lang: "en",
     menu: false
@@ -182,9 +182,6 @@ var x = ( {
               }
             },
             "Title": {
-              data: {
-                isRotating: false
-              },
               props: {
                 centerX: LAY.take("../", "$midpointX"),
                 centerY: LAY.take("../", "$midpointY"),
@@ -195,40 +192,7 @@ var x = ( {
                 textSize: 30,
                 textLetterSpacing:1
               }
-              /*$load: function () {
-                this.data("isRotating", true);
 
-              },
-              transition: {
-                rotateZ: {
-                  type:"linear",
-                  duration:1000
-                }
-              },
-
-              states: {
-                "rotating": {
-                  onlyif: LAY.take("", "data.isRotating"),
-                  props: {
-                    rotateZ: 360
-                  },
-                  transition: {
-                    rotateZ:{
-                      done: function () {
-                        this.data("isRotating", false);
-
-                      }
-                    }
-                  },
-                  uninstall: function () {
-                    var self = this;
-                    setTimeout(function(){
-                          self.data("isRotating", true);
-                    });
-                  }
-                },
-
-              }*/
             }
           }
         },
@@ -371,10 +335,4 @@ var x = ( {
   }
 });
 
-
-LAY.run({
-  props: {
-    backgroundColor: LAY.color("beige")
-  }
-});
 

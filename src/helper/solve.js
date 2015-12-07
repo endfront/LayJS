@@ -16,8 +16,6 @@
 
       do {
 
-        //alert("solve");
-
         isSolveProgressed = false;
         isSolveNewComplete = false;
         isSolveRecalculationComplete = false;
@@ -42,7 +40,7 @@
         // levels could have been created 
 
         isSolveRecalculationComplete =
-          LAY.$recalculateDirtyLevelS.length === 0;
+          LAY.$recalculateDirtyAttrValS.length === 0;
         isSolveNewComplete =
           LAY.$newLevelS.length === 0;
 
@@ -64,16 +62,17 @@
         if ( !isSolveNewComplete ) {
           msg += "Uninheritable Level: " + LAY.$newLevelS[ 0 ].pathName;
         } else {
-          var uninstantiableLevel = LAY.$recalculateDirtyLevelS[ 0 ];
+          var circularAttrVal = LAY.$recalculateDirtyAttrValS[ 0 ];
           msg += "Uninstantiable Attr: " +
-             uninstantiableLevel.recalculateDirtyAttrValS[ 0 ].attr +
-            " (Level: " + uninstantiableLevel.pathName  + ")";
+              circularAttrVal.attr +
+            " (Level: " + circularAttrVal.level.pathName  + ")";
         } 
         msg += "]";
         throw msg;
 
       }
 
+      recalculateNaturalDimensions();      
       executeManyLoads();
       executeStateInstallation();
       // If the load/install functions of 
@@ -81,7 +80,7 @@
       // then we will solve, otherwise we shall
       // render
       LAY.$isSolving = false;
-      if ( LAY.$recalculateDirtyLevelS.length ) {
+      if ( LAY.$recalculateDirtyAttrValS.length ) {
         LAY.$solve();
       } else {
         LAY.$render();
@@ -89,6 +88,33 @@
     }
 
   };
+
+
+  function recalculateNaturalDimensions () {
+    var
+      naturalWidthDirtyPartS =
+        LAY.$naturalWidthDirtyPartS,
+      naturalHeightDirtyPartS = 
+        LAY.$naturalHeightDirtyPartS,
+      i;
+
+    // /console.log("h", naturalHeightDirtyPartS.map(function(item){return item.level.pathName}));
+    for ( i=naturalHeightDirtyPartS.length - 1;
+        i >= 0; i-- ) {
+      naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight.requestRecalculation();
+    }
+
+    //console.log("w", naturalWidthDirtyPartS.map(function(item){return item.level.pathName}));
+
+    for ( i=naturalWidthDirtyPartS.length - 1;
+        i >= 0; i-- ) {
+      naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth.requestRecalculation();
+    }
+
+    LAY.$naturalWidthDirtyPartS = [];
+    LAY.$naturalHeightDirtyPartS = [];
+
+  }
 
   function executeManyLoads () {
     var newManyS = LAY.$newManyS, newMany, fnLoad;
@@ -105,7 +131,6 @@
   }
 
   function executeStateInstallation () {
-
     var
       i, j, len, jLen,
       newlyInstalledStateLevelS = LAY.$newlyInstalledStateLevelS,

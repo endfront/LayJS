@@ -54,15 +54,15 @@
       this.rowS, fnFilter ) );
   };
 
-  LAY.Query.prototype.foldMin = function ( key, val ) {
+  LAY.Query.prototype.foldMin = function ( key ) {
     return LAY.$foldUtils.min( this.rowS, key, val );
   };
 
-  LAY.Query.prototype.foldMax = function ( key, val ) {
+  LAY.Query.prototype.foldMax = function ( key ) {
     return LAY.$foldUtils.max( this.rowS, key, val );
   };
 
-  LAY.Query.prototype.foldSum = function ( key, val ) {
+  LAY.Query.prototype.foldSum = function ( key ) {
     return LAY.$foldUtils.sum( this.rowS, key, val );
   };
 
@@ -77,7 +77,7 @@
   LAY.Query.prototype.length = function () {
     return this.rowS.length;
   };
-  LAY.Query.prototype.end = function () {
+  LAY.Query.prototype.finish = function () {
   	return this.rowS;
   };
 

@@ -8,30 +8,30 @@
       isSolveProgressed,
       isSolveProgressedOnce = false,
       ret,
-      recalculateDirtyLevelS = LAY.$recalculateDirtyLevelS;
+      recalculateDirtyAttrValS = LAY.$recalculateDirtyAttrValS;
       
-    if ( !recalculateDirtyLevelS.length ) {
+    if ( !recalculateDirtyAttrValS.length ) {
       return 3;
     }
 
     do {
       isSolveProgressed = false;
-      for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
-        ret = recalculateDirtyLevelS[ i ].$solveForRecalculation();
-        if ( ret !== 2 ) {
+      for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
+        ret =
+          recalculateDirtyAttrValS[ i ].recalculate();
+
+        if ( ret ) {
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
-          if ( ret === 0 ) {
-            LAY.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
-            i--;
-          }
+          LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
+          i--;
         }
       }
     
-    } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
+    } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
 
-    return recalculateDirtyLevelS.length === 0 ?  0 :
+    return recalculateDirtyAttrValS.length === 0 ?  0 :
       isSolveProgressedOnce ? 1 : 2;
 
   };

@@ -40,6 +40,7 @@
 
     this.eventReadonlyEventType2boundFnHandler = {};
 
+
   }
 
   /*
@@ -129,7 +130,9 @@
   LAY.AttrVal.prototype.requestRecalculation = function () {
     this.isRecalculateRequired = true;
     if ( this.level ) { // check for empty level
-      this.level.addRecalculateDirtyAttrVal( this );
+      LAY.$arrayUtils.pushUnique(
+        LAY.$recalculateDirtyAttrValS, this );
+//      this.level.addRecalculateDirtyAttrVal( this );
     }
   };
 
@@ -197,7 +200,6 @@
 
     if ( attr.charAt( 0 ) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
-
         this.val = part.getImmidiateReadonlyVal( attr );
       }
     }
@@ -291,7 +293,7 @@
       if ( this.renderCall ) {
         this.startCalcVal = this.transitionCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
-        
+
         if ( !LAY.$isDataTravellingShock ) {
           part.addNormalRenderDirtyAttrVal( this );
         }
@@ -301,7 +303,7 @@
             var parentLevel = this.level.parentLevel;
             if ( parentLevel ) {
               parentLevel.part.updateNaturalWidth();
-              parentLevel.part.updateNaturalHeight();
+              parentLevel.part.updateNaturalHeight();              
             }
             if ( this.calcVal === false ) {
               recursivelySwitchOffDoingEvents( level );
@@ -314,7 +316,21 @@
             }
             break;
           case "width":
-            part.updateNaturalHeight();
+            if ( part.isText ) {
+              var textWrapAttrVal = level.attr2attrVal.textWrap;
+              if ( textWrapAttrVal &&
+                !textWrapAttrVal.isRecalculateRequired &&
+                textWrapAttrVal.calcVal !== "nowrap" ) {
+                part.updateNaturalHeight();
+              }
+            } else if ( part.type === "image" ) {
+              part.updateNaturalHeight();
+            }
+            break;
+          case "height":
+            if ( part.type === "image" ) {
+              part.updateNaturalWidth();
+            }
             break;
           case "left":
             part.updateAbsoluteX();
@@ -328,7 +344,10 @@
           case "shiftY":
             part.updateAbsoluteY();
             break;
-        
+          case "imageUrl":
+            part.isImageLoaded = false;
+            break;
+
           default:
             var checkIfAttrAffectsTextDimesion =
               function ( attr ) {
@@ -340,18 +359,19 @@
                     "textShadows"
                   ]).indexOf( attr ) === -1;
             };
-            if ( checkIfAttrAffectsTextDimesion( attr ) )  {
-
+            if ( part.isText ) {
+              if ( checkIfAttrAffectsTextDimesion( attr ) )  {
+                  part.updateNaturalWidth();
+                  part.updateNaturalHeight();
+                 
+              } else if ( ( attr === "borderTopWidth" ) ||
+                ( attr === "borderBottomWidth" ) ) {
+                  part.updateNaturalHeight();
+              } else if ( ( attr === "borderLeftWidth" ) ||
+                ( attr === "borderRightWidth" ) ) {
                 part.updateNaturalWidth();
                 part.updateNaturalHeight();
-               
-            } else if ( ( attr === "borderTopWidth" ) ||
-              ( attr === "borderBottomWidth" ) ) {
-                part.updateNaturalHeight();
-            } else if ( ( attr === "borderLeftWidth" ) ||
-              ( attr === "borderRightWidth" ) ) {
-              part.updateNaturalWidth();
-              part.updateNaturalHeight();
+              }
             }
 
         }
@@ -406,14 +426,14 @@
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
-             level.parentLevel.part.
-              updateNaturalWidth();
+              level.parentLevel.part.
+                updateNaturalWidth();
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
-                updateNaturalHeight();
+                updateNaturalHeight(); 
             }
             break;
           case "$naturalWidth":
@@ -486,7 +506,7 @@
   };
 
   LAY.AttrVal.prototype.give = function ( attrVal ) {
-    
+
     if ( LAY.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
@@ -494,11 +514,17 @@
         var
           eventType2fnHandler = LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
           eventType,
-          fnBoundHandler;
+          fnBoundHandler, node;
+
+        node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
+          if ( eventType === "scroll" &&
+            this.level.pathName === "/" ) {
+            node = window;
+          } 
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
-          LAY.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
+          LAY.$eventUtils.add( node, eventType, fnBoundHandler );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            fnBoundHandler;
@@ -516,10 +542,15 @@
          eventType2fnHandler =
          LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
          eventType,
-         fnBoundHandler;
+         fnBoundHandler, node;
+        node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
+          if ( eventType === "scroll" &&
+            this.level.pathName === "/" ) {
+            node = window;
+          }
           fnBoundHandler = this.eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAY.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
+          LAY.$eventUtils.remove( node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            undefined;
         }
@@ -597,36 +628,21 @@
 
   };
 
-  LAY.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
+  /*
+  LAY.AttrVal.prototype.collectDependentAttrValS = function( accAttrValS ) {
+    var i, len,
+      takerAttrValS = this.takerAttrValS;
 
-    if ( !attrVal ) {
-      return false;
-    } else if ( attrVal === this ) {
-      return true;
-    } else {
+    accAttrValS.push( this );
 
-      var _relPath00attr_S, i, len, takingLevel, takingAttrVal;
+    for ( i = 0, len = takerAttrValS.length;
+      i < len; i++ ) {
+      takerAttrValS[ i ].collectDependentAttrValS(
+        accAttrValS );
+    }  
 
-      if ( !( this.val instanceof LAY.Take ) ) {
-        return false;
-      } else {
-        _relPath00attr_S = this.val._relPath00attr_S;
-        for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-          takingLevel = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
-          // possbility of level having being removed
-          if ( !takingLevel ) { return false; }
-          takingAttrVal = takingLevel.$getAttrVal( _relPath00attr_S[ i ][ 1 ] );
-          if ( takingLevel &&
-              takingAttrVal &&
-             ( takingAttrVal.checkIsDependentOnAttrVal( attrVal ) ) ) {
-               return true;
-             }
-        }
-
-        return false;
-      }
-    }
   };
+  */
 
   
 

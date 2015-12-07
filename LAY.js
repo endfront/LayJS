@@ -84,7 +84,7 @@ if (!Array.prototype.indexOf) {
     $newlyInstalledStateLevelS: [],
     $newlyUninstalledStateLevelS: [],
     $newLevelS: [],
-    $recalculateDirtyLevelS: [],
+    $recalculateDirtyAttrValS: [],
     $renderDirtyPartS: [],
     $prevFrameTime: 0,
     $newManyS: [],
@@ -95,6 +95,11 @@ if (!Array.prototype.indexOf) {
     $numClog: 0,
     $isSolving: false,
     $isSolveRequiredOnRenderFinish: false,
+    // The below refer to dimension
+    // dirty parts whereby the dimensions
+    // depend upon the child parts
+    $naturalHeightDirtyPartS: [],
+    $naturalWidthDirtyPartS: [],
 
     $isDataTravellingShock: false,
     $isDataTravelling: false,
@@ -148,6 +153,7 @@ if (!Array.prototype.indexOf) {
     this.takerAttrValS = [];
 
     this.eventReadonlyEventType2boundFnHandler = {};
+
 
   }
 
@@ -238,7 +244,9 @@ if (!Array.prototype.indexOf) {
   LAY.AttrVal.prototype.requestRecalculation = function () {
     this.isRecalculateRequired = true;
     if ( this.level ) { // check for empty level
-      this.level.addRecalculateDirtyAttrVal( this );
+      LAY.$arrayUtils.pushUnique(
+        LAY.$recalculateDirtyAttrValS, this );
+//      this.level.addRecalculateDirtyAttrVal( this );
     }
   };
 
@@ -306,7 +314,6 @@ if (!Array.prototype.indexOf) {
 
     if ( attr.charAt( 0 ) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
-
         this.val = part.getImmidiateReadonlyVal( attr );
       }
     }
@@ -400,7 +407,7 @@ if (!Array.prototype.indexOf) {
       if ( this.renderCall ) {
         this.startCalcVal = this.transitionCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
-        
+
         if ( !LAY.$isDataTravellingShock ) {
           part.addNormalRenderDirtyAttrVal( this );
         }
@@ -410,7 +417,7 @@ if (!Array.prototype.indexOf) {
             var parentLevel = this.level.parentLevel;
             if ( parentLevel ) {
               parentLevel.part.updateNaturalWidth();
-              parentLevel.part.updateNaturalHeight();
+              parentLevel.part.updateNaturalHeight();              
             }
             if ( this.calcVal === false ) {
               recursivelySwitchOffDoingEvents( level );
@@ -423,7 +430,21 @@ if (!Array.prototype.indexOf) {
             }
             break;
           case "width":
-            part.updateNaturalHeight();
+            if ( part.isText ) {
+              var textWrapAttrVal = level.attr2attrVal.textWrap;
+              if ( textWrapAttrVal &&
+                !textWrapAttrVal.isRecalculateRequired &&
+                textWrapAttrVal.calcVal !== "nowrap" ) {
+                part.updateNaturalHeight();
+              }
+            } else if ( part.type === "image" ) {
+              part.updateNaturalHeight();
+            }
+            break;
+          case "height":
+            if ( part.type === "image" ) {
+              part.updateNaturalWidth();
+            }
             break;
           case "left":
             part.updateAbsoluteX();
@@ -437,7 +458,10 @@ if (!Array.prototype.indexOf) {
           case "shiftY":
             part.updateAbsoluteY();
             break;
-        
+          case "imageUrl":
+            part.isImageLoaded = false;
+            break;
+
           default:
             var checkIfAttrAffectsTextDimesion =
               function ( attr ) {
@@ -449,18 +473,19 @@ if (!Array.prototype.indexOf) {
                     "textShadows"
                   ]).indexOf( attr ) === -1;
             };
-            if ( checkIfAttrAffectsTextDimesion( attr ) )  {
-
+            if ( part.isText ) {
+              if ( checkIfAttrAffectsTextDimesion( attr ) )  {
+                  part.updateNaturalWidth();
+                  part.updateNaturalHeight();
+                 
+              } else if ( ( attr === "borderTopWidth" ) ||
+                ( attr === "borderBottomWidth" ) ) {
+                  part.updateNaturalHeight();
+              } else if ( ( attr === "borderLeftWidth" ) ||
+                ( attr === "borderRightWidth" ) ) {
                 part.updateNaturalWidth();
                 part.updateNaturalHeight();
-               
-            } else if ( ( attr === "borderTopWidth" ) ||
-              ( attr === "borderBottomWidth" ) ) {
-                part.updateNaturalHeight();
-            } else if ( ( attr === "borderLeftWidth" ) ||
-              ( attr === "borderRightWidth" ) ) {
-              part.updateNaturalWidth();
-              part.updateNaturalHeight();
+              }
             }
 
         }
@@ -515,14 +540,14 @@ if (!Array.prototype.indexOf) {
         switch( attr ) {
           case "right":
             if ( level.parentLevel !== undefined ) {
-             level.parentLevel.part.
-              updateNaturalWidth();
+              level.parentLevel.part.
+                updateNaturalWidth();
             }
             break;
           case "bottom":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
-                updateNaturalHeight();
+                updateNaturalHeight(); 
             }
             break;
           case "$naturalWidth":
@@ -595,7 +620,7 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.AttrVal.prototype.give = function ( attrVal ) {
-    
+
     if ( LAY.$arrayUtils.pushUnique( this.takerAttrValS, attrVal ) &&
      this.takerAttrValS.length === 1 ) {
       if ( this.isEventReadonlyAttr ) {
@@ -603,11 +628,17 @@ if (!Array.prototype.indexOf) {
         var
           eventType2fnHandler = LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
           eventType,
-          fnBoundHandler;
+          fnBoundHandler, node;
+
+        node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
+          if ( eventType === "scroll" &&
+            this.level.pathName === "/" ) {
+            node = window;
+          } 
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
-          LAY.$eventUtils.add( this.level.part.node, eventType, fnBoundHandler );
+          LAY.$eventUtils.add( node, eventType, fnBoundHandler );
 
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            fnBoundHandler;
@@ -625,10 +656,15 @@ if (!Array.prototype.indexOf) {
          eventType2fnHandler =
          LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
          eventType,
-         fnBoundHandler;
+         fnBoundHandler, node;
+        node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
+          if ( eventType === "scroll" &&
+            this.level.pathName === "/" ) {
+            node = window;
+          }
           fnBoundHandler = this.eventReadonlyEventType2boundFnHandler[ eventType ];
-          LAY.$eventUtils.remove( this.level.part.node, eventType, fnBoundHandler );
+          LAY.$eventUtils.remove( node, eventType, fnBoundHandler );
           this.eventReadonlyEventType2boundFnHandler[ eventType ] =
            undefined;
         }
@@ -706,36 +742,21 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  LAY.AttrVal.prototype.checkIsDependentOnAttrVal = function( attrVal ) {
+  /*
+  LAY.AttrVal.prototype.collectDependentAttrValS = function( accAttrValS ) {
+    var i, len,
+      takerAttrValS = this.takerAttrValS;
 
-    if ( !attrVal ) {
-      return false;
-    } else if ( attrVal === this ) {
-      return true;
-    } else {
+    accAttrValS.push( this );
 
-      var _relPath00attr_S, i, len, takingLevel, takingAttrVal;
+    for ( i = 0, len = takerAttrValS.length;
+      i < len; i++ ) {
+      takerAttrValS[ i ].collectDependentAttrValS(
+        accAttrValS );
+    }  
 
-      if ( !( this.val instanceof LAY.Take ) ) {
-        return false;
-      } else {
-        _relPath00attr_S = this.val._relPath00attr_S;
-        for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-          takingLevel = ( _relPath00attr_S[ i ][ 0 ] ).resolve( this.level );
-          // possbility of level having being removed
-          if ( !takingLevel ) { return false; }
-          takingAttrVal = takingLevel.$getAttrVal( _relPath00attr_S[ i ][ 1 ] );
-          if ( takingLevel &&
-              takingAttrVal &&
-             ( takingAttrVal.checkIsDependentOnAttrVal( attrVal ) ) ) {
-               return true;
-             }
-        }
-
-        return false;
-      }
-    }
   };
+  */
 
   
 
@@ -1213,8 +1234,6 @@ if (!Array.prototype.indexOf) {
     this.rowDict = rowDict;
 
     this.isInherited = false;
-
-    this.recalculateDirtyAttrValS = [];
 
     this.childLevelS = [];
 
@@ -1770,8 +1789,8 @@ if (!Array.prototype.indexOf) {
           document.body.clientHeight;
       } else if ( this.derivedMany ) {
         initAttrsObj( "row.", this.rowDict, attr2val, false );
-        attr2val.$i = 1;
-        attr2val.$f = -1;
+        attr2val.$i = 0;
+        attr2val.$f = 0;
       }
     } else { // Many
       attr2val.rows = lson.rows || [];
@@ -1903,71 +1922,7 @@ if (!Array.prototype.indexOf) {
     return true;
   };
 
-
-  /*
-  * Prioritize the recalculation of AttrVals of such
-  * that onlyif AttrVals (i.e. <state>.onlyif)
-  * appear first in order
-  */
-  LAY.Level.prototype.$prioritizeRecalculateOrder = function () {
-    var
-      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS,
-      recalculateDirtyAttrVal;
-
-    for ( var i = 0, len = recalculateDirtyAttrValS.length;
-        i < len; i++ ) {
-      recalculateDirtyAttrVal = recalculateDirtyAttrValS[ i ];
-      if ( recalculateDirtyAttrVal.onlyIfStateName !== "" ) {
-        LAY.$arrayUtils.swap(recalculateDirtyAttrValS, i, 0);
-      }
-    }
-    /*
-    if ( fIndexAttrVal ) {
-      fIndexAttrValIndex = recalculateDirtyAttrValS.indexOf( fIndexAttrVal );
-      if ( fIndexAttrValIndex !== -1 ) {
-        LAY.$arrayUtils.removeAtIndex(
-          recalculateDirtyAttrValS,
-         fIndexAttrValIndex );
-        recalculateDirtyAttrValS.push( fIndexAttrVal );
-      }
-    }*/
-
-  };
-  /*
-  * Solve by recalculating each attr within the
-  * level which requires recalculation
-  * Return 1 if all attributes were solved
-  * Return 2 if some attributes were solved
-  * Return 3 if no attributes were solved
-  */
-  LAY.Level.prototype.$solveForRecalculation = function () {
-
-    var i,
-      isSolveProgressed,
-      isSolveProgressedOnce = false,
-      recalculateDirtyAttrValS = this.recalculateDirtyAttrValS;
-
-    do {
-      isSolveProgressed = false;
-      this.$prioritizeRecalculateOrder();
-      for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-//        console.log(this.pathName, recalculateDirtyAttrValS.map(function(el){return el.attr}));
-        isSolveProgressed = recalculateDirtyAttrValS[ i ].recalculate();
-//        console.log( "\trecalculate", this.pathName, isSolveProgressed,
-  //        recalculateDirtyAttrValS[ i ].attr );
-        if ( isSolveProgressed ) {
-          isSolveProgressedOnce = true;
-          LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
-          i--;
-        }
-      }
-
-    } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
-
-    return recalculateDirtyAttrValS.length === 0 ? 0 :
-     ( isSolveProgressedOnce ? 1 : 2 );
-
-  };
+ 
 
   /*
   Undefine all current attributes which are influencable
@@ -2077,12 +2032,6 @@ if (!Array.prototype.indexOf) {
         throw "LAY Error: Height of root level unchangeable";
       }
     } 
-
-
-
-  
-    //console.log("LAY INFO: new state", this.pathName, this.stateS );
-
   };
 
 
@@ -2133,13 +2082,14 @@ if (!Array.prototype.indexOf) {
  
   };
 
+  /*
   LAY.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
 
     LAY.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
     LAY.$arrayUtils.pushUnique( LAY.$recalculateDirtyLevelS, this );
 
   };
-
+  */
 
 
   
@@ -2508,7 +2458,7 @@ if (!Array.prototype.indexOf) {
           xy[ 0 ],
           xy[ 1 ]
         );
-      } 
+      }
     }
   };
 
@@ -2582,7 +2532,9 @@ if (!Array.prototype.indexOf) {
     defaultCss, defaultTextCss,
     textDimensionCalculateNodeCss,
     inputType2tag, nonInputType2tag,
-    textSizeMeasureNode, supportedInputTypeS;
+    textSizeMeasureNode,
+    imageSizeMeasureNode,
+    supportedInputTypeS;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -2624,7 +2576,7 @@ if (!Array.prototype.indexOf) {
     "backface-visibility: hidden;" +
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
-    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
+//    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
     "user-drag:none;" +
@@ -2641,12 +2593,11 @@ if (!Array.prototype.indexOf) {
     "text-decoration:none;" +
     "text-align:left;direction:ltr;line-height:1em;" +
     "white-space:nowrap;" +
-    "-webkit-font-smoothing:antialiased;"
+    "-webkit-font-smoothing:antialiased;";
 
   textDimensionCalculateNodeCss = 
     defaultTextCss + 
     "visibility:hidden;height:auto;" +
-    ( LAY.$isBelowIE9 ? "left:-9999px;" : "" ) +
     "overflow:visible;border-style:none;" +
     "border-color:transparent;";
 
@@ -2692,6 +2643,12 @@ if (!Array.prototype.indexOf) {
   
   document.body.appendChild( textSizeMeasureNode );
 
+  imageSizeMeasureNode = document.createElement("img");
+  imageSizeMeasureNode.style.cssText = defaultCss + 
+    "visibility:hidden;"
+  
+  document.body.appendChild( imageSizeMeasureNode );
+
   LAY.Part = function ( level ) {
 
     this.level = level;
@@ -2709,12 +2666,13 @@ if (!Array.prototype.indexOf) {
     this.absoluteY = undefined;
     this.absoluteX = undefined;
 
+    this.isImageLoaded = false;
+
   };
 
   function getInputType ( type ) {
     return type.startsWith( "input:" ) &&
       type.slice( "input:".length );
-
   }
 
   LAY.Part.prototype.init = function () {
@@ -2765,9 +2723,17 @@ if (!Array.prototype.indexOf) {
     } else {
       this.node.style.cssText = defaultCss;
     }
-
-
     
+
+    if ( this.type === "image" ) {
+      var part = this;
+      LAY.$eventUtils.add( this.node, "load", function() {
+        part.isImageLoaded = true;
+        part.updateNaturalWidth();
+        part.updateNaturalHeight();
+        LAY.$solve();
+      });
+    }
     if ( this.level.isHelper ) {
       this.node.style.display = "none";
     }
@@ -2776,8 +2742,6 @@ if (!Array.prototype.indexOf) {
       parentNode = this.level.parentLevel.part.node;
       parentNode.appendChild( this.node );
     }
-
-
    
   };
 
@@ -2786,9 +2750,7 @@ if (!Array.prototype.indexOf) {
     var parentPart = this.level.parentLevel.part;
     parentPart.updateNaturalWidth();
     parentPart.updateNaturalHeight();
-       
     parentPart.node.removeChild( this.node );
-
   };
 
 
@@ -2801,12 +2763,10 @@ if (!Array.prototype.indexOf) {
   * parent for the attr
   */
   LAY.Part.prototype.findChildMaxOfAttr =
-   function ( attr, attrChildIndepedentOf,
-      attrValIndependentOf ) {
+   function ( attr ) {
     var
        curMaxVal = 0,
-       childLevel, childLevelAttrVal,
-       attrValChildIndepedentOf;
+       childLevel, childLevelAttrVal;
 
     for ( var i = 0,
          childLevelS = this.level.childLevelS,
@@ -2816,20 +2776,17 @@ if (!Array.prototype.indexOf) {
       if ( childLevel.isPart && !childLevel.isHelper ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
           childLevelAttrVal = childLevel.attr2attrVal[ attr ];
-          attrValChildIndepedentOf =
-            childLevel.attr2attrVal[ attrChildIndepedentOf ];
+       
           if (
               ( childLevelAttrVal !== undefined ) &&
-              ( childLevelAttrVal.calcVal || (childLevelAttrVal.calcVal === 0 ) ) &&
-              (  ( !attrValChildIndepedentOf ) ||
-                ( !attrValChildIndepedentOf.checkIsDependentOnAttrVal(
-                   attrValIndependentOf )  ) ) ) {
+              ( childLevelAttrVal.calcVal )
+            ) {
             if ( childLevelAttrVal.calcVal > curMaxVal ) {
               curMaxVal = childLevelAttrVal.calcVal;
             }
           }
+        }
       }
-     }
     }
 
     return curMaxVal;
@@ -2936,7 +2893,9 @@ if (!Array.prototype.indexOf) {
     var naturalWidthAttrVal =
       this.level.$getAttrVal("$naturalWidth");
     if ( naturalWidthAttrVal ) {
-      naturalWidthAttrVal.requestRecalculation();
+      LAY.$arrayUtils.pushUnique(
+        LAY.$naturalWidthDirtyPartS, 
+        this );     
     }
   };
 
@@ -2944,7 +2903,9 @@ if (!Array.prototype.indexOf) {
     var naturalHeightAttrVal =
       this.level.$getAttrVal("$naturalHeight");
     if ( naturalHeightAttrVal ) {
-      naturalHeightAttrVal.requestRecalculation();
+      LAY.$arrayUtils.pushUnique(
+        LAY.$naturalHeightDirtyPartS, 
+        this ); 
     }
   };
 
@@ -2952,30 +2913,50 @@ if (!Array.prototype.indexOf) {
     var attr2attrVal = this.level.attr2attrVal;
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( true );
+    } else if ( this.type === "image" ) {
+      return this.calculateImageNaturalDimesion( true );
     } else {
-      return this.findChildMaxOfAttr( "right", "width",
-        attr2attrVal.$naturalWidth );
-      
+      return this.findChildMaxOfAttr( "right" );
     }
   };
-
 
 
   LAY.Part.prototype.calculateNaturalHeight = function () {
     var attr2attrVal = this.level.attr2attrVal;
     if ( this.isText ) {
       return this.calculateTextNaturalDimesion( false );
+    } else if ( this.type === "image" ) {
+      return this.calculateImageNaturalDimesion( false );
     } else {
-      return this.findChildMaxOfAttr( "bottom", "height",
-      attr2attrVal.$naturalHeight);
-
+      return this.findChildMaxOfAttr( "bottom" );
     }
   };
 
-  
+  LAY.Part.prototype.calculateImageNaturalDimesion = function ( isWidth ) {
+    if ( !this.isImageLoaded ) {
+      return 0;
+    } else {
+      imageSizeMeasureNode.src =
+        this.level.attr2attrVal.imageUrl.calcVal;
+      var otherDim = isWidth ? "height" : "width",
+        otherDimAttrVal = this.level.attr2attrVal[ 
+        otherDim ],
+        otherDimVal = otherDimAttrVal ? 
+          ( otherDimAttrVal.calcVal !== undefined ?
+          otherDimAttrVal.calcVal + "px" : "auto" ) : "auto";
+
+      if ( isWidth ) {
+        imageSizeMeasureNode.style.height = otherDimVal;
+        return imageSizeMeasureNode.offsetWidth;
+      } else {
+        imageSizeMeasureNode.style.width = otherDimVal;        
+        return imageSizeMeasureNode.offsetHeight;
+      }
+    }
+  };
 
   LAY.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
-    
+
     var dimensionAlteringAttr2fnStyle = {
       textSize: stringifyPxOrString,
       textFamily: null,
@@ -2990,7 +2971,7 @@ if (!Array.prototype.indexOf) {
       textLineHeight: stringifyEmOrString,
       textOverflow: null,
       textIndent: stringifyPlusPx,
-      textWhitespace: null,
+      textWrap: null,
 
       textWordBreak: null,
       textWordWrap: null,
@@ -3020,7 +3001,7 @@ if (!Array.prototype.indexOf) {
       textLineHeight: "line-height",
       textOverflow: "text-overflow",
       textIndent: "text-indent",
-      textWhitespace: "white-space",
+      textWrap: "white-space",
       textWordBreak: "word-break",
       textWordWrap: "word-wrap",
       textRendering: "text-rendering",
@@ -3038,7 +3019,8 @@ if (!Array.prototype.indexOf) {
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
-      html, ret;
+      html, ret,
+      cssText = textDimensionCalculateNodeCss;
 
     if ( this.type === "input" ) {
       if ( this.inputType === "select" ||
@@ -3059,6 +3041,7 @@ if (!Array.prototype.indexOf) {
       }
       html = attr2attrVal.text.calcVal;
     }
+    var startTime = performance.now();
 
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
@@ -3070,27 +3053,29 @@ if (!Array.prototype.indexOf) {
         fnStyle = dimensionAlteringAttr2fnStyle[ 
             dimensionAlteringAttr ];
         
-        textSizeMeasureNode.style[
-        dimensionAlteringAttr2cssProp[
-          dimensionAlteringAttr ] ] = (fnStyle === null) ?
+        cssText += 
+          dimensionAlteringAttr2cssProp[
+          dimensionAlteringAttr ] + ":" +
+          ( (fnStyle === null) ?
           textRelatedAttrVal.calcVal :
-          fnStyle( textRelatedAttrVal.calcVal );
+          fnStyle( textRelatedAttrVal.calcVal ) ) + ";";
     
       }
     }
+    
 
-  
     if ( isWidth ) {
-      textSizeMeasureNode.style.display = "inline";
-      textSizeMeasureNode.style.width = "auto";
+      cssText += "display:inline;width:auto;";
+      textSizeMeasureNode.style.cssText = cssText;
       textSizeMeasureNode.innerHTML = html;
 
       ret = textSizeMeasureNode.offsetWidth;
 
     } else {
-      textSizeMeasureNode.style.width =
-        ( attr2attrVal.width.calcVal || 0 ) + "px";
-      
+      cssText += "width:" + 
+        ( attr2attrVal.width.calcVal || 0 ) + "px;";
+      textSizeMeasureNode.style.cssText = cssText;
+
       // If empty we will subsitute with the character "a"
       // as we wouldn't want the height to resolve to 0
       textSizeMeasureNode.innerHTML = html || "a";
@@ -3098,14 +3083,7 @@ if (!Array.prototype.indexOf) {
       ret = textSizeMeasureNode.offsetHeight;
       
     }
-
-    // restore the base CSS
-    textSizeMeasureNode.style.cssText =
-      textDimensionCalculateNodeCss;
-
-    return ret;
-
-    
+    return ret;    
 
   };
 
@@ -3257,8 +3235,7 @@ if (!Array.prototype.indexOf) {
            attr2attrVal[ allAffectedProp || transitionProp ],
            transitionType, transitionDelay, transitionDuration,
            transitionArg2val, transitionDone
-         );
-
+        );
       }
     }
   };
@@ -3412,7 +3389,7 @@ if (!Array.prototype.indexOf) {
       function () {
         this.renderFn_x();
         this.renderFn_y();
-      }
+      };
 
     LAY.Part.prototype.renderFn_transform = function () {};
   }
@@ -3478,8 +3455,15 @@ if (!Array.prototype.indexOf) {
 
   LAY.Part.prototype.renderFn_display = function () {
     
-    this.node.style.visibility =
+    this.node.style.display =
       this.level.attr2attrVal.display.transitionCalcVal ?
+        "block" : "none";
+  };
+
+  LAY.Part.prototype.renderFn_visible = function () {
+    
+    this.node.style.visibility =
+      this.level.attr2attrVal.visible.transitionCalcVal ?
         "inherit" : "hidden";
 
   };
@@ -3801,9 +3785,9 @@ if (!Array.prototype.indexOf) {
     this.node.style.textIndent =
       this.level.attr2attrVal.textIndent.transitionCalcVal + "px";
   };
-  LAY.Part.prototype.renderFn_textWhitespace = function () {
+  LAY.Part.prototype.renderFn_textWrap = function () {
     this.node.style.whiteSpace =
-      this.level.attr2attrVal.textWhitespace.transitionCalcVal;
+      this.level.attr2attrVal.textWrap.transitionCalcVal;
   };
   LAY.Part.prototype.renderFn_textWordBreak = function () {
     this.node.style.wordBreak =
@@ -3866,7 +3850,6 @@ if (!Array.prototype.indexOf) {
     var inputVal = this.level.attr2attrVal.input.transitionCalcVal;
     if ( this.inputType === "select" || this.inputType === "multiple" ) {
       this.node.innerHTML = generateSelectOptionsHTML( inputVal );
-      console.log(generateSelectOptionsHTML( inputVal ));
     } else {
       this.node.value = inputVal;
     }
@@ -4118,15 +4101,15 @@ if (!Array.prototype.indexOf) {
       this.rowS, fnFilter ) );
   };
 
-  LAY.Query.prototype.foldMin = function ( key, val ) {
+  LAY.Query.prototype.foldMin = function ( key ) {
     return LAY.$foldUtils.min( this.rowS, key, val );
   };
 
-  LAY.Query.prototype.foldMax = function ( key, val ) {
+  LAY.Query.prototype.foldMax = function ( key ) {
     return LAY.$foldUtils.max( this.rowS, key, val );
   };
 
-  LAY.Query.prototype.foldSum = function ( key, val ) {
+  LAY.Query.prototype.foldSum = function ( key ) {
     return LAY.$foldUtils.sum( this.rowS, key, val );
   };
 
@@ -4141,7 +4124,7 @@ if (!Array.prototype.indexOf) {
   LAY.Query.prototype.length = function () {
     return this.rowS.length;
   };
-  LAY.Query.prototype.end = function () {
+  LAY.Query.prototype.finish = function () {
   	return this.rowS;
   };
 
@@ -5155,9 +5138,7 @@ if (!Array.prototype.indexOf) {
             val.execute( this )
           );
       }
-
     } else {
-
       this.executable = function () {
         return LAY.$filterUtils.eq(
             oldExecutable.call( this ),
@@ -5166,16 +5147,555 @@ if (!Array.prototype.indexOf) {
           );
       }
     }
-
     return this;
-
   };
 
+  LAY.Take.prototype.filterNeq = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.neq(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterGt = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.gt(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterGte = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.gte(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterLt = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.lt(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterLte = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.lte(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterRegex = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.regex(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterContains = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.contains(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterWithin = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.within(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.filterFn = function ( attr, val ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( val instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( val );
+        this.executable = function () {
+          return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            val
+          );
+        }
+      }
+    } else if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+      this.executable = function () {
+        return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            val.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$filterUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            val
+          );
+      }
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldMin = function ( attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+        this.executable = function () {
+          return LAY.$foldUtils.min(
+            oldExecutable.call( this ),
+            attr.execute( this )
+        );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.min(
+          oldExecutable.call( this ),
+          attr
+        );
+      }
+      
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldMax = function ( attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+        this.executable = function () {
+          return LAY.$foldUtils.max(
+            oldExecutable.call( this ),
+            attr.execute( this )
+        );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.max(
+          oldExecutable.call( this ),
+          attr
+        );
+      }
+      
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldSum = function ( attr ) {
+
+    var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+        this.executable = function () {
+          return LAY.$foldUtils.sum(
+            oldExecutable.call( this ),
+            attr.execute( this )
+        );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.sum(
+          oldExecutable.call( this ),
+          attr
+        );
+      }
+      
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.foldFn = function ( attr, acc ) {
+
+     var oldExecutable = this.executable;
+
+    if ( attr instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( attr );
+
+      if ( acc instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( acc );
+        this.executable = function () {
+          return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            acc.execute( this )
+          );
+        }
+
+      } else {
+        this.executable = function () {
+          return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr.execute( this ),
+            acc
+          );
+        }
+      }
+    } else if ( acc instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( acc );
+      this.executable = function () {
+        return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            acc.execute( this )
+          );
+      }
+    } else {
+      this.executable = function () {
+        return LAY.$foldUtils.fn(
+            oldExecutable.call( this ),
+            attr,
+            ac
+          );
+      }
+    }
+    return this;
+  };
   /*
   * Call custom function with arguments, where arguments
   * can be LAY.Take objects.
   */
-  LAY.Take.prototype.fn = function ( ) {
+  LAY.Take.prototype.fn = function () {
 
     var fnExecutable = this.executable;
     //console.log(fnExecutable.call(this));
@@ -6810,7 +7330,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     $scrolledY: {
       scroll: function () {
         this.$requestRecalculation( "$scrolledY" );
-
       }
     },
     $cursorX: {
@@ -7089,7 +7608,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   "use strict";
 
   LAY.$foldlUtils = {
-    min: function ( rowS, key, val ) {
+    min: function ( rowS, key ) {
       return fold( function ( row, acc ) {
         var val = row[ key ];
           if ( ( acc === undefined ) || ( val < acc ) ) {
@@ -7099,7 +7618,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           }
         }, undefined, rowS ); 
     },
-    max: function ( rowS, key, val ) {
+    max: function ( rowS, key ) {
       return fold( function ( row, acc ) {
         var val = row[ key ];
           if ( ( acc === undefined ) || ( val > acc ) ) {
@@ -7109,7 +7628,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           }
         }, undefined, rowS ); 
     },
-    sum: function ( rowS, key, val ) {
+    sum: function ( rowS, key ) {
       return fold( function ( row, acc ) {
         return acc + row[ key ];
         }, 0, rowS );
@@ -7491,7 +8010,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       textDirection: "ltr",
       textLineHeight: "1em",
       textIndent: 0,
-      textWhitespace: "nowrap",
+      textWrap: "nowrap",
       textWordBreak: "normal",
       textWordWrap: "normal",
       textSmoothing: "antialiased",
@@ -7512,7 +8031,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       textDirection: LAY.take("../", "textDirection"),
       textLineHeight: LAY.take("../", "textLineHeight"),
       textIndent: LAY.take("../", "textIndent"),
-      textWhitespace: LAY.take("../", "textWhitespace"),
+      textWrap: LAY.take("../", "textWrap"),
       textWordBreak: LAY.take("../", "textWordBreak"),
       textWordWrap: LAY.take("../", "textWordWrap"),
       textSmoothing: LAY.take("../", "textSmoothing"),
@@ -7521,6 +8040,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
     commonLazyProp2defaultVal = {
       display: true,
+      visible: true,
       z: 0,
       shiftX: 0,
       shiftY: 0,
@@ -7540,7 +8060,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       perspectiveOriginY: 0.5,
       backfaceVisibility: false,
       opacity:1.0,
-      userSelect: "all",
       zIndex: "auto",
       overflowX: "hidden",
       overflowY: "hidden",
@@ -7737,7 +8256,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     }
 
     function checkIsMutable ( val ) {
-      return ( ( typeof val === "object" ) || val instanceof Array );
+      return ( typeof val === "object" );
     }
 
     function inheritSingleLevelObject( intoObject, fromObject, key, isDuplicateOn ) {
@@ -7768,18 +8287,13 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     // Precondition: `into<Scope>.key (eg: intoLAY.key)` is already defined
     var key2fnInherit = {
 
-
       data: function( intoLson, fromLson ) {
-
         inheritSingleLevelObject( intoLson, fromLson, "data" );
-
       },
 
 
       props: function( intoLson, fromLson ) {
-
         inheritSingleLevelObject( intoLson, fromLson, "props" );
-
       },
 
 
@@ -7869,7 +8383,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           fromLsonRowS = fromLson.rows,
           fromLsonRow;
 
-        if ( intoLsonRowS ) {
+        if ( fromLsonRowS ) {
           intoLson.rows = new Array( fromLsonRowS.length );
           intoLsonRowS = intoLson.rows;
           for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
@@ -8010,7 +8524,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     "textDirection",
     "textLineHeight",
     "textIndent",
-    "textWhitespace",
+    "textWrap",
     "textWordBreak",
     "textWordWrap",
     "textSmoothing",
@@ -8885,9 +9399,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   }
 
   function transitionAttrVal( normalRenderDirtyAttrVal, delta ) {
-    console.log(normalRenderDirtyAttrVal.attr,
-      normalRenderDirtyAttrVal.startCalcVal,
-      normalRenderDirtyAttrVal.calcVal, delta );
     if ( normalRenderDirtyAttrVal.calcVal instanceof LAY.Color ) {
       normalRenderDirtyAttrVal.transitionCalcVal =
         LAY.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
@@ -9028,8 +9539,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
       do {
 
-        //alert("solve");
-
         isSolveProgressed = false;
         isSolveNewComplete = false;
         isSolveRecalculationComplete = false;
@@ -9054,7 +9563,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         // levels could have been created 
 
         isSolveRecalculationComplete =
-          LAY.$recalculateDirtyLevelS.length === 0;
+          LAY.$recalculateDirtyAttrValS.length === 0;
         isSolveNewComplete =
           LAY.$newLevelS.length === 0;
 
@@ -9076,16 +9585,17 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         if ( !isSolveNewComplete ) {
           msg += "Uninheritable Level: " + LAY.$newLevelS[ 0 ].pathName;
         } else {
-          var uninstantiableLevel = LAY.$recalculateDirtyLevelS[ 0 ];
+          var circularAttrVal = LAY.$recalculateDirtyAttrValS[ 0 ];
           msg += "Uninstantiable Attr: " +
-             uninstantiableLevel.recalculateDirtyAttrValS[ 0 ].attr +
-            " (Level: " + uninstantiableLevel.pathName  + ")";
+              circularAttrVal.attr +
+            " (Level: " + circularAttrVal.level.pathName  + ")";
         } 
         msg += "]";
         throw msg;
 
       }
 
+      recalculateNaturalDimensions();      
       executeManyLoads();
       executeStateInstallation();
       // If the load/install functions of 
@@ -9093,7 +9603,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       // then we will solve, otherwise we shall
       // render
       LAY.$isSolving = false;
-      if ( LAY.$recalculateDirtyLevelS.length ) {
+      if ( LAY.$recalculateDirtyAttrValS.length ) {
         LAY.$solve();
       } else {
         LAY.$render();
@@ -9101,6 +9611,33 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     }
 
   };
+
+
+  function recalculateNaturalDimensions () {
+    var
+      naturalWidthDirtyPartS =
+        LAY.$naturalWidthDirtyPartS,
+      naturalHeightDirtyPartS = 
+        LAY.$naturalHeightDirtyPartS,
+      i;
+
+    // /console.log("h", naturalHeightDirtyPartS.map(function(item){return item.level.pathName}));
+    for ( i=naturalHeightDirtyPartS.length - 1;
+        i >= 0; i-- ) {
+      naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight.requestRecalculation();
+    }
+
+    //console.log("w", naturalWidthDirtyPartS.map(function(item){return item.level.pathName}));
+
+    for ( i=naturalWidthDirtyPartS.length - 1;
+        i >= 0; i-- ) {
+      naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth.requestRecalculation();
+    }
+
+    LAY.$naturalWidthDirtyPartS = [];
+    LAY.$naturalHeightDirtyPartS = [];
+
+  }
 
   function executeManyLoads () {
     var newManyS = LAY.$newManyS, newMany, fnLoad;
@@ -9117,7 +9654,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   }
 
   function executeStateInstallation () {
-
     var
       i, j, len, jLen,
       newlyInstalledStateLevelS = LAY.$newlyInstalledStateLevelS,
@@ -9224,30 +9760,30 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       isSolveProgressed,
       isSolveProgressedOnce = false,
       ret,
-      recalculateDirtyLevelS = LAY.$recalculateDirtyLevelS;
+      recalculateDirtyAttrValS = LAY.$recalculateDirtyAttrValS;
       
-    if ( !recalculateDirtyLevelS.length ) {
+    if ( !recalculateDirtyAttrValS.length ) {
       return 3;
     }
 
     do {
       isSolveProgressed = false;
-      for ( i = 0; i < recalculateDirtyLevelS.length; i++ ) {
-        ret = recalculateDirtyLevelS[ i ].$solveForRecalculation();
-        if ( ret !== 2 ) {
+      for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
+        ret =
+          recalculateDirtyAttrValS[ i ].recalculate();
+
+        if ( ret ) {
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
-          if ( ret === 0 ) {
-            LAY.$arrayUtils.removeAtIndex( recalculateDirtyLevelS, i );
-            i--;
-          }
+          LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
+          i--;
         }
       }
     
-    } while ( ( recalculateDirtyLevelS.length !== 0 ) && isSolveProgressed );
+    } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
 
-    return recalculateDirtyLevelS.length === 0 ?  0 :
+    return recalculateDirtyAttrValS.length === 0 ?  0 :
       isSolveProgressedOnce ? 1 : 2;
 
   };

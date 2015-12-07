@@ -43,7 +43,6 @@
     $scrolledY: {
       scroll: function () {
         this.$requestRecalculation( "$scrolledY" );
-
       }
     },
     $cursorX: {

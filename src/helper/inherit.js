@@ -107,7 +107,7 @@
     }
 
     function checkIsMutable ( val ) {
-      return ( ( typeof val === "object" ) || val instanceof Array );
+      return ( typeof val === "object" );
     }
 
     function inheritSingleLevelObject( intoObject, fromObject, key, isDuplicateOn ) {
@@ -138,18 +138,13 @@
     // Precondition: `into<Scope>.key (eg: intoLAY.key)` is already defined
     var key2fnInherit = {
 
-
       data: function( intoLson, fromLson ) {
-
         inheritSingleLevelObject( intoLson, fromLson, "data" );
-
       },
 
 
       props: function( intoLson, fromLson ) {
-
         inheritSingleLevelObject( intoLson, fromLson, "props" );
-
       },
 
 
@@ -239,7 +234,7 @@
           fromLsonRowS = fromLson.rows,
           fromLsonRow;
 
-        if ( intoLsonRowS ) {
+        if ( fromLsonRowS ) {
           intoLson.rows = new Array( fromLsonRowS.length );
           intoLsonRowS = intoLson.rows;
           for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {

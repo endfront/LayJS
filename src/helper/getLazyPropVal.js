@@ -16,7 +16,7 @@
       textDirection: "ltr",
       textLineHeight: "1em",
       textIndent: 0,
-      textWhitespace: "nowrap",
+      textWrap: "nowrap",
       textWordBreak: "normal",
       textWordWrap: "normal",
       textSmoothing: "antialiased",
@@ -37,7 +37,7 @@
       textDirection: LAY.take("../", "textDirection"),
       textLineHeight: LAY.take("../", "textLineHeight"),
       textIndent: LAY.take("../", "textIndent"),
-      textWhitespace: LAY.take("../", "textWhitespace"),
+      textWrap: LAY.take("../", "textWrap"),
       textWordBreak: LAY.take("../", "textWordBreak"),
       textWordWrap: LAY.take("../", "textWordWrap"),
       textSmoothing: LAY.take("../", "textSmoothing"),
@@ -46,6 +46,7 @@
 
     commonLazyProp2defaultVal = {
       display: true,
+      visible: true,
       z: 0,
       shiftX: 0,
       shiftY: 0,
@@ -65,7 +66,6 @@
       perspectiveOriginY: 0.5,
       backfaceVisibility: false,
       opacity:1.0,
-      userSelect: "all",
       zIndex: "auto",
       overflowX: "hidden",
       overflowY: "hidden",

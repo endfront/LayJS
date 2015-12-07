@@ -76,11 +76,7 @@ LAY.run({
             mouseup: function () {
               LAY.clog();
               this.data("isMoving", false);
-              this.many().rowsUpdate("order", 3,
-                this.many().queryRows().filterEq("order", 2));
-              this.many().rowsUpdate("order", 4,
-                this.many().queryRows().filterEq("order", 3));
-              this.row("order", 2);
+              alert("This LAY example is incomplete")
               LAY.unclog();
 
             }
@@ -96,9 +92,6 @@ LAY.run({
                 e.clientY);
           
               this.data("isMoving", true);
-            },
-            mousemove: function() {
-              //console.log(this.attr("row.order"));
             }
           }
         }

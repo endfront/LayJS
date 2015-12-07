@@ -19,6 +19,7 @@ LAY.run({
 
   "App": {
     props: {
+      width: LAY.take("/", "data.mobileResponsiveWidth"),
       centerX: LAY.take("../", "$midpointX").plus(
         LAY.take("../Learn", "$midpointX")),
       overflow: "visible"
@@ -30,7 +31,14 @@ LAY.run({
         props: {
           centerX: LAY.take("../", "$midpointX")
         }
-      }
+      },
+      "responsive": {
+        onlyif: LAY.take("/", "width").lt(
+          LAY.take("/", "data.mobileResponsiveWidth")),
+        props: {
+          width: LAY.take("/", "width")
+        }
+      },
     },
 
     "Header": {
@@ -48,7 +56,7 @@ LAY.run({
       props:{
         top: LAY.take("../Header", "bottom"),
         centerX: LAY.take("../", "$midpointX"),
-        width: LAY.take("/", "data.mobileResponsiveWidth"),
+        width: LAY.take("../", "width"),
         backgroundColor:  LAY.color("white"),
         overflow: "visible",
         boxShadows: [
@@ -57,13 +65,6 @@ LAY.run({
         ]
       },
       states: {
-        "responsive": {
-          onlyif: LAY.take("/", "width").lt(
-            LAY.take("/", "data.mobileResponsiveWidth")),
-          props: {
-            width: LAY.take("/", "width")
-          }
-        },
         "sheets-displayed": {
           onlyif: LAY.take("Sheets", "hidden.onlyif").not(),
           props: {
@@ -91,7 +92,7 @@ LAY.run({
            
           },
           props: {
-            width:40,
+            width: 40,
             height: 40,
             centerY: LAY.take("../Input", "centerY"),
             cursor: "default",
@@ -109,7 +110,7 @@ LAY.run({
             "hidden": {
               onlyif: LAY.take("/App/Container/Todos/Todo", "rows").length().eq(0),
               props: {
-                display: false
+                visible: false
               }
             },
             "incomplete": {
@@ -153,11 +154,6 @@ LAY.run({
             textLineHeight:1.4,
             inputPlaceholder: "What needs to be done?",
             focus: true
-          //  boxShadows: [
-           //   { inset:true, x:0, y: -2, blur: 1,
-           //        color:LAY.rgba(0, 0, 0, 0.03) }
-            //]
-
           },
           when: {
             keypress: function (e) {
@@ -243,7 +239,7 @@ LAY.run({
               "hidden": {
                 onlyif: LAY.take("../", "data.isEditing"),
                 props: {
-                  display: false
+                  visible: false
                 }
               },
               "complete": {
@@ -283,7 +279,7 @@ LAY.run({
                 textPadding:15,
                 textSize: 24,
                 textWordWrap: "break-word",
-                textWhitespace: "pre",
+                textWrap: "pre",
                 textLineHeight: 1.2,
                 userSelect: "text"
               },
@@ -385,7 +381,7 @@ LAY.run({
                 cursor: "default",
                 text: "×",
                 textSize: 30,
-                textLineHeight:1,
+                textLineHeight: 40/30,
                 textAlign: "center",
                 textColor: LAY.hex(0xcc9a9a)
               },
@@ -394,7 +390,7 @@ LAY.run({
                   onlyif: LAY.take("../", "$hovering").not().or(
                     LAY.take("../", "data.isEditing")),
                   props: {
-                    display: false
+                    visible: false
                   }
                 },
                 "hovering":{
@@ -425,9 +421,10 @@ LAY.run({
             height: 42,
             width:LAY.take("../", 'width'),
             top: LAY.take("../Todos", "bottom"),
-            textColor: LAY.rgb(119, 119, 119),
             borderTop: {style:"solid", width: 1,
-              color: LAY.hex(0xe6e6e6)}
+              color: LAY.hex(0xe6e6e6)},
+            textColor: LAY.rgb(119, 119, 119),
+            textLineHeight:1
           },
           states: {
             "hidden": {
@@ -466,7 +463,6 @@ LAY.run({
               },
               "Category": {  
                 many: {
-                  
                   $load: function () {
                     var hash = window.location.hash || "#/";
                     var hashVal = hash.slice(2);
@@ -500,7 +496,7 @@ LAY.run({
                     color: LAY.transparent()},
                   cornerRadius: 3,
                   text: LAY.take("", "row.text"),
-                  textPadding: {top:2, bottom:2, left:7, right:7},
+                  textPadding: 6,
                   linkHref: LAY.take("#/%s").format(
                     LAY.take("", "row.id"))
                 },
@@ -550,7 +546,7 @@ LAY.run({
                 "hidden": {
                   onlyif: LAY.take("/App/Container/Todos/Todo", "rows").filterEq("complete", true).length().eq(0),
                   props: {
-                    display: false
+                    visible: false
                   }
                 },
                 "hover": {
