@@ -95,6 +95,7 @@ if (!Array.prototype.indexOf) {
     $numClog: 0,
     $isSolving: false,
     $isSolveRequiredOnRenderFinish: false,
+    $isOkayToEstimateWhitespaceHeight: true,
     // The below refer to dimension
     // dirty parts whereby the dimensions
     // depend upon the child parts
@@ -206,7 +207,7 @@ if (!Array.prototype.indexOf) {
        "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
     } else if ( 
-      [ "formation", "filter", "sort", "ascending" ].indexOf ( attr ) !== -1 ) {
+      [ "formation", "filter", "sort" ].indexOf ( attr ) !== -1 ) {
       return true;
     } else {
       var prefix = attr.slice( 0, i );
@@ -226,9 +227,6 @@ if (!Array.prototype.indexOf) {
     if ( !LAY.$identical( val, this.prevVal ) ) {
       if ( this.prevVal instanceof LAY.Take ) {
         this.takeNot( this.prevVal );
-      }
-      if ( this.attr.startsWith("row.") ) {
-        this.val = LAY.$clone( this.val );
       }
       this.isTakeValReady = false;
       this.requestRecalculation();
@@ -303,9 +301,6 @@ if (!Array.prototype.indexOf) {
       attr = this.attr,
       i, len;
     
-    if ( level.isRemoved ) {
-      return true;
-    }
 
     if ( attr === "$$layout") {
       many.reLayout();
@@ -332,7 +327,8 @@ if (!Array.prototype.indexOf) {
 
       recalcVal = this.val.execute( this.level );
 
-      if ( attr.startsWith("data.") ) {
+      if ( attr.startsWith("data.") ||
+        attr.startsWith("row.") ) {
         recalcVal = LAY.$clone( recalcVal );
       }
 
@@ -341,7 +337,8 @@ if (!Array.prototype.indexOf) {
         this.calcVal = recalcVal;
       }
     } else {
-      if ( attr.startsWith("data.") ) {
+      if ( attr.startsWith("data.") ||
+          attr.startsWith("row.") ) {
         this.val = LAY.$clone( this.val );
       }
       if ( !LAY.$identical( this.val, this.calcVal ) ) {
@@ -354,6 +351,7 @@ if (!Array.prototype.indexOf) {
       isDirty = true;
     }
 
+    /*
     switch ( attr ) {
       case "scrollX":
         // TODO: investigate the below code block's
@@ -377,8 +375,8 @@ if (!Array.prototype.indexOf) {
         }
         isDirty = true;
         break;
-
     }
+    */
 
     // rows is always dirty when recalculated
     // as changes made to rows would have rows
@@ -403,7 +401,7 @@ if (!Array.prototype.indexOf) {
       if ( LAY.$isDataTravellingShock ) {
         part.addTravelRenderDirtyAttrVal( this );
       }
-
+      
       if ( this.renderCall ) {
         this.startCalcVal = this.transitionCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
@@ -445,18 +443,6 @@ if (!Array.prototype.indexOf) {
             if ( part.type === "image" ) {
               part.updateNaturalWidth();
             }
-            break;
-          case "left":
-            part.updateAbsoluteX();
-            break;
-          case "shiftX":
-            part.updateAbsoluteX();
-            break;
-          case "top":
-            part.updateAbsoluteY();
-            break;
-          case "shiftY":
-            part.updateAbsoluteY();
             break;
           case "imageUrl":
             part.isImageLoaded = false;
@@ -538,6 +524,9 @@ if (!Array.prototype.indexOf) {
           
       } else {  
         switch( attr ) {
+          case "exist":
+            level.$updateExistence();
+            break;
           case "right":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
@@ -577,6 +566,7 @@ if (!Array.prototype.indexOf) {
               part.updateNaturalHeight();
             }
             break;
+
         }
       }
     }
@@ -710,9 +700,6 @@ if (!Array.prototype.indexOf) {
         relPath = _relPath00attr_S[ i ][ 0 ];
         attr = _relPath00attr_S[ i ][ 1 ];
 
-        if ( attr === "$naturalWidth" ) {
-
-        }
         relPath.resolve( this.level ).$getAttrVal( attr ).give( this );
 
       }
@@ -721,11 +708,11 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  LAY.AttrVal.prototype.takeNot = function ( attrVal ) {
+  LAY.AttrVal.prototype.takeNot = function ( val ) {
 
-    if ( this.val instanceof LAY.Take ) {
+    if ( val instanceof LAY.Take ) {
       var _relPath00attr_S, relPath, level, attr;
-      _relPath00attr_S = this.val._relPath00attr_S;
+      _relPath00attr_S = val._relPath00attr_S;
 
       for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
@@ -742,22 +729,9 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  /*
-  LAY.AttrVal.prototype.collectDependentAttrValS = function( accAttrValS ) {
-    var i, len,
-      takerAttrValS = this.takerAttrValS;
-
-    accAttrValS.push( this );
-
-    for ( i = 0, len = takerAttrValS.length;
-      i < len; i++ ) {
-      takerAttrValS[ i ].collectDependentAttrValS(
-        accAttrValS );
-    }  
-
-  };
-  */
-
+  LAY.AttrVal.prototype.remove = function () {
+    this.takeNot( this.val );
+  }
   
 
 
@@ -1194,9 +1168,10 @@ if (!Array.prototype.indexOf) {
 
     this.pathName = path;
     this.lson = lson;
+    // if level is many, partLson contains the non-many part of the lson
+    this.partLson = undefined;
     this.isGpu = undefined;
     this.isInitialized = false;
-    this.isRemoved = undefined;
 
     this.parentLevel = parent; // parent Level
     this.attr2attrVal = {};
@@ -1207,7 +1182,9 @@ if (!Array.prototype.indexOf) {
 
     // If the level name begins with "_",
     // the level is considered a helper (non-renderable)
-    this.isHelper = isHelper || ( parent && parent.isHelper );
+    this.isHelper = isHelper;
+
+    this.isExist = true;
 
     // If the Level is a Many (i.e this.isPart is false)
     // then this.many will hold a reference to the corresponding
@@ -1242,17 +1219,13 @@ if (!Array.prototype.indexOf) {
     this.newlyInstalledStateS = [];
     this.newlyUninstalledStateS = [];
 
-    // for many derived levels
-    this.formationX = undefined;
-    this.formationY = undefined;
-
   };
 
   LAY.Level.prototype.$init = function () {
 
     LAY.$pathName2level[ this.pathName ] = this;
     LAY.$newLevelS.push( this );
-   
+
   };
 
 
@@ -1327,7 +1300,6 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Level.prototype.many = function () {
-
     return this.derivedMany && this.derivedMany.level;
   };
 
@@ -1494,23 +1466,10 @@ if (!Array.prototype.indexOf) {
 
   LAY.Level.prototype.$remove = function () {
 
-    var
-     parentLevel = this.parentLevel,
-     parentPart = parentLevel.part;
-
-
-    this.isRemoved = true;
+    this.$disappear();
 
     LAY.$pathName2level[ this.pathName ] = undefined;
-    LAY.$arrayUtils.remove( parentLevel.childLevelS, this );
-    
-
-    if ( this.isPart ) {
-      this.part.remove();
-    } else {
-      this.manyObj && this.manyObj.remove();
-    }
-    
+    LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
   
   };
 
@@ -1522,11 +1481,11 @@ if (!Array.prototype.indexOf) {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
   
-    LAY.$normalize( this.lson, false );
+    LAY.$normalize( this.lson, this.isHelper );
     
     // check if it contains anything to inherit from
     if ( this.lson.$inherit !== undefined ) { 
-      lson = { type: "none" };
+      lson = {};
       refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
         
@@ -1569,7 +1528,21 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  LAY.Level.prototype.$identifyAndReproduce = function () {
+  LAY.Level.prototype.$reproduce = function () {
+    if ( this.isPart ) {
+      this.part = new LAY.Part( this );
+      this.part.init();
+      
+      if ( this.lson.children !== undefined ) {
+        this.addChildren( this.lson.children );
+      }
+    } else {
+      this.manyObj = new LAY.Many( this, this.partLson );
+      this.manyObj.init();
+    }
+  };
+
+  LAY.Level.prototype.$identify = function () {
     this.isPart = this.lson.many === undefined;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
@@ -1582,32 +1555,22 @@ if (!Array.prototype.indexOf) {
     }
     this.isGpu = this.isGpu && LAY.$isGpuAccelerated;
 
-
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
-        LAY.$defaultizePartLson( this.lson,
-          this.parentLevel );
-      }
-      this.part = new LAY.Part( this );
-      this.part.init();
-      
-      if ( this.lson.children !== undefined ) {
-        this.addChildren( this.lson.children );
+      LAY.$defaultizePartLson( this.lson,
+        this.parentLevel );
       }
     } else {
       if ( this.pathName === "/" ) {
         throw "LAY Error: 'many' prohibited for root level /";
       }
-      var partLson = this.lson;
+      this.partLson = this.lson;
       this.lson = this.lson.many;
       // deference the "many" key from part lson
       // so as to not to associate with the lson
       // with a many creator
-      partLson.many = undefined;
+      this.partLson.many = undefined;
       LAY.$defaultizeManyLson( this.lson );
-      this.manyObj = new LAY.Many( this, partLson );
-      this.manyObj.init();
-      
     }
   };
 
@@ -1688,6 +1651,10 @@ if (!Array.prototype.indexOf) {
         initAttrsObj(  "$$max.", slson.$$max, attr2val, false );
       }
     } else {
+
+      attr2val.formation = slson.formation;
+      attr2val.filter = slson.filter;
+      
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
@@ -1695,8 +1662,6 @@ if (!Array.prototype.indexOf) {
         }
       }
 
-      attr2val.formation = slson.formation;
-      attr2val.filter = slson.filter;
       attr2val[ "$$num.sort" ] = slson.sort.length;
 
       for ( i = 0, len = slson.sort.length; i < len; i++ ) {
@@ -1706,6 +1671,65 @@ if (!Array.prototype.indexOf) {
       
     }
   }
+
+  LAY.Level.prototype.$updateExistence = function () {
+    var isExist = this.attr2attrVal.exist.calcVal;
+    if ( isExist ) {
+      this.$appear();
+    } else {
+      this.$disappear();
+    }
+  };
+
+  /*
+  LAY.Level.prototype.$checkIfParentExists = function () {
+    if ( this.pathName === "/" ) {
+      return this.isExist;
+    } else {
+      return this.isExist ? this.parentLevel.$checkIfParentExists() : false;
+    }
+  };*/
+
+  LAY.Level.prototype.$appear = function () {
+    this.isExist = true;
+    this.$reproduce();
+    this.$initAllAttrs();
+
+    if ( this.isPart ) {
+      this.part.add();
+    }
+    
+  };  
+
+   LAY.Level.prototype.$disappear = function () {
+    this.isExist = false;
+    var attr2attrVal = this.attr2attrVal;
+    for ( var attr in attr2attrVal ) {
+      if ( attr !== "exist" ) {
+        attr2attrVal[ attr ].remove();
+      }
+    }
+    var descendantLevelS = this.isPart ? 
+      this.childLevelS : this.manyObj.allLevelS ;
+    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
+      descendantLevelS[ i ] &&
+        descendantLevelS[ i ].$remove();
+    }
+
+    if ( this.isPart ) {
+      this.part && this.part.remove();
+    } else {
+      this.manyObj.remove();
+    }
+   
+  };
+
+  LAY.Level.prototype.$decideExistence = function () {
+    if ( !this.isHelper ) {
+      this.$createAttrVal( "exist", this.lson.exist ===
+        undefined ? true : this.lson.exist );    
+    }
+  };
 
   LAY.Level.prototype.$initAllAttrs = function () {
 
@@ -1781,6 +1805,8 @@ if (!Array.prototype.indexOf) {
         attr2val.$dataTravelling = false;
         attr2val.$dataTravelDelta = 0.0;
         attr2val.$dataTravelLevel = undefined;
+        attr2val.$absoluteLeft = 0;
+        attr2val.$absoluteTop = 0;
         attr2val.$windowWidth = window.innerWidth ||
          document.documentElement.clientWidth ||
           document.body.clientWidth;
@@ -1793,7 +1819,7 @@ if (!Array.prototype.indexOf) {
         attr2val.$f = 0;
       }
     } else { // Many
-      attr2val.rows = lson.rows || [];
+      attr2val.rows = lson.rows;
       attr2val.$id = lson.$id;
       attr2val.$$layout = null;
     }
@@ -2017,19 +2043,25 @@ if (!Array.prototype.indexOf) {
     if ( this.derivedMany &&
         !this.derivedMany.level.attr2attrVal.filter.isRecalculateRequired &&
         attr2attrVal.$f.calcVal !== 1 ) {
-      this.$setFormationXY( this.formationX,
-          this.formationY );
+      this.$setFormationXY( this.part.formationX,
+          this.part.formationY );
     }
 
 
     if ( this.pathName === "/" ) {
       if ( this.attr2attrVal.width.val !==
         this.lson.states.root.props.width ) {
-        throw "LAY Error: Width of root level unchangeable";
+        throw "LAY Error: width of root level unchangeable";
       }
       if ( this.attr2attrVal.height.val !==
         this.lson.states.root.props.height ) {
-        throw "LAY Error: Height of root level unchangeable";
+        throw "LAY Error: height of root level unchangeable";
+      }
+      if ( this.attr2attrVal.top.val !== 0 ) {
+        throw "LAY Error: top of root level unchangeable";        
+      }
+      if ( this.attr2attrVal.left.val !== 0 ) {
+        throw "LAY Error: left of root level unchangeable";        
       }
     } 
   };
@@ -2057,8 +2089,8 @@ if (!Array.prototype.indexOf) {
 
   LAY.Level.prototype.$setFormationXY = function ( x, y ) {
 
-    this.formationX = x;
-    this.formationY = y;
+    this.part.formationX = x;
+    this.part.formationY = y;
 
     if ( this.part ) { //level might not initialized as yet
       var
@@ -2123,7 +2155,7 @@ if (!Array.prototype.indexOf) {
     // only once.
 	  this.levelStringHashedStates2_cachedAttr2val_ = {};
 
-    this.id = level.lson.id || "id";
+    this.id = level.lson.$id || "id";
     this.id2level = {};
     this.id2row = {};
     this.isLoaded = false;
@@ -2255,6 +2287,7 @@ if (!Array.prototype.indexOf) {
 
 
 
+
   function checkIfRowsIsNotObjectified ( rowS ) {
     return rowS.length &&
      ( typeof rowS[ 0 ] !== "object" );
@@ -2266,6 +2299,30 @@ if (!Array.prototype.indexOf) {
       objectifiedRowS.push( { id:i+1, content: rowS[ i ] }); 
     }
     return objectifiedRowS;
+  }
+
+  function checkIfRowsHaveNoId( rowS, idKey ) {
+    var totalIds = 0;
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      if ( rowS[i][ idKey ] !== undefined ) {
+        totalIds++;
+      }
+    }
+    if ( totalIds > 0 ) {
+      if ( totalIds !== rowS.length ) {
+        throw "LAY Error: Inconsistent id provision to rows.";
+      }
+    } else if ( rowS.length ) {
+      return true;
+    }
+    return false;
+  }
+
+  function idifyRows ( rowS, idKey ) {
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      rowS[ i ][ idKey ] = i+1;
+    }
+    return rowS;
   }
 
   /*
@@ -2297,6 +2354,10 @@ if (!Array.prototype.indexOf) {
       rowS = objectifyRows( rowS );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
+    } else if ( checkIfRowsHaveNoId( rowS, this.id ) ) {
+      rowS = idifyRows( rowS, this.id );
+      var rowsAttrVal = this.level.attr2attrVal.rows;
+      rowsAttrVal.calcVal = rowS;
     }
 
     this.sort( rowS );
@@ -2313,7 +2374,7 @@ if (!Array.prototype.indexOf) {
           throw "LAY Error: No id provided for many " + this.pathName;
         }
   			level = new LAY.Level( this.level.pathName + ":" + id,
-  			 this.partLson, parentLevel, false, this, row, id );
+  			 this.partLson, parentLevel, this.level.isHelper, this, row, id );
         // the level has already been normalized
         // while LAY was parsing the "many" level
         level.isNormalized = true;
@@ -2339,7 +2400,6 @@ if (!Array.prototype.indexOf) {
   		}
 
       updatedAllLevelS.push( level );
-
   	}
 
     for ( id in id2level ) {
@@ -2353,6 +2413,7 @@ if (!Array.prototype.indexOf) {
     }
 
     this.allLevelS = updatedAllLevelS;
+
   };
 
 
@@ -2484,17 +2545,16 @@ if (!Array.prototype.indexOf) {
 
   };
 
+
+  LAY.Many.prototype.remove = function () {
+    console.log( "TODO: complete this");
+  }
   
-
-
- 
-
 
   // below code is taken from one of the responses
   // to the stackoverflow question:
   // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
   // source: http://stackoverflow.com/a/4760279
-
   function dynamicSort( sortDict ) {
     var key = sortDict.key,
       sortOrder = sortDict.ascending ? 1 : -1;
@@ -2576,7 +2636,7 @@ if (!Array.prototype.indexOf) {
     "backface-visibility: hidden;" +
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
-//    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
+    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
     "user-drag:none;" +
@@ -2591,15 +2651,15 @@ if (!Array.prototype.indexOf) {
     "font-size:15px;" +
     "font-family:sans-serif;color:black;" +
     "text-decoration:none;" +
-    "text-align:left;direction:ltr;line-height:1em;" +
+    "text-align:left;direction:ltr;line-height:1.3em;" +
     "white-space:nowrap;" +
     "-webkit-font-smoothing:antialiased;";
 
   textDimensionCalculateNodeCss = 
     defaultTextCss + 
-    "visibility:hidden;height:auto;" +
-    "overflow:visible;border-style:none;" +
-    "border-color:transparent;";
+    "visibility:hidden;height:auto;" + 
+    "overflow:visible;" +
+    "border:0px solid transparent;";
 
   inputType2tag = {
     multiline: "textarea",
@@ -2663,10 +2723,11 @@ if (!Array.prototype.indexOf) {
 
     this.whenEventType2fnMainHandler = {};
 
-    this.absoluteY = undefined;
-    this.absoluteX = undefined;
-
     this.isImageLoaded = false;
+
+    // for many derived levels
+    this.formationX = undefined;
+    this.formationY = undefined;
 
   };
 
@@ -2723,6 +2784,10 @@ if (!Array.prototype.indexOf) {
     } else {
       this.node.style.cssText = defaultCss;
     }
+
+    if ( this.type === "input" && this.inputType === "multiline" ) {
+      this.node.style.resize = "none";
+    }
     
 
     if ( this.type === "image" ) {
@@ -2734,23 +2799,30 @@ if (!Array.prototype.indexOf) {
         LAY.$solve();
       });
     }
-    if ( this.level.isHelper ) {
-      this.node.style.display = "none";
-    }
-
-    if ( this.level.pathName !== "/" ) {
-      parentNode = this.level.parentLevel.part.node;
-      parentNode.appendChild( this.node );
-    }
    
   };
 
   // Precondition: not called on "/" level
   LAY.Part.prototype.remove = function () {
-    var parentPart = this.level.parentLevel.part;
-    parentPart.updateNaturalWidth();
-    parentPart.updateNaturalHeight();
-    parentPart.node.removeChild( this.node );
+    if ( this.level.pathName !== "/" ) {
+      var parentPart = this.level.parentLevel.part;
+      parentPart.updateNaturalWidth();
+      parentPart.updateNaturalHeight();
+      // If the level is inexistent from the start
+      // then the node will not have been attached
+      if ( this.node.parentNode === parentPart.node ) {
+        parentPart.node.removeChild( this.node );
+      }
+    }
+  };
+
+  LAY.Part.prototype.add = function () {
+    if ( this.level.pathName !== "/" ) {
+      var parentPart = this.level.parentLevel.part;
+      parentPart.updateNaturalWidth();
+      parentPart.updateNaturalHeight();
+      this.level.parentLevel.part.node.appendChild( this.node );
+    }
   };
 
 
@@ -2773,7 +2845,8 @@ if (!Array.prototype.indexOf) {
         len = childLevelS.length;
          i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      if ( childLevel.isPart && !childLevel.isHelper ) {
+      if ( childLevel.isPart && !childLevel.isHelper &&
+        childLevel.isExist ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
           childLevelAttrVal = childLevel.attr2attrVal[ attr ];
        
@@ -2806,10 +2879,6 @@ if (!Array.prototype.indexOf) {
         return this.node.scrollTop;
       case "$focused":
         return node === document.activeElement;
-      case "$absoluteX":
-        return this.absoluteX;
-      case "$absoluteY":
-        return this.absoluteY;
       case "$input":
         if ( this.inputType === "multiple" ||
           this.inputType === "select" ) {
@@ -2840,50 +2909,6 @@ if (!Array.prototype.indexOf) {
           return this.node.value;
         }
 
-    }
-  };
-
-  LAY.Part.prototype.updateAbsoluteX = function () {
-
-    var 
-      attr2attrVal = this.level.attr2attrVal,
-      relativeLeft = attr2attrVal.left.calcVal,
-      shiftX = attr2attrVal.shiftX ? attr2attrVal.shiftX.calcVal : 0,
-      parentAbsoluteX = this.level.pathName !== "/" ? 
-        this.level.parentLevel.part.absoluteX : 0,
-      absoluteX = relativeLeft + shiftX + parentAbsoluteX;
-
-    if ( typeof absoluteX === "number" ) {
-      this.absoluteX = absoluteX;
-      if ( attr2attrVal.$absoluteX ) {
-        attr2attrVal.$absoluteX.update( this.absoluteX );
-      }
-      for ( var i = 0, childLevelS = this.level.childLevelS,
-         len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteX();
-      }
-    }
-  };
-
-  LAY.Part.prototype.updateAbsoluteY = function () {
-
-    var 
-      attr2attrVal = this.level.attr2attrVal,
-      relativeTop = attr2attrVal.top.calcVal,
-      shiftY = attr2attrVal.shiftY ? attr2attrVal.shiftY.calcVal : 0,
-      parentAbsoluteY = this.level.pathName !== "/" ?
-        this.level.parentLevel.part.absoluteY : 0,
-      absoluteY = relativeTop + shiftY + parentAbsoluteY;
-
-    if ( typeof absoluteY === "number" ) {
-      this.absoluteY = absoluteY;
-      if ( attr2attrVal.$absoluteY ) {
-        attr2attrVal.$absoluteY.update( this.absoluteY );
-      }
-      for ( var i = 0, childLevelS = this.level.childLevelS,
-         len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteY();
-      }
     }
   };
 
@@ -2947,14 +2972,86 @@ if (!Array.prototype.indexOf) {
 
       if ( isWidth ) {
         imageSizeMeasureNode.style.height = otherDimVal;
+        imageSizeMeasureNode.style.width = "auto";     
         return imageSizeMeasureNode.offsetWidth;
       } else {
-        imageSizeMeasureNode.style.width = otherDimVal;        
+        imageSizeMeasureNode.style.width = otherDimVal;
+        imageSizeMeasureNode.style.height = "auto";     
         return imageSizeMeasureNode.offsetHeight;
       }
     }
   };
 
+  /*
+  * ( Height occupied naturally by text can be estimated
+  * without creating a DOM node and checking ".offsetHeight"
+  * if the text does not wrap, or it does wrap however with
+  * extremely high probability does not span more than 1 line )
+  * If the height can be estimated without using a DOM node
+  * then return the estimated height, else return -1;
+  */
+  LAY.Part.prototype.estimateTextNaturalHeight = function ( text ) {
+    if ( checkIfTextMayHaveHTML ( text ) ) {
+      return -1;
+    } else {
+      var heightAttr2default = {
+        "textSize": 15,
+        "textWrap": "nowrap",
+        "textPaddingTop": 0,
+        "textPaddingBottom": 0,
+        "borderTopWidth": 0,
+        "borderBottomWidth": 0,
+        "textLineHeight": 1.3,
+        "textLetterSpacing": 1,
+        "textWordSpacing": 1,
+        "width": null
+      };
+
+      var heightAttr2val = {};
+
+      for ( var heightAttr in heightAttr2default ) {
+        var attrVal = this.level.attr2attrVal[ heightAttr ];
+        heightAttr2val[ heightAttr ] = ( attrVal === undefined ||
+          attrVal.calcVal === undefined ) ?
+          heightAttr2default[ heightAttr ] : attrVal.calcVal;
+      }
+
+
+      // Do not turn the below statement into a ternary as
+      // it will end up being unreadable
+      var isEstimatePossible = false;
+      if ( heightAttr2val.textWrap === "nowrap" ) {
+        isEstimatePossible = true;
+      } else if ( 
+          LAY.$isOkayToEstimateWhitespaceHeight &&
+          ( heightAttr2val.textWrap === "normal" ||
+          text.indexOf( "\\" ) === -1 ) && //escape characters can
+          // contain whitespace characters such as line breaks and/or tabs
+          heightAttr2val.textLetterSpacing ===  1 &&
+          heightAttr2val.textWordSpacing === 1 &&
+          heightAttr2val.width !== null ) {
+        if ( text.length <  ( 0.7 *
+            ( heightAttr2val.width / heightAttr2val.textSize ) ) ) {
+          isEstimatePossible = true;
+        }
+      }
+
+      if ( isEstimatePossible ) {
+        return ( heightAttr2val.textSize * heightAttr2val.textLineHeight ) + 
+          heightAttr2val.textPaddingTop +
+          heightAttr2val.textPaddingBottom +
+          heightAttr2val.borderTopWidth + 
+          heightAttr2val.borderBottomWidth;
+      } else {
+        return -1;
+      }      
+
+    }
+  };
+
+  function checkIfTextMayHaveHTML( text ) {
+    return text.indexOf( "<" ) !== -1 && text.indexOf( ">" ) !== -1;
+  };
   LAY.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
 
     var dimensionAlteringAttr2fnStyle = {
@@ -3041,7 +3138,17 @@ if (!Array.prototype.indexOf) {
       }
       html = attr2attrVal.text.calcVal;
     }
-    var startTime = performance.now();
+
+    if ( typeof html !== "string" ) {
+      html = html.toString();
+    }
+
+    if ( !isWidth ) {
+      var estimatedHeight = this.estimateTextNaturalHeight( html );
+      if ( estimatedHeight !== -1 ) {
+        return estimatedHeight;
+      }
+    }
 
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
@@ -3068,7 +3175,6 @@ if (!Array.prototype.indexOf) {
       cssText += "display:inline;width:auto;";
       textSizeMeasureNode.style.cssText = cssText;
       textSizeMeasureNode.innerHTML = html;
-
       ret = textSizeMeasureNode.offsetWidth;
 
     } else {
@@ -3136,8 +3242,8 @@ if (!Array.prototype.indexOf) {
 
     } else {
       this.whenEventType2fnMainHandler[ eventType ] = undefined;
-
     }
+  
   };
 
   LAY.Part.prototype.checkIsPropInTransition = function ( prop ) {
@@ -3351,14 +3457,15 @@ if (!Array.prototype.indexOf) {
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
-      ( attr2attrVal.scaleX !== undefined ? "scaleX(" + attr2attrVal.scaleX.transitionCalcVal + ") " : "" ) +
-      ( attr2attrVal.scaleY !== undefined ? "scaleY(" + attr2attrVal.scaleY.transitionCalcVal + ") " : "" ) +
-      ( attr2attrVal.scaleZ !== undefined ? "scaleZ(" + attr2attrVal.scaleZ.transitionCalcVal + ") " : "" ) +
+      
       "translate(" +
       ( ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px, " ) +
 
       ( ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px) " ) +
       ( attr2attrVal.z !== undefined ? "translateZ(" + attr2attrVal.z.transitionCalcVal + "px) " : "" ) +
+      ( attr2attrVal.scaleX !== undefined ? "scaleX(" + attr2attrVal.scaleX.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleY !== undefined ? "scaleY(" + attr2attrVal.scaleY.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleZ !== undefined ? "scaleZ(" + attr2attrVal.scaleZ.transitionCalcVal + ") " : "" ) +
       ( attr2attrVal.skewX !== undefined ? "skewX(" + attr2attrVal.skewX.transitionCalcVal + "deg) " : "" ) +
       ( attr2attrVal.skewY !== undefined ? "skewY(" + attr2attrVal.skewY.transitionCalcVal + "deg) " : "" ) +
       ( attr2attrVal.rotateX !== undefined ? "rotateX(" + attr2attrVal.rotateX.transitionCalcVal + "deg) " : "" ) +
@@ -3521,9 +3628,14 @@ if (!Array.prototype.indexOf) {
     }
   };
   LAY.Part.prototype.renderFn_title = function () {
-    this.node.title.cursor =
+    this.node.title =
       this.level.attr2attrVal.
       title.transitionCalcVal;
+  };
+  LAY.Part.prototype.renderFn_tabindex = function () {
+    this.node.tabindex =
+      this.level.attr2attrVal.
+      tabindex.transitionCalcVal;
   };
 
 
@@ -3544,7 +3656,7 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Part.prototype.renderFn_backgroundRepeat = function () {
-    this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundColor.transitionCalcVal;
+    this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundRepeat.transitionCalcVal;
   };
 
 
@@ -3713,7 +3825,6 @@ if (!Array.prototype.indexOf) {
   /* Text Related */
 
   LAY.Part.prototype.renderFn_text = function () {
-    
     this.node.innerHTML =
      this.level.attr2attrVal.text.transitionCalcVal;
   };
@@ -4138,20 +4249,24 @@ if (!Array.prototype.indexOf) {
   LAY.RelPath = function ( relativePath ) {
 
 
-    this.me = false;
-    this.many = false;
+    this.isMe = false;
+    this.isMany = false;
+    this.isAbsolute = false;
+    this.isClosestRow = false;
 
     if  ( relativePath === "" ) {
-      this.me = true;
+      this.isMe = true;
 
     } else if ( 
       ( relativePath === "*" ) ||
       ( relativePath === "many" ) ) { 
-      this.many = true;
-
+      this.isMany = true;
+    } else if ( relativePath.startsWith(".../")) {
+      this.isClosestRow = true;
+      this.childPath = relativePath.slice(4);
     } else {
       if ( relativePath.charAt(0) === "/" ) {
-        this.absolute = true;
+        this.isAbsolute = true;
         this.absolutePath = relativePath;
       } else {
         this.absolute = false;
@@ -4171,16 +4286,25 @@ if (!Array.prototype.indexOf) {
 
   LAY.RelPath.prototype.resolve = function ( referenceLevel ) {
 
-    if ( this.me ) {
+    if ( this.isMe ) {
       return referenceLevel;
-    } else if ( this.many ) { 
+    } else if ( this.isMany ) { 
       return referenceLevel.derivedMany.level;
     } else {
-      if ( this.absolute ) {
+      if ( this.isAbsolute ) {
           return LAY.$pathName2level[ this.absolutePath ];
       } else {
-        for ( var i = 0; i < this.numberOfParentTraversals;
-         ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        if ( this.isClosestRow ) {
+          while (!referenceLevel.derivedMany ) {
+            referenceLevel = referenceLevel.parentLevel;
+          }
+          if ( referenceLevel === undefined ) {
+            throw "LAY Error: Closest row level for */ now found";
+          }
+        } else {
+          for ( var i = 0; i < this.numberOfParentTraversals;
+           ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+          }
         }
 
           return ( this.childPath === "" ) ? referenceLevel :
@@ -4207,8 +4331,11 @@ if (!Array.prototype.indexOf) {
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        return path.resolve( this ).$getAttrVal( attr ).calcVal;
-        
+//        if ( attr === "rows" || attr === "filter" ) {
+  //        return LAY.$arrayUtils.cloneSingleLevel(path.resolve( this ).$getAttrVal( attr ).calcVal);
+    //    } else {
+        return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+      //  }
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -4610,6 +4737,40 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
+  LAY.Take.prototype.slice = function ( start, end ) {
+
+    var oldExecutable = this.executable;
+
+    if ( start instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( start );
+
+      if ( end instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( end );
+        this.executable = function () {
+          return oldExecutable.call( this ).slice(
+            start.execute( this ), end.execute( this ) );
+        }
+
+      } else {
+        this.executable = function () {
+          return oldExecutable.call( this ).slice(
+          start.execute( this ), end );
+        }
+      }
+    } else if ( end instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( end );
+      this.executable = function () {
+        return oldExecutable.call( this ).slice(
+          start, end.execute( this ) );
+      }
+    } else {
+      this.executable = function () {
+        return oldExecutable.call( this ).slice(
+          start, end );
+      }
+    }
+    return this;
+  };
 
   LAY.Take.prototype.min = function ( val ) {
 
@@ -4821,10 +4982,16 @@ if (!Array.prototype.indexOf) {
   };
 
 
-
-
   LAY.Take.prototype.i18nFormat = function () {
-
+    function fnWrapperI18nFormat () {
+      var argS = Array.prototype.slice.call( arguments );
+      argS[ 0 ] = ( argS[ 0 ] )[ LAY.level( '/' ).attr( 'data.lang' ) ];
+      if ( argS[ 0 ] === undefined ) {
+        throw "LAY Error: No language defined for i18nFormat";
+      }
+      return LAY.$format.apply( undefined, argS );
+    }
+    
     this._relPath00attr_S.push( [ new LAY.RelPath( '/' ), 'data.lang' ] );
 
     var argS = Array.prototype.slice.call(arguments),
@@ -4834,24 +5001,9 @@ if (!Array.prototype.indexOf) {
 
     return takeFormat.fn.apply( takeFormat, argS);
 
-    // Add the `i18nFormat` function
-    //argS.push(i18nFormat);
-    //return this.fn.apply( this, argS );
-
   };
 
-  function fnWrapperI18nFormat () {
-
-    var argS = Array.prototype.slice.call( arguments );
-    argS[ 0 ] = ( argS[ 0 ] )[ LAY.level( '/' ).attr( 'data.lang' ) ];
-
-    if ( argS[ 0 ] === undefined ) {
-      throw "LAY Error: No language defined for i18nFormat";
-    }
-
-    return LAY.$format.apply( undefined, argS );
-
-  }
+  
 
 
   LAY.Take.prototype.colorEquals = function ( val ) {
@@ -6195,18 +6347,10 @@ if (!Array.prototype.indexOf) {
 
 ( function () {
 	"use strict";
-	LAY.filter = function ( rowsWrapper ) {
-		return new LAY.Filter( rowsWrapper );
-	}
-
-})();
-
-( function () {
-	"use strict";
 
 	LAY.formation = function ( name, fargs, fn ) {
-    LAY.$formation2fargs[ name ] = fargs;
-		LAY.$formation2fn[ name ] = fn;
+    	LAY.$formation2fargs[ name ] = fargs;
+			LAY.$formation2fn[ name ] = fn;
 	};
 
 })();
@@ -6280,279 +6424,6 @@ if (!Array.prototype.indexOf) {
 
   })();
 
-( function () {
-  "use strict";
-  
-  // source: chai.js (https://github.com/chaijs/deep-eql)
-  /*!
-	* deep-eql
-	* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
-	* MIT Licensed
-	*/
-
-  /**
-	 * Assert super-strict (egal) equality between
-	 * two objects of any type.
-	 *
-	 * @param {Mixed} a
-	 * @param {Mixed} b
-	 * @param {Array} memoised (optional)
-	 * @return {Boolean} equal match
-	 */
-
-  LAY.$identical = function ( a, b ) {
-  	return deepEqual( a, b, undefined );
-  };
-
-  	/*!
-	* Module dependencies
-	*/
-
-	function type (x) {
-		return LAY.type(x);
-	}
-
-  function deepEqual(a,b,m) {
-  	var
-  		typeA = type( a ),
-  		typeB = type( b );
-
-  	if ( sameValue( a, b ) ) {
-			return true;
-		} else if ( 'color' === typeA ) {
-			return colorEqual(a, b);
-		} else if ( 'level' === typeA ) {
-			return levelEqual(a, b);
-		} else if ('date' === typeA ) {
-			return dateEqual(a, b);
-		} else if ('regexp' === typeA) {
-			return regexpEqual(a, b);
-		} else if (Buffer.isBuffer(a)) {
-			return bufferEqual(a, b);
-		} else if ('arguments' === typeA) {
-			return argumentsEqual(a, b, m);
-		} else if (('object' !== typeA && 'object' !== typeB)
-		&& ('array' !== typeA && 'array' !== typeB)) {
-			return sameValue(a, b);
-		} else {
-			return objectEqual(a, b, m);
-		}
-  }
-
-	/*!
-	* Buffer.isBuffer browser shim
-	*/
-
-	var Buffer;
-	try { Buffer = require('buffer').Buffer; }
-	catch(ex) {
-	Buffer = {};
-	Buffer.isBuffer = function() { return false; }
-	}
-
-	/*!
-	* Primary Export
-	*/
-
-
-
-	/*!
-	* Strict (egal) equality test. Ensures that NaN always
-	* equals NaN and `-0` does not equal `+0`.
-	*
-	* @param {Mixed} a
-	* @param {Mixed} b
-	* @return {Boolean} equal match
-	*/
-
-	function sameValue(a, b) {
-		if (a === b) return a !== 0 || 1 / a === 1 / b;
-		return a !== a && b !== b;
-	}
-
-
-	/*!
-	* Compare two Date objects by asserting that
-	* the time values are equal using `saveValue`.
-	*
-	* @param {Date} a
-	* @param {Date} b
-	* @return {Boolean} result
-	*/
-
-	function dateEqual(a, b) {
-		if ('date' !== type(b)) return false;
-		return sameValue(a.getTime(), b.getTime());
-	}
-
-
-	function colorEqual (a, b) {
-		return type(b) === "color" && a.equals(b);		
-	}
-
-	function levelEqual (a, b) {
-		return type(b) === "level" && ( a.pathName === b.pathName );		
-	}
-
-	/*!
-	* Compare two regular expressions by converting them
-	* to string and checking for `sameValue`.
-	*
-	* @param {RegExp} a
-	* @param {RegExp} b
-	* @return {Boolean} result
-	*/
-
-	function regexpEqual(a, b) {
-		if ('regexp' !== type(b)) return false;
-		return sameValue(a.toString(), b.toString());
-	}
-
-	/*!
-	* Assert deep equality of two `arguments` objects.
-	* Unfortunately, these must be sliced to arrays
-	* prior to test to ensure no bad behavior.
-	*
-	* @param {Arguments} a
-	* @param {Arguments} b
-	* @param {Array} memoize (optional)
-	* @return {Boolean} result
-	*/
-
-	function argumentsEqual(a, b, m) {
-		if ('arguments' !== type(b)) return false;
-		a = [].slice.call(a);
-		b = [].slice.call(b);
-		return deepEqual(a, b, m);
-	}
-
-	/*!
-	* Get enumerable properties of a given object.
-	*
-	* @param {Object} a
-	* @return {Array} property names
-	*/
-
-	function enumerable(a) {
-		var res = [];
-		for (var key in a) res.push(key);
-		return res;
-	}
-
-	/*!
-	* Simple equality for flat iterable objects
-	* such as Arrays or Node.js buffers.
-	*
-	* @param {Iterable} a
-	* @param {Iterable} b
-	* @return {Boolean} result
-	*/
-
-	function iterableEqual(a, b) {
-		if (a.length !==  b.length) return false;
-
-		var i = 0;
-		var match = true;
-
-		for (; i < a.length; i++) {
-		if (a[i] !== b[i]) {
-		  match = false;
-		  break;
-		}
-		}
-
-		return match;
-	}
-
-	/*!
-	* Extension to `iterableEqual` specifically
-	* for Node.js Buffers.
-	*
-	* @param {Buffer} a
-	* @param {Mixed} b
-	* @return {Boolean} result
-	*/
-
-	function bufferEqual(a, b) {
-		if (!Buffer.isBuffer(b)) return false;
-		return iterableEqual(a, b);
-	}
-
-	/*!
-	* Block for `objectEqual` ensuring non-existing
-	* values don't get in.
-	*
-	* @param {Mixed} object
-	* @return {Boolean} result
-	*/
-
-	function isValue(a) {
-		return a !== null && a !== undefined;
-	}
-
-	/*!
-	* Recursively check the equality of two objects.
-	* Once basic sameness has been established it will
-	* defer to `deepEqual` for each enumerable key
-	* in the object.
-	*
-	* @param {Mixed} a
-	* @param {Mixed} b
-	* @return {Boolean} result
-	*/
-
-	function objectEqual(a, b, m) {
-		if (!isValue(a) || !isValue(b)) {
-			return false;
-		}
-
-		if (a.prototype !== b.prototype) {
-			return false;
-		}
-
-		var i;
-		if (m) {
-			for (i = 0; i < m.length; i++) {
-		 	 if ((m[i][0] === a && m[i][1] === b)
-		 	 ||  (m[i][0] === b && m[i][1] === a)) {
-		 	   return true;
-		 	 }
-			}
-		} else {
-			m = [];
-		}
-
-		try {
-			var ka = enumerable(a);
-			var kb = enumerable(b);
-		} catch (ex) {
-			return false;
-		}
-
-		ka.sort();
-		kb.sort();
-
-		if (!iterableEqual(ka, kb)) {
-			return false;
-		}
-
-		m.push([ a, b ]);
-
-		var key;
-		for (i = ka.length - 1; i >= 0; i--) {
-			key = ka[i];
-			if (!deepEqual(a[key], b[key], m)) {
-			  return false;
-			}
-		}
-
-		return true;
-	}
-
-
-
-
-})();
 (function() {
   "use strict";
 
@@ -6631,7 +6502,11 @@ if (!Array.prototype.indexOf) {
       centerX: LAY.take("","left").add( takeMidpointX ),
       centerY: LAY.take("","top").add( takeMidpointY ),
       $midpointX: takeMidpointX,
-      $midpointY: takeMidpointY
+      $midpointY: takeMidpointY,
+      $absoluteLeft: LAY.take("../", "$absoluteLeft").add(
+        LAY.take("", "left") ),
+      $absoluteTop: LAY.take("../", "$absoluteTop").add(
+        LAY.take("", "top") )
     };
 
     LAY.$essentialPosAttr2take = {
@@ -6692,42 +6567,6 @@ if (!Array.prototype.indexOf) {
 
     return new LAY.Color( 'rgb', { r: 0, g: 0, b: 0 }, 0 );
 
-  };
-
-})();
-
-(function () {
-  "use strict";
-
-  // source: jquery-2.1.1.js (line 302, 529)
-
-  var typeIdentifier2_type_ = {
-  '[object Boolean]':    'boolean',
-  '[object Number]':     'number',
-  '[object String]':     'string',
-  '[object Function]':    'function',
-  '[object Array]':     'array',
-  '[object Date]':      'date',
-  '[object RegExp]':    'regexp',
-  '[object Object]':    'object',
-  '[object Error]':     'error'
-};
-
-
-  LAY.type = function( obj ) {
-    if ( obj === null ) {
-      return obj + "";
-    } else if ( obj instanceof LAY.Color ) {
-      return "color";
-    } else if ( obj instanceof LAY.Take ) {
-      return "take";
-    } else if ( obj instanceof LAY.Level ) {
-      return "level";
-    }
-    // Support: Android < 4.0, iOS < 6 (functionish RegExp)
-    return typeof obj === "object" || typeof obj === "function" ?
-    typeIdentifier2_type_[ Object.prototype.toString.call(obj) ] || "object" :
-    typeof obj;
   };
 
 })();
@@ -6839,8 +6678,7 @@ if (!Array.prototype.indexOf) {
     "$naturalWidth", "$naturalHeight",
     "$scrolledX", "$scrolledY",
     "$focused",
-    "$absoluteX", "$absoluteY",
-    "$input", "$inputFocused"
+    "$input"
   ];
   
   LAY.$checkIfImmidiateReadonly = function ( attr ) {
@@ -6856,7 +6694,7 @@ if (!Array.prototype.indexOf) {
 
   var reservedNameS = [ 
     "root", "transition", "data", "when", "onlyif",
-    "states",
+    "states", "exist",
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
@@ -6884,7 +6722,8 @@ if (!Array.prototype.indexOf) {
   function checkIfNoIllegalCharacters ( name ) {
     return ( name.indexOf(".") === -1 ) &&
       ( name.indexOf("/") === -1 ) &&
-      ( name.indexOf(":") === -1);
+      ( name.indexOf(":") === -1) &&
+      ( name.indexOf("*") === -1 );
   }
 
   LAY.$checkIsValidUtils = {
@@ -7136,7 +6975,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     var
       essentialProp,
       rootState = lson.states.root;
-        
+  
+    lson.rows = lson.rows || [];
+    
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootState[ essentialProp ] === undefined ) {
@@ -7153,7 +6994,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     filter:  new LAY.Take( "", "rows" ),
     sort: [{key:"id", ascending:true}],
     formation: "onebelow",
-    rows: [],
     fargs: {}
   };
 
@@ -7189,8 +7029,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       lazyVal,
       parentLevelRootProps;
 
-      /* Filling in the defaults here for root state lson */
-
+    /* Filling in the defaults here for root state lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootStateProps[ essentialProp ] === undefined ) {
         rootStateProps[ essentialProp ] =
@@ -7551,16 +7390,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
 (function(){
   "use strict";
-  /*var renderCall2regex = {
-    filters: /^filters/,
-    boxShadows: /^boxShadows/,
-    textShadows: /^textShadows/,
-    audioSources: /^audioSources/,
-    videoSources: /^videoSources/,
-    audioTracks: /^audioTracks/,
-    videoTracks: /^videotracks/
-  };*/
-
 
   LAY.$findRenderCall = function( prop, level ) {
 
@@ -7568,7 +7397,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       renderCall,
       multipleTypePropMatchDetails;
 
-    if ( !LAY.$checkIsValidUtils.propAttr( prop ) ||
+    if ( level.isHelper ) {
+      return "";
+    } else if ( !LAY.$checkIsValidUtils.propAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
       LAY.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {
         return undefined;
@@ -7912,10 +7743,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       hgap: 0,
       vgap: 0
     },
-    "circular": {
-      radius: null
+    "none": {
+      
     }
-
   };
 
 })();
@@ -7923,6 +7753,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 	"use strict";
 
 	LAY.$formation2fn = {
+		none: function ( f , filteredLevel, filteredLevelS, fargs ) {
+			return [ undefined, undefined ];
+		},
 		onebelow: function ( f, filteredLevel, filteredLevelS, fargs ) {
 			return [
 				undefined,
@@ -7997,6 +7830,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
   var
     rootLazyProp2defaultVal = {
+      userSelect: "auto",
+      cursor: "auto",
       textSize: 15,
       textFamily: "sans-serif",
       textWeight: "normal",
@@ -8008,7 +7843,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       textWordSpacing: 0,
       textAlign: "left",
       textDirection: "ltr",
-      textLineHeight: "1em",
+      textLineHeight: 1.3,
       textIndent: 0,
       textWrap: "nowrap",
       textWordBreak: "normal",
@@ -8018,6 +7853,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     },
     
     nonRootLazyProp2defaultVal = {
+      userSelect: LAY.take("../", "userSelect"),      
+      cursor: LAY.take("../", "cursor"),      
       textSize: LAY.take("../", "textSize"),
       textFamily: LAY.take("../", "textFamily"),
       textWeight: LAY.take("../", "textWeight"),
@@ -8067,13 +7904,11 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       scrollY: 0,
       focus: false,
       scrollElastic: true,
-      cursor: "auto",
-      userSelect: "all",
       title: null,
       backgroundColor: LAY.transparent(),
       backgroundImage: "none",
       backgroundAttachment: "scroll",
-      backgroundRepeat: true,
+      backgroundRepeat: "repeat",
       backgroundPositionX: 0,
       backgroundPositionY: 0,
       backgroundSizeX: "auto",
@@ -8145,6 +7980,269 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         nonRootLazyProp2defaultVal[ prop ] );
 
   }
+
+})();
+( function () {
+  "use strict";
+  
+  // source: chai.js (https://github.com/chaijs/deep-eql)
+  /*!
+	* deep-eql
+	* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
+	* MIT Licensed
+	*/
+
+  /**
+	 * Assert super-strict (egal) equality between
+	 * two objects of any type.
+	 *
+	 * @param {Mixed} a
+	 * @param {Mixed} b
+	 * @param {Array} memoised (optional)
+	 * @return {Boolean} equal match
+	 */
+
+  LAY.$identical = function ( a, b ) {
+  	return deepEqual( a, b, undefined );
+  };
+
+  	/*!
+	* Module dependencies
+	*/
+
+	function type (x) {
+		return LAY.$type(x);
+	}
+
+  function deepEqual(a,b,m) {
+  	var
+  		typeA = type( a ),
+  		typeB = type( b );
+
+  	if ( sameValue( a, b ) ) {
+			return true;
+		} else if ( 'color' === typeA ) {
+			return colorEqual(a, b);
+		} else if ( 'level' === typeA ) {
+			return levelEqual(a, b);
+		} else if ( 'take' === typeA || 'take' === typeB ) {
+			return false;
+		} else if ('date' === typeA ) {
+			return dateEqual(a, b);
+		} else if ('regexp' === typeA) {
+			return regexpEqual(a, b);
+		} else if ('arguments' === typeA) {
+			return argumentsEqual(a, b, m);
+		} else if (('object' !== typeA && 'object' !== typeB)
+			&& ('array' !== typeA && 'array' !== typeB)) {
+			return sameValue(a, b);
+		} else {
+			return objectEqual(a, b, m);
+		}
+  }
+
+
+	/*!
+	* Primary Export
+	*/
+
+
+
+	/*!
+	* Strict (egal) equality test. Ensures that NaN always
+	* equals NaN and `-0` does not equal `+0`.
+	*
+	* @param {Mixed} a
+	* @param {Mixed} b
+	* @return {Boolean} equal match
+	*/
+
+	function sameValue(a, b) {
+		if (a === b) return a !== 0 || 1 / a === 1 / b;
+		return a !== a && b !== b;
+	}
+
+
+	/*!
+	* Compare two Date objects by asserting that
+	* the time values are equal using `saveValue`.
+	*
+	* @param {Date} a
+	* @param {Date} b
+	* @return {Boolean} result
+	*/
+
+	function dateEqual(a, b) {
+		if ('date' !== type(b)) return false;
+		return sameValue(a.getTime(), b.getTime());
+	}
+
+
+	function colorEqual (a, b) {
+		return type(b) === "color" && a.equals(b);		
+	}
+
+	function levelEqual (a, b) {
+		return type(b) === "level" && ( a.pathName === b.pathName );		
+	}
+
+	/*!
+	* Compare two regular expressions by converting them
+	* to string and checking for `sameValue`.
+	*
+	* @param {RegExp} a
+	* @param {RegExp} b
+	* @return {Boolean} result
+	*/
+
+	function regexpEqual(a, b) {
+		if ('regexp' !== type(b)) return false;
+		return sameValue(a.toString(), b.toString());
+	}
+
+	/*!
+	* Assert deep equality of two `arguments` objects.
+	* Unfortunately, these must be sliced to arrays
+	* prior to test to ensure no bad behavior.
+	*
+	* @param {Arguments} a
+	* @param {Arguments} b
+	* @param {Array} memoize (optional)
+	* @return {Boolean} result
+	*/
+
+	function argumentsEqual(a, b, m) {
+		if ('arguments' !== type(b)) return false;
+		a = [].slice.call(a);
+		b = [].slice.call(b);
+		return deepEqual(a, b, m);
+	}
+
+	/*!
+	* Get enumerable properties of a given object.
+	*
+	* @param {Object} a
+	* @return {Array} property names
+	*/
+
+	function enumerable(a) {
+		var res = [];
+		for (var key in a) res.push(key);
+		return res;
+	}
+
+	/*!
+	* Simple equality for flat iterable objects
+	* such as Arrays or Node.js buffers.
+	*
+	* @param {Iterable} a
+	* @param {Iterable} b
+	* @return {Boolean} result
+	*/
+
+	function iterableEqual(a, b) {
+		if (a.length !==  b.length) return false;
+
+		var i = 0;
+		var match = true;
+
+		for (; i < a.length; i++) {
+			if (a[i] !== b[i]) {
+			  match = false;
+			  break;
+			}
+		}
+
+		return match;
+	}
+
+	/*!
+	* Extension to `iterableEqual` specifically
+	* for Node.js Buffers.
+	*
+	* @param {Buffer} a
+	* @param {Mixed} b
+	* @return {Boolean} result
+	*/
+
+	function bufferEqual(a, b) {
+		if (!Buffer.isBuffer(b)) return false;
+		return iterableEqual(a, b);
+	}
+
+	/*!
+	* Block for `objectEqual` ensuring non-existing
+	* values don't get in.
+	*
+	* @param {Mixed} object
+	* @return {Boolean} result
+	*/
+
+	function isValue(a) {
+		return a !== null && a !== undefined;
+	}
+
+	/*!
+	* Recursively check the equality of two objects.
+	* Once basic sameness has been established it will
+	* defer to `deepEqual` for each enumerable key
+	* in the object.
+	*
+	* @param {Mixed} a
+	* @param {Mixed} b
+	* @return {Boolean} result
+	*/
+
+	function objectEqual(a, b, m) {
+		if (!isValue(a) || !isValue(b)) {
+			return false;
+		}
+
+		if (a.prototype !== b.prototype) {
+			return false;
+		}
+
+		var i;
+		if (m) {
+			for (i = 0; i < m.length; i++) {
+		 	 if ((m[i][0] === a && m[i][1] === b)
+		 	 ||  (m[i][0] === b && m[i][1] === a)) {
+		 	   return true;
+		 	 }
+			}
+		} else {
+			m = [];
+		}
+
+		try {
+			var ka = enumerable(a);
+			var kb = enumerable(b);
+		} catch (ex) {
+			return false;
+		}
+
+		ka.sort();
+		kb.sort();
+
+		if (!iterableEqual(ka, kb)) {
+			return false;
+		}
+
+		m.push([ a, b ]);
+
+		var key;
+		for (i = ka.length - 1; i >= 0; i--) {
+			key = ka[i];
+			if (!deepEqual(a[key], b[key], m)) {
+			  return false;
+			}
+		}
+
+		return true;
+	}
+
+
+
 
 })();
 
@@ -8384,14 +8482,18 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           fromLsonRow;
 
         if ( fromLsonRowS ) {
-          intoLson.rows = new Array( fromLsonRowS.length );
-          intoLsonRowS = intoLson.rows;
-          for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
+          if ( fromLsonRowS instanceof LAY.take ) {
+            intoLson.rows = fromLsonRowS;            
+          } else {
+            intoLson.rows = new Array( fromLsonRowS.length );
+            intoLsonRowS = intoLson.rows;
+            for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
 
-            fromLsonRow = fromLsonRowS[ i ];
-            intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
-              LAY.$clone( fromLsonRow ) : fromLsonRow;
+              fromLsonRow = fromLsonRowS[ i ];
+              intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
+                LAY.$clone( fromLsonRow ) : fromLsonRow;
 
+            }
           }
         }
 
@@ -8528,7 +8630,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     "textWordBreak",
     "textWordWrap",
     "textSmoothing",
-    "textRendering"
+    "textRendering",
+    "cursor",
+    "userSelect"
   ];
 
 })();
@@ -8758,7 +8862,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
     var val, type, flattenedProp;
     val = obj[ key ];
-    type = LAY.type( val );
+    type = LAY.$type( val );
     if ( type === "array" && key !== "input" ) {
       for ( var i = 0, len = val.length; i < len; i++ ) {
         flattenedProp = prefix + ( i + 1 );
@@ -8821,7 +8925,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       }
       checkAndThrowErrorAttrAsTake( "$inherit", lson.$inherit );
       if ( ( lson.$inherit !== undefined ) &&
-        LAY.type( lson.$inherit ) !== "array" ) {
+        LAY.$type( lson.$inherit ) !== "array" ) {
           lson.$inherit = [ lson.$inherit ];
         }
     },
@@ -8840,6 +8944,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
     data: function ( lson ) {
       checkAndThrowErrorAttrAsTake( "data", lson.data );
+    },
+
+    exist: function ( lson ) {
     },
     /*
     * normalize the `lson`
@@ -9058,7 +9165,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       }
 
       many.states.root = {
-      
+        
         formation: many.formation,
         sort: many.sort,
         filter: many.filter,
@@ -9433,7 +9540,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     ],
     x: [ "left", "shiftX"],
     y: [ "top", "shiftY"],
-    origin: ["originX", "originY"],
+    origin: ["originX", "originY", "originZ" ],
     overflow: [
       "overflowX", "overflowY" ],
     backgroundPosition: [
@@ -9619,19 +9726,27 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         LAY.$naturalWidthDirtyPartS,
       naturalHeightDirtyPartS = 
         LAY.$naturalHeightDirtyPartS,
-      i;
+      i, len, attrVal;
 
-    // /console.log("h", naturalHeightDirtyPartS.map(function(item){return item.level.pathName}));
-    for ( i=naturalHeightDirtyPartS.length - 1;
-        i >= 0; i-- ) {
-      naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight.requestRecalculation();
-    }
-
-    //console.log("w", naturalWidthDirtyPartS.map(function(item){return item.level.pathName}));
-
+    // calculate natural width first
+    // as knowing natural width is useful
+    // while calculating natural height
     for ( i=naturalWidthDirtyPartS.length - 1;
         i >= 0; i-- ) {
-      naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth.requestRecalculation();
+      attrVal = 
+        naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth;
+      if ( attrVal ) {
+        attrVal.requestRecalculation();
+      }
+    }
+
+    for ( i=naturalHeightDirtyPartS.length - 1;
+        i >= 0; i-- ) {
+      attrVal = 
+        naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight;
+      if ( attrVal ) {
+        attrVal.requestRecalculation();
+      }
     }
 
     LAY.$naturalWidthDirtyPartS = [];
@@ -9673,7 +9788,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
           ".install" ];
         attrValNewlyInstalledStateInstall &&
-          ( LAY.type(attrValNewlyInstalledStateInstall.calcVal ) ===
+          ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
           "function") &&
           attrValNewlyInstalledStateInstall.calcVal.call(
           newlyInstalledStateLevel );
@@ -9691,7 +9806,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
           ".uninstall" ];
         attrValNewlyUninstalledStateUninstall &&
-          ( LAY.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
+          ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
           "function") &&
           attrValNewlyUninstalledStateUninstall.calcVal.call( 
           newlyUninstalledStateLevel );
@@ -9726,7 +9841,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       for ( i = 0; i < newLevelS.length; i++ ) {
         newLevel = newLevelS[ i ];
         if ( newLevel.$normalizeAndInherit() ) {
-          newLevel.$identifyAndReproduce();
+          newLevel.$identify();
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
           solvedLevelS.push( newLevel );
@@ -9738,7 +9853,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
-      solvedLevelS[ i ].$initAllAttrs();
+      solvedLevelS[ i ].$decideExistence();
     }
 
 
@@ -9900,5 +10015,41 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
 
 
+
+})();
+
+(function () {
+  "use strict";
+
+  // source: jquery-2.1.1.js (line 302, 529)
+
+  var typeIdentifier2_type_ = {
+  '[object Boolean]':    'boolean',
+  '[object Number]':     'number',
+  '[object String]':     'string',
+  '[object Function]':    'function',
+  '[object Array]':     'array',
+  '[object Date]':      'date',
+  '[object RegExp]':    'regexp',
+  '[object Object]':    'object',
+  '[object Error]':     'error'
+};
+
+
+  LAY.$type = function( obj ) {
+    if ( obj === null ) {
+      return obj + "";
+    } else if ( obj instanceof LAY.Color ) {
+      return "color";
+    } else if ( obj instanceof LAY.Take ) {
+      return "take";
+    } else if ( obj instanceof LAY.Level ) {
+      return "level";
+    }
+    // Support: Android < 4.0, iOS < 6 (functionish RegExp)
+    return typeof obj === "object" || typeof obj === "function" ?
+    typeIdentifier2_type_[ Object.prototype.toString.call(obj) ] || "object" :
+    typeof obj;
+  };
 
 })();

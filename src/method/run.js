@@ -23,7 +23,11 @@
       centerX: LAY.take("","left").add( takeMidpointX ),
       centerY: LAY.take("","top").add( takeMidpointY ),
       $midpointX: takeMidpointX,
-      $midpointY: takeMidpointY
+      $midpointY: takeMidpointY,
+      $absoluteLeft: LAY.take("../", "$absoluteLeft").add(
+        LAY.take("", "left") ),
+      $absoluteTop: LAY.take("../", "$absoluteTop").add(
+        LAY.take("", "top") )
     };
 
     LAY.$essentialPosAttr2take = {

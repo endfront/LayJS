@@ -5,9 +5,10 @@
 
     this.pathName = path;
     this.lson = lson;
+    // if level is many, partLson contains the non-many part of the lson
+    this.partLson = undefined;
     this.isGpu = undefined;
     this.isInitialized = false;
-    this.isRemoved = undefined;
 
     this.parentLevel = parent; // parent Level
     this.attr2attrVal = {};
@@ -18,7 +19,9 @@
 
     // If the level name begins with "_",
     // the level is considered a helper (non-renderable)
-    this.isHelper = isHelper || ( parent && parent.isHelper );
+    this.isHelper = isHelper;
+
+    this.isExist = true;
 
     // If the Level is a Many (i.e this.isPart is false)
     // then this.many will hold a reference to the corresponding
@@ -53,17 +56,13 @@
     this.newlyInstalledStateS = [];
     this.newlyUninstalledStateS = [];
 
-    // for many derived levels
-    this.formationX = undefined;
-    this.formationY = undefined;
-
   };
 
   LAY.Level.prototype.$init = function () {
 
     LAY.$pathName2level[ this.pathName ] = this;
     LAY.$newLevelS.push( this );
-   
+
   };
 
 
@@ -138,7 +137,6 @@
   };
 
   LAY.Level.prototype.many = function () {
-
     return this.derivedMany && this.derivedMany.level;
   };
 
@@ -305,23 +303,10 @@
 
   LAY.Level.prototype.$remove = function () {
 
-    var
-     parentLevel = this.parentLevel,
-     parentPart = parentLevel.part;
-
-
-    this.isRemoved = true;
+    this.$disappear();
 
     LAY.$pathName2level[ this.pathName ] = undefined;
-    LAY.$arrayUtils.remove( parentLevel.childLevelS, this );
-    
-
-    if ( this.isPart ) {
-      this.part.remove();
-    } else {
-      this.manyObj && this.manyObj.remove();
-    }
-    
+    LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
   
   };
 
@@ -333,11 +318,11 @@
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
   
-    LAY.$normalize( this.lson, false );
+    LAY.$normalize( this.lson, this.isHelper );
     
     // check if it contains anything to inherit from
     if ( this.lson.$inherit !== undefined ) { 
-      lson = { type: "none" };
+      lson = {};
       refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
         
@@ -380,7 +365,21 @@
 
   };
 
-  LAY.Level.prototype.$identifyAndReproduce = function () {
+  LAY.Level.prototype.$reproduce = function () {
+    if ( this.isPart ) {
+      this.part = new LAY.Part( this );
+      this.part.init();
+      
+      if ( this.lson.children !== undefined ) {
+        this.addChildren( this.lson.children );
+      }
+    } else {
+      this.manyObj = new LAY.Many( this, this.partLson );
+      this.manyObj.init();
+    }
+  };
+
+  LAY.Level.prototype.$identify = function () {
     this.isPart = this.lson.many === undefined;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
@@ -393,32 +392,22 @@
     }
     this.isGpu = this.isGpu && LAY.$isGpuAccelerated;
 
-
     if ( this.isPart ) {
       if ( !this.derivedMany ) {
-        LAY.$defaultizePartLson( this.lson,
-          this.parentLevel );
-      }
-      this.part = new LAY.Part( this );
-      this.part.init();
-      
-      if ( this.lson.children !== undefined ) {
-        this.addChildren( this.lson.children );
+      LAY.$defaultizePartLson( this.lson,
+        this.parentLevel );
       }
     } else {
       if ( this.pathName === "/" ) {
         throw "LAY Error: 'many' prohibited for root level /";
       }
-      var partLson = this.lson;
+      this.partLson = this.lson;
       this.lson = this.lson.many;
       // deference the "many" key from part lson
       // so as to not to associate with the lson
       // with a many creator
-      partLson.many = undefined;
+      this.partLson.many = undefined;
       LAY.$defaultizeManyLson( this.lson );
-      this.manyObj = new LAY.Many( this, partLson );
-      this.manyObj.init();
-      
     }
   };
 
@@ -499,6 +488,10 @@
         initAttrsObj(  "$$max.", slson.$$max, attr2val, false );
       }
     } else {
+
+      attr2val.formation = slson.formation;
+      attr2val.filter = slson.filter;
+      
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
@@ -506,8 +499,6 @@
         }
       }
 
-      attr2val.formation = slson.formation;
-      attr2val.filter = slson.filter;
       attr2val[ "$$num.sort" ] = slson.sort.length;
 
       for ( i = 0, len = slson.sort.length; i < len; i++ ) {
@@ -517,6 +508,65 @@
       
     }
   }
+
+  LAY.Level.prototype.$updateExistence = function () {
+    var isExist = this.attr2attrVal.exist.calcVal;
+    if ( isExist ) {
+      this.$appear();
+    } else {
+      this.$disappear();
+    }
+  };
+
+  /*
+  LAY.Level.prototype.$checkIfParentExists = function () {
+    if ( this.pathName === "/" ) {
+      return this.isExist;
+    } else {
+      return this.isExist ? this.parentLevel.$checkIfParentExists() : false;
+    }
+  };*/
+
+  LAY.Level.prototype.$appear = function () {
+    this.isExist = true;
+    this.$reproduce();
+    this.$initAllAttrs();
+
+    if ( this.isPart ) {
+      this.part.add();
+    }
+    
+  };  
+
+   LAY.Level.prototype.$disappear = function () {
+    this.isExist = false;
+    var attr2attrVal = this.attr2attrVal;
+    for ( var attr in attr2attrVal ) {
+      if ( attr !== "exist" ) {
+        attr2attrVal[ attr ].remove();
+      }
+    }
+    var descendantLevelS = this.isPart ? 
+      this.childLevelS : this.manyObj.allLevelS ;
+    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
+      descendantLevelS[ i ] &&
+        descendantLevelS[ i ].$remove();
+    }
+
+    if ( this.isPart ) {
+      this.part && this.part.remove();
+    } else {
+      this.manyObj.remove();
+    }
+   
+  };
+
+  LAY.Level.prototype.$decideExistence = function () {
+    if ( !this.isHelper ) {
+      this.$createAttrVal( "exist", this.lson.exist ===
+        undefined ? true : this.lson.exist );    
+    }
+  };
 
   LAY.Level.prototype.$initAllAttrs = function () {
 
@@ -592,6 +642,8 @@
         attr2val.$dataTravelling = false;
         attr2val.$dataTravelDelta = 0.0;
         attr2val.$dataTravelLevel = undefined;
+        attr2val.$absoluteLeft = 0;
+        attr2val.$absoluteTop = 0;
         attr2val.$windowWidth = window.innerWidth ||
          document.documentElement.clientWidth ||
           document.body.clientWidth;
@@ -604,7 +656,7 @@
         attr2val.$f = 0;
       }
     } else { // Many
-      attr2val.rows = lson.rows || [];
+      attr2val.rows = lson.rows;
       attr2val.$id = lson.$id;
       attr2val.$$layout = null;
     }
@@ -828,19 +880,25 @@
     if ( this.derivedMany &&
         !this.derivedMany.level.attr2attrVal.filter.isRecalculateRequired &&
         attr2attrVal.$f.calcVal !== 1 ) {
-      this.$setFormationXY( this.formationX,
-          this.formationY );
+      this.$setFormationXY( this.part.formationX,
+          this.part.formationY );
     }
 
 
     if ( this.pathName === "/" ) {
       if ( this.attr2attrVal.width.val !==
         this.lson.states.root.props.width ) {
-        throw "LAY Error: Width of root level unchangeable";
+        throw "LAY Error: width of root level unchangeable";
       }
       if ( this.attr2attrVal.height.val !==
         this.lson.states.root.props.height ) {
-        throw "LAY Error: Height of root level unchangeable";
+        throw "LAY Error: height of root level unchangeable";
+      }
+      if ( this.attr2attrVal.top.val !== 0 ) {
+        throw "LAY Error: top of root level unchangeable";        
+      }
+      if ( this.attr2attrVal.left.val !== 0 ) {
+        throw "LAY Error: left of root level unchangeable";        
       }
     } 
   };
@@ -868,8 +926,8 @@
 
   LAY.Level.prototype.$setFormationXY = function ( x, y ) {
 
-    this.formationX = x;
-    this.formationY = y;
+    this.part.formationX = x;
+    this.part.formationY = y;
 
     if ( this.part ) { //level might not initialized as yet
       var

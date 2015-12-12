@@ -7,7 +7,7 @@ LAY.run({
   },
   props: {
     backgroundColor: LAY.color("whitesmoke"),
-    overflowY: "scroll",
+    overflowY: "auto",
     textFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
     textSmoothing: "antialiased",
     textColor: LAY.rgb(77,77,77),
@@ -69,7 +69,7 @@ LAY.run({
           onlyif: LAY.take("Sheets", "hidden.onlyif").not(),
           props: {
             height: LAY.take("", "$naturalHeight").subtract(
-          LAY.take("Sheets", "height"))
+              LAY.take("Sheets", "height"))
           }
         }
       },
@@ -203,7 +203,7 @@ LAY.run({
               {key: "id"}
             ],
             data: {
-              category: LAY.take("/App/Container/BottomControls/Strip/Categories/Category", "rows").filterEq("selected", true).index(0).key("id")
+              category: LAY.take("/App/Container/BottomControls/Strip/Categories/Category", "data.category")
             },           
             states: {
               "active": {
@@ -468,13 +468,11 @@ LAY.run({
                     var hashVal = hash.slice(2);
                     
                     if ( ["", "active", "completed" ].indexOf( hashVal ) !== -1 ) {
-                      LAY.clog();
-                      this.rowsUpdate("selected", false);
-                      this.rowsUpdate("selected", true,
-                        this.queryRows().filterEq("id", hashVal ));
-                      LAY.unclog();
+                      this.data("category", hashVal);
                     } 
-                    
+                  },
+                  data: {
+                   category: ""
                   },
                   formation: "totheright",
                   fargs: {
@@ -484,9 +482,9 @@ LAY.run({
                   },
                   $id: "id",
                   rows: [
-                    {id: "", text: "All", selected: true },
-                    {id: "active" , text: "Active", selected: false },
-                    {id: "completed", text: "Completed", selected: false }
+                    {id: "", text: "All" },
+                    {id: "active" , text: "Active" },
+                    {id: "completed", text: "Completed" }
                   ]
                 },
                 $type: "link",             
@@ -502,14 +500,15 @@ LAY.run({
                 },
                 states: {
                   "selected": {
-                    onlyif: LAY.take("", "row.selected"),
+                    onlyif: LAY.take("*", "data.category").eq(
+                        LAY.take("", "row.id")),
                     props: {
                       borderColor: LAY.rgba(175, 47, 47, 0.2)
                     }
                   },
                   "hover": {
-                    onlyif: LAY.take("", "$hovering").eq(true).and(
-                      LAY.take("", "row.selected").not()),
+                    onlyif: LAY.take("", "$hovering").and(
+                      LAY.take("selected.onlyif").not()),
                     props: {
                       borderColor: LAY.rgba(175, 47, 47, 0.1)
                     }
@@ -517,12 +516,7 @@ LAY.run({
                 },
                 when: {
                   click: function () {
-                    if ( !this.attr("row.selected") ) {
-                      LAY.clog();
-                      this.many().rowsUpdate("selected", false);
-                      this.row("selected", true);
-                      LAY.unclog();
-                    }
+                    this.many().data("category", this.attr("row.id"));
                   }
                 }
               }                   

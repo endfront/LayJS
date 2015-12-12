@@ -10,7 +10,9 @@
     var
       essentialProp,
       rootState = lson.states.root;
-        
+  
+    lson.rows = lson.rows || [];
+    
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootState[ essentialProp ] === undefined ) {
@@ -27,7 +29,6 @@
     filter:  new LAY.Take( "", "rows" ),
     sort: [{key:"id", ascending:true}],
     formation: "onebelow",
-    rows: [],
     fargs: {}
   };
 

@@ -138,7 +138,7 @@
 
     var val, type, flattenedProp;
     val = obj[ key ];
-    type = LAY.type( val );
+    type = LAY.$type( val );
     if ( type === "array" && key !== "input" ) {
       for ( var i = 0, len = val.length; i < len; i++ ) {
         flattenedProp = prefix + ( i + 1 );
@@ -201,7 +201,7 @@
       }
       checkAndThrowErrorAttrAsTake( "$inherit", lson.$inherit );
       if ( ( lson.$inherit !== undefined ) &&
-        LAY.type( lson.$inherit ) !== "array" ) {
+        LAY.$type( lson.$inherit ) !== "array" ) {
           lson.$inherit = [ lson.$inherit ];
         }
     },
@@ -220,6 +220,9 @@
 
     data: function ( lson ) {
       checkAndThrowErrorAttrAsTake( "data", lson.data );
+    },
+
+    exist: function ( lson ) {
     },
     /*
     * normalize the `lson`
@@ -438,7 +441,7 @@
       }
 
       many.states.root = {
-      
+        
         formation: many.formation,
         sort: many.sort,
         filter: many.filter,

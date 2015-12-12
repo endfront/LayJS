@@ -1,15 +1,5 @@
 (function(){
   "use strict";
-  /*var renderCall2regex = {
-    filters: /^filters/,
-    boxShadows: /^boxShadows/,
-    textShadows: /^textShadows/,
-    audioSources: /^audioSources/,
-    videoSources: /^videoSources/,
-    audioTracks: /^audioTracks/,
-    videoTracks: /^videotracks/
-  };*/
-
 
   LAY.$findRenderCall = function( prop, level ) {
 
@@ -17,7 +7,9 @@
       renderCall,
       multipleTypePropMatchDetails;
 
-    if ( !LAY.$checkIsValidUtils.propAttr( prop ) ||
+    if ( level.isHelper ) {
+      return "";
+    } else if ( !LAY.$checkIsValidUtils.propAttr( prop ) ||
       ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
       LAY.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {
         return undefined;

@@ -16,7 +16,7 @@
 };
 
 
-  LAY.type = function( obj ) {
+  LAY.$type = function( obj ) {
     if ( obj === null ) {
       return obj + "";
     } else if ( obj instanceof LAY.Color ) {

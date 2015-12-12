@@ -19,7 +19,9 @@
     "textWordBreak",
     "textWordWrap",
     "textSmoothing",
-    "textRendering"
+    "textRendering",
+    "cursor",
+    "userSelect"
   ];
 
 })();

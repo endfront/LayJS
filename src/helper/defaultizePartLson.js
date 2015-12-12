@@ -27,8 +27,7 @@
       lazyVal,
       parentLevelRootProps;
 
-      /* Filling in the defaults here for root state lson */
-
+    /* Filling in the defaults here for root state lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootStateProps[ essentialProp ] === undefined ) {
         rootStateProps[ essentialProp ] =

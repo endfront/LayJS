@@ -17,7 +17,7 @@
     // only once.
 	  this.levelStringHashedStates2_cachedAttr2val_ = {};
 
-    this.id = level.lson.id || "id";
+    this.id = level.lson.$id || "id";
     this.id2level = {};
     this.id2row = {};
     this.isLoaded = false;
@@ -149,6 +149,7 @@
 
 
 
+
   function checkIfRowsIsNotObjectified ( rowS ) {
     return rowS.length &&
      ( typeof rowS[ 0 ] !== "object" );
@@ -160,6 +161,30 @@
       objectifiedRowS.push( { id:i+1, content: rowS[ i ] }); 
     }
     return objectifiedRowS;
+  }
+
+  function checkIfRowsHaveNoId( rowS, idKey ) {
+    var totalIds = 0;
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      if ( rowS[i][ idKey ] !== undefined ) {
+        totalIds++;
+      }
+    }
+    if ( totalIds > 0 ) {
+      if ( totalIds !== rowS.length ) {
+        throw "LAY Error: Inconsistent id provision to rows.";
+      }
+    } else if ( rowS.length ) {
+      return true;
+    }
+    return false;
+  }
+
+  function idifyRows ( rowS, idKey ) {
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      rowS[ i ][ idKey ] = i+1;
+    }
+    return rowS;
   }
 
   /*
@@ -191,6 +216,10 @@
       rowS = objectifyRows( rowS );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
+    } else if ( checkIfRowsHaveNoId( rowS, this.id ) ) {
+      rowS = idifyRows( rowS, this.id );
+      var rowsAttrVal = this.level.attr2attrVal.rows;
+      rowsAttrVal.calcVal = rowS;
     }
 
     this.sort( rowS );
@@ -207,7 +236,7 @@
           throw "LAY Error: No id provided for many " + this.pathName;
         }
   			level = new LAY.Level( this.level.pathName + ":" + id,
-  			 this.partLson, parentLevel, false, this, row, id );
+  			 this.partLson, parentLevel, this.level.isHelper, this, row, id );
         // the level has already been normalized
         // while LAY was parsing the "many" level
         level.isNormalized = true;
@@ -233,7 +262,6 @@
   		}
 
       updatedAllLevelS.push( level );
-
   	}
 
     for ( id in id2level ) {
@@ -247,6 +275,7 @@
     }
 
     this.allLevelS = updatedAllLevelS;
+
   };
 
 
@@ -378,17 +407,16 @@
 
   };
 
+
+  LAY.Many.prototype.remove = function () {
+    console.log( "TODO: complete this");
+  }
   
-
-
- 
-
 
   // below code is taken from one of the responses
   // to the stackoverflow question:
   // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
   // source: http://stackoverflow.com/a/4760279
-
   function dynamicSort( sortDict ) {
     var key = sortDict.key,
       sortOrder = sortDict.ascending ? 1 : -1;

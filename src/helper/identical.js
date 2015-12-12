@@ -27,7 +27,7 @@
 	*/
 
 	function type (x) {
-		return LAY.type(x);
+		return LAY.$type(x);
 	}
 
   function deepEqual(a,b,m) {
@@ -41,32 +41,22 @@
 			return colorEqual(a, b);
 		} else if ( 'level' === typeA ) {
 			return levelEqual(a, b);
+		} else if ( 'take' === typeA || 'take' === typeB ) {
+			return false;
 		} else if ('date' === typeA ) {
 			return dateEqual(a, b);
 		} else if ('regexp' === typeA) {
 			return regexpEqual(a, b);
-		} else if (Buffer.isBuffer(a)) {
-			return bufferEqual(a, b);
 		} else if ('arguments' === typeA) {
 			return argumentsEqual(a, b, m);
 		} else if (('object' !== typeA && 'object' !== typeB)
-		&& ('array' !== typeA && 'array' !== typeB)) {
+			&& ('array' !== typeA && 'array' !== typeB)) {
 			return sameValue(a, b);
 		} else {
 			return objectEqual(a, b, m);
 		}
   }
 
-	/*!
-	* Buffer.isBuffer browser shim
-	*/
-
-	var Buffer;
-	try { Buffer = require('buffer').Buffer; }
-	catch(ex) {
-	Buffer = {};
-	Buffer.isBuffer = function() { return false; }
-	}
 
 	/*!
 	* Primary Export
@@ -173,10 +163,10 @@
 		var match = true;
 
 		for (; i < a.length; i++) {
-		if (a[i] !== b[i]) {
-		  match = false;
-		  break;
-		}
+			if (a[i] !== b[i]) {
+			  match = false;
+			  break;
+			}
 		}
 
 		return match;

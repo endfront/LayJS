@@ -10,8 +10,11 @@
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        return path.resolve( this ).$getAttrVal( attr ).calcVal;
-        
+//        if ( attr === "rows" || attr === "filter" ) {
+  //        return LAY.$arrayUtils.cloneSingleLevel(path.resolve( this ).$getAttrVal( attr ).calcVal);
+    //    } else {
+        return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+      //  }
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -413,6 +416,40 @@
     return this;
   };
 
+  LAY.Take.prototype.slice = function ( start, end ) {
+
+    var oldExecutable = this.executable;
+
+    if ( start instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( start );
+
+      if ( end instanceof LAY.Take ) {
+        this.$mergePathAndAttrs( end );
+        this.executable = function () {
+          return oldExecutable.call( this ).slice(
+            start.execute( this ), end.execute( this ) );
+        }
+
+      } else {
+        this.executable = function () {
+          return oldExecutable.call( this ).slice(
+          start.execute( this ), end );
+        }
+      }
+    } else if ( end instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( end );
+      this.executable = function () {
+        return oldExecutable.call( this ).slice(
+          start, end.execute( this ) );
+      }
+    } else {
+      this.executable = function () {
+        return oldExecutable.call( this ).slice(
+          start, end );
+      }
+    }
+    return this;
+  };
 
   LAY.Take.prototype.min = function ( val ) {
 
@@ -624,10 +661,16 @@
   };
 
 
-
-
   LAY.Take.prototype.i18nFormat = function () {
-
+    function fnWrapperI18nFormat () {
+      var argS = Array.prototype.slice.call( arguments );
+      argS[ 0 ] = ( argS[ 0 ] )[ LAY.level( '/' ).attr( 'data.lang' ) ];
+      if ( argS[ 0 ] === undefined ) {
+        throw "LAY Error: No language defined for i18nFormat";
+      }
+      return LAY.$format.apply( undefined, argS );
+    }
+    
     this._relPath00attr_S.push( [ new LAY.RelPath( '/' ), 'data.lang' ] );
 
     var argS = Array.prototype.slice.call(arguments),
@@ -637,24 +680,9 @@
 
     return takeFormat.fn.apply( takeFormat, argS);
 
-    // Add the `i18nFormat` function
-    //argS.push(i18nFormat);
-    //return this.fn.apply( this, argS );
-
   };
 
-  function fnWrapperI18nFormat () {
-
-    var argS = Array.prototype.slice.call( arguments );
-    argS[ 0 ] = ( argS[ 0 ] )[ LAY.level( '/' ).attr( 'data.lang' ) ];
-
-    if ( argS[ 0 ] === undefined ) {
-      throw "LAY Error: No language defined for i18nFormat";
-    }
-
-    return LAY.$format.apply( undefined, argS );
-
-  }
+  
 
 
   LAY.Take.prototype.colorEquals = function ( val ) {

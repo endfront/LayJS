@@ -19,7 +19,7 @@
       for ( i = 0; i < newLevelS.length; i++ ) {
         newLevel = newLevelS[ i ];
         if ( newLevel.$normalizeAndInherit() ) {
-          newLevel.$identifyAndReproduce();
+          newLevel.$identify();
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
           solvedLevelS.push( newLevel );
@@ -31,7 +31,7 @@
     } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
-      solvedLevelS[ i ].$initAllAttrs();
+      solvedLevelS[ i ].$decideExistence();
     }
 
 

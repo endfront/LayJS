@@ -1,0 +1,32 @@
+{
+  "name": "lay-js",
+  "version": "0.9.0",
+  "description": "page layout engine",
+  "main": "LAY.js",
+  "directories": {
+    "doc": "doc",
+    "example": "example",
+    "test": "test"
+  },
+  "dependencies": {
+    "gulp": "^3.9.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/relfor/lson.git"
+  },
+  "keywords": [
+    "engine",
+    "mvc"
+  ],
+  "author": "relfor <me@relfor.co>",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/relfor/lson#readme"
+}

@@ -2,6 +2,9 @@
 	"use strict";
 
 	LAY.$formation2fn = {
+		none: function ( f , filteredLevel, filteredLevelS, fargs ) {
+			return [ undefined, undefined ];
+		},
 		onebelow: function ( f, filteredLevel, filteredLevelS, fargs ) {
 			return [
 				undefined,

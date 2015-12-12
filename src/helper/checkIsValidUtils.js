@@ -4,7 +4,7 @@
 
   var reservedNameS = [ 
     "root", "transition", "data", "when", "onlyif",
-    "states",
+    "states", "exist",
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
@@ -32,7 +32,8 @@
   function checkIfNoIllegalCharacters ( name ) {
     return ( name.indexOf(".") === -1 ) &&
       ( name.indexOf("/") === -1 ) &&
-      ( name.indexOf(":") === -1);
+      ( name.indexOf(":") === -1) &&
+      ( name.indexOf("*") === -1 );
   }
 
   LAY.$checkIsValidUtils = {

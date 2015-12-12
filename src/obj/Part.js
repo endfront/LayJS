@@ -51,7 +51,7 @@
     "backface-visibility: hidden;" +
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
-//    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
+    "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
     "user-drag:none;" +
@@ -66,15 +66,15 @@
     "font-size:15px;" +
     "font-family:sans-serif;color:black;" +
     "text-decoration:none;" +
-    "text-align:left;direction:ltr;line-height:1em;" +
+    "text-align:left;direction:ltr;line-height:1.3em;" +
     "white-space:nowrap;" +
     "-webkit-font-smoothing:antialiased;";
 
   textDimensionCalculateNodeCss = 
     defaultTextCss + 
-    "visibility:hidden;height:auto;" +
-    "overflow:visible;border-style:none;" +
-    "border-color:transparent;";
+    "visibility:hidden;height:auto;" + 
+    "overflow:visible;" +
+    "border:0px solid transparent;";
 
   inputType2tag = {
     multiline: "textarea",
@@ -138,10 +138,11 @@
 
     this.whenEventType2fnMainHandler = {};
 
-    this.absoluteY = undefined;
-    this.absoluteX = undefined;
-
     this.isImageLoaded = false;
+
+    // for many derived levels
+    this.formationX = undefined;
+    this.formationY = undefined;
 
   };
 
@@ -198,6 +199,10 @@
     } else {
       this.node.style.cssText = defaultCss;
     }
+
+    if ( this.type === "input" && this.inputType === "multiline" ) {
+      this.node.style.resize = "none";
+    }
     
 
     if ( this.type === "image" ) {
@@ -209,23 +214,30 @@
         LAY.$solve();
       });
     }
-    if ( this.level.isHelper ) {
-      this.node.style.display = "none";
-    }
-
-    if ( this.level.pathName !== "/" ) {
-      parentNode = this.level.parentLevel.part.node;
-      parentNode.appendChild( this.node );
-    }
    
   };
 
   // Precondition: not called on "/" level
   LAY.Part.prototype.remove = function () {
-    var parentPart = this.level.parentLevel.part;
-    parentPart.updateNaturalWidth();
-    parentPart.updateNaturalHeight();
-    parentPart.node.removeChild( this.node );
+    if ( this.level.pathName !== "/" ) {
+      var parentPart = this.level.parentLevel.part;
+      parentPart.updateNaturalWidth();
+      parentPart.updateNaturalHeight();
+      // If the level is inexistent from the start
+      // then the node will not have been attached
+      if ( this.node.parentNode === parentPart.node ) {
+        parentPart.node.removeChild( this.node );
+      }
+    }
+  };
+
+  LAY.Part.prototype.add = function () {
+    if ( this.level.pathName !== "/" ) {
+      var parentPart = this.level.parentLevel.part;
+      parentPart.updateNaturalWidth();
+      parentPart.updateNaturalHeight();
+      this.level.parentLevel.part.node.appendChild( this.node );
+    }
   };
 
 
@@ -248,7 +260,8 @@
         len = childLevelS.length;
          i < len; i++ ) {
       childLevel = childLevelS[ i ];
-      if ( childLevel.isPart && !childLevel.isHelper ) {
+      if ( childLevel.isPart && !childLevel.isHelper &&
+        childLevel.isExist ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
           childLevelAttrVal = childLevel.attr2attrVal[ attr ];
        
@@ -281,10 +294,6 @@
         return this.node.scrollTop;
       case "$focused":
         return node === document.activeElement;
-      case "$absoluteX":
-        return this.absoluteX;
-      case "$absoluteY":
-        return this.absoluteY;
       case "$input":
         if ( this.inputType === "multiple" ||
           this.inputType === "select" ) {
@@ -315,50 +324,6 @@
           return this.node.value;
         }
 
-    }
-  };
-
-  LAY.Part.prototype.updateAbsoluteX = function () {
-
-    var 
-      attr2attrVal = this.level.attr2attrVal,
-      relativeLeft = attr2attrVal.left.calcVal,
-      shiftX = attr2attrVal.shiftX ? attr2attrVal.shiftX.calcVal : 0,
-      parentAbsoluteX = this.level.pathName !== "/" ? 
-        this.level.parentLevel.part.absoluteX : 0,
-      absoluteX = relativeLeft + shiftX + parentAbsoluteX;
-
-    if ( typeof absoluteX === "number" ) {
-      this.absoluteX = absoluteX;
-      if ( attr2attrVal.$absoluteX ) {
-        attr2attrVal.$absoluteX.update( this.absoluteX );
-      }
-      for ( var i = 0, childLevelS = this.level.childLevelS,
-         len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteX();
-      }
-    }
-  };
-
-  LAY.Part.prototype.updateAbsoluteY = function () {
-
-    var 
-      attr2attrVal = this.level.attr2attrVal,
-      relativeTop = attr2attrVal.top.calcVal,
-      shiftY = attr2attrVal.shiftY ? attr2attrVal.shiftY.calcVal : 0,
-      parentAbsoluteY = this.level.pathName !== "/" ?
-        this.level.parentLevel.part.absoluteY : 0,
-      absoluteY = relativeTop + shiftY + parentAbsoluteY;
-
-    if ( typeof absoluteY === "number" ) {
-      this.absoluteY = absoluteY;
-      if ( attr2attrVal.$absoluteY ) {
-        attr2attrVal.$absoluteY.update( this.absoluteY );
-      }
-      for ( var i = 0, childLevelS = this.level.childLevelS,
-         len = childLevelS.length; i < len; i++ ) {
-        childLevelS[ i ].isPart && childLevelS[ i ].part.updateAbsoluteY();
-      }
     }
   };
 
@@ -422,14 +387,86 @@
 
       if ( isWidth ) {
         imageSizeMeasureNode.style.height = otherDimVal;
+        imageSizeMeasureNode.style.width = "auto";     
         return imageSizeMeasureNode.offsetWidth;
       } else {
-        imageSizeMeasureNode.style.width = otherDimVal;        
+        imageSizeMeasureNode.style.width = otherDimVal;
+        imageSizeMeasureNode.style.height = "auto";     
         return imageSizeMeasureNode.offsetHeight;
       }
     }
   };
 
+  /*
+  * ( Height occupied naturally by text can be estimated
+  * without creating a DOM node and checking ".offsetHeight"
+  * if the text does not wrap, or it does wrap however with
+  * extremely high probability does not span more than 1 line )
+  * If the height can be estimated without using a DOM node
+  * then return the estimated height, else return -1;
+  */
+  LAY.Part.prototype.estimateTextNaturalHeight = function ( text ) {
+    if ( checkIfTextMayHaveHTML ( text ) ) {
+      return -1;
+    } else {
+      var heightAttr2default = {
+        "textSize": 15,
+        "textWrap": "nowrap",
+        "textPaddingTop": 0,
+        "textPaddingBottom": 0,
+        "borderTopWidth": 0,
+        "borderBottomWidth": 0,
+        "textLineHeight": 1.3,
+        "textLetterSpacing": 1,
+        "textWordSpacing": 1,
+        "width": null
+      };
+
+      var heightAttr2val = {};
+
+      for ( var heightAttr in heightAttr2default ) {
+        var attrVal = this.level.attr2attrVal[ heightAttr ];
+        heightAttr2val[ heightAttr ] = ( attrVal === undefined ||
+          attrVal.calcVal === undefined ) ?
+          heightAttr2default[ heightAttr ] : attrVal.calcVal;
+      }
+
+
+      // Do not turn the below statement into a ternary as
+      // it will end up being unreadable
+      var isEstimatePossible = false;
+      if ( heightAttr2val.textWrap === "nowrap" ) {
+        isEstimatePossible = true;
+      } else if ( 
+          LAY.$isOkayToEstimateWhitespaceHeight &&
+          ( heightAttr2val.textWrap === "normal" ||
+          text.indexOf( "\\" ) === -1 ) && //escape characters can
+          // contain whitespace characters such as line breaks and/or tabs
+          heightAttr2val.textLetterSpacing ===  1 &&
+          heightAttr2val.textWordSpacing === 1 &&
+          heightAttr2val.width !== null ) {
+        if ( text.length <  ( 0.7 *
+            ( heightAttr2val.width / heightAttr2val.textSize ) ) ) {
+          isEstimatePossible = true;
+        }
+      }
+
+      if ( isEstimatePossible ) {
+        return ( heightAttr2val.textSize * heightAttr2val.textLineHeight ) + 
+          heightAttr2val.textPaddingTop +
+          heightAttr2val.textPaddingBottom +
+          heightAttr2val.borderTopWidth + 
+          heightAttr2val.borderBottomWidth;
+      } else {
+        return -1;
+      }      
+
+    }
+  };
+
+  function checkIfTextMayHaveHTML( text ) {
+    return text.indexOf( "<" ) !== -1 && text.indexOf( ">" ) !== -1;
+  };
   LAY.Part.prototype.calculateTextNaturalDimesion = function ( isWidth ) {
 
     var dimensionAlteringAttr2fnStyle = {
@@ -516,7 +553,17 @@
       }
       html = attr2attrVal.text.calcVal;
     }
-    var startTime = performance.now();
+
+    if ( typeof html !== "string" ) {
+      html = html.toString();
+    }
+
+    if ( !isWidth ) {
+      var estimatedHeight = this.estimateTextNaturalHeight( html );
+      if ( estimatedHeight !== -1 ) {
+        return estimatedHeight;
+      }
+    }
 
     for ( dimensionAlteringAttr in
        dimensionAlteringAttr2fnStyle ) {
@@ -543,7 +590,6 @@
       cssText += "display:inline;width:auto;";
       textSizeMeasureNode.style.cssText = cssText;
       textSizeMeasureNode.innerHTML = html;
-
       ret = textSizeMeasureNode.offsetWidth;
 
     } else {
@@ -611,8 +657,8 @@
 
     } else {
       this.whenEventType2fnMainHandler[ eventType ] = undefined;
-
     }
+  
   };
 
   LAY.Part.prototype.checkIsPropInTransition = function ( prop ) {
@@ -826,14 +872,15 @@
       var attr2attrVal = this.level.attr2attrVal;
       cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
       this.node.style[ cssPrefix + "transform" ] =
-      ( attr2attrVal.scaleX !== undefined ? "scaleX(" + attr2attrVal.scaleX.transitionCalcVal + ") " : "" ) +
-      ( attr2attrVal.scaleY !== undefined ? "scaleY(" + attr2attrVal.scaleY.transitionCalcVal + ") " : "" ) +
-      ( attr2attrVal.scaleZ !== undefined ? "scaleZ(" + attr2attrVal.scaleZ.transitionCalcVal + ") " : "" ) +
+      
       "translate(" +
       ( ( attr2attrVal.left.transitionCalcVal + ( attr2attrVal.shiftX !== undefined ? attr2attrVal.shiftX.transitionCalcVal : 0 ) ) + "px, " ) +
 
       ( ( attr2attrVal.top.transitionCalcVal + ( attr2attrVal.shiftY !== undefined ? attr2attrVal.shiftY.transitionCalcVal : 0 ) ) + "px) " ) +
       ( attr2attrVal.z !== undefined ? "translateZ(" + attr2attrVal.z.transitionCalcVal + "px) " : "" ) +
+      ( attr2attrVal.scaleX !== undefined ? "scaleX(" + attr2attrVal.scaleX.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleY !== undefined ? "scaleY(" + attr2attrVal.scaleY.transitionCalcVal + ") " : "" ) +
+      ( attr2attrVal.scaleZ !== undefined ? "scaleZ(" + attr2attrVal.scaleZ.transitionCalcVal + ") " : "" ) +
       ( attr2attrVal.skewX !== undefined ? "skewX(" + attr2attrVal.skewX.transitionCalcVal + "deg) " : "" ) +
       ( attr2attrVal.skewY !== undefined ? "skewY(" + attr2attrVal.skewY.transitionCalcVal + "deg) " : "" ) +
       ( attr2attrVal.rotateX !== undefined ? "rotateX(" + attr2attrVal.rotateX.transitionCalcVal + "deg) " : "" ) +
@@ -996,9 +1043,14 @@
     }
   };
   LAY.Part.prototype.renderFn_title = function () {
-    this.node.title.cursor =
+    this.node.title =
       this.level.attr2attrVal.
       title.transitionCalcVal;
+  };
+  LAY.Part.prototype.renderFn_tabindex = function () {
+    this.node.tabindex =
+      this.level.attr2attrVal.
+      tabindex.transitionCalcVal;
   };
 
 
@@ -1019,7 +1071,7 @@
   };
 
   LAY.Part.prototype.renderFn_backgroundRepeat = function () {
-    this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundColor.transitionCalcVal;
+    this.node.style.backgroundRepeat = this.level.attr2attrVal.backgroundRepeat.transitionCalcVal;
   };
 
 
@@ -1188,7 +1240,6 @@
   /* Text Related */
 
   LAY.Part.prototype.renderFn_text = function () {
-    
     this.node.innerHTML =
      this.level.attr2attrVal.text.transitionCalcVal;
   };

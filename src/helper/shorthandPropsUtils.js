@@ -16,7 +16,7 @@
     ],
     x: [ "left", "shiftX"],
     y: [ "top", "shiftY"],
-    origin: ["originX", "originY"],
+    origin: ["originX", "originY", "originZ" ],
     overflow: [
       "overflowX", "overflowY" ],
     backgroundPosition: [

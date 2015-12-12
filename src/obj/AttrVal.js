@@ -92,7 +92,7 @@
        "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
     } else if ( 
-      [ "formation", "filter", "sort", "ascending" ].indexOf ( attr ) !== -1 ) {
+      [ "formation", "filter", "sort" ].indexOf ( attr ) !== -1 ) {
       return true;
     } else {
       var prefix = attr.slice( 0, i );
@@ -112,9 +112,6 @@
     if ( !LAY.$identical( val, this.prevVal ) ) {
       if ( this.prevVal instanceof LAY.Take ) {
         this.takeNot( this.prevVal );
-      }
-      if ( this.attr.startsWith("row.") ) {
-        this.val = LAY.$clone( this.val );
       }
       this.isTakeValReady = false;
       this.requestRecalculation();
@@ -189,9 +186,6 @@
       attr = this.attr,
       i, len;
     
-    if ( level.isRemoved ) {
-      return true;
-    }
 
     if ( attr === "$$layout") {
       many.reLayout();
@@ -218,7 +212,8 @@
 
       recalcVal = this.val.execute( this.level );
 
-      if ( attr.startsWith("data.") ) {
+      if ( attr.startsWith("data.") ||
+        attr.startsWith("row.") ) {
         recalcVal = LAY.$clone( recalcVal );
       }
 
@@ -227,7 +222,8 @@
         this.calcVal = recalcVal;
       }
     } else {
-      if ( attr.startsWith("data.") ) {
+      if ( attr.startsWith("data.") ||
+          attr.startsWith("row.") ) {
         this.val = LAY.$clone( this.val );
       }
       if ( !LAY.$identical( this.val, this.calcVal ) ) {
@@ -240,6 +236,7 @@
       isDirty = true;
     }
 
+    /*
     switch ( attr ) {
       case "scrollX":
         // TODO: investigate the below code block's
@@ -263,8 +260,8 @@
         }
         isDirty = true;
         break;
-
     }
+    */
 
     // rows is always dirty when recalculated
     // as changes made to rows would have rows
@@ -289,7 +286,7 @@
       if ( LAY.$isDataTravellingShock ) {
         part.addTravelRenderDirtyAttrVal( this );
       }
-
+      
       if ( this.renderCall ) {
         this.startCalcVal = this.transitionCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
@@ -331,18 +328,6 @@
             if ( part.type === "image" ) {
               part.updateNaturalWidth();
             }
-            break;
-          case "left":
-            part.updateAbsoluteX();
-            break;
-          case "shiftX":
-            part.updateAbsoluteX();
-            break;
-          case "top":
-            part.updateAbsoluteY();
-            break;
-          case "shiftY":
-            part.updateAbsoluteY();
             break;
           case "imageUrl":
             part.isImageLoaded = false;
@@ -424,6 +409,9 @@
           
       } else {  
         switch( attr ) {
+          case "exist":
+            level.$updateExistence();
+            break;
           case "right":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
@@ -463,6 +451,7 @@
               part.updateNaturalHeight();
             }
             break;
+
         }
       }
     }
@@ -596,9 +585,6 @@
         relPath = _relPath00attr_S[ i ][ 0 ];
         attr = _relPath00attr_S[ i ][ 1 ];
 
-        if ( attr === "$naturalWidth" ) {
-
-        }
         relPath.resolve( this.level ).$getAttrVal( attr ).give( this );
 
       }
@@ -607,11 +593,11 @@
 
   };
 
-  LAY.AttrVal.prototype.takeNot = function ( attrVal ) {
+  LAY.AttrVal.prototype.takeNot = function ( val ) {
 
-    if ( this.val instanceof LAY.Take ) {
+    if ( val instanceof LAY.Take ) {
       var _relPath00attr_S, relPath, level, attr;
-      _relPath00attr_S = this.val._relPath00attr_S;
+      _relPath00attr_S = val._relPath00attr_S;
 
       for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
@@ -628,22 +614,9 @@
 
   };
 
-  /*
-  LAY.AttrVal.prototype.collectDependentAttrValS = function( accAttrValS ) {
-    var i, len,
-      takerAttrValS = this.takerAttrValS;
-
-    accAttrValS.push( this );
-
-    for ( i = 0, len = takerAttrValS.length;
-      i < len; i++ ) {
-      takerAttrValS[ i ].collectDependentAttrValS(
-        accAttrValS );
-    }  
-
-  };
-  */
-
+  LAY.AttrVal.prototype.remove = function () {
+    this.takeNot( this.val );
+  }
   
 
 

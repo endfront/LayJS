@@ -3,6 +3,8 @@
 
   var
     rootLazyProp2defaultVal = {
+      userSelect: "auto",
+      cursor: "auto",
       textSize: 15,
       textFamily: "sans-serif",
       textWeight: "normal",
@@ -14,7 +16,7 @@
       textWordSpacing: 0,
       textAlign: "left",
       textDirection: "ltr",
-      textLineHeight: "1em",
+      textLineHeight: 1.3,
       textIndent: 0,
       textWrap: "nowrap",
       textWordBreak: "normal",
@@ -24,6 +26,8 @@
     },
     
     nonRootLazyProp2defaultVal = {
+      userSelect: LAY.take("../", "userSelect"),      
+      cursor: LAY.take("../", "cursor"),      
       textSize: LAY.take("../", "textSize"),
       textFamily: LAY.take("../", "textFamily"),
       textWeight: LAY.take("../", "textWeight"),
@@ -73,13 +77,11 @@
       scrollY: 0,
       focus: false,
       scrollElastic: true,
-      cursor: "auto",
-      userSelect: "all",
       title: null,
       backgroundColor: LAY.transparent(),
       backgroundImage: "none",
       backgroundAttachment: "scroll",
-      backgroundRepeat: true,
+      backgroundRepeat: "repeat",
       backgroundPositionX: 0,
       backgroundPositionY: 0,
       backgroundSizeX: "auto",

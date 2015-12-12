@@ -95,6 +95,7 @@ if (!Array.prototype.indexOf) {
     $numClog: 0,
     $isSolving: false,
     $isSolveRequiredOnRenderFinish: false,
+    $isOkayToEstimateWhitespaceHeight: true,
     // The below refer to dimension
     // dirty parts whereby the dimensions
     // depend upon the child parts

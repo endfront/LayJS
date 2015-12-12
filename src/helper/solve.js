@@ -96,19 +96,27 @@
         LAY.$naturalWidthDirtyPartS,
       naturalHeightDirtyPartS = 
         LAY.$naturalHeightDirtyPartS,
-      i;
+      i, len, attrVal;
 
-    // /console.log("h", naturalHeightDirtyPartS.map(function(item){return item.level.pathName}));
-    for ( i=naturalHeightDirtyPartS.length - 1;
-        i >= 0; i-- ) {
-      naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight.requestRecalculation();
-    }
-
-    //console.log("w", naturalWidthDirtyPartS.map(function(item){return item.level.pathName}));
-
+    // calculate natural width first
+    // as knowing natural width is useful
+    // while calculating natural height
     for ( i=naturalWidthDirtyPartS.length - 1;
         i >= 0; i-- ) {
-      naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth.requestRecalculation();
+      attrVal = 
+        naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth;
+      if ( attrVal ) {
+        attrVal.requestRecalculation();
+      }
+    }
+
+    for ( i=naturalHeightDirtyPartS.length - 1;
+        i >= 0; i-- ) {
+      attrVal = 
+        naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight;
+      if ( attrVal ) {
+        attrVal.requestRecalculation();
+      }
     }
 
     LAY.$naturalWidthDirtyPartS = [];
@@ -150,7 +158,7 @@
           newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
           ".install" ];
         attrValNewlyInstalledStateInstall &&
-          ( LAY.type(attrValNewlyInstalledStateInstall.calcVal ) ===
+          ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
           "function") &&
           attrValNewlyInstalledStateInstall.calcVal.call(
           newlyInstalledStateLevel );
@@ -168,7 +176,7 @@
           newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
           ".uninstall" ];
         attrValNewlyUninstalledStateUninstall &&
-          ( LAY.type( attrValNewlyUninstalledStateUninstall.calcVal) ===
+          ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
           "function") &&
           attrValNewlyUninstalledStateUninstall.calcVal.call( 
           newlyUninstalledStateLevel );

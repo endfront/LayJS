@@ -34,6 +34,7 @@ LAY involves writing LSON (Layout Syntax Object Notation)
           $observe: [ string, ... ],
           $load: function,
 
+          exist: take | boolean,
           data: object | array | string | number,
           props: object,
           when: object,
@@ -66,12 +67,12 @@ LAY involves writing LSON (Layout Syntax Object Notation)
           },
           states: {
               < name >: {
-                  props: object,
-                  when: object,
-                  onlyif: LAY.Take,
-                  transition: transitionObj,
-                  install: function,
-                  uninstall: function
+                props: object,
+                when: object,
+                onlyif: LAY.Take,
+                transition: transitionObj,
+                install: function,
+                uninstall: function
               }
           },
           children: LSON
@@ -327,15 +328,19 @@ Defaults:
 - cursor
   `string`
   CSS cursor property
-  Default: 'auto'
+  Default: LAY.take("../", "cursor") [for "/": "auto"]
 
 - userSelect
   `string`
   CSS user-select
-  Default: "all"
+  Default: LAY.take("../", "userSelect") [for "/": "auto"]
 
 - title
   `string`
+  Default: none
+
+- tabindex
+  `number`
   Default: none
 
 - background (no support for multiple backgrounds)
@@ -344,7 +349,7 @@ Defaults:
     color: LAY.Color (Default: transparent),
     image: string (CSS background-image)(Default: none),
     attachment: string (CSS background-attachment) (Default: "scroll"),
-    repeat: string (CSS background-repeat) (Default: true),
+    repeat: string (CSS background-repeat) (Default: "repeat"),
     positionX: string (CSS background-position-x) [non-transitionable] / number (in pixels) (Default: 0),
     positionY: string (CSS background-position-y) [non-transitionable] / number (in pixels) (Default: 0),
     sizeX: string (CSS background-size-x) [non-transitionable] / number (in pixels) (Default: "auto"),
@@ -482,7 +487,7 @@ Defaults:
   `number` / `string`
   `number`: In em.  
   `string`: CSS line-height [non-transitionable]
-  Default: LAY.take("../", "textLineHeight") [for "/": 1]
+  Default: LAY.take("../", "textLineHeight") [for "/": 1.3]
 
 - textSmoothing
   `string`
@@ -723,11 +728,11 @@ Defaults:
     - $naturalHeight (`number`)
       Height of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the height occupied by the children parts.
 
-    - $absoluteX (`number`)
-      Position in pixels of the left of the element relative to the root level ( irrespective of the amount scrolled horizontally ).
+    - $absoluteTop (`number`)
+      Top of the element added with $absoluteTop of its parent level.
 
-    - $absoluteY (`number`)
-      Position in pixels of the top of the element relative to the root level ( irrespective of the amount scrolled vertically ).
+    - $absoluteLeft (`number`)
+      Left of the element added with $absoluteLeft of its parent level.
 
     - $id (`string`)
       The name of the unique key which is reponsible for id for each row in `rows` for many-level
@@ -816,7 +821,7 @@ example with multiple callback functions specified (with the aid on array):
     })
 
 
-### LSON.load
+### LSON.$load
 
 Functions called upon loading of level, with the context of the level.
 
@@ -869,7 +874,7 @@ LAY.Take methods
   - log, pow
   - negative (unary)
   - number (converts to number)
-  - index, length (for array)
+  - index, length, slice (for array)
   - key (for dict)
   - concat, lowercase, capitalize, uppercase (for string)
   - fn (context `this` is the `Level`)
@@ -931,7 +936,7 @@ eg of take with color:
 
 ### Order of Transformation
 
-Scale -> Position -> Skew -> Rotate
+Position -> Scale -> Skew -> Rotate
 
 
 ### Inheritance
@@ -967,7 +972,6 @@ looks like:
       $inherit [ '../Box', someBoxObject ]
     }
   })
-
 
 
 for example:
@@ -1106,6 +1110,12 @@ would essentially compile to:
 
   - Current
     ''
+
+  - Many Level 
+    "*" / "many"
+
+  - Closest Many Derived Parent
+    ".../"
 
   - Special
       - '' ('.')
@@ -1264,7 +1274,7 @@ formation:
 All built-in formations:
   - "onebelow"
   - "totheright"
-  - "grid" [coming soon]
+  - "grid"
 
 
 Formation Arguments:
@@ -1274,10 +1284,13 @@ LSON key "many.fargs.< formation name >"
 Below are formation arguments for corresponding formations:
 
   - "onebelow"
-    - gap: specifies the distance in pixels to be kept vertically between consecutive Levels
+    - gap: distance in pixels to be kept vertically between consecutive Levels
   - "totheight"
-    - gap: specifies the distance in pixels to be kept horizontally between consecutive Levels
-
+    - gap: distance in pixels to be kept horizontally between consecutive Levels
+  - "grid"
+    - hgap: distance in pixels to be kept horizontally
+    - vgap: distance in pixels to be kept vertically
+    - columns: number of columns
 
 Formation Creation:
 

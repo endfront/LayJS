@@ -235,14 +235,18 @@
           fromLsonRow;
 
         if ( fromLsonRowS ) {
-          intoLson.rows = new Array( fromLsonRowS.length );
-          intoLsonRowS = intoLson.rows;
-          for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
+          if ( fromLsonRowS instanceof LAY.take ) {
+            intoLson.rows = fromLsonRowS;            
+          } else {
+            intoLson.rows = new Array( fromLsonRowS.length );
+            intoLsonRowS = intoLson.rows;
+            for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
 
-            fromLsonRow = fromLsonRowS[ i ];
-            intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
-              LAY.$clone( fromLsonRow ) : fromLsonRow;
+              fromLsonRow = fromLsonRowS[ i ];
+              intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
+                LAY.$clone( fromLsonRow ) : fromLsonRow;
 
+            }
           }
         }
 

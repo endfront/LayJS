@@ -5,8 +5,7 @@
     "$naturalWidth", "$naturalHeight",
     "$scrolledX", "$scrolledY",
     "$focused",
-    "$absoluteX", "$absoluteY",
-    "$input", "$inputFocused"
+    "$input"
   ];
   
   LAY.$checkIfImmidiateReadonly = function ( attr ) {

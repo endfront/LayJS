@@ -12,10 +12,9 @@
       hgap: 0,
       vgap: 0
     },
-    "circular": {
-      radius: null
+    "none": {
+      
     }
-
   };
 
 })();
