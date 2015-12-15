@@ -1,13 +1,11 @@
 
 Current:
-  - remove rows from state
+  - netflix responsive problem please fix
+  - formationX/Y undefined then skip setting it? new thing = null?
+  - move website, and examples to separate folder
   - $id attrVal undefined
-  - objectEqual(a, b, m) [remove 3rd arg m]
-  - rename $observe
-  - decide whether to clone rows, filter, data, color (remove forceRecalculate then) 
-  - add children should modify existing Level.lson
+  - $$relayout at end of solving
   - investigate "-text-size-adjust"
-  - (special relative path compounds) LAY take ("*/fergerg") ? or ("../*/ergerg") ? or ("../x/*/more") (FYI "*" can only be a suffix) ?
   - grid formation fill vertically, vgrid?
   - invesitagte width (recalc) undefined in switch-case
   - defaultize many lson fargs which are mentioned in states but not otherwise
@@ -19,7 +17,6 @@ Current:
   - function to get all partLevelS from many?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
-  - ".../" to reach row level from descendant level compound
   - LAY.Many.remove()
   - add copyright to js files
   - test Textarea
@@ -44,9 +41,10 @@ Current:
   - queryAll, queryFiltered
 
 Future:
-  - shortcircuit LAY.Take.and()
+  - shortcircuit LAY.Take.and/or()
   - LAY.Take.percent()
   - input:file
+  - objectEqual(a, b, m) [remove 3rd arg m]
   - check for illegal characters id row.id val
   - take.colorRed -> take.colorSetRed? or take.colorGetRed? (clarify)
   - video controls $readonly (eg: $videoMuted)
@@ -72,6 +70,3 @@ Future:
 cry about:
   - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
   - "-moz-user-select" unactivated from JS
-
-research:
-  - http://jsperf.com/origin-px-vs-percent

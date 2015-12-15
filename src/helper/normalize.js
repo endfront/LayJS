@@ -9,10 +9,12 @@
     takeHeight,
     takeParentWidth,
     takeParentHeight,
+    takeZeroCenterX,
+    takeZeroCenterY,
     key2fnNormalize;
 
-  fnCenterToPos = function( center, dim ) {
-    return center - ( dim / 2 );
+  fnCenterToPos = function( center, dim, parentDim ) {
+    return ( parentDim / 2 ) +  ( center - ( dim / 2 ) );
   };
 
   fnOppEdgeToPos = function( edge, dim, parentDim ) {
@@ -25,6 +27,12 @@
 
   takeParentWidth = new LAY.take( "../", "width");
   takeParentHeight = new LAY.take( "../", "height");
+
+  takeZeroCenterX = ( new LAY.take("../", "width")).half().minus(
+    ( new LAY.take("", "width") ).half() );
+
+  takeZeroCenterY = ( new LAY.take("../", "height")).half().minus(
+    ( new LAY.take("", "height") ).half() );
 
   LAY.$normalize = function( lson, isExternal ) {
 
@@ -103,8 +111,8 @@
       errorReadonly = "inherit";
     } else if ( lson.gpu ) {
       errorReadonly = "gpu";
-    } else if ( lson.observe ) {
-      errorReadonly = "observe";
+    } else if ( lson.obdurate ) {
+      errorReadonly = "obdurate";
     } else if ( lson.type ) {
       errorReadonly = "type"
     }
@@ -206,8 +214,8 @@
         }
     },
 
-    $observe: function ( lson ) {
-      checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
+    $obdurate: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$obdurate", lson.$obdurate );
     },
 
     $load: function ( lson ) {
@@ -247,20 +255,28 @@
 
 
       if ( prop2val.centerX !== undefined ) {
-        prop2val.left = ( new LAY.Take( fnCenterToPos ) ).fn(
-           prop2val.centerX, takeWidth );
+        if ( prop2val.centerX === 0 ) { //optimization
+          prop2val.left = takeZeroCenterX;
+        } else {
+          prop2val.left = ( new LAY.Take( fnCenterToPos ) ).fn(
+            prop2val.centerX, takeWidth, takeParentWidth );
+        }
         prop2val.centerX = undefined;
       }
 
       if ( prop2val.right !== undefined ) {
         prop2val.left = ( new LAY.Take( fnOppEdgeToPos ) ).fn(
-           prop2val.right, takeWidth, takeParentWidth );
+          prop2val.right, takeWidth, takeParentWidth );
         prop2val.right = undefined;
       }
 
       if ( prop2val.centerY !== undefined ) {
-        prop2val.top = ( new LAY.Take( fnCenterToPos ) ).fn(
-           prop2val.centerY, takeHeight );
+        if ( prop2val.centerY === 0 ) { //optimization
+          prop2val.top = takeZeroCenterY;
+        } else {
+          prop2val.top = ( new LAY.Take( fnCenterToPos ) ).fn(
+            prop2val.centerY, takeHeight, takeParentHeight );
+        }
         prop2val.centerY = undefined;
       }
 

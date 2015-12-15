@@ -11,6 +11,8 @@ var NFICON = {
   dot: "&#58914;"
 };
 
+
+
 LAY.run({
   data: {
     margin: LAY.take("/", "width").multiply(0.04),
@@ -44,7 +46,8 @@ LAY.run({
   "_Arrow": {
     props: {
       zIndex: "2",
-      centerY: LAY.take("../", "$midpointY"),
+      centerY: 0,
+      centerX: 0,
       textLineHeight: 1,
       cursor: "pointer",
       textFamily: "nf-icon",
@@ -149,7 +152,7 @@ LAY.run({
       props: {
         left: LAY.take("../Icon", "right").add(
           LAY.take("/", "data.vw").multiply(0.6)),
-        centerY: LAY.take("../", "$midpointY"),
+        centerY: 0,
         text: "MY LIST",
         textSize: LAY.take("/", "data.vw").multiply(1.1),
         textWeight: "700"
@@ -204,7 +207,7 @@ LAY.run({
     "Logo": {
       props: {
         left: LAY.take("/", "data.margin"),
-        centerY: LAY.take("../", "$midpointY"),
+        centerY: 0,
         text: NFICON.logo,
         textFamily: "nf-icon",
         textSize:32,
@@ -220,6 +223,9 @@ LAY.run({
       overflowY:"auto"
     },
     "Billboards": {
+      props: {
+        width: LAY.take("/", "width")
+      },
       data: {
         currentF: 1,
         total: LAY.take("Billboard", "rows").length()
@@ -252,6 +258,13 @@ LAY.run({
       },
       "Next": {
         $inherit: "../_BillboardArrow",
+        $load: function () {
+          var self = this;
+          // TODO: pause interval while hovering billboards
+          setInterval( function() {
+            self.attr("when.click.1").call( self );
+          }, 10000);
+        },
         props: {
           right: 0,
           text: NFICON.rightArrow
@@ -324,7 +337,7 @@ LAY.run({
             "Year": {
               props: {
                 text: LAY.take(".../", "row.year"),
-                centerY: LAY.take("../Rating", "centerY")
+                centerY: 0
               }
             },
             "Rating": {
@@ -339,7 +352,7 @@ LAY.run({
             "Length": {
               props: {
                 left: LAY.take("../Rating", "right").plus(10),
-                centerY: LAY.take("../Rating", "centerY"),
+                centerY: 0,
                 text: LAY.take(".../", "row.length")
               }
             }
@@ -415,8 +428,8 @@ LAY.run({
               width: LAY.take("", "$naturalWidth").max(
                   LAY.take("", "$naturalHeight")),
               height: LAY.take("", "width"),
-              centerX: LAY.take("../", "$midpointX"),
-              centerY: LAY.take("../", "$midpointY"),
+              centerX: 0,
+              centerY: 0,
               cornerRadius: LAY.take("", "width"),
               border: {style: "solid",
                 color: LAY.color("white"),
@@ -456,7 +469,7 @@ LAY.run({
       "Dots": {
         props: {
           bottom: 10,
-          centerX: LAY.take("../", "$midpointX"),
+          centerX: 0,
           zIndex: "2"
         },
         "Dot": {
@@ -504,11 +517,13 @@ LAY.run({
       "_Nav": {
         props: {
           cursor: "pointer",
-          top: LAY.take("../Title", "bottom"),
+          top: LAY.take("../Title", "bottom").add(
+              LAY.take("/", "data.vw").multiply(0.7)),
           width: LAY.take("/", "data.margin"),
           height: LAY.take("/", "data.optionBaseWidth").multiply(
             LAY.take("/", "data.optionAspectRatio")),
-          backgroundColor: LAY.rgba(20,20,20,0.5)
+          backgroundColor: LAY.rgba(20,20,20,0.5),
+          zIndex: "4"
         },
         states: {
           "hovering": {
@@ -516,11 +531,20 @@ LAY.run({
             props: {
               backgroundColor: LAY.rgba(20,20,20,0.7)
             }
+          },
+          "notneeded": {
+            onlyif: LAY.take(".../", "row.options").length().lte(
+              LAY.take("/", "data.spread")),
+            props: {
+              visible: false
+            }
           }
         }
       },
       "_BaseOption": {
         props: {
+          top: LAY.take("../../Title", "bottom").add(
+                LAY.take("/", "data.vw").multiply(0.7)),
           width: LAY.take("/", "data.optionBaseWidth"),
           height: LAY.take("", "width").multiply( 
             LAY.take("/", "data.optionAspectRatio") ),
@@ -530,7 +554,7 @@ LAY.run({
           },
           background: { 
             image: LAY.take("url('%s')").format(
-              LAY.take("", "data.image")),
+              LAY.take("", "row.cover")),
             repeat: "no-repeat",
             positionX: "50%",
             positionY: "50%",
@@ -549,17 +573,13 @@ LAY.run({
           },
           rows: []
         },
-        data: {
-          doesWrap: LAY.take("*", "rows").length().gt(
-            LAY.take("/", "data.spread")
-          )
-        },
+       
         props: {
           width: LAY.take("../", "width")
         },      
         "Title": {
           props: {
-            left: LAY.take("/", "data.margin"),
+            left: LAY.take("/", "data.margin").plus(2),
             text: LAY.take("../", "row.title"),
             textColor: LAY.hex(0x999999),
             textWeight: "700",
@@ -567,46 +587,90 @@ LAY.run({
           }
         },
         "Options": {
+          data: {
+            doesWrap: LAY.take("Option", "rows").length().gt(
+              LAY.take("/", "data.spread")),
+            shift: 0,
+            isSlide: true
+          },
           props: {
-            top: LAY.take("../Title", "bottom").add(
-              LAY.take("/", "data.vw").multiply(0.7))
+            shiftX: LAY.take("/", "data.optionBaseWidth").multiply(
+                    LAY.take("", "data.shift").plus(
+                      LAY.take("Option", "data.slideOffset")
+                      )).negative()
+          },
+          states: {
+            "shift": {
+              onlyif: LAY.take("", "data.isSlide"),
+              transition: {
+                "shiftX": {
+                  type: "ease",
+                  duration: 500,
+                  done: function () {
+                    var
+                      curShift = this.attr("data.shift"),
+                      actualLength = this.level("Option").attr(
+                        "data.actualLength"),
+                      spread = LAY.level("/").attr("data.spread"),
+                      self = this;
+                    if ( curShift + spread > actualLength ) {
+                      this.data("isSlide", false);
+                      this.data("shift", 0);
+                      setTimeout( function () {
+                        self.data("isSlide", true);
+                      });
+                    } else if ( curShift < 0 ) {
+                      this.data("isSlide", false);
+                      this.data("shift", 
+                        ( Math.floor( ( actualLength -spread ) / spread ) * spread ) +
+                        actualLength % spread );
+                      setTimeout( function () {
+                        self.data("isSlide", true);
+                      });                    
+                    }
+                  }                  
+                }
+              }
+            }
           },
           "Option": {
             $inherit: "../../../_BaseOption",
+
             many: {
+              data: {
+                slideOffset: LAY.take(function(options, spread){
+                  return options.length > spread ? 
+                    spread+1 : 0; 
+                }).fn(LAY.take(".../", "row.options"),
+                  LAY.take("/", "data.spread")),
+                actualLength: LAY.take("", "rows").length().minus(
+                  LAY.take("", "data.slideOffset").double())
+              },
               formation: "totheright",
-              rows: LAY.take(".../", "row.options")
-            },
-            data: {
-              image: LAY.take("", "row.cover")
+              rows: LAY.take( function ( options, spread ) {
+                if ( options.length > spread ) {
+                  var headSlice = options.slice( -(spread+1) );
+                  var options = headSlice.concat( options ).concat(
+                   options.slice( 0, (spread+1) ) );
+                } else {
+                  
+                }
+                for ( var i=0; i<options.length; i++ ) {
+                  options[ i ] = LAY.$clone( options[ i ]);
+                }
+                return options;
+                }).fn(LAY.take(".../", "row.options"),
+                  LAY.take("/", "data.spread")),
+              $id: "order"
             },
             props: {
+              left:  LAY.take("/", "data.margin"),
               cursor: "pointer",
-              left: LAY.take("/", "data.margin")
+              zIndex: "2"
             }
           }
         },
-        /*"Tail": {
-          $inherit: "../../_BaseOption"
-          data: {
-            shown: LAY.take("../", "data.doesWrap"),
-            image: ""  
-          },
-          props: {
-            left: LAY.take("../Options", "left").minus(
-              LAY.take("", "width")),
-            width: LAY.take("/", "data.optionBaseWidth"),
-            height: LAY.take("", "width").multiply(
-              LAY.take("/", "data.optionAspectRatio")),
-            background: { 
-              repeat: "no-repeat",
-              positionX: "50%",
-              positionY: "50%",
-              sizeX: "100%",
-              sizeY: "100%"
-            }
-          }
-        },*/
+       
         "Prev": {
           $inherit: "../../_Nav",
           "Arrow": {
@@ -615,8 +679,23 @@ LAY.run({
               isHovering: LAY.take("../", "$hovering")
             },           
             props: {
-              centerX: LAY.take("../", "$midpointX"),
               text: NFICON.leftArrow
+            }
+          },
+          when: {
+            click: function () {
+              var
+                options = this.level("../Options"),
+                many = this.level("../Options/Option"),
+                levels = many.levels(),
+                slideOffset = many.attr("data.slideOffset"),
+                actualLength = many.attr("data.actualLength"),
+                spread = LAY.level("/").attr("data.spread"),
+                curShift = options.attr("data.shift"),
+                numShift = curShift === 0 ? spread :
+                  Math.min(spread,
+                    curShift);
+              options.data("shift", curShift - numShift);
             }
           }
         },
@@ -631,8 +710,23 @@ LAY.run({
               isHovering: LAY.take("../", "$hovering")
             },           
             props: {
-              centerX: LAY.take("../", "$midpointX"),
               text: NFICON.rightArrow
+            }
+          },
+          when: {
+            click: function () {
+              var
+                options = this.level("../Options"),
+                many = this.level("../Options/Option"),
+                levels = many.levels(),
+                slideOffset = many.attr("data.slideOffset"),
+                actualLength = many.attr("data.actualLength"),
+                spread = LAY.level("/").attr("data.spread"),
+                curShift = options.attr("data.shift"),
+                numShift = curShift + spread === actualLength ? spread :
+                  Math.min(spread,
+                    actualLength-curShift-spread);
+              options.data("shift", curShift + numShift);
             }
           }
         }

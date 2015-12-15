@@ -10,24 +10,21 @@
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-//        if ( attr === "rows" || attr === "filter" ) {
-  //        return LAY.$arrayUtils.cloneSingleLevel(path.resolve( this ).$getAttrVal( attr ).calcVal);
-    //    } else {
         return path.resolve( this ).$getAttrVal( attr ).calcVal;          
-      //  }
       };
     } else { // direct value provided
       _relPath00attr_S = [];
       // note that 'relativePath' is misleading name
       // here in this second overloaded case
       var directValue = relativePath;
-
       if ( directValue instanceof LAY.Take ) {
-          this.$mergePathAndAttrs( directValue );
+        this.executable = directValue.executable;
+        _relPath00attr_S = directValue._relPath00attr_S;
+      } else {
+        this.executable = function () {
+          return directValue;
+        };
       }
-      this.executable = function () {
-        return directValue;
-      };
     }
 
     this._relPath00attr_S = _relPath00attr_S;
@@ -100,7 +97,9 @@
         return oldExecutable.call( this ) / val.execute( this );
       };
     } else {
-
+      if ( val === 2 ) {
+        return this.half();
+      }
       this.executable = function () {
         return oldExecutable.call( this ) / val;
       };
@@ -118,7 +117,9 @@
         return oldExecutable.call( this ) * val.execute( this );
       };
     } else {
-
+      if ( val === 2 ) {
+        return this.double();
+      }
       this.executable = function () {
         return oldExecutable.call( this ) * val;
       };
@@ -670,7 +671,7 @@
       }
       return LAY.$format.apply( undefined, argS );
     }
-    
+
     this._relPath00attr_S.push( [ new LAY.RelPath( '/' ), 'data.lang' ] );
 
     var argS = Array.prototype.slice.call(arguments),

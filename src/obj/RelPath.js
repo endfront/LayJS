@@ -6,35 +6,45 @@
 
     this.isMe = false;
     this.isMany = false;
+    this.path = "";
     this.isAbsolute = false;
-    this.isClosestRow = false;
+    this.traverseArray = [];
+
 
     if  ( relativePath === "" ) {
       this.isMe = true;
-
-    } else if ( 
-      ( relativePath === "*" ) ||
-      ( relativePath === "many" ) ) { 
-      this.isMany = true;
-    } else if ( relativePath.startsWith(".../")) {
-      this.isClosestRow = true;
-      this.childPath = relativePath.slice(4);
     } else {
       if ( relativePath.charAt(0) === "/" ) {
         this.isAbsolute = true;
-        this.absolutePath = relativePath;
+        this.path = relativePath;
       } else {
-        this.absolute = false;
-        this.numberOfParentTraversals =
-         ( relativePath.match( /^(..\/)*/ )[ 0 ].length ) / 3;
+        var i=0;
+        while ( relativePath.charAt( i ) === "." ) {
+          if ( relativePath.slice(i, i+3) === "../" ) {
+            this.traverseArray.push(0);
+            i +=3;
+          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+            this.traverseArray.push(1);
+            i += 4;
+          } else {
+            throw "LAY Error: Error in Take path: " + relativePath;
+          }
+        }  
         // strip off the "../"s
         // eg: "../../Body" should become "Body"
-        this.childPath = this.numberOfParentTraversals === 0 ? relativePath :
-         relativePath.substring( (
-           (this.numberOfParentTraversals) * 3 ) );
-
+        this.path = relativePath.slice( i );
+      }
+      if ( this.path.length !== 0 &&
+          this.path.indexOf("*") === this.path.length - 1 ) {
+        this.isMany = true;
+        if ( this.path.length === 1 ) {
+          this.path = "";
+        } else {
+          this.path = this.path.slice(0, this.path.length-2);
+        }
       }
     }
+    
 
   };
 
@@ -43,29 +53,33 @@
 
     if ( this.isMe ) {
       return referenceLevel;
-    } else if ( this.isMany ) { 
-      return referenceLevel.derivedMany.level;
     } else {
+      var level;
       if ( this.isAbsolute ) {
-          return LAY.$pathName2level[ this.absolutePath ];
+        level = LAY.$pathName2level[ this.path ];
       } else {
-        if ( this.isClosestRow ) {
-          while (!referenceLevel.derivedMany ) {
-            referenceLevel = referenceLevel.parentLevel;
-          }
-          if ( referenceLevel === undefined ) {
-            throw "LAY Error: Closest row level for */ now found";
-          }
-        } else {
-          for ( var i = 0; i < this.numberOfParentTraversals;
-           ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        level = referenceLevel;
+        var traverseArray = this.traverseArray;
+
+        for ( var i=0, len=traverseArray.length; i<len; i++ ) {
+          if ( traverseArray[ i ] === 0 ) { //parent traversal
+            level = level.parentLevel;
+          } else { //closest row traversal
+            while ( !level.derivedMany ) {
+              level = level.parentLevel;
+            }
           }
         }
 
-          return ( this.childPath === "" ) ? referenceLevel :
-              LAY.$pathName2level[ referenceLevel.pathName +
-              ( ( referenceLevel.pathName === "/" ) ? "" : "/" )+
-              this.childPath ];
+        level =  ( this.path === "" ) ? level :
+              LAY.$pathName2level[ level.pathName +
+              ( ( level.pathName === "/" ) ? "" : "/" )+
+              this.path ];
+      }
+      if ( this.isMany ) {
+        return level.derivedMany.level;
+      } else {
+        return level;
       }
     }
   };

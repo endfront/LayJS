@@ -11,23 +11,21 @@
   /*
   * Inherit the root, state, or many LSON from `from` into `into`.
   */
-  LAY.$inherit = function ( into, from, isMany, isState, isRootState ) {
+  LAY.$inherit = function ( into, from, isStateInheritance, isMany, isMainLson ) {
 
-    if ( !isState ) {
+    if ( !isStateInheritance ) {
       for ( var key in from ) {
         if ( from[ key ] ) {
           if ( key2fnInherit[ key ] ) {
             key2fnInherit[ key ]( into, from, isMany );
           } else {
-            if ( key !== "$interface" ) {
-              into[ key ] = from[ key ];
-            }
+            into[ key ] = from[ key ];
           }
         }
       }
     } else {
 
-      if ( !isRootState ) {
+      if ( !isMainLson ) {
         into.onlyif = from.onlyif || into.onlyif;
         into.install = from.install || into.install;
         into.uninstall = from.uninstall || into.uninstall;
@@ -223,7 +221,7 @@
         }
 
         LAY.$inherit( intoLson.many, fromLson.many,
-          false, false, false );
+          false, true, false );
 
       },
 
@@ -235,7 +233,7 @@
           fromLsonRow;
 
         if ( fromLsonRowS ) {
-          if ( fromLsonRowS instanceof LAY.take ) {
+          if ( fromLsonRowS instanceof LAY.Take ) {
             intoLson.rows = fromLsonRowS;            
           } else {
             intoLson.rows = new Array( fromLsonRowS.length );
@@ -317,7 +315,7 @@
           }
 
           LAY.$inherit( intoStateName2state[ name ],
-           fromStateName2state[ name ], isMany, true, false );
+           fromStateName2state[ name ], true, isMany, false );
 
         }
       },

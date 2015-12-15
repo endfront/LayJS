@@ -185,12 +185,7 @@
       many = level.manyObj,
       attr = this.attr,
       i, len;
-    
 
-    if ( attr === "$$layout") {
-      many.reLayout();
-      return true;
-    }
 
     if ( attr.charAt( 0 ) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
@@ -270,7 +265,7 @@
       isDirty = true;
       level.attr2attrVal.filter.forceRecalculation();
     }
-    
+
     if ( isDirty ) {
       var
         stateName = this.onlyIfStateName,
@@ -455,6 +450,7 @@
         }
       }
     }
+  
     this.isForceRecalculate = false;
     this.isRecalculateRequired = false;
     return true;

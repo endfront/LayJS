@@ -101,6 +101,7 @@ if (!Array.prototype.indexOf) {
     // depend upon the child parts
     $naturalHeightDirtyPartS: [],
     $naturalWidthDirtyPartS: [],
+    $relayoutDirtyManyS: [],
 
     $isDataTravellingShock: false,
     $isDataTravelling: false,

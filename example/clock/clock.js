@@ -12,8 +12,8 @@ LAY.formation("circular",
     var paramY = fargs.radius * Math.sin(angle*degreesToRadian);
 
     return [originX.add(paramX).minus(
-      LAY.take("", "$midpointX")),
-       originY.add(paramY).minus(LAY.take("", "$midpointY"))];
+      LAY.take("", "width").half()),
+       originY.add(paramY).minus(LAY.take("", "height").half())];
 
   }
 );
@@ -44,8 +44,8 @@ LAY.run({
     props: {
       width:LAY.take("../", "width").divide(2),
       height:LAY.take("","width"),
-      centerX: LAY.take("../", "$midpointX" ),
-      centerY: LAY.take("../", "$midpointY" ),
+      centerX: 0,
+      centerY: 0,
       backgroundColor:LAY.color("black"),
       cornerRadius: LAY.take("", "width").divide(5)
     },
@@ -53,8 +53,8 @@ LAY.run({
       props: {
         width:LAY.take("../", "width").multiply(0.8),
         height:LAY.take("","width"),
-        centerX: LAY.take("../", "$midpointX"),
-        centerY: LAY.take("../", "$midpointY"),
+        centerX: 0,
+        centerY: 0,
         backgroundColor: LAY.color("white"),
         cornerRadius: LAY.take("", "width")
       },
@@ -62,8 +62,8 @@ LAY.run({
         props: {
           width: LAY.take("/", "width").divide(40),
           height: LAY.take("", "width"),
-          centerX: LAY.take("../", "$midpointX"),
-          centerY: LAY.take("../", "$midpointY"),
+          centerX: 0,
+          centerY: 0,
           zIndex:"3",
           cornerRadius: LAY.take("", "width"),
           backgroundColor: LAY.color("red"),
@@ -82,7 +82,7 @@ LAY.run({
           height: LAY.take("",
             "data.length").plus(
             LAY.take("","data.tailLength")),
-          centerX: LAY.take("../", "$midpointX"),
+          centerX: 0,
           top: LAY.take("../", "$midpointY").minus(
             LAY.take("", "data.length")),
           originY: LAY.take(1).minus(
@@ -150,7 +150,7 @@ LAY.run({
           }
         },
         props: {
-          centerX: LAY.take("../", "$midpointX"),
+          centerX: 0,
           textSize: LAY.take("/", "width").divide(20),
           height: LAY.take("", "textSize").multiply(
             LAY.take("", "textLineHeight")),

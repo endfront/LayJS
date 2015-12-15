@@ -48,7 +48,6 @@
           if ( isSolveHaltedForOneLoop ) {
             break;
           } else {
-
             isSolveHaltedForOneLoop = true;
           }
         } else {
@@ -72,6 +71,7 @@
 
       }
 
+      relayout();
       recalculateNaturalDimensions();      
       executeManyLoads();
       executeStateInstallation();
@@ -87,6 +87,15 @@
       }
     }
 
+  };
+
+
+  function relayout() {
+    var relayoutDirtyManyS = LAY.$relayoutDirtyManyS;
+    for ( var i=0, len=relayoutDirtyManyS.length; i<len; i++ ) {
+      relayoutDirtyManyS[ i ].relayout();
+    }
+    LAY.$relayoutDirtyManyS = [];
   };
 
 

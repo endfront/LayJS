@@ -101,6 +101,7 @@ if (!Array.prototype.indexOf) {
     // depend upon the child parts
     $naturalHeightDirtyPartS: [],
     $naturalWidthDirtyPartS: [],
+    $relayoutDirtyManyS: [],
 
     $isDataTravellingShock: false,
     $isDataTravelling: false,
@@ -300,12 +301,7 @@ if (!Array.prototype.indexOf) {
       many = level.manyObj,
       attr = this.attr,
       i, len;
-    
 
-    if ( attr === "$$layout") {
-      many.reLayout();
-      return true;
-    }
 
     if ( attr.charAt( 0 ) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
@@ -385,7 +381,7 @@ if (!Array.prototype.indexOf) {
       isDirty = true;
       level.attr2attrVal.filter.forceRecalculation();
     }
-    
+
     if ( isDirty ) {
       var
         stateName = this.onlyIfStateName,
@@ -570,6 +566,7 @@ if (!Array.prototype.indexOf) {
         }
       }
     }
+  
     this.isForceRecalculate = false;
     this.isRecalculateRequired = false;
     return true;
@@ -1225,6 +1222,9 @@ if (!Array.prototype.indexOf) {
 
     LAY.$pathName2level[ this.pathName ] = this;
     LAY.$newLevelS.push( this );
+    if ( this.parentLevel ) {
+      this.parentLevel.childLevelS.push( this );
+    }
 
   };
 
@@ -1257,7 +1257,7 @@ if (!Array.prototype.indexOf) {
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
         if ( LAY.$checkIfDoingReadonly( attr ) ) {
-          console.error("LAY Error: " + attr + " must be placed in $observe");
+          console.error("LAY Error: " + attr + " must be placed in $obdurate");
           return undefined;
         } else if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
           return this.part.getImmidiateReadonlyVal( attr );
@@ -1302,6 +1302,11 @@ if (!Array.prototype.indexOf) {
   LAY.Level.prototype.many = function () {
     return this.derivedMany && this.derivedMany.level;
   };
+
+  LAY.Level.prototype.levels = function () {
+    return this.manyObj && this.manyObj.allLevelS;
+  };
+
 
   LAY.Level.prototype.rowsCommit = function ( newRowS ) {
 
@@ -1427,27 +1432,15 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Level.prototype.addChildren = function ( name2lson ) {
-
-    var childPath, childLevel, name;
-    if ( name2lson !== undefined ) {
-      for ( name in name2lson ) {
-
-        if ( !LAY.$checkIsValidUtils.levelName( name ) ) {
-          throw ( "LAY Error: Invalid Level Name: " + name );
-        }
-        childPath = this.pathName + ( this.pathName === "/" ? "" : "/" ) + name;
-        if ( LAY.$pathName2level[ childPath ] !== undefined ) {
-          throw ( "LAY Error: Level already exists with path: " + childPath );
-        }
-        childLevel = new LAY.Level( childPath,
-         name2lson[ name ], this, name.charAt(0) === "_" );
-        childLevel.$init();
-        this.childLevelS.push( childLevel );
-
-      }
-      LAY.$solve();
+    
+    for ( var name in name2lson ) {
+      var lson = name2lson[ lson ];
+      this.lson.children[ name ] = lson; 
+      this.$addChild( name, name2lson );
     }
+
   };
+
 
   LAY.Level.prototype.remove = function () {
     
@@ -1473,6 +1466,34 @@ if (!Array.prototype.indexOf) {
   
   };
 
+  LAY.Level.prototype.$addChildren = function ( name2lson ) {
+
+    if ( name2lson !== undefined ) {
+      for ( var name in name2lson ) {
+        this.$addChild( name, name2lson[ name ] );
+      }
+    }
+  };
+
+  LAY.Level.prototype.$addChild = function ( name, lson ) {
+    var childPath, childLevel;
+
+    if ( !LAY.$checkIsValidUtils.levelName( name ) ) {
+      throw ( "LAY Error: Invalid Level Name: " + name );
+    }
+    childPath = this.pathName +
+      ( this.pathName === "/" ? "" : "/" ) + name;
+    if ( LAY.$pathName2level[ childPath ] !== undefined ) {
+      throw ( "LAY Error: Level already exists with path: " +
+        childPath + " within Level: " + this.pathName );
+    }
+    childLevel = new LAY.Level( childPath,
+     lson, this, name.charAt(0) === "_" );
+    childLevel.$init();
+
+  };
+
+
   /*
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
@@ -1480,7 +1501,6 @@ if (!Array.prototype.indexOf) {
   LAY.Level.prototype.$normalizeAndInherit = function () {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-  
     LAY.$normalize( this.lson, this.isHelper );
     
     // check if it contains anything to inherit from
@@ -1513,11 +1533,10 @@ if (!Array.prototype.indexOf) {
            inheritedAndNormalizedLson = ref;
         }
 
-        LAY.$inherit( lson, inheritedAndNormalizedLson,
-         false, false, false );
+        LAY.$inherit( lson, inheritedAndNormalizedLson );
       }
 
-      LAY.$inherit( lson, this.lson, false, false );
+      LAY.$inherit( lson, this.lson );
       
       this.lson = lson;
     }
@@ -1534,7 +1553,7 @@ if (!Array.prototype.indexOf) {
       this.part.init();
       
       if ( this.lson.children !== undefined ) {
-        this.addChildren( this.lson.children );
+        this.$addChildren( this.lson.children );
       }
     } else {
       this.manyObj = new LAY.Many( this, this.partLson );
@@ -1654,7 +1673,7 @@ if (!Array.prototype.indexOf) {
 
       attr2val.formation = slson.formation;
       attr2val.filter = slson.filter;
-      
+
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
@@ -1734,18 +1753,18 @@ if (!Array.prototype.indexOf) {
   LAY.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableReadonlyS = this.lson.$observe ?
-       this.lson.$observe : [],
-      observableReadonly, i, len;
+      obdurateReadonlyS = this.lson.$obdurate ?
+       this.lson.$obdurate : [],
+      obdurateReadonly, i, len;
   
     this.isInitialized = true;
 
     if ( this.isPart ) {
       if ( this.lson.states.root.props.scrollX ) {
-        observableReadonlyS.push( "$naturalWidth" );
+        obdurateReadonlyS.push( "$naturalWidth" );
       }
       if ( this.lson.states.root.props.scrollY ) {
-        observableReadonlyS.push( "$naturalHeight" );
+        obdurateReadonlyS.push( "$naturalHeight" );
       }
       
       if ( this.part.type === "input" &&
@@ -1753,18 +1772,18 @@ if (!Array.prototype.indexOf) {
         // $input will be required to compute
         // the natural height if it exists
         // TODO: optimize
-        observableReadonlyS.push( "$input" );
+        obdurateReadonlyS.push( "$input" );
       }
     }
 
-    if ( observableReadonlyS.length ) {
-      for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
-        observableReadonly = observableReadonlyS[ i ];
-        if ( !this.$createLazyAttr( observableReadonly ) ) {
+    if ( obdurateReadonlyS.length ) {
+      for ( i = 0, len = obdurateReadonlyS.length; i < len; i++ ) {
+        obdurateReadonly = obdurateReadonlyS[ i ];
+        if ( !this.$createLazyAttr( obdurateReadonly ) ) {
           throw "LAY Error: Unobervable Attr: '" +
-            observableReadonly  + "'";
+            obdurateReadonly  + "'";
         }
-        this.attr2attrVal[ observableReadonly ].give(
+        this.attr2attrVal[ obdurateReadonly ].give(
           LAY.$emptyAttrVal );
       }
     }
@@ -1863,7 +1882,7 @@ if (!Array.prototype.indexOf) {
       this.$createAttrVal( attr,
         LAY.$miscPosAttr2take[ attr ] );
     } else if ( attr.charAt( 0 ) === "$" ) { //readonly
-      if ( [ "$type", "$load", "$id", "$inherit", "$observe" ].indexOf(
+      if ( [ "$type", "$load", "$id", "$inherit", "$obdurate" ].indexOf(
             attr ) !== -1 ) {
           this.$createAttrVal( attr, this.lson[ attr ] );
       } else if ( attr === "$path" ) {
@@ -2025,7 +2044,7 @@ if (!Array.prototype.indexOf) {
     var slson = {}, attr2val;
     for ( var i = 0, len = this.stateS.length; i < len; i++ ) {
       LAY.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
-        !this.isPart, true, true );
+        true, !this.isPart, true );
     }
 
     return slson;
@@ -2293,10 +2312,12 @@ if (!Array.prototype.indexOf) {
      ( typeof rowS[ 0 ] !== "object" );
   }
 
-  function objectifyRows ( rowS ) {
+  function objectifyRows ( rowS, idKey ) {
     var objectifiedRowS = [];
     for ( var i = 0, len = rowS.length; i < len; i++ ) {
-      objectifiedRowS.push( { id:i+1, content: rowS[ i ] }); 
+      var objectifiedRow = { content: rowS[ i ]};
+      objectifiedRow[ idKey ] = i+1;
+      objectifiedRowS.push( objectifiedRow ); 
     }
     return objectifiedRowS;
   }
@@ -2351,7 +2372,7 @@ if (!Array.prototype.indexOf) {
       rowS = [];
     }
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
-      rowS = objectifyRows( rowS );
+      rowS = objectifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
     } else if ( checkIfRowsHaveNoId( rowS, this.id ) ) {
@@ -2370,17 +2391,13 @@ if (!Array.prototype.indexOf) {
       
       if ( !level ) {
         // create new level with row
-        if ( id === undefined ) {
-          throw "LAY Error: No id provided for many " + this.pathName;
-        }
-  			level = new LAY.Level( this.level.pathName + ":" + id,
-  			 this.partLson, parentLevel, this.level.isHelper, this, row, id );
-        // the level has already been normalized
-        // while LAY was parsing the "many" level
-        level.isNormalized = true;
+
+        level = new LAY.Level(
+          this.level.pathName + ":" + id,
+          this.partLson, this.level.parentLevel, false,
+          this, row, id );
         level.$init();
 
-  			parentLevel.childLevelS.push( level );
   			id2level[ id ] = level;
         id2row[ id ] = row;
 
@@ -2442,10 +2459,11 @@ if (!Array.prototype.indexOf) {
       
     }
 
+    var idKey = this.id;
     for ( 
       var i = 0, len = filteredRowS.length;
       i < len; i++ ) {
-      filteredLevel = this.id2level[ filteredRowS[ i ].id ];
+      filteredLevel = this.id2level[ filteredRowS[ i ][ idKey ] ];
       if ( filteredLevel ) {
         filteredLevelS.push( filteredLevel );
         filteredLevel.attr2attrVal.$f.update( f++ );
@@ -2460,66 +2478,52 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Many.prototype.updateLayout = function () {
-    this.level.attr2attrVal.$$layout.requestRecalculation();
+    LAY.$arrayUtils.pushUnique(
+      LAY.$relayoutDirtyManyS, this);
   };
 
-  LAY.Many.prototype.reLayout = function () {
-
+  LAY.Many.prototype.relayout = function () {
     var
       filteredLevelS = this.filteredLevelS,
       firstFilteredLevel = filteredLevelS[ 0 ],
       attr2attrVal = this.level.attr2attrVal,
-      formationAttrVal = 
-        attr2attrVal.formation;
-      
-    if ( attr2attrVal.filter.isRecalculateRequired ||
-     formationAttrVal.isRecalculateRequired ) {
-      return;
-    } else {
-      var
-        formation = formationAttrVal.calcVal,
-        defaultFargs = LAY.$formation2fargs[ formation ],
-        fargs = {},
-        fargAttrVal;
+      formation = attr2attrVal.formation.calcVal,
+      defaultFargs = LAY.$formation2fargs[ formation ],
+      fargs = {},
+      fargAttrVal;
 
-      for ( var farg in defaultFargs ) {
-        fargAttrVal = attr2attrVal[ "fargs." + 
-          formation + "." + farg ];
-        if ( !fargAttrVal ) {
-          fargs[ farg ] = defaultFargs[ farg ]; 
-        } else if ( !fargAttrVal.isRecalculateRequired ) {
-          fargs[ farg ] = fargAttrVal.calcVal;
-        } else {
-          return;
-        }
-      }
+    for ( var farg in defaultFargs ) {
+      fargAttrVal = attr2attrVal[ "fargs." + 
+        formation + "." + farg ];
+      fargs[ farg ] = fargAttrVal ? 
+        fargAttrVal.calcVal : defaultFargs[ farg ];
+    }
 
-      var 
-        formationFn = LAY.$formation2fn[ formation ];
+    var formationFn = LAY.$formation2fn[ formation ];
 
-      if ( firstFilteredLevel ) {
-        firstFilteredLevel.$setFormationXY(
-          undefined, undefined );
-      }
+    if ( firstFilteredLevel ) {
+      firstFilteredLevel.$setFormationXY(
+        undefined, undefined );
+    }
 
-      for ( 
-        var f = 1, len = filteredLevelS.length, filteredLevel, xy;
-        f < len;
-        f++
-       ) {
-        filteredLevel = filteredLevelS[ f ];
-        /*// if the level is not initialized then
-        // discontinue the filtered positioning
-        if ( !filteredLevel.part ) {
-          return;
-        }*/
-        xy = formationFn( f + 1, filteredLevel,
-         filteredLevelS, fargs );
-        filteredLevel.$setFormationXY(
-          xy[ 0 ],
-          xy[ 1 ]
-        );
-      }
+    for ( 
+      var f = 1, len = filteredLevelS.length, filteredLevel, xy;
+      f < len;
+      f++
+     ) {
+      filteredLevel = filteredLevelS[ f ];
+      /*// if the level is not initialized then
+      // discontinue the filtered positioning
+      if ( !filteredLevel.part ) {
+        return;
+      }*/
+      xy = formationFn( f + 1, filteredLevel,
+       filteredLevelS, fargs );
+      filteredLevel.$setFormationXY(
+        xy[ 0 ],
+        xy[ 1 ]
+      );
+    
     }
   };
 
@@ -2532,23 +2536,26 @@ if (!Array.prototype.indexOf) {
         attr2attrVal["$$num.sort"].calcVal : 0,
       sortDictS = [];
 
-    for ( var i=0; i<numSorts; i++ ) {
-      sortAttrPrefix = "sort." + ( i + 1 ) + ".";
-    
-      sortDictS.push(
-        { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
-        ascending:
-        attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+    if ( numSorts > 0 ) {
+      for ( var i=0; i<numSorts; i++ ) {
+        sortAttrPrefix = "sort." + ( i + 1 ) + ".";
+      
+        sortDictS.push(
+          { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
+          ascending:
+          attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+      }
     }
 
-    rowS.sort( dynamicSortMultiple( sortDictS ) );
+
 
   };
 
 
+  console.log( "TODO: complete this");
+
   LAY.Many.prototype.remove = function () {
-    console.log( "TODO: complete this");
-  }
+  };
   
 
   // below code is taken from one of the responses
@@ -4251,35 +4258,45 @@ if (!Array.prototype.indexOf) {
 
     this.isMe = false;
     this.isMany = false;
+    this.path = "";
     this.isAbsolute = false;
-    this.isClosestRow = false;
+    this.traverseArray = [];
+
 
     if  ( relativePath === "" ) {
       this.isMe = true;
-
-    } else if ( 
-      ( relativePath === "*" ) ||
-      ( relativePath === "many" ) ) { 
-      this.isMany = true;
-    } else if ( relativePath.startsWith(".../")) {
-      this.isClosestRow = true;
-      this.childPath = relativePath.slice(4);
     } else {
       if ( relativePath.charAt(0) === "/" ) {
         this.isAbsolute = true;
-        this.absolutePath = relativePath;
+        this.path = relativePath;
       } else {
-        this.absolute = false;
-        this.numberOfParentTraversals =
-         ( relativePath.match( /^(..\/)*/ )[ 0 ].length ) / 3;
+        var i=0;
+        while ( relativePath.charAt( i ) === "." ) {
+          if ( relativePath.slice(i, i+3) === "../" ) {
+            this.traverseArray.push(0);
+            i +=3;
+          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+            this.traverseArray.push(1);
+            i += 4;
+          } else {
+            throw "LAY Error: Error in Take path: " + relativePath;
+          }
+        }  
         // strip off the "../"s
         // eg: "../../Body" should become "Body"
-        this.childPath = this.numberOfParentTraversals === 0 ? relativePath :
-         relativePath.substring( (
-           (this.numberOfParentTraversals) * 3 ) );
-
+        this.path = relativePath.slice( i );
+      }
+      if ( this.path.length !== 0 &&
+          this.path.indexOf("*") === this.path.length - 1 ) {
+        this.isMany = true;
+        if ( this.path.length === 1 ) {
+          this.path = "";
+        } else {
+          this.path = this.path.slice(0, this.path.length-2);
+        }
       }
     }
+    
 
   };
 
@@ -4288,29 +4305,33 @@ if (!Array.prototype.indexOf) {
 
     if ( this.isMe ) {
       return referenceLevel;
-    } else if ( this.isMany ) { 
-      return referenceLevel.derivedMany.level;
     } else {
+      var level;
       if ( this.isAbsolute ) {
-          return LAY.$pathName2level[ this.absolutePath ];
+        level = LAY.$pathName2level[ this.path ];
       } else {
-        if ( this.isClosestRow ) {
-          while (!referenceLevel.derivedMany ) {
-            referenceLevel = referenceLevel.parentLevel;
-          }
-          if ( referenceLevel === undefined ) {
-            throw "LAY Error: Closest row level for */ now found";
-          }
-        } else {
-          for ( var i = 0; i < this.numberOfParentTraversals;
-           ++i && (referenceLevel = referenceLevel.parentLevel ) ) {
+        level = referenceLevel;
+        var traverseArray = this.traverseArray;
+
+        for ( var i=0, len=traverseArray.length; i<len; i++ ) {
+          if ( traverseArray[ i ] === 0 ) { //parent traversal
+            level = level.parentLevel;
+          } else { //closest row traversal
+            while ( !level.derivedMany ) {
+              level = level.parentLevel;
+            }
           }
         }
 
-          return ( this.childPath === "" ) ? referenceLevel :
-              LAY.$pathName2level[ referenceLevel.pathName +
-              ( ( referenceLevel.pathName === "/" ) ? "" : "/" )+
-              this.childPath ];
+        level =  ( this.path === "" ) ? level :
+              LAY.$pathName2level[ level.pathName +
+              ( ( level.pathName === "/" ) ? "" : "/" )+
+              this.path ];
+      }
+      if ( this.isMany ) {
+        return level.derivedMany.level;
+      } else {
+        return level;
       }
     }
   };
@@ -4331,24 +4352,21 @@ if (!Array.prototype.indexOf) {
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-//        if ( attr === "rows" || attr === "filter" ) {
-  //        return LAY.$arrayUtils.cloneSingleLevel(path.resolve( this ).$getAttrVal( attr ).calcVal);
-    //    } else {
         return path.resolve( this ).$getAttrVal( attr ).calcVal;          
-      //  }
       };
     } else { // direct value provided
       _relPath00attr_S = [];
       // note that 'relativePath' is misleading name
       // here in this second overloaded case
       var directValue = relativePath;
-
       if ( directValue instanceof LAY.Take ) {
-          this.$mergePathAndAttrs( directValue );
+        this.executable = directValue.executable;
+        _relPath00attr_S = directValue._relPath00attr_S;
+      } else {
+        this.executable = function () {
+          return directValue;
+        };
       }
-      this.executable = function () {
-        return directValue;
-      };
     }
 
     this._relPath00attr_S = _relPath00attr_S;
@@ -4421,7 +4439,9 @@ if (!Array.prototype.indexOf) {
         return oldExecutable.call( this ) / val.execute( this );
       };
     } else {
-
+      if ( val === 2 ) {
+        return this.half();
+      }
       this.executable = function () {
         return oldExecutable.call( this ) / val;
       };
@@ -4439,7 +4459,9 @@ if (!Array.prototype.indexOf) {
         return oldExecutable.call( this ) * val.execute( this );
       };
     } else {
-
+      if ( val === 2 ) {
+        return this.double();
+      }
       this.executable = function () {
         return oldExecutable.call( this ) * val;
       };
@@ -4991,7 +5013,7 @@ if (!Array.prototype.indexOf) {
       }
       return LAY.$format.apply( undefined, argS );
     }
-    
+
     this._relPath00attr_S.push( [ new LAY.RelPath( '/' ), 'data.lang' ] );
 
     var argS = Array.prototype.slice.call(arguments),
@@ -6495,8 +6517,8 @@ if (!Array.prototype.indexOf) {
 
   function setRuntimeGlobals () {
     var
-      takeMidpointX = LAY.take("", "width").divide(2),
-      takeMidpointY = LAY.take("", "height").divide(2);
+      takeMidpointX = LAY.take("", "width").half(),
+      takeMidpointY = LAY.take("", "height").half();
     
     LAY.$miscPosAttr2take = {
       centerX: LAY.take("","left").add( takeMidpointX ),
@@ -8258,23 +8280,21 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   /*
   * Inherit the root, state, or many LSON from `from` into `into`.
   */
-  LAY.$inherit = function ( into, from, isMany, isState, isRootState ) {
+  LAY.$inherit = function ( into, from, isStateInheritance, isMany, isMainLson ) {
 
-    if ( !isState ) {
+    if ( !isStateInheritance ) {
       for ( var key in from ) {
         if ( from[ key ] ) {
           if ( key2fnInherit[ key ] ) {
             key2fnInherit[ key ]( into, from, isMany );
           } else {
-            if ( key !== "$interface" ) {
-              into[ key ] = from[ key ];
-            }
+            into[ key ] = from[ key ];
           }
         }
       }
     } else {
 
-      if ( !isRootState ) {
+      if ( !isMainLson ) {
         into.onlyif = from.onlyif || into.onlyif;
         into.install = from.install || into.install;
         into.uninstall = from.uninstall || into.uninstall;
@@ -8470,7 +8490,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         }
 
         LAY.$inherit( intoLson.many, fromLson.many,
-          false, false, false );
+          false, true, false );
 
       },
 
@@ -8482,7 +8502,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           fromLsonRow;
 
         if ( fromLsonRowS ) {
-          if ( fromLsonRowS instanceof LAY.take ) {
+          if ( fromLsonRowS instanceof LAY.Take ) {
             intoLson.rows = fromLsonRowS;            
           } else {
             intoLson.rows = new Array( fromLsonRowS.length );
@@ -8564,7 +8584,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           }
 
           LAY.$inherit( intoStateName2state[ name ],
-           fromStateName2state[ name ], isMany, true, false );
+           fromStateName2state[ name ], true, isMany, false );
 
         }
       },
@@ -8733,10 +8753,12 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     takeHeight,
     takeParentWidth,
     takeParentHeight,
+    takeZeroCenterX,
+    takeZeroCenterY,
     key2fnNormalize;
 
-  fnCenterToPos = function( center, dim ) {
-    return center - ( dim / 2 );
+  fnCenterToPos = function( center, dim, parentDim ) {
+    return ( parentDim / 2 ) +  ( center - ( dim / 2 ) );
   };
 
   fnOppEdgeToPos = function( edge, dim, parentDim ) {
@@ -8749,6 +8771,12 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
   takeParentWidth = new LAY.take( "../", "width");
   takeParentHeight = new LAY.take( "../", "height");
+
+  takeZeroCenterX = ( new LAY.take("../", "width")).half().minus(
+    ( new LAY.take("", "width") ).half() );
+
+  takeZeroCenterY = ( new LAY.take("../", "height")).half().minus(
+    ( new LAY.take("", "height") ).half() );
 
   LAY.$normalize = function( lson, isExternal ) {
 
@@ -8827,8 +8855,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       errorReadonly = "inherit";
     } else if ( lson.gpu ) {
       errorReadonly = "gpu";
-    } else if ( lson.observe ) {
-      errorReadonly = "observe";
+    } else if ( lson.obdurate ) {
+      errorReadonly = "obdurate";
     } else if ( lson.type ) {
       errorReadonly = "type"
     }
@@ -8930,8 +8958,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         }
     },
 
-    $observe: function ( lson ) {
-      checkAndThrowErrorAttrAsTake( "$observe", lson.$observe );
+    $obdurate: function ( lson ) {
+      checkAndThrowErrorAttrAsTake( "$obdurate", lson.$obdurate );
     },
 
     $load: function ( lson ) {
@@ -8971,20 +8999,28 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
 
       if ( prop2val.centerX !== undefined ) {
-        prop2val.left = ( new LAY.Take( fnCenterToPos ) ).fn(
-           prop2val.centerX, takeWidth );
+        if ( prop2val.centerX === 0 ) { //optimization
+          prop2val.left = takeZeroCenterX;
+        } else {
+          prop2val.left = ( new LAY.Take( fnCenterToPos ) ).fn(
+            prop2val.centerX, takeWidth, takeParentWidth );
+        }
         prop2val.centerX = undefined;
       }
 
       if ( prop2val.right !== undefined ) {
         prop2val.left = ( new LAY.Take( fnOppEdgeToPos ) ).fn(
-           prop2val.right, takeWidth, takeParentWidth );
+          prop2val.right, takeWidth, takeParentWidth );
         prop2val.right = undefined;
       }
 
       if ( prop2val.centerY !== undefined ) {
-        prop2val.top = ( new LAY.Take( fnCenterToPos ) ).fn(
-           prop2val.centerY, takeHeight );
+        if ( prop2val.centerY === 0 ) { //optimization
+          prop2val.top = takeZeroCenterY;
+        } else {
+          prop2val.top = ( new LAY.Take( fnCenterToPos ) ).fn(
+            prop2val.centerY, takeHeight, takeParentHeight );
+        }
         prop2val.centerY = undefined;
       }
 
@@ -9678,7 +9714,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           if ( isSolveHaltedForOneLoop ) {
             break;
           } else {
-
             isSolveHaltedForOneLoop = true;
           }
         } else {
@@ -9702,6 +9737,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
       }
 
+      relayout();
       recalculateNaturalDimensions();      
       executeManyLoads();
       executeStateInstallation();
@@ -9717,6 +9753,15 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       }
     }
 
+  };
+
+
+  function relayout() {
+    var relayoutDirtyManyS = LAY.$relayoutDirtyManyS;
+    for ( var i=0, len=relayoutDirtyManyS.length; i<len; i++ ) {
+      relayoutDirtyManyS[ i ].relayout();
+    }
+    LAY.$relayoutDirtyManyS = [];
   };
 
 

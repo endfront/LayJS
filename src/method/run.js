@@ -16,8 +16,8 @@
 
   function setRuntimeGlobals () {
     var
-      takeMidpointX = LAY.take("", "width").divide(2),
-      takeMidpointY = LAY.take("", "height").divide(2);
+      takeMidpointX = LAY.take("", "width").half(),
+      takeMidpointY = LAY.take("", "height").half();
     
     LAY.$miscPosAttr2take = {
       centerX: LAY.take("","left").add( takeMidpointX ),

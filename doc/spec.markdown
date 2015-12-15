@@ -31,7 +31,7 @@ LAY involves writing LSON (Layout Syntax Object Notation)
           $type: string,
           $gpu: boolean,
           $inherit: string | object | [ string | object, ... ],
-          $observe: [ string, ... ],
+          $obdurate: [ string, ... ],
           $load: function,
 
           exist: take | boolean,
@@ -347,7 +347,7 @@ Defaults:
   This is an "object-type" prop.
   {
     color: LAY.Color (Default: transparent),
-    image: string (CSS background-image)(Default: none),
+    image: string (CSS background-image)(Default: "none"),
     attachment: string (CSS background-attachment) (Default: "scroll"),
     repeat: string (CSS background-repeat) (Default: "repeat"),
     positionX: string (CSS background-position-x) [non-transitionable] / number (in pixels) (Default: 0),
@@ -706,10 +706,7 @@ Defaults:
     - $inherit
       This can only be set once using a non-take value with the LSON.
 
-    - $observe
-      This can only be set once using a non-take value with the LSON.
-
-    - $path
+    - $obdurate
       This can only be set once using a non-take value with the LSON.
 
     - $dataTravelling (`boolean`)
@@ -757,10 +754,10 @@ Defaults:
     - $input (`string` )
 
 
-### LSON.$observe
+### LSON.$obdurate
 
-  such as "$hovering", "$focused" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these read-onlys using "Level.attr()", since lexical parsing of internal functions is out of the question there is no viable way for LAY to be aware and switch on the event listeners for the corresponding read-only.
-  This is the purpose behind `$observe`, `$observe` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$observe` LAY will switch on the event listeners for the
+  readonlys such as "$hovering" and "$clicking" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these readonlys using "Level.attr()", since there is no deterministic method to be aware and switch on the event listeners for the corresponding read-only.
+  This is the purpose behind `$obdurate`, `$obdurate` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$obdurate` LAY will switch on the event listeners for the
   read-only.
 
 ### LSON.many

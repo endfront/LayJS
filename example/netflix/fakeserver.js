@@ -107,7 +107,9 @@ var suggestions = [
         rating: "PG-13",
         userLastWatched: {},
         trailers: []
-      },{ 
+      },
+
+      { 
         id: 52312,
         type: "movie",
         name: "Ray",
@@ -163,8 +165,7 @@ var suggestions = [
         userLastWatched: {},
         trailers: []
       }
-
-
+      
     ]
   }
 

@@ -20,8 +20,7 @@ LAY.run({
   "App": {
     props: {
       width: LAY.take("/", "data.mobileResponsiveWidth"),
-      centerX: LAY.take("../", "$midpointX").plus(
-        LAY.take("../Learn", "$midpointX")),
+      centerX: LAY.take("../Learn", "width").divide(2),
       overflow: "visible"
     },
     states: {
@@ -29,7 +28,7 @@ LAY.run({
         onlyif: LAY.take("/", "width").lt(
           LAY.take("/", "data.sidebarResponsiveWidth")),
         props: {
-          centerX: LAY.take("../", "$midpointX")
+          centerX: 0
         }
       },
       "responsive": {
@@ -55,7 +54,7 @@ LAY.run({
     "Container": {
       props:{
         top: LAY.take("../Header", "bottom"),
-        centerX: LAY.take("../", "$midpointX"),
+        centerX: 0,
         width: LAY.take("../", "width"),
         backgroundColor:  LAY.color("white"),
         overflow: "visible",
@@ -94,7 +93,7 @@ LAY.run({
           props: {
             width: 40,
             height: 40,
-            centerY: LAY.take("../Input", "centerY"),
+            centerY: 0,
             cursor: "default",
             text: "❯",
             textSize: 22,
@@ -199,9 +198,6 @@ LAY.run({
                 }
               }
             },
-            sort: [
-              {key: "id"}
-            ],
             data: {
               category: LAY.take("/App/Container/BottomControls/Strip/Categories/Category", "data.category")
             },           
@@ -233,7 +229,7 @@ LAY.run({
             props: {
               width: 40,
               height: 40,
-              centerY: LAY.take("../", "$midpointY")
+              centerY: 0
             },
             states: {
               "hidden": {
@@ -374,7 +370,7 @@ LAY.run({
             },
             "Cross": {
               props: {
-                centerY: LAY.take("../", "$midpointY"),
+                centerY: 0,
                 right: 10,
                 width:40,
                 height:40,
@@ -437,15 +433,15 @@ LAY.run({
           "Strip": {
             props: {
               width: LAY.take("../", "width").subtract(30),
-              centerX: LAY.take("../", "$midpointX"),
-              centerY: LAY.take("../", "$midpointY")
+              centerX: 0,
+              centerY: 0
             },
             "RemainingCount": {
               data: {
                 remaining: LAY.take("/App/Container/Todos/Todo", "rows").filterEq("complete", false).length()
               },
               props: {
-                centerY: LAY.take("../", "$midpointY"),
+                centerY: 0,
                 text: LAY.take("%d items left").format(LAY.take("", "data.remaining"))
               },
               states: {
@@ -459,7 +455,7 @@ LAY.run({
             },
             "Categories": {
               props: {
-                centerX: LAY.take("../", "$midpointX")
+                centerX: 0
               },
               "Category": {  
                 many: {
@@ -525,7 +521,7 @@ LAY.run({
               props: {
                 cursor: "pointer",
                 right: 0,
-                centerY: LAY.take("../", "$midpointY"),
+                centerY: 0,
                 text: "Clear completed"
               },
               when: {
@@ -636,7 +632,7 @@ LAY.run({
         props: {
           width: LAY.take("../", "width").minus(40),
           height: LAY.take("../", "height").minus(40),
-          centerX: LAY.take("../", "$midpointX")
+          centerX: 0
         },
         
         "Name": {
@@ -706,117 +702,6 @@ LAY.run({
     }
      
 });
-
-/*
-LAY.run({
-  props: {
-    backgroundColor: LAY.color("gainsboro")
-  },
-  "Container": {
-    props: {
-      centerX: LAY.take("../", "$midpointX"),
-      centerY: LAY.take("../", "$midpointY"),
-      backgroundColor: LAY.color("pink")
-    },
-    transition: {
-      all: {
-        type: "linear",
-        duration: 200
-      }
-    },
-    "Person": {
-      props: {
-        width: 180,
-        cursor: "default",
-        border: {style:"solid",
-         color: LAY.color("red"),
-         width:1
-      },
-        backgroundColor: LAY.color("blue"),
-        text: LAY.take("", "row.content"),
-        textSize:20,
-        textPadding: 10,
-        textColor: LAY.color("white")
-      },
-      when: {
-        click: function () {
-          this.many().data("sidebiz",
-            !this.many().attr("data.sidebiz") )
-          }
-      },
-      transition: {
-        all: {
-          type: "linear",
-          duration: 200
-        }
-      },
-      states: {
-        "hover": {
-          onlyif: LAY.take("","$hovering"),
-          props: {
-            textColor: LAY.color("grey")
-
-          }
-        }
-      },
-      many: {
-        data: {
-          asc: true,
-          sidebiz: false
-        },
-        formation: "onebelow",            
-        sort: [{key: "content",
-          ascending: LAY.take("", "data.asc")}],
-        rows: [
-          {id:1, content: "Airbus" },
-          {id:2, content: "Boeing" },
-          {id:3, content: "NASA" },
-          {id:4, content: "Zeil" }
-        ],
-        states: {
-          "sidebiz": {
-            onlyif: LAY.take("", "data.sidebiz"),
-            formation: "totheright",
-            fargs: {
-              totheright: {gap:10}
-            }
-          }
-        }
-      }
-    } 
-  }
-});
-
-
-
-/*
-LAY.run({
-  props: {
-    backgroundColor: LAY.color("pink")
-  },
-  
-  "First": {
-    props: {
-      centerX: LAY.take("../", "$midpointX"),
-      centerY: LAY.take("../", "$midpointY"),
-
-      width:100,
-      height:100,
-     border: {
-        style: "solid",
-        width:1,
-        color:LAY.color("green")
-      }
-    }
-  },
- "Second": {
-    $inherit: ["../First"],
-    props: {
-      top: LAY.take("../First", "bottom")
-    }
-  }
-});
-*/
 
 
 if (!String.prototype.trim) {

@@ -8,11 +8,10 @@ var springTransition = {
     }
 };
 
-
 LAY.run( {
   data: {
-    lang: "en",
-    menu: false
+    menu: false,
+    lang: "en"
   },
   states: {
     menu: {
@@ -81,7 +80,7 @@ LAY.run( {
             "MenuInvoke": {
               props: {
                 left: 30,
-                centerY: LAY.take( "../", "$midpointY")
+                centerY: 0
               },
               states: {
                 "hidden": {
@@ -117,8 +116,8 @@ LAY.run( {
               children: {
                 "Wrapper": {
                     props: {
-                      centerX: LAY.take("../", "$midpointX"),
-                      centerY: LAY.take("../", "$midpointY"),
+                      centerX: 0,
+                      centerY: 0,
                       width: LAY.take("", "$naturalWidth").max( LAY.take("", "$naturalHeight") ),
                       height: LAY.take("", "width"),
                       overflow: "visible"
@@ -183,12 +182,12 @@ LAY.run( {
             },
             "Title": {
               props: {
-                centerX: LAY.take("../", "$midpointX"),
-                centerY: LAY.take("../", "$midpointY"),
+                centerX: 0,
+                centerY: 0,
                 text: "NAME",
                 textAlign: "center",
                 textColor: LAY.color( "white"),
-                textPadding:{top: 20,bottom:20},
+                textPadding:{top: 10,bottom:10},
                 textSize: 30,
                 textLetterSpacing:1
               }
@@ -212,7 +211,7 @@ LAY.run( {
             "Option1": {
               props: {
                 width:LAY.take("../", 'width').subtract(20),
-                centerX: LAY.take("../", "$midpointX"),
+                centerX: 0,
                 height:120,
                 backgroundColor:LAY.color("blue"),
                 text: LAY.take("Is data travelling? %s <br> Delta? %s").format( 

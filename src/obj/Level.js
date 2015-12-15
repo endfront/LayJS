@@ -62,6 +62,9 @@
 
     LAY.$pathName2level[ this.pathName ] = this;
     LAY.$newLevelS.push( this );
+    if ( this.parentLevel ) {
+      this.parentLevel.childLevelS.push( this );
+    }
 
   };
 
@@ -94,7 +97,7 @@
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
         if ( LAY.$checkIfDoingReadonly( attr ) ) {
-          console.error("LAY Error: " + attr + " must be placed in $observe");
+          console.error("LAY Error: " + attr + " must be placed in $obdurate");
           return undefined;
         } else if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
           return this.part.getImmidiateReadonlyVal( attr );
@@ -139,6 +142,11 @@
   LAY.Level.prototype.many = function () {
     return this.derivedMany && this.derivedMany.level;
   };
+
+  LAY.Level.prototype.levels = function () {
+    return this.manyObj && this.manyObj.allLevelS;
+  };
+
 
   LAY.Level.prototype.rowsCommit = function ( newRowS ) {
 
@@ -264,27 +272,15 @@
   };
 
   LAY.Level.prototype.addChildren = function ( name2lson ) {
-
-    var childPath, childLevel, name;
-    if ( name2lson !== undefined ) {
-      for ( name in name2lson ) {
-
-        if ( !LAY.$checkIsValidUtils.levelName( name ) ) {
-          throw ( "LAY Error: Invalid Level Name: " + name );
-        }
-        childPath = this.pathName + ( this.pathName === "/" ? "" : "/" ) + name;
-        if ( LAY.$pathName2level[ childPath ] !== undefined ) {
-          throw ( "LAY Error: Level already exists with path: " + childPath );
-        }
-        childLevel = new LAY.Level( childPath,
-         name2lson[ name ], this, name.charAt(0) === "_" );
-        childLevel.$init();
-        this.childLevelS.push( childLevel );
-
-      }
-      LAY.$solve();
+    
+    for ( var name in name2lson ) {
+      var lson = name2lson[ lson ];
+      this.lson.children[ name ] = lson; 
+      this.$addChild( name, name2lson );
     }
+
   };
+
 
   LAY.Level.prototype.remove = function () {
     
@@ -310,6 +306,34 @@
   
   };
 
+  LAY.Level.prototype.$addChildren = function ( name2lson ) {
+
+    if ( name2lson !== undefined ) {
+      for ( var name in name2lson ) {
+        this.$addChild( name, name2lson[ name ] );
+      }
+    }
+  };
+
+  LAY.Level.prototype.$addChild = function ( name, lson ) {
+    var childPath, childLevel;
+
+    if ( !LAY.$checkIsValidUtils.levelName( name ) ) {
+      throw ( "LAY Error: Invalid Level Name: " + name );
+    }
+    childPath = this.pathName +
+      ( this.pathName === "/" ? "" : "/" ) + name;
+    if ( LAY.$pathName2level[ childPath ] !== undefined ) {
+      throw ( "LAY Error: Level already exists with path: " +
+        childPath + " within Level: " + this.pathName );
+    }
+    childLevel = new LAY.Level( childPath,
+     lson, this, name.charAt(0) === "_" );
+    childLevel.$init();
+
+  };
+
+
   /*
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
@@ -317,7 +341,6 @@
   LAY.Level.prototype.$normalizeAndInherit = function () {
 
     var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-  
     LAY.$normalize( this.lson, this.isHelper );
     
     // check if it contains anything to inherit from
@@ -350,11 +373,10 @@
            inheritedAndNormalizedLson = ref;
         }
 
-        LAY.$inherit( lson, inheritedAndNormalizedLson,
-         false, false, false );
+        LAY.$inherit( lson, inheritedAndNormalizedLson );
       }
 
-      LAY.$inherit( lson, this.lson, false, false );
+      LAY.$inherit( lson, this.lson );
       
       this.lson = lson;
     }
@@ -371,7 +393,7 @@
       this.part.init();
       
       if ( this.lson.children !== undefined ) {
-        this.addChildren( this.lson.children );
+        this.$addChildren( this.lson.children );
       }
     } else {
       this.manyObj = new LAY.Many( this, this.partLson );
@@ -491,7 +513,7 @@
 
       attr2val.formation = slson.formation;
       attr2val.filter = slson.filter;
-      
+
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
@@ -571,18 +593,18 @@
   LAY.Level.prototype.$initAllAttrs = function () {
 
     var
-      observableReadonlyS = this.lson.$observe ?
-       this.lson.$observe : [],
-      observableReadonly, i, len;
+      obdurateReadonlyS = this.lson.$obdurate ?
+       this.lson.$obdurate : [],
+      obdurateReadonly, i, len;
   
     this.isInitialized = true;
 
     if ( this.isPart ) {
       if ( this.lson.states.root.props.scrollX ) {
-        observableReadonlyS.push( "$naturalWidth" );
+        obdurateReadonlyS.push( "$naturalWidth" );
       }
       if ( this.lson.states.root.props.scrollY ) {
-        observableReadonlyS.push( "$naturalHeight" );
+        obdurateReadonlyS.push( "$naturalHeight" );
       }
       
       if ( this.part.type === "input" &&
@@ -590,18 +612,18 @@
         // $input will be required to compute
         // the natural height if it exists
         // TODO: optimize
-        observableReadonlyS.push( "$input" );
+        obdurateReadonlyS.push( "$input" );
       }
     }
 
-    if ( observableReadonlyS.length ) {
-      for ( i = 0, len = observableReadonlyS.length; i < len; i++ ) {
-        observableReadonly = observableReadonlyS[ i ];
-        if ( !this.$createLazyAttr( observableReadonly ) ) {
+    if ( obdurateReadonlyS.length ) {
+      for ( i = 0, len = obdurateReadonlyS.length; i < len; i++ ) {
+        obdurateReadonly = obdurateReadonlyS[ i ];
+        if ( !this.$createLazyAttr( obdurateReadonly ) ) {
           throw "LAY Error: Unobervable Attr: '" +
-            observableReadonly  + "'";
+            obdurateReadonly  + "'";
         }
-        this.attr2attrVal[ observableReadonly ].give(
+        this.attr2attrVal[ obdurateReadonly ].give(
           LAY.$emptyAttrVal );
       }
     }
@@ -700,7 +722,7 @@
       this.$createAttrVal( attr,
         LAY.$miscPosAttr2take[ attr ] );
     } else if ( attr.charAt( 0 ) === "$" ) { //readonly
-      if ( [ "$type", "$load", "$id", "$inherit", "$observe" ].indexOf(
+      if ( [ "$type", "$load", "$id", "$inherit", "$obdurate" ].indexOf(
             attr ) !== -1 ) {
           this.$createAttrVal( attr, this.lson[ attr ] );
       } else if ( attr === "$path" ) {
@@ -862,7 +884,7 @@
     var slson = {}, attr2val;
     for ( var i = 0, len = this.stateS.length; i < len; i++ ) {
       LAY.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
-        !this.isPart, true, true );
+        true, !this.isPart, true );
     }
 
     return slson;

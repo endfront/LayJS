@@ -155,10 +155,12 @@
      ( typeof rowS[ 0 ] !== "object" );
   }
 
-  function objectifyRows ( rowS ) {
+  function objectifyRows ( rowS, idKey ) {
     var objectifiedRowS = [];
     for ( var i = 0, len = rowS.length; i < len; i++ ) {
-      objectifiedRowS.push( { id:i+1, content: rowS[ i ] }); 
+      var objectifiedRow = { content: rowS[ i ]};
+      objectifiedRow[ idKey ] = i+1;
+      objectifiedRowS.push( objectifiedRow ); 
     }
     return objectifiedRowS;
   }
@@ -213,7 +215,7 @@
       rowS = [];
     }
     if ( checkIfRowsIsNotObjectified ( rowS ) ) {
-      rowS = objectifyRows( rowS );
+      rowS = objectifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
     } else if ( checkIfRowsHaveNoId( rowS, this.id ) ) {
@@ -232,17 +234,13 @@
       
       if ( !level ) {
         // create new level with row
-        if ( id === undefined ) {
-          throw "LAY Error: No id provided for many " + this.pathName;
-        }
-  			level = new LAY.Level( this.level.pathName + ":" + id,
-  			 this.partLson, parentLevel, this.level.isHelper, this, row, id );
-        // the level has already been normalized
-        // while LAY was parsing the "many" level
-        level.isNormalized = true;
+
+        level = new LAY.Level(
+          this.level.pathName + ":" + id,
+          this.partLson, this.level.parentLevel, false,
+          this, row, id );
         level.$init();
 
-  			parentLevel.childLevelS.push( level );
   			id2level[ id ] = level;
         id2row[ id ] = row;
 
@@ -304,10 +302,11 @@
       
     }
 
+    var idKey = this.id;
     for ( 
       var i = 0, len = filteredRowS.length;
       i < len; i++ ) {
-      filteredLevel = this.id2level[ filteredRowS[ i ].id ];
+      filteredLevel = this.id2level[ filteredRowS[ i ][ idKey ] ];
       if ( filteredLevel ) {
         filteredLevelS.push( filteredLevel );
         filteredLevel.attr2attrVal.$f.update( f++ );
@@ -322,66 +321,52 @@
   };
 
   LAY.Many.prototype.updateLayout = function () {
-    this.level.attr2attrVal.$$layout.requestRecalculation();
+    LAY.$arrayUtils.pushUnique(
+      LAY.$relayoutDirtyManyS, this);
   };
 
-  LAY.Many.prototype.reLayout = function () {
-
+  LAY.Many.prototype.relayout = function () {
     var
       filteredLevelS = this.filteredLevelS,
       firstFilteredLevel = filteredLevelS[ 0 ],
       attr2attrVal = this.level.attr2attrVal,
-      formationAttrVal = 
-        attr2attrVal.formation;
-      
-    if ( attr2attrVal.filter.isRecalculateRequired ||
-     formationAttrVal.isRecalculateRequired ) {
-      return;
-    } else {
-      var
-        formation = formationAttrVal.calcVal,
-        defaultFargs = LAY.$formation2fargs[ formation ],
-        fargs = {},
-        fargAttrVal;
+      formation = attr2attrVal.formation.calcVal,
+      defaultFargs = LAY.$formation2fargs[ formation ],
+      fargs = {},
+      fargAttrVal;
 
-      for ( var farg in defaultFargs ) {
-        fargAttrVal = attr2attrVal[ "fargs." + 
-          formation + "." + farg ];
-        if ( !fargAttrVal ) {
-          fargs[ farg ] = defaultFargs[ farg ]; 
-        } else if ( !fargAttrVal.isRecalculateRequired ) {
-          fargs[ farg ] = fargAttrVal.calcVal;
-        } else {
-          return;
-        }
-      }
+    for ( var farg in defaultFargs ) {
+      fargAttrVal = attr2attrVal[ "fargs." + 
+        formation + "." + farg ];
+      fargs[ farg ] = fargAttrVal ? 
+        fargAttrVal.calcVal : defaultFargs[ farg ];
+    }
 
-      var 
-        formationFn = LAY.$formation2fn[ formation ];
+    var formationFn = LAY.$formation2fn[ formation ];
 
-      if ( firstFilteredLevel ) {
-        firstFilteredLevel.$setFormationXY(
-          undefined, undefined );
-      }
+    if ( firstFilteredLevel ) {
+      firstFilteredLevel.$setFormationXY(
+        undefined, undefined );
+    }
 
-      for ( 
-        var f = 1, len = filteredLevelS.length, filteredLevel, xy;
-        f < len;
-        f++
-       ) {
-        filteredLevel = filteredLevelS[ f ];
-        /*// if the level is not initialized then
-        // discontinue the filtered positioning
-        if ( !filteredLevel.part ) {
-          return;
-        }*/
-        xy = formationFn( f + 1, filteredLevel,
-         filteredLevelS, fargs );
-        filteredLevel.$setFormationXY(
-          xy[ 0 ],
-          xy[ 1 ]
-        );
-      }
+    for ( 
+      var f = 1, len = filteredLevelS.length, filteredLevel, xy;
+      f < len;
+      f++
+     ) {
+      filteredLevel = filteredLevelS[ f ];
+      /*// if the level is not initialized then
+      // discontinue the filtered positioning
+      if ( !filteredLevel.part ) {
+        return;
+      }*/
+      xy = formationFn( f + 1, filteredLevel,
+       filteredLevelS, fargs );
+      filteredLevel.$setFormationXY(
+        xy[ 0 ],
+        xy[ 1 ]
+      );
+    
     }
   };
 
@@ -394,23 +379,26 @@
         attr2attrVal["$$num.sort"].calcVal : 0,
       sortDictS = [];
 
-    for ( var i=0; i<numSorts; i++ ) {
-      sortAttrPrefix = "sort." + ( i + 1 ) + ".";
-    
-      sortDictS.push(
-        { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
-        ascending:
-        attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+    if ( numSorts > 0 ) {
+      for ( var i=0; i<numSorts; i++ ) {
+        sortAttrPrefix = "sort." + ( i + 1 ) + ".";
+      
+        sortDictS.push(
+          { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
+          ascending:
+          attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+      }
     }
 
-    rowS.sort( dynamicSortMultiple( sortDictS ) );
+
 
   };
 
 
+  console.log( "TODO: complete this");
+
   LAY.Many.prototype.remove = function () {
-    console.log( "TODO: complete this");
-  }
+  };
   
 
   // below code is taken from one of the responses
