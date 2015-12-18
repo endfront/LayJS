@@ -1,6 +1,3 @@
-
-Yo
-
 ## Style Guide
 
 I might have broken some of the rules below, if you find such cases then let me know.
@@ -10,29 +7,24 @@ I might have broken some of the rules below, if you find such cases then let me 
 
 I completely understand when people get upset about inconsistent spacing in their code.
 
-But I am very against postprocessing code to check for style, a single space off shouldn't need
-to slap the developer with an error. The developer no matter where must be focused on producing good
-code and not good looking code.
+But I am very against postprocessing code to check for style, a single space off shouldn't need to slap the developer with an error. The developer no matter where must be focused on producing good code and not good looking code.
 
-That being said, there is only one requirement I would put forward when it comes to spacing, and
-that can be summarized as "the more the merrier"
+That being said, there is only one requirement I would put forward when it comes to spacing, and that can be summarized as "the more the merrier"
 
 for example:
 
   function foo(){
     for(var i=0;i<10;i++){
-        console.log("number is: " + i);
+      console.log("number is: " + i);
     }
   }
 
 would be lesser preferable to:
 
   function foo() {
-
-    for ( var i = 0; i < 10; i++ ) {
-        console.log( "number is: " + i );
+    for ( var i=0; i < 10; i++ ) {
+      console.log( "number is: " + i );
     }
-
   }
 
 
@@ -61,7 +53,6 @@ The 'S' stacks up on multiple nesting of arrays:
   var randomFunctionSS = [ [ morePizza, moreCoke, morePepperoni ], [ moreCooking, moreMoney, morePets ] ];
 
 
-
 In case the number items of array is predetermined and small,
 then the variable name can be listed referring to all the components of the array separated by '00', in this case:
 
@@ -70,8 +61,6 @@ then the variable name can be listed referring to all the components of the arra
 If this array were to be nested along with other movies, then the 'S' would stack as usual:
 
   var movie00yearS = [ [ 'The Shawshank Redemption', 1994 ], [ 'Toy Story 3', 2010 ], [ 'Her', 2014 ] ];
-
-
 
 
 **Objects**
@@ -100,8 +89,7 @@ If the first word cannot be a verb, then prefix with 'fn'.
 
 *Ambiguity Arising from Variable Names*
 
-Using the above variable naming conventions looks well on the surface, albiet when used to be complex
-data structures can begin to break down.
+Using the above variable naming conventions looks well on the surface, albiet when used to be complex data structures can begin to break down.
 
 For example:
 
@@ -143,5 +131,4 @@ eg: element3elementS (either an element or array of elements)
 
 **User API**
 
-For the LAY API including its methods and direct variable access, the above rules
-mentioned do not apply.
+For the LAY API including its methods and direct variable access, the above rules mentioned do not apply. For instance the lson key "$gpu" requires a boolean, in abiding with the aforementioned code style instructions the name would be prefixed with an "is" and camelcased "$isGpu", however this is not the case.

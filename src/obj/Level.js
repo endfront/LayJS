@@ -402,7 +402,8 @@
   };
 
   LAY.Level.prototype.$identify = function () {
-    this.isPart = this.lson.many === undefined;
+    this.isPart = this.lson.many === undefined ||
+      this.derivedMany;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
         true : 
@@ -425,10 +426,7 @@
       }
       this.partLson = this.lson;
       this.lson = this.lson.many;
-      // deference the "many" key from part lson
-      // so as to not to associate with the lson
-      // with a many creator
-      this.partLson.many = undefined;
+      
       LAY.$defaultizeManyLson( this.lson );
     }
   };

@@ -44,6 +44,7 @@ Future:
   - shortcircuit LAY.Take.and/or()
   - LAY.Take.percent()
   - input:file
+  - fix bug of rows containing duplicate objects
   - objectEqual(a, b, m) [remove 3rd arg m]
   - check for illegal characters id row.id val
   - take.colorRed -> take.colorSetRed? or take.colorGetRed? (clarify)

@@ -21,6 +21,7 @@
     this.id2level = {};
     this.id2row = {};
     this.isLoaded = false;
+    this.isAutoId = false;
 
     this.defaultFormationX = undefined;
     this.defaultFormationY = undefined;
@@ -168,13 +169,14 @@
   function checkIfRowsHaveNoId( rowS, idKey ) {
     var totalIds = 0;
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      if ( rowS[i][ idKey ] !== undefined ) {
+      if ( rowS[ i ][ idKey ] !== undefined ) {
         totalIds++;
       }
     }
     if ( totalIds > 0 ) {
       if ( totalIds !== rowS.length ) {
-        throw "LAY Error: Inconsistent id provision to rows.";
+        throw "LAY Error: Inconsistent id provision to rows of " +
+          this.level.pathName;
       }
     } else if ( rowS.length ) {
       return true;
@@ -183,11 +185,30 @@
   }
 
   function idifyRows ( rowS, idKey ) {
+
     for ( var i=0, len=rowS.length; i<len; i++ ) {
       rowS[ i ][ idKey ] = i+1;
     }
+
+    // check for duplicates
+    // complexity of solution is O(n)
+    var hasDuplicates = false;
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      if ( rowS[ i ][ idKey ] !== i+1 ) {
+        hasDuplicates = true;
+        break;
+      } 
+    }
+    if ( hasDuplicates ) {
+      for ( var i=0, len=rowS.length; i<len; i++ ) {
+        rowS[ i ] = LAY.$clone( rowS[ i ] );
+        rowS[ i ][ idKey ] = i+1;
+      }
+    }
     return rowS;
   }
+
+
 
   /*
   *	Update the rows by:
@@ -218,7 +239,9 @@
       rowS = objectifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
-    } else if ( checkIfRowsHaveNoId( rowS, this.id ) ) {
+    } else if ( this.isAutoId ||
+        checkIfRowsHaveNoId( rowS, this.id ) ) {
+      this.isAutoId = true;
       rowS = idifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;

@@ -12,6 +12,39 @@ var NFICON = {
 };
 
 
+/*
+LAY.run({
+  data: {
+    rows: [
+      {name:"Bob", skills: ["java"]},
+      {name:"Calvin", skills: ["java", "css"]},
+      {name:"Monica", skills: ["html5", "swift"]},
+      {name: "Frank", skills: ["python", "flask"]}
+    ]
+  },
+  "Person": {
+    many: {
+      rows: LAY.take("/", "data.rows"),
+    },
+    props: {
+    },
+    "Name": {
+      props: {
+        text: LAY.take(".../", "row.name"),
+      }
+    },
+    "Skill": {
+      many: {
+        formation: "totheright",
+        rows: LAY.take(".../", "row.skills"),
+      },
+      props: {
+        top: LAY.take("../Name", "bottom"),
+        text: LAY.take("", "row.content")
+      }
+    }
+  }
+});*/
 
 LAY.run({
   data: {
@@ -89,14 +122,38 @@ LAY.run({
         onlyif: LAY.take("", "data.isLoading").not().and(
           LAY.take(".../", "row.list").not()),
         when: {
-          click: [ LAY.take("", "data.fnAdd") ]
+          click: function () {
+            var self = this;                    
+            var row = self.level(".../");
+            self.data("isLoading", true );
+            FAKESERVER.addToList(row.attr("row.id"), function(res){
+              self.data("isLoading", false );
+              if ( !res ) { //unsuccessful
+                self.data("showError", true );
+              } else {
+                self.attr("data.onAdd").call( self );
+              }
+            });
+          }
         }
       },
       "remove": {
         onlyif: LAY.take("", "data.isLoading").not().and(
           LAY.take(".../", "row.list")),
         when: {
-          click: [ LAY.take("", "data.fnRemove" )]
+          click: function () {
+            var self = this;                    
+            var row = self.level(".../");
+            self.data("isLoading", true );
+            FAKESERVER.removeFromList(row.attr("row.id"), function(res){
+              self.data("isLoading", false );
+              if ( !res ) { //unsuccessful
+                self.data("showError", true );
+              } else {
+                self.attr("data.onRemove").call( self );
+              }
+            });
+          }
         }
       }
     },
@@ -370,32 +427,12 @@ LAY.run({
           "AddToList": {
             $inherit: "/_AddToList",
             data: {
-              fnAdd: function () {
-                var self = this;                    
-                var row = self.level(".../");
-                self.data("isLoading", true );
-                FAKESERVER.addToList(row.attr("row.id"), function(res){
-                  self.data("isLoading", false );
-                  if ( !res ) { //unsuccessful
-                    self.data("showError", true );
-                  } else {
-                    row.row("list", true );
-                  }
-                });
+              onAdd: function () {
+                this.level(".../").row("list", true );
               },
-              fnRemove: function () {
-                var self = this;                    
-                var row = self.level(".../");
-                self.data("isLoading", true );
-                FAKESERVER.removeFromList(row.attr("row.id"), function(res){
-                  self.data("isLoading", false );
-                  if ( !res ) { //unsuccessful
-                    self.data("showError", true );
-                  } else {
-                    row.row("list", false );
-                  }
-                });
-              } 
+              onRemove: function () {
+                this.level(".../").row("list", false );
+              }
             }
           }
         },
@@ -523,7 +560,7 @@ LAY.run({
           height: LAY.take("/", "data.optionBaseWidth").multiply(
             LAY.take("/", "data.optionAspectRatio")),
           backgroundColor: LAY.rgba(20,20,20,0.5),
-          zIndex: "4"
+          zIndex: "2"
         },
         states: {
           "hovering": {
@@ -541,28 +578,7 @@ LAY.run({
           }
         }
       },
-      "_BaseOption": {
-        props: {
-          top: LAY.take("../../Title", "bottom").add(
-                LAY.take("/", "data.vw").multiply(0.7)),
-          width: LAY.take("/", "data.optionBaseWidth"),
-          height: LAY.take("", "width").multiply( 
-            LAY.take("/", "data.optionAspectRatio") ),
-          border: {
-            style:"solid", width:2,
-            color: LAY.take("/", "backgroundColor")
-          },
-          background: { 
-            image: LAY.take("url('%s')").format(
-              LAY.take("", "row.cover")),
-            repeat: "no-repeat",
-            positionX: "50%",
-            positionY: "50%",
-            sizeX: "100%",
-            sizeY: "100%"
-          }
-        }
-      },
+    
       "Suggestion": {
         many: {
           $load: function() {
@@ -570,10 +586,11 @@ LAY.run({
             FAKESERVER.getSuggestions(function( suggestions ){
               self.rowsCommit( suggestions );
             });
-          },
-          rows: []
+          }
         },
-       
+        data: {
+          isLazyNavigationLoaded: false
+        },
         props: {
           width: LAY.take("../", "width")
         },      
@@ -588,8 +605,6 @@ LAY.run({
         },
         "Options": {
           data: {
-            doesWrap: LAY.take("Option", "rows").length().gt(
-              LAY.take("/", "data.spread")),
             shift: 0,
             isSlide: true
           },
@@ -626,7 +641,7 @@ LAY.run({
                         actualLength % spread );
                       setTimeout( function () {
                         self.data("isSlide", true);
-                      });                    
+                      });                
                     }
                   }                  
                 }
@@ -634,8 +649,6 @@ LAY.run({
             }
           },
           "Option": {
-            $inherit: "../../../_BaseOption",
-
             many: {
               data: {
                 slideOffset: LAY.take(function(options, spread){
@@ -652,11 +665,6 @@ LAY.run({
                   var headSlice = options.slice( -(spread+1) );
                   var options = headSlice.concat( options ).concat(
                    options.slice( 0, (spread+1) ) );
-                } else {
-                  
-                }
-                for ( var i=0; i<options.length; i++ ) {
-                  options[ i ] = LAY.$clone( options[ i ]);
                 }
                 return options;
                 }).fn(LAY.take(".../", "row.options"),
@@ -666,7 +674,39 @@ LAY.run({
             props: {
               left:  LAY.take("/", "data.margin"),
               cursor: "pointer",
-              zIndex: "2"
+              top: LAY.take("../../Title", "bottom").add(
+                    LAY.take("/", "data.vw").multiply(0.7)),
+              width: LAY.take("/", "data.optionBaseWidth"),
+              height: LAY.take("", "width").multiply( 
+                LAY.take("/", "data.optionAspectRatio") ),
+              border: {
+                style:"solid", width:2,
+                color: LAY.take("/", "backgroundColor")
+              },
+              background: { 
+                image: LAY.take("url('%s')").format(
+                  LAY.take("", "row.cover")),
+                repeat: "no-repeat",
+                positionX: "50%",
+                positionY: "50%",
+                sizeX: "100%",
+                sizeY: "100%"
+              }
+            },
+            states: {
+              "lazyNotLoaded": {
+                onlyif: LAY.take(".../",
+                 "data.isLazyNavigationLoaded").not().and(
+                    LAY.take("", "$f").lte(
+                    LAY.take("*", "data.slideOffset")).or(
+                    LAY.take("", "$f").gt(
+                      LAY.take("/", "data.spread").plus(LAY.take("*", "data.slideOffset").plus(1)))
+                  )),
+                props: {
+                  visible: false,
+                  backgroundImage: null
+                }
+              }
             }
           }
         },
@@ -680,6 +720,14 @@ LAY.run({
             },           
             props: {
               text: NFICON.leftArrow
+            }
+          },
+          states: {
+            "lazyNotLoaded": {
+              onlyif: LAY.take(".../", "data.isLazyNavigationLoaded").not(),
+              props: {
+                visible: false
+              }
             }
           },
           when: {
@@ -726,6 +774,7 @@ LAY.run({
                 numShift = curShift + spread === actualLength ? spread :
                   Math.min(spread,
                     actualLength-curShift-spread);
+              this.level(".../").data("isLazyNavigationLoaded", true);
               options.data("shift", curShift + numShift);
             }
           }

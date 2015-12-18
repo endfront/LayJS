@@ -7,100 +7,91 @@ LAY involves writing LSON (Layout Syntax Object Notation)
 
 ### LAY methods
 
-  LAY.run()
-  LAY.level()
-  LAY.part()
-  LAY.take()
-  LAY.filter()
-
-  LAY.rgb()
-  LAY.rgba()
-  LAY.hsla()
-  LAY.hsl()
-  LAY.color()
-
+- LAY.run()
+- LAY.level()
+- LAY.take()
+- LAY.rgb()
+- LAY.rgba()
+- LAY.color()
+- LAY.hex()
+- LAY.hsla()
+- LAY.hsl()
+- LAY.transparent()
+- LAY.levels()
 
 ### LAY.run()
   
   The input to `LAY.run()` is an object known as LSON.
 
-    LAY.run( {
-      children: {
-        "ChildName": {
+    LAY.run({
+      "<ChildName>": {
+        $type: string,
+        $gpu: boolean,
+        $inherit: string | object | [ string | object, ... ],
+        $obdurate: [ string, ... ],
+        $load: function,
 
-          $type: string,
-          $gpu: boolean,
-          $inherit: string | object | [ string | object, ... ],
-          $obdurate: [ string, ... ],
+        exist: boolean (take),
+        data: object,
+        props: object,
+        when: object,
+        transition: object,
+
+        many: {
           $load: function,
+          $id: string,
 
-          exist: take | boolean,
-          data: object | array | string | number,
-          props: object,
-          when: object,
-          transition: transitionObj,
+          data: object,
+          formation: string (take),
+          sort: [sortDict, ...],
+          filter: LAY.take,
+          rows: array | take,
+          fargs: object,
 
-          many: {
-              $load: function,
-              $id: string / null (constant),
-
-              data: object,
-              formation: string,
+          states: {
+            < name >: {
+              onlyif: take,
+              formation: string (take),
               sort: [sortDict, ...],
               filter: LAY.take,
-              rows: array,
               fargs: obj,
-
-              $load: function,
-
-              states: {
-                < name >: {
-                  formation: string,
-                  sort: [sortDict, ...],
-                  filter: LAY.take,
-                  fargs: obj,
-                  install: function
-                  uninstall: function
-                }
-              }
-
-          },
-          states: {
-              < name >: {
-                props: object,
-                when: object,
-                onlyif: LAY.Take,
-                transition: transitionObj,
-                install: function,
-                uninstall: function
-              }
-          },
-          children: LSON
-
-         }
+              install: function
+              uninstall: function
+            }
+          }
+        },
+        states: {
+          < name >: {
+            onlyif: boolean (take),
+            props: object,
+            when: object,
+            transition: transitionObj,
+            install: function,
+            uninstall: function
+          }
+        }
        }
-      }
-    })
+     }
+    });
 
 
 ### LSON.$type
 
   Type: `string`.
   On of the below
-    "none"
-    "text" (auto-detect is on to distinguish between "none" and "text")
-    "image"
-    "video"
-    "audio"
-    "canvas"
-    ( inputs ...)
-    "input:line"
-    "input:multiline"
-    "input:password"
-    "input:select"
-    "input:multiple"
-    "input:file" [coming soon]
-    "input:< any other valid input[type] html property i.e color, date, etc >" [coming soon]
+  - "none"
+  - "text" (auto-detect is on to distinguish between "none" and "text")
+  - "image"
+  - "video"
+  - "audio"
+  - "canvas"
+  - "input:line"
+  - "input:multiline"
+  - "input:password"
+  - "input:select"
+  - "input:multiple"
+  - "input:file" [coming soon]
+  - "input:< any other valid input[type] html property i.e color, date, etc >" [coming soon]
 
 
 ### LSON.$inherit
@@ -113,8 +104,8 @@ More about inheritance in inherit section of this document.
 
 ### LSON helper levels
 
-  If a level name begins with "_", the level will not render.
-  (Primary usage for such a level exists solely for inheritance)
+If a level name begins with "_", the level will not render.
+(Primary usage for such a level exists solely for inheritance)
 
 
 ### data
@@ -133,524 +124,494 @@ The keys within `props` are predefined
 ##### List of all possible props
 
 Prioritizing numbers:
-There exist some CSS properties which
-take either a number (in pixels) or
-a string.
-An example would be "background-position"
+There exist some CSS properties which take either a number (in pixels) or a string.  An example would be "background-position"
 which can be "10px" or "center".
-Within LAY, both types are accepted as well,
-however to ensure transitionability the input
-must be numerical. Therefore it is still
-possible to use "center", "auto", "10%", and
-other such CSS strings where the input is
-not in pixels, however if there is a motive
-in changing the value through a state change
-alongwith with a transition then numerical
+Within LAY, both types are accepted as well, however to ensure transitionability the input must be numerical. Therefore it is still possible to use "center", "auto", "10%", and other such CSS strings where the input is not in pixels, however if there is a motive in changing the value through a state change alongwith with a transition then numerical
 values should be provided.
 
 
 Defaults:
 
-- display
+- display  
   `boolean`
   Default: true
 
-- visible
+- visible  
   `boolean`
-  CSS visibility (true for "inherit", false for "hidden")
+  CSS visibility (true for "inherit", false for "hidden")  
   Default: true
 
-- width
+- width  
   `number`
-  Width of part (excluding scale)
+  Width
   Default: LAY.take('', '$naturalWidth') [for "/": LAY.take("", "$windowWidth")]
 
-- height
+- height  
   `number`
-  Height of part (excluding scale)
+  Height
   Default: LAY.take('', '$naturalHeight') [for "/": LAY.take("", "$windowHeight")]
 
-- top
-  `number`
+- top  
+  `number`  
   Default: 0
 
-- left
-  `number`
+- left  
+  `number`  
   Default: 0
 
-- right
-  `number`
+- right  
+  `number`  
 
-- bottom
-  `number`
+- bottom  
+  `number`  
 
-- centerX
-  `number`
+- centerX   
+  `number`  
 
-- centerY
-  `number`
+- centerY  
+  `number`  
 
-- z
-  `number`
-  In pixels
+- z  
+  `number`  
+  In pixels  
   Default: 0
 
-- shiftX
-  `number`
-  Additional x translation
+- shiftX  
+  `number`  
+  Additional x translation  
   Default: 0
 
-- shiftY
-  `number`
-  Additional y translation
+- shiftY  
+  `number`  
+  Additional y translation  
   Default: 0
 
-- shiftZ
-  `number`
-  Additional z translation
-  Default: 0
-
-
-- scaleX
-  `number`
-  Units to scale the X dimension
+- scaleX  
+  `number`  
+  Units to scale the X dimension  
   Default: 1
 
-
-- scaleY
-  `number`
-  Units to scale the Y dimension
+- scaleY  
+  `number`  
+  Units to scale the Y dimension  
   Default: 1
 
-- scaleZ
-  `number`
-  Units to scale the Z dimension
+- scaleZ  
+  `number`  
+  Units to scale the Z dimension  
   Default: 1
 
-
-- rotateX
+- rotateX  
   `number`
-  In degrees
+  In degrees  
   Default: 0
 
-
-- rotateY
-  `number`
-  In degrees
+- rotateY  
+  `number`  
+  In degrees  
   Default: 0
 
-
-- rotateZ
-  `number`
-  In degrees
+- rotateZ  
+  `number`  
+  In degrees  
   Default: 0
 
-
-- skewX
-  `number`
-  In degrees
+- skewX  
+  `number`  
+  In degrees  
   Default: 0
 
-- skewY
-  `number`
-  In degress
+- skewY  
+  `number`  
+  In degress  
   Default: 0
 
-- originX
-  `number`
-  in fraction (percent)
+- originX  
+  `number`  
+  in fraction (percent)  
   Default: 0.5
 
-- originY
-  `number`
-  in fraction (percent)
+- originY  
+  `number`  
+  in fraction (percent)  
   Default: 0.5
 
-- originZ
-  `number`
-  in pixels
+- originZ  
+  `number`  
+  in pixels  
   Default: 0
 
-- perspective
-  `number`
-  In pixels
+- perspective  
+  `number`  
+  In pixels  
   Default: 0
 
-- perspectiveOriginX
-  `number`
-  in fraction (percent)
+- perspectiveOriginX  
+  `number`  
+  in fraction (percent)  
   Default: 0.5
 
-- perspectiveOriginY
-  `number`
-  in fraction (percent)
+- perspectiveOriginY  
+  `number`  
+  in fraction (percent)  
   Default: 0.5
 
-- backfaceVisibility
-  `boolean`
+- backfaceVisibility  
+  `boolean`  
   Default: false
 
-- opacity
-  `number`
+- opacity  
+  `number`  
   Default: 1
 
-- overflowX
-  `string`
-  CSS overflow property
+- overflowX  
+  `string`  
+  CSS overflow property  
   Default: 'hidden'
 
-- overflowY
-  `string`
-  CSS overflow property
+- overflowY  
+  `string`  
+  CSS overflow property  
   Default: 'hidden'
 
-- overflow
-  `undefined`
+- overflow  
+  `undefined`  
   shorthand for `overflowX` and `overflowY`
 
-- scrollX
-  `number`
+- scrollX  
+  `number`  
   Default: 0
 
-- scrollY
-  `number`
+- scrollY  
+  `number`  
   Default: 0
 
-- focus
-  `boolean`
+- focus  
+  `boolean` 
   Default: false
 
-- scrollElastic
-  `boolean`
-  CSS `-webkit-overflow-scrolling` (true for "touch", false for "auto")
+- scrollElastic  
+  `boolean`  
+  CSS `-webkit-overflow-scrolling` (true for "touch", false for "auto")  
   Default: true
 
-- cursor
-  `string`
-  CSS cursor property
+- cursor  
+  `string`  
+  CSS cursor property  
   Default: LAY.take("../", "cursor") [for "/": "auto"]
 
-- userSelect
-  `string`
-  CSS user-select
+- userSelect  
+  `string`  
+  CSS user-select  
   Default: LAY.take("../", "userSelect") [for "/": "auto"]
 
-- title
-  `string`
+- title  
+  `string`  
   Default: none
 
-- tabindex
-  `number`
+- tabindex  
+  `number`  
   Default: none
 
-- background (no support for multiple backgrounds)
-  This is an "object-type" prop.
-  {
-    color: LAY.Color (Default: transparent),
-    image: string (CSS background-image)(Default: "none"),
-    attachment: string (CSS background-attachment) (Default: "scroll"),
-    repeat: string (CSS background-repeat) (Default: "repeat"),
-    positionX: string (CSS background-position-x) [non-transitionable] / number (in pixels) (Default: 0),
-    positionY: string (CSS background-position-y) [non-transitionable] / number (in pixels) (Default: 0),
-    sizeX: string (CSS background-size-x) [non-transitionable] / number (in pixels) (Default: "auto"),
-    sizeY: string (CSS background-size-y) [non-transitionable] / number (in pixels) (Default: "auto")
-   }
-
-
-- boxShadows
-  This is a "multiple-type" and an "object-type" prop.
-  [
+- background (no support for multiple backgrounds)  
+  This is an "object-type" prop.  
     {
-      inset: boolean (Default: false)
-      x: number (in pixels),
-      y: number (in pixels),
-      blur: number,
-      spread: number (Default: 0),
-      color: LAY.Color
-    }
-    ...
-  ]
+      color: LAY.Color (Default: transparent),  
+      image: string (CSS background-image)(Default: "none"),  
+      attachment: string (CSS background-attachment) (Default: "scroll"),  
+      repeat: string (CSS background-repeat) (Default: "repeat"),  
+      positionX: string (CSS background-position-x) [non-transitionable] / number (in pixels) (Default: 0),  
+      positionY: string (CSS background-position-y) [non-transitionable] / number (in pixels) (Default: 0),  
+      sizeX: string (CSS background-size-x) [non-transitionable] / number (in pixels) (Default: "auto"),  
+      sizeY: string (CSS background-size-y) [non-transitionable] / number (in pixels) (Default: "auto")  
+     }  
 
-- cornerRadius
-  `number`
-  This is a "shorthand-type" prop.
-  Shorthand for `cornerRadiusTopLeft`, `cornerRadiusTopRight`, `cornerRadiusBottomRight`, `cornerRadiusBottomLeft`
+
+- boxShadows  
+  This is a "multiple-type" and an "object-type" prop.
+    [  
+      {  
+        inset: boolean (Default: false)  
+        x: number (in pixels),  
+        y: number (in pixels),  
+        blur: number,  
+        spread: number (Default: 0),  
+        color: LAY.Color  
+      }  
+      ...  
+    ]  
+
+- cornerRadius  
+  `number`  
+  This is a "shorthand-type" prop.  
+  Shorthand for `cornerRadiusTopLeft`, `cornerRadiusTopRight`, `cornerRadiusBottomRight`, `cornerRadiusBottomLeft`  
   Default: 0
 
+- border  
+  This is a "shorthand-type" prop.  
+  Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >  
+    { top/right/bottom/left/< undefined >: {  
+      style: string (CSS border-style) (Default: 'solid'),  
+      color: LAY.Color (Default: transparent),  
+      width: number (Default: 0)  
+    } }
 
-- border
-  This is a "shorthand-type" prop.
-  Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >
-  { top/right/bottom/left/< undefined >: {
-    style: string (CSS border-style) (Default: 'solid'),
-    color: LAY.Color (Default: transparent),
-    width: number (Default: 0)
-
-  } }
-
-  filters
-  This is a "multiple-type" and an "object-type" prop.
-  [
+- filters  
+  This is a "multiple-type" and an "object-type" prop.  
     [  
-      type: "url" | "blur" | "brightness" | "contrast" | "dropShadow" | "grayscale" | "hueRotate" | "invert" |
-            "opacity" | "saturate" | "sepia",  
-      blur: number (in pixels) |
-      brightness: number (in fraction (percent)) |
-      contrast: number (in fraction (percent)) |
-      dropShadow: {
-        x: number (in pixels),
-        y: number (in pixels),
-        blur: number (in pixels),
-        spread: number (in pixel) [ currently disabled due
-        to lack of browser support],
-        color: LAY.Color
-      } |
-      grayscale: number (in fraction (percent)) |
-      hueRotate: number (in degrees) |
-      invert: number (in fraction (percent)) |
-      opacity: number (in fraction (percent)) |
-      saturate: number (in fraction (percent)) |
-      sepia: number (in fraction (percent)) |
-      url: string
+      [    
+        type: "url" | "blur" | "brightness" | "contrast" | "dropShadow" | "grayscale" | "hueRotate" | "invert" | "opacity" | "saturate" | "sepia",  
+        blur: number (in pixels) |  
+        brightness: number (in fraction (percent)) |  
+        contrast: number (in fraction (percent)) |  
+        dropShadow: {  
+          x: number (in pixels),  
+          y: number (in pixels),  
+          blur: number (in pixels),  
+          spread: number (in pixel) [ currently disabled due
+          to lack of browser support],  
+          color: LAY.Color  
+        },  
+        grayscale: number (in fraction (percent)),  
+        hueRotate: number (in degrees),  
+        invert: number (in fraction (percent)),  
+        opacity: number (in fraction (percent)),  
+        saturate: number (in fraction (percent)),  
+        sepia: number (in fraction (percent)),  
+        url: string  
+      ]  
+      ...  
+    ]  
 
-    ]
-    ...
-  ]
+- text  
+  `string`  
 
-
-
-- text
-  `string`
-
-- textSize
-  in pixels
-  `number`
+- textSize  
+  in pixels  
+  `number`  
   Default: LAY.take("../", "textSize") [for "/": 15]
 
-- textFamily
-  `string`
-  CSS font-family
+- textFamily  
+  `string`  
+  CSS font-family  
   Default: LAY.take("../", "textFamily") [for "/": "sans-serif"]
 
-- textWeight
-  `string`
-  CSS font-weight
+- textWeight  
+  `string`  
+  CSS font-weight  
   Default: LAY.take("../", "textWeight") [for "/": "normal"]
 
-- textColor
-  `LAY.Color`
+- textColor  
+  `LAY.Color`  
   Default: LAY.take("../", "textColor") [for "/": LAY.color("black")]
 
-- textVariant
-  `string`
-  CSS font-variant
+- textVariant  
+  `string`  
+  CSS font-variant  
   Default: LAY.take("../", "textVariant") [for "/": "normal"]
 
-- textTransform
-  `string`
-  CSS text-transform
+- textTransform  
+  `string`  
+  CSS text-transform  
   Default: LAY.take("../", "textTransform") [for "/": "none"]
 
-- textStyle
-  `string`
-  CSS font-style
+- textStyle  
+  `string`  
+  CSS font-style  
   Default: LAY.take("../", "textStyle") [for "/": "normal"]
 
-- textDecoration
-  `string`
-  CSS text-decoration
+- textDecoration  
+  `string`  
+  CSS text-decoration  
   Default: "none"
 
-- textLetterSpacing
+- textLetterSpacing  
   `number` / `string`  
   `number`: In pixels.  
-  `string`: CSS letter-spacing [non-transitionable]
+  `string`: CSS letter-spacing [non-transitionable]  
   Default: LAY.take("../", "textLetterSpacing") [for "/": 0]
 
-- textWordSpacing
+- textWordSpacing  
   `number` / `string`  
   `number`: In pixels.  
-  `string`: CSS word-spacing [non-transitionable]
+  `string`: CSS word-spacing [non-transitionable]  
   Default: LAY.take("../", "textWordSpacing") [for "/": 0]
 
-- textAlign
-  `string`
-  CSS text-align
+- textAlign  
+  `string`  
+  CSS text-align  
   Default: LAY.take("../", "textAlign") [for "/": "left"]
 
-- textDirection
-  `string`
-  CSS direction
+- textDirection  
+  `string`  
+  CSS direction  
   Default: LAY.take("../", "textDirection") [for "/": "ltr"]
 
-- textLineHeight
-  `number` / `string`
+- textLineHeight  
+  `number` / `string`  
   `number`: In em.  
-  `string`: CSS line-height [non-transitionable]
+  `string`: CSS line-height [non-transitionable]  
   Default: LAY.take("../", "textLineHeight") [for "/": 1.3]
 
-- textSmoothing
-  `string`
-  CSS -webkit-font-smoothing
+- textSmoothing  
+  `string`  
+  CSS -webkit-font-smoothing  
   Default: LAY.take("../", "textSmoothing") [for "/": "antialised"]
 
-- textRendering
-  `string`
-  CSS text-rendering
+- textRendering  
+  `string`  
+  CSS text-rendering  
   Default: LAY.take("../", "textRendering") [for "/": "auto"]
 
-- textOverflow
-  `string`
-  CSS text-overflow
+- textOverflow  
+  `string`  
+  CSS text-overflow  
   Default: "clip"
 
-- textIndent
-  `number`
+- textIndent  
+  `number`  
   Default: LAY.take("../", "textIndent") [for "/": 0]
 
-- textWrap
-  `string`
-  CSS white-space
+- textWrap  
+  `string`  
+  CSS white-space  
   Default: LAY.take("../", "textWrap") [for "/": "nowrap"]
 
-- textWordBreak
-  `string`
-  CSS word-break
+- textWordBreak  
+  `string`  
+  CSS word-break  
   Default: LAY.take("../", "textWordBreak") [for "/": "normal"]
 
-- textWordWrap
-  `string`
-  CSS word-wrap
+- textWordWrap  
+  `string`  
+  CSS word-wrap  
   Default: LAY.take("../", "textWordWrap") [for "/": "normal"]
 
-
-- textPadding
-  `number`
-  This is a "shorthand-type" prop.
-  Border box padding.
-  Shorthand for `textPaddingTop`, `textPaddingRight`, `textPaddingBottom` and `textPaddingLeft`
+- textPadding  
+  `number`  
+  This is a "shorthand-type" prop.  
+  Border box padding.  
+  Shorthand for `textPaddingTop`, `textPaddingRight`, `textPaddingBottom` and `textPaddingLeft`  
   Default: 0
 
-- textShadows
-  This is a "multiple-type" and an "object-type" prop.
-  [
-    {
-      x: number ,
-      y: number ,
-      blur: number ,
-      color: LAY.Color
-    }
-    ...
-  ]
+- textShadows  
+  This is a "multiple-type" and an "object-type" prop.  
+    [  
+      {  
+        x: number,  
+        y: number,  
+        blur: number,  
+        color: LAY.Color  
+      }  
+      ...  
+    ]  
 
-- inputLabel
-  `string`
-  Default: ""
+- inputLabel  
+  `string`  
+  Default: ""  
 
-- input
-  `string` / `array`
+- input  
+  `string` / `array`  
   `array` for "input:select", "" for remaining 
   Default: [] for "input:select", "" for remaining 
 
-- inputPlaceholder
-  `string`
-  Default: ""
+- inputPlaceholder  
+  `string`  
+  Default: ""  
 
-- inputAutocomplete
-  `boolean`
-  Default: true
+- inputAutocomplete  
+  `boolean`  
+  Default: true  
 
-- inputAutocorrect
-  `boolean`
-  Default: true
+- inputAutocorrect  
+  `boolean`  
+  Default: true  
 
-- inputDisabled
-  `boolean`
-  Default: false
+- inputDisabled  
+  `boolean`  
+  Default: false  
 
-- linkHref
-  `string`
+- linkHref  
+  `string`  
 
-- linkRel
-  `string`
+- linkRel  
+  `string`  
   HTML a[rel]
 
-- linkDownload
-  `boolean`
+- linkDownload  
+  `boolean`  
 
-- linkTarget
-  `string`
-  HTML a[target]
+- linkTarget  
+  `string`  
+  HTML a[target]  
 
-- imageUrl
-  `string`
+- imageUrl  
+  `string`  
 
-- imageAlt
-  `string`
+- imageAlt  
+  `string`  
 
-- audioSrc / videoSrc
-  `string`
+- audioSrc / videoSrc  
+  `string`  
 
-- videoSources / audioSources
+- videoSources / audioSources  
   This is a "multiple-type" and an "object-type" prop.
-  [
-    {
-      type: string ( html5 < source > type ),
-       src: string ( html5 < source > src )
-    },
-    ...
-  ]
+    [  
+      {  
+        type: string ( html5 < source > type ),  
+         src: string ( html5 < source > src )  
+      },  
+      ...  
+    ]  
 
-- videoTracks / audioTracks
-  This is a "multiple-type" and an "object-type" prop.
-  [
-    {
-      default: boolean (Default: false),
-      kind: string ( html5 < track > kind ) (Default: ""),
-      label: string ( html5 < track > label ) (Default: ""),
-      src: string ( html5 < track > src ) (Default: ""),
-      srclang: string ( html5 < track > srclang ) (Default: "")
-    },
-    ...
-  ]
+- videoTracks / audioTracks  
+  This is a "multiple-type" and an "object-type" prop.  
+    [  
+      {  
+        default: boolean (Default: false),  
+        kind: string ( html5 < track > kind ) (Default: ""),  
+        label: string ( html5 < track > label ) (Default: ""),
+        src: string ( html5 < track > src ) (Default: ""),
+        srclang: string ( html5 < track > srclang ) (Default: "")
+      },
+      ...
+    ]
 
 
-- videoAutoplay
+- videoAutoplay  
   `boolean`
   Default: false
 
 
-- videoController / audioController
+- videoController / audioController  
   `boolean`
   Default: true
 
 
-- videoCrossorigin
+- videoCrossorigin  
   `string`
   html5 < video > crossorigin
   Default: "anonymous"
 
 
-- videoLoop / audioLoop
+- videoLoop / audioLoop  
   `boolean`
   Default: false
 
 
-- videoMuted / audioMuted
+- videoMuted / audioMuted  
   `boolean`
   Default: false
 
-- videoPreload / audioPreload
+- videoPreload / audioPreload  
   `string`
   html5 < video >/< audio > preload
   Default: 'auto'
 
-
-- videoPoster
+- videoPoster  
   `string`
 
-
-- audioVolume
+- audioVolume  
   `number`
   Default: 1.0
 
@@ -697,148 +658,137 @@ Defaults:
 
   - <state>.uninstall
 
+  - $type
 
-  - read-only properties (prefix: $)
+  - $inherit
 
-    - $type
-      This can only be set once using a non-take value with the LSON.
+  - $obdurate
 
-    - $inherit
-      This can only be set once using a non-take value with the LSON.
+  - $dataTravelling (`boolean`)
 
-    - $obdurate
-      This can only be set once using a non-take value with the LSON.
+  - $dataTravelDelta (`number`)
 
-    - $dataTravelling (`boolean`)
+  - $dataTravelLevel ('LAY.Level')
 
-    - $dataTravelDelta (`number`)
+  - $windowWidth
 
-    - $dataTravelLevel ('LAY.Level')
+  - $windowHeight
 
-    - $windowWidth
+  - $naturalWidth (`number`)
+    Width of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the width occupied by the children parts.
 
-    - $windowHeight
+  - $naturalHeight (`number`)
+    Height of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the height occupied by the children parts.
 
-    - $naturalWidth (`number`)
-      Width of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the width occupied by the children parts.
+  - $absoluteTop (`number`)
+    Top of the element added with $absoluteTop of its parent level.
 
-    - $naturalHeight (`number`)
-      Height of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the height occupied by the children parts.
+  - $absoluteLeft (`number`)
+    Left of the element added with $absoluteLeft of its parent level.
 
-    - $absoluteTop (`number`)
-      Top of the element added with $absoluteTop of its parent level.
+  - $id (`string`)
+    The name of the unique key which is reponsible for id for each row in `rows` for many-level
 
-    - $absoluteLeft (`number`)
-      Left of the element added with $absoluteLeft of its parent level.
+  - $i (`number`)
+    Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` key. Numbering begins from 1.
 
-    - $id (`string`)
-      The name of the unique key which is reponsible for id for each row in `rows` for many-level
-
-    - $i (`number`)
-      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` key.
-
-    - $f (`number`)
-      Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` keys.
+  - $f (`number`)
+    Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` keys. Levels which do not pass the filter have a an index of -1. Numbering begins from 1.
 
 
-    - $clicking (`boolean`)
+  - $clicking (`boolean`)
 
-    - $hovering (`boolean`)
+  - $hovering (`boolean`)
 
-    - $focused (`boolean`)
+  - $focused (`boolean`)
 
-    - $scrolledX (`number`)
+  - $scrolledX (`number`)
 
-    - $scrolledY (`number`)
+  - $scrolledY (`number`)
 
-    - $input (`string` )
+  - $input (`string` / `array` )
 
 
-### LSON.$obdurate
+### LSON key: $obdurate
 
-  readonlys such as "$hovering" and "$clicking" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these readonlys using "Level.attr()", since there is no deterministic method to be aware and switch on the event listeners for the corresponding read-only.
-  This is the purpose behind `$obdurate`, `$obdurate` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$obdurate` LAY will switch on the event listeners for the
+  Readonlys such as "$hovering" and "$clicking" and the others require 2 or more event listeners bound to the respective DOM element. These event listeners are expensive to inculcate within all Level Parts by default. Thus only if there exists a reference to one of these read-only attributes within the LSON as a "take()", the event listeners will be activated. Albeit the issue lies when/if a reference is made to one of these readonlys using "Level.attr()", since there is no deterministic method to be aware and switch on the event listeners for the corresponding read-only. This is the purpose behind `$obdurate`, `$obdurate` takes in an array of strings, where strings are references made to such read-onlys. Thus if a reference is made within `$obdurate` LAY will switch on the event listeners for the
   read-only.
+
 
 ### LSON.many
 
-Type: `Object`
 
-
-### LSON.states
+### LSON key: states
 
 Object containing states.
 More about states in the states section
 
 
-### LSON.children
+### LSON key: children
 
-Object containing children levels in the form of LSON.
-
+Optionally children LSON can be placed as an object within the LSON under the `children` key.
 
 ### LSON.when
 
-contains events as keys, and values as a callback function or
+Contains events as keys, and values as a callback function or
 arrays of callback functions (order respected)
 The context of the handler function will be the corresponding `Level`.
 
 example with a single callback function specified:
 
-    LAY.start({
-        Box: {
-          props: {
-            text: "Hello World"
-          },
-          when: {
-            click: function() {
-                console.log( "Hello World!" );
-              }
-          }
-        }
-    })
-
-example with multiple callback functions specified (with the aid on array):
-
-    LAY.start({
+    LAY.run({
       Box: {
         props: {
           text: "Hello World"
-          },
-          when: {
-            click: [
-              function() {
-                console.log( "Hello" );
-              },
-              function() {
-                console.log( "World!" );
-              }
-            ]
+        },
+        when: {
+          click: function() {
+              console.log( "Hello World!" );
           }
         }
-    })
+      }
+    });
+
+example with multiple callback functions specified (with the aid on array):
+
+    LAY.run({
+      Box: {
+        props: {
+          text: "Hello World"
+        },
+        when: {
+          click: [
+            function() {
+              console.log( "Hello" );
+            },
+            function() {
+              console.log( "World!" );
+            }
+          ]
+        }
+      }
+    });
 
 
-### LSON.$load
 
-Functions called upon loading of level, with the context of the level.
+### Level
 
-### LAY.Level
-
-To get the LAY.Level:
+To get the Level:
 
   LAY.level(level) // fetches level
-  LAY.level(< LAY.Part reference >, level) // fetches level wrt reference
+  <level>.level(level) // fetches level wrt reference
 
 LAY.Level methods:
 
+  
   attr( attr ) //gets attr value
-  data( changedData ) //changes data value
+  data( key, val ) //changes data value
   parent()
   path()
   many()
   addChildren()
   remove()
-  
+  row()
   rowAdd()
   rowsMore()
   rowsCommit()
@@ -858,7 +808,7 @@ creates LAY.Take object:
 
 or
 
-  LAY.take(property) //this will refer to self
+  LAY.take(val) //essentially just value val
 
 
 LAY.Take methods
@@ -921,7 +871,6 @@ LAY.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
 LAY.color(name)  [name: XML recognized color]
 LAY.hex(hex) [hex: hexadecimal number]
 LAY.transparent()
-
 
 
 eg of take with color:
@@ -1001,7 +950,6 @@ for example:
           width: 300,
           height: 300
         },
-        children: {
         LeftSide: {
           props: {
             backgroundColor: LAY.color('blue')
@@ -1013,10 +961,9 @@ for example:
             width: LAY.take('', 'textWidth'),
             text: 'nothing here'
           }
-          }
         }
       }
-    })
+    });
 
 becomes:
 
@@ -1029,19 +976,17 @@ becomes:
           foo: 10,
           bar: "lala"
         },
-        children: {
-          LeftSide: {
-            props: {
-              width: LAY.take('parent', 'width').half(),
-              height: LAY.take('parent', 'height').half(),
-              backgroundColor: LAY.color('red')
-            }
+        LeftSide: {
+          props: {
+            width: LAY.take('parent', 'width').half(),
+            height: LAY.take('parent', 'height').half(),
+            backgroundColor: LAY.color('red')
           }
-          RightSide: {
-            props: {
-              left: LAY.take('prev-sibling', 'right'),
-              text: 'nothing here'
-            }
+        }
+        RightSide: {
+          props: {
+            left: LAY.take('prev-sibling', 'right'),
+            text: 'nothing here'
           }
         }
       }
@@ -1185,7 +1130,7 @@ LAY.run({
     - rowsCommit()
 
 
-  LAY.run({
+	LAY.run({
       "BioData": {
         children: {
           "Person": {
@@ -1193,10 +1138,9 @@ LAY.run({
               onlyStarks: false
             },
             many: {
-              
+           
               formation:'onebelow',
-              sort: ['name'],
-              ascending: true, //default
+              sort: [{key:"name", ascending:true}],
               fargs: {
                 onebelow: { gap: 2 }
               },
@@ -1218,7 +1162,7 @@ LAY.run({
               states: {
                 "starks": {
                   onlyif: LAY.take("", "data.onlyStarks"),
-                  filter: LAY.take("", "$all").filterEq("family", "Stark")
+                  filter: LAY.take("", "rows").filterEq("family", "Stark")
                 }
               }
             }
@@ -1230,20 +1174,16 @@ LAY.run({
 
 
 
-$id: key which is id (cannot be changed)
-sort: key (or multiple in order of sorting) to sort (can be changed) or it takes a function
-ascending: the order of the sort, true by default. False for descending.
-filter: the levels which pass the filter will be displayed,
-the others will be hidden. (note: levels derived of many
-will have their "display" automatically handled through
-this filter, and thus manually using the "display" prop within a
+`$id`: key which is id (cannot be changed)  
+`sort`: array of sort dicts contains a sub-key "key" and "ascending", the former refers to the key name within the row, the latter is a boolean. Either can have Take values.  
+`filter`: the levels which pass the filter will be displayed,
+the others will be hidden. (note: levels derived of many will have their "display" automatically handled through this filter, and thus manually using the "display" prop within a
 many derived level is prohibited) 
 
 
-rows
+`rows`
 
-  Contains arbitrary data, which is fed into the 'data' key.
-  This result of data changes are bound to this array
+This takes in either an 
 
 
 example:
@@ -1255,7 +1195,7 @@ more can be added by:
   LAY.level('/BioData/Person').rowsMore( [{_id:'01010', name: 'Robb Stark', age: 32}] )
 
 
-or committed (facebook react style)
+or committed/changed:
 
   LAY.level('/BioData/Person').rowsCommit( [
     {_id:'00423', name:'Eddard Stark', age: 50},
@@ -1289,45 +1229,43 @@ Below are formation arguments for corresponding formations:
     - vgap: distance in pixels to be kept vertically
     - columns: number of columns
 
-Formation Creation:
-
+**Custom Formation**
 
 Formations can be added on the go, using `LAY.formation()`,
 with a unique formation name and formation function to it.
 An example of the "onebelow" formation:
 
-    // TODO: fill
+`LAY.formation( fn, )`
 
 
 ### State Transition Object
 
 Transitions for numeric prop-typed attributes.
 
-  {
-
-    all: { duration: 100, type: "spring", args: { tension: 100 } },
-    left: { duration: 200},
-    top: { delay: 500 },
-    opacity: { duration:2000, done: function(){ console.log("opaque") }  }
-
-  }
+	{
+      all: { duration: 100, type: "spring", args: { tension: 100 } },
+      left: { duration: 200},
+      top: { delay: 500 },
+      opacity: { duration:2000, done: function(){ console.log("opaque") }  }
+	}
 
 Each key in the state transition object except for "all" directly refer to a prop-typed attribute.
 The key refers to an object with 5 possible keys:
-    (i) type ( type of transition )
-    (ii) duration ( of the transition )
-    (iii) delay ( till the start of the transition )
-    (iv) done ( function handler executed at the end of the transition )
+    (i) type ( type of transition )  
+    (ii) duration ( of the transition )  
+    (iii) delay ( till the start of the transition )  
+    (iv) done ( function handler executed at the end of the transition )  
     (v) args ( additional args )
 
 The type can one of the 3:
-  "linear"
-  "cubic-bezier"
-  "spring"
+  "linear"  
+  "cubic-bezier"  
+  "spring"  
 
 The corresponding arguments provided within args are:
+
   - "linear", "ease", "ease-in", "ease-out", "ease-in-out": no arguments
-  - "cubic-bezier"
+  - "cubic-bezier"  
     - a: float between 0 and 1
     - b: float between 0 and 1
     - c: float between 0 and 1
@@ -1341,9 +1279,9 @@ The corresponding arguments provided within args are:
 
 An attribute can be of 2 types:
 
-  (1) Transitionable
+  (1) Transitionable  
     Any numeric attribute can be transitioned.
-  (2) Non-transitionable
+  (2) Non-transitionable  
     Non numeric attributes such as textFamily (font family) are non transitionable.
 Upon transition, the duration value for its transition will be ignored, and the
 new value will come into effect immediately. If a delay is required, the delay
@@ -1352,32 +1290,14 @@ effect only after the specified delay.
 
 
 
-##### Multiple state changes
-
-Multiple state changes can potentially result in multiple state transition objects coming into action.
-There could be a conflict in the attribute's transition between two or more state transition objects.
-If such a conflict takes places, the state which is modifying the attribute has its transitionable (transition object) followed.
-However if the state modifying the given property does not contain a state transition object then the attribute is not transitioned.
-
-#### Specifying a transition through the `data()`` method
-
-The overloaded `data()` method of the `Level` object can be used to modify multiple data keys within the level.
-
-  data( changedData, [, stateTransitionObj ] )
-
-Whilst changing data, a state transition object can be specified.
-If one is provided, then this given state transition object obtain highest precedence, peaking all of the state transition
-objects provided in the corresponding modified states.
-
 
 ##### dataTravel
 
-Level.dataTravelBegin( dataKey, changedData )
-Level.dataTravelContinue( delta )
-Level.dataTravelArrive( isArrived )
+`Level.dataTravelBegin( dataKey, changedData )`  
+`Level.dataTravelContinue( delta )`  
+`Level.dataTravelArrive( isArrived )`  
 
 note: `dataTravelling` attribute is set to true when travelling
-
 
 Using the `Level.data( dataKey, changedData )` data can
 be changed of any Level. This is data change can cause change in props of
@@ -1423,33 +1343,33 @@ In our application, if it is controlled by the "data.collapsed" attribute, then 
 begin a data travel based on it.
 
 
-function touchStartHandler () {
+	function touchStartHandler () {
+  	  // Initiate the data travel
+  	  this.dataTravelBegin( { "data.collapsed" : !(this).attr("data.collapsed") } )
+	}
 
-  // Initiate the data travel
-  this.dataTravelBegin( { "data.collapsed" : !(this).attr("data.collapsed") } )
+	function touchMoveHandler () {
+	  var isCollapsingMenu = !(this).attr("data.collapsed");
+      // Note the below function call is a dummy function
+      var delta = findDeltaOfTouchMovement( isCollapsingMenu );
+  	  this.dataTravelContinue( delta );
+	}
 
-}
+	function touchEndHandler () {
+	  // this can be tweaked, or even be made based on momentum or any other factor
+	  var threshold = 0.8;
+      var isCollapsingMenu = !(this).attr("data.collapsed");  
+  	  // Note the below function call is a dummy function
+      var delta = findDeltaOfTouchMovement( isCollapsingMenu );
+      this.dataTravelArrive( delta > threshold );
+ 	}
 
-function touchMoveHandler () {
 
-  var isCollapsingMenu = !(this).attr("data.collapsed");
-  // Note the below function call is a dummy function
-  var delta = findDeltaOfTouchMovement( isCollapsingMenu );
+### Reserved names
 
-  this.dataTravelContinue( delta );
+Reserved names cannot be used for state or level names.  
+The following consitute reserved names:
 
-}
-
-function touchEndHandler () {
-
-  var threshold = 0.8; // this can be tweaked, or even be made based on momentum or any other factor
-
-  var isCollapsingMenu = !(this).attr("data.collapsed");  
-  // Note the below function call is a dummy function
-  var delta = findDeltaOfTouchMovement( isCollapsingMenu );
-
-  this.dataTravelArrive( delta > threshold );
-
-}
-
+root, transition, data, when, onlyif, exist, many, formation,
+formationDisplayNone, sort, fargs, row, rows, filter, args, all
 

@@ -71,103 +71,95 @@ var billboardItems = [
 ];
 
 
-var suggestions = [
-  {
-    title: "Trending Now",
-    options: [
-      { 
-        id: 12312,
-        type: "tv",
-        name: "Prison Break",
-        cover: "http://cdn0.nflximg.net/images/1866/3511866.jpg",
-        length: "4 seasons",
-        publicRating: 4.5,
-        userRating: 5,
-        list: false,
-        year: 2008,
-        rating: "TV-14",
-        userLastWatched: {
-          location: "S1:E1",
-          title: "Pilot",
-          length: 43,
-          till: 41
-        },
-        trailers: []
-      },
-      { 
-        id: 62312,
-        type: "movie",
-        name: "Gone in 60 seconds",
-        cover: "http://cdn0.nflximg.net/images/2974/9312974.jpg",
-        length: "1h 58m",
-        publicRating: 4.5,
-        userRating: null,
-        list: false,
-        year: 2000,
-        rating: "PG-13",
-        userLastWatched: {},
-        trailers: []
-      },
 
-      { 
-        id: 52312,
-        type: "movie",
-        name: "Ray",
-        cover: "http://cdn0.nflximg.net/images/7026/9417026.jpg",
-        length: "2h 32m",
-        publicRating: 4.5,
-        userRating: -1,
-        list: false,
-        year: 2008,
-        rating: "TV-14",
-        userLastWatched: {},
-        trailers: []
-      },
-      { 
-        id: 42312,
-        type: "movie",
-        name: "Chasing Tyson",
-        cover: "http://cdn0.nflximg.net/images/8386/23978386.jpg",
-        length: "1h 17m",
-        publicRating: 4.5,
-        userRating: 5,
-        list: false,
-        year: 2015,
-        rating: "TV-14",
-        userLastWatched: {},
-        trailers: []
-      },
-      { 
-        id: 32312,
-        type: "movie",
-        name: "A League of Their Own",
-        cover: "http://cdn0.nflximg.net/images/0640/8400640.jpg",
-        length: "2h 7m",
-        publicRating: 4.5,
-        userRating: 5,
-        list: false,
-        year: 1992,
-        rating: "PG",
-        userLastWatched: {},
-        trailers: []
-      },
-      { 
-        id: 22312,
-        type: "tv",
-        name: "The Office (U.S.)",
-        cover: "http://cdn1.nflximg.net/images/0927/8390927.jpg",
-        length: "4 seasons",
-        publicRating: 4.5,
-        userRating: 5,
-        list: false,
-        year: 2008,
-        rating: "TV-14",
-        userLastWatched: {},
-        trailers: []
-      }
-      
-    ]
-  }
+content = [
+  { 
+    id: 12312,
+    name: "Prison Break",
+    cover: "http://cdn0.nflximg.net/images/1866/3511866.jpg",
+  //  length: "4 seasons",
+//    year: 2008,
+//    rating: "TV-14",
+  //  userLastWatched: {
+   //   location: "S1:E1",
+    //  title: "Pilot",
+    //  length: 43,
+    //  till: 41
+   // },
+    trailers: []
+  },
+  { 
+    id: 62312,
+    name: "Gone in 60 seconds",
+    cover: "http://cdn0.nflximg.net/images/2974/9312974.jpg",
+//    length: "1h 58m",
+  //  list: false,
+   // year: 2000,
+   // rating: "PG-13",
+  },
 
-
+  { 
+    id: 52312,
+    name: "Ray",
+    cover: "http://cdn0.nflximg.net/images/7026/9417026.jpg",
+//    length: "2h 32m",
+//    year: 2008,
+ //   rating: "TV-14",
+  },
+  { 
+    id: 42312,
+    name: "Chasing Tyson",
+    cover: "http://cdn0.nflximg.net/images/8386/23978386.jpg",
+  //  length: "1h 17m",
+//    year: 2015,
+ //   rating: "TV-14",
+  },
+  { 
+    id: 32312,
+    name: "A League of Their Own",
+    cover: "http://cdn0.nflximg.net/images/0640/8400640.jpg",
+//    length: "2h 7m",
+//    year: 1992,
+//    rating: "PG",
+  },
+  { 
+    id: 22312,
+    name: "The Office (U.S.)",
+    cover: "http://cdn1.nflximg.net/images/0927/8390927.jpg",
+//    length: "4 seasons",
+//    year: 2008,
+ //   rating: "TV-14",
+  }      
 ];
+
+ 
+var suggestionTitles = [ "Crime", "Comedy",
+  "Thriller", "Because you watched The Cobbler",
+  "Holiday Favourites", "New Releases", "Drama",
+  "Watch it Again", "Actions & Adventure",
+  "Witty Movies" ]
+
+var suggestions = [];
+
+
+function getRandomContent(){
+  return content[ Math.floor(Math.random() * content.length) ];
+
+}
+
+for ( var i=0; i<suggestionTitles.length; i++ ) {
+  var suggestionContent = [], total=0;
+  while ( total !== 6 ) {
+    var randomContent = getRandomContent();
+    if ( suggestionContent.indexOf( randomContent ) === -1 ) {
+      suggestionContent.push( randomContent );
+      total++;
+    }
+  }
+  suggestions.push( {
+    title: suggestionTitles[ i ],
+    options:suggestionContent ,
+    myList: false
+  });
+
+}

@@ -302,7 +302,6 @@ if (!Array.prototype.indexOf) {
       attr = this.attr,
       i, len;
 
-
     if ( attr.charAt( 0 ) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
         this.val = part.getImmidiateReadonlyVal( attr );
@@ -1562,7 +1561,8 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Level.prototype.$identify = function () {
-    this.isPart = this.lson.many === undefined;
+    this.isPart = this.lson.many === undefined ||
+      this.derivedMany;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
         true : 
@@ -1585,10 +1585,7 @@ if (!Array.prototype.indexOf) {
       }
       this.partLson = this.lson;
       this.lson = this.lson.many;
-      // deference the "many" key from part lson
-      // so as to not to associate with the lson
-      // with a many creator
-      this.partLson.many = undefined;
+      
       LAY.$defaultizeManyLson( this.lson );
     }
   };
@@ -2178,6 +2175,7 @@ if (!Array.prototype.indexOf) {
     this.id2level = {};
     this.id2row = {};
     this.isLoaded = false;
+    this.isAutoId = false;
 
     this.defaultFormationX = undefined;
     this.defaultFormationY = undefined;
@@ -2325,13 +2323,14 @@ if (!Array.prototype.indexOf) {
   function checkIfRowsHaveNoId( rowS, idKey ) {
     var totalIds = 0;
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      if ( rowS[i][ idKey ] !== undefined ) {
+      if ( rowS[ i ][ idKey ] !== undefined ) {
         totalIds++;
       }
     }
     if ( totalIds > 0 ) {
       if ( totalIds !== rowS.length ) {
-        throw "LAY Error: Inconsistent id provision to rows.";
+        throw "LAY Error: Inconsistent id provision to rows of " +
+          this.level.pathName;
       }
     } else if ( rowS.length ) {
       return true;
@@ -2340,11 +2339,30 @@ if (!Array.prototype.indexOf) {
   }
 
   function idifyRows ( rowS, idKey ) {
+
     for ( var i=0, len=rowS.length; i<len; i++ ) {
       rowS[ i ][ idKey ] = i+1;
     }
+
+    // check for duplicates
+    // complexity of solution is O(n)
+    var hasDuplicates = false;
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      if ( rowS[ i ][ idKey ] !== i+1 ) {
+        hasDuplicates = true;
+        break;
+      } 
+    }
+    if ( hasDuplicates ) {
+      for ( var i=0, len=rowS.length; i<len; i++ ) {
+        rowS[ i ] = LAY.$clone( rowS[ i ] );
+        rowS[ i ][ idKey ] = i+1;
+      }
+    }
     return rowS;
   }
+
+
 
   /*
   *	Update the rows by:
@@ -2375,7 +2393,9 @@ if (!Array.prototype.indexOf) {
       rowS = objectifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
-    } else if ( checkIfRowsHaveNoId( rowS, this.id ) ) {
+    } else if ( this.isAutoId ||
+        checkIfRowsHaveNoId( rowS, this.id ) ) {
+      this.isAutoId = true;
       rowS = idifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
@@ -4296,7 +4316,6 @@ if (!Array.prototype.indexOf) {
         }
       }
     }
-    
 
   };
 
@@ -4317,12 +4336,13 @@ if (!Array.prototype.indexOf) {
           if ( traverseArray[ i ] === 0 ) { //parent traversal
             level = level.parentLevel;
           } else { //closest row traversal
-            while ( !level.derivedMany ) {
+            do {
               level = level.parentLevel;
-            }
+            } while ( !level.derivedMany )
+            
           }
         }
-
+        
         level =  ( this.path === "" ) ? level :
               LAY.$pathName2level[ level.pathName +
               ( ( level.pathName === "/" ) ? "" : "/" )+
@@ -9752,7 +9772,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         LAY.$render();
       }
     }
-
   };
 
 

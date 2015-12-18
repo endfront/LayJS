@@ -44,7 +44,6 @@
         }
       }
     }
-    
 
   };
 
@@ -65,12 +64,13 @@
           if ( traverseArray[ i ] === 0 ) { //parent traversal
             level = level.parentLevel;
           } else { //closest row traversal
-            while ( !level.derivedMany ) {
+            do {
               level = level.parentLevel;
-            }
+            } while ( !level.derivedMany )
+            
           }
         }
-
+        
         level =  ( this.path === "" ) ? level :
               LAY.$pathName2level[ level.pathName +
               ( ( level.pathName === "/" ) ? "" : "/" )+

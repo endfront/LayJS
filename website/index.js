@@ -15,7 +15,7 @@ var docTree = [
 
 
 
-LAY.run({
+var lson = ({
   data: {
     lightWhite: LAY.rgb(235,235,235),
     lightBlack: LAY.rgb(70,70,70)
