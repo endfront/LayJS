@@ -33,9 +33,11 @@ Refer to specification.markdown
           data: object,
           formation: string (take),
           sort: [sortDict, ...],
-          filter: LAY.take,
+          filter: take,
           rows: array | take,
-          fargs: object,
+          fargs: {
+          	<formationName>: args 
+          },
 
           states: {
             < name >: {
