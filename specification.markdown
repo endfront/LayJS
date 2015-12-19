@@ -623,41 +623,41 @@ Defaults:
   the LAY Level through `.attr(< access key >)`
   The same access keys are used as the 2nd argument in LAY.Take
 
-  - <prop>
+  - < prop >
 
-  - data.<data>
+  - data.< data >
 
-  - when.<event>.<num>
+  - when.< event >.< num >
 
-  - transition.<attr>.<duration/delay/done/type>
+  - transition.< attr >.< duration/delay/done/type >
 
-  - transition.<attr>.args.<arg>
+  - transition.< attr >.args.< arg >
 
   - load
 
   - formation
 
-  - fargs.<formation>.<key>
+  - fargs.< formation >.< key >
 
-  - sort.<num>.key
+  - sort.< num >.key
 
-  - sort.<num>.ascending
+  - sort.< num >.ascending
 
   - filter
 
-  - <state>.<prop>
+  - < state >.< prop >
 
-  - <state>.when.<event><num>
+  - < state >.when.< event >< num >
 
-  - <state>.transition.<attr><duration/delay/done/type>
+  - < state >.transition.< prop >< duration/delay/done/type >
 
-  - <state>.transition.<attr>.args.<arg>
+  - < state >.transition.< prop >.args.< arg >
 
-  - <state>.onlyif
+  - < state >.onlyif
 
-  - <state>.install
+  - < state >.install
 
-  - <state>.uninstall
+  - < state >.uninstall
 
   - $type
 
@@ -785,8 +785,10 @@ LAY.Level methods:
   attr( attr ) //gets attr value
   data( key, val ) //changes data value
   parent()
+  level()
   path()
   many()
+  levels()
   addChildren()
   remove()
   row()
@@ -1049,22 +1051,20 @@ would essentially compile to:
 
   - Relative
     'Winners/Stats'
+  
+  - Parent
     '../'
 
   - Current
     ''
 
-  - Many Level 
-    "*" / "many"
+  - Many Level (from context of Level derived of Many)
+    "*" 
 
-  - Closest Many Derived Parent
+  - Closest Many Derived Many Parent Level
     ".../"
 
-  - Special
-      - '' ('.')
-      - '' ('.')
-      - 'parent' ('../')
-
+  
   - Many (by predetermined id field):
     /Page/Feed/Post:507c7f79bcf86cd7994f6c0e
 
@@ -1076,26 +1076,24 @@ would essentially compile to:
 
   LAY.run({
     LeaderBoard: {
-          children: {
-            Nav: {
-              props: {
-                width:200,
-                left: 0,
-                backgroundColor: LAY.color('black'),
-                textColor:LAY.color('white')
-              },
-              state: ['closed'],
-              states: {
-                closed: {
-                  props: {
-                    left: LAY.take('', 'width').negative()
-                  },
-                  onlyif: LAY.take('', 'data.locked').and(LAY.take('../', 'state.collapsed'))
-                }
-              }
-            }
+      Nav: {
+        props: {
+          width:200,
+          left: 0,
+          backgroundColor: LAY.color('black'),
+          textColor:LAY.color('white')
+        },
+        state: ['closed'],
+        states: {
+          closed: {
+            onlyif: LAY.take('', 'data.locked').and(LAY.take('../', 'state.collapsed')),
+            props: {
+              left: LAY.take('', 'width').negative()
+            },
+          }
         }
-      }
+      }  
+    }
   })
 
 
@@ -1125,11 +1123,6 @@ LAY.run({
 
 
 ### Many
-
-  Related methods:
-    - rowsMore()
-    - rowsCommit()
-
 
 	LAY.run({
       "BioData": {
@@ -1239,8 +1232,15 @@ Formations can be added on the go, using `LAY.formation()`,
 with a unique formation name and formation function to it.
 An example of the "onebelow" formation:
 
-`LAY.formation( fn, )`
+`LAY.formation( name, fargs, fn )`
 
+name: name of the formation
+fargs: a dictionary containing each farg key as key, and value as the default value. If no default value then the value should be `null`.
+fn: function iterated on each level, takes in 4 arguments:  
+(1) f (index of level)  
+(2) filteredLevel (Level)  
+(3) filteredLevelS (all filtered levels)  
+(4) fargs (fargs set by the developer)  
 
 ### State Transition Object
 
