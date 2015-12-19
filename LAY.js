@@ -12,7 +12,7 @@
     // version is a method in order
     // to maintain the consistency of
     // only method accesses from the user
-    version: function(){ return "beta"; },
+    version: function(){ return "0.9.1"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
