@@ -109,7 +109,7 @@
   LAY.AttrVal.prototype.update = function ( val ) {
     
     this.val = val;
-    if ( !LAY.$identical( val, this.prevVal ) ) {
+    if ( !LAY.identical( val, this.prevVal ) ) {
       if ( this.prevVal instanceof LAY.Take ) {
         this.takeNot( this.prevVal );
       }
@@ -211,7 +211,7 @@
         recalcVal = LAY.$clone( recalcVal );
       }
 
-      if ( !LAY.$identical( recalcVal, this.calcVal ) ) {
+      if ( !LAY.identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = recalcVal;
       }
@@ -220,7 +220,7 @@
           attr.startsWith("row.") ) {
         this.val = LAY.$clone( this.val );
       }
-      if ( !LAY.$identical( this.val, this.calcVal ) ) {
+      if ( !LAY.identical( this.val, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = this.val;
       }

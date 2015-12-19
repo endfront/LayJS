@@ -412,22 +412,17 @@
           attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
       }
     }
-
-
-
   };
 
-
-  console.log( "TODO: complete this");
 
   LAY.Many.prototype.remove = function () {
   };
   
 
-  // below code is taken from one of the responses
-  // to the stackoverflow question:
-  // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-  // source: http://stackoverflow.com/a/4760279
+  /*! below code is taken from one of the responses
+   to the stackoverflow question:
+   http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+   @source: http://stackoverflow.com/a/4760279 */
   function dynamicSort( sortDict ) {
     var key = sortDict.key,
       sortOrder = sortDict.ascending ? 1 : -1;

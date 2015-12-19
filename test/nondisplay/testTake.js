@@ -370,7 +370,7 @@ LAY.run({
 
 
               fnNoArgs: LAY.take(function(){
-                return [this, null]
+                return [this, null];
               }).fn(),
 
               fnSingleArgFive: LAY.take(function( num ){
@@ -432,6 +432,7 @@ LAY.run({
 
 
 // TODO: TEST single ARG LAY.take() HEREEEEE
+
 
 
 QUnit.test( "LAY.Take().execute", function( assert ) {
@@ -936,7 +937,7 @@ QUnit.test( "LAY.Take.i18nFormat()", function( assert ) {
 
 
 });
-
+  
 
 QUnit.test( "LAY.Take.colorEquals()", function ( assert ) {
   assert.ok( LAY.level("/Body/Content").attr(
@@ -944,6 +945,7 @@ QUnit.test( "LAY.Take.colorEquals()", function ( assert ) {
   assert.ok( LAY.level("/Body/Content").attr(
     "data.colorEqualsWithTake") );
 });
+
 
 QUnit.test( "LAY.Take.colorLighten()", function ( assert ) {
   assert.ok( LAY.level("/Body/Content").attr(

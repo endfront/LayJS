@@ -1,3 +1,54 @@
+/*
+* Copyright 2015 Raj Nathani
+* @license: MIT
+* @author: Raj Nathani <me@relfor.co>
+*/
+
+(function () {
+  "use strict";
+
+  window.LAY = {
+
+    // version is a method in order
+    // to maintain the consistency of
+    // only method accesses from the user
+    version: function(){ return "beta"; },
+
+    $pathName2level: {},
+    $newlyInstalledStateLevelS: [],
+    $newlyUninstalledStateLevelS: [],
+    $newLevelS: [],
+    $recalculateDirtyAttrValS: [],
+    $renderDirtyPartS: [],
+    $prevFrameTime: 0,
+    $newManyS: [],
+    $isRendering: false,
+
+    $isGpuAccelerated: undefined,
+    $isBelowIE9: undefined,
+    $numClog: 0,
+    $isSolving: false,
+    $isSolveRequiredOnRenderFinish: false,
+    $isOkayToEstimateWhitespaceHeight: true,
+    // The below refer to dimension
+    // dirty parts whereby the dimensions
+    // depend upon the child parts
+    $naturalHeightDirtyPartS: [],
+    $naturalWidthDirtyPartS: [],
+    $relayoutDirtyManyS: [],
+
+    $isDataTravellingShock: false,
+    $isDataTravelling: false,
+    $dataTravelDelta: 0.0,
+    $dataTravellingLevel: undefined,
+    $dataTravellingAttrInitialVal: undefined,
+    $dataTravellingAttrVal: undefined
+
+  };
+
+})();
+
+
 // Polyfill for Array.indexOf must be implemented
 // before the LAY library executes
 //
@@ -69,47 +120,3 @@ if (!Array.prototype.indexOf) {
   };
 }
 
-
-(function () {
-  "use strict";
-
-  window.LAY = window.LAY = {
-
-    // version is a method in order
-    // to maintain the consistency of
-    // only method accesses from the user
-    version: function(){ return "beta"; },
-
-    $pathName2level: {},
-    $newlyInstalledStateLevelS: [],
-    $newlyUninstalledStateLevelS: [],
-    $newLevelS: [],
-    $recalculateDirtyAttrValS: [],
-    $renderDirtyPartS: [],
-    $prevFrameTime: 0,
-    $newManyS: [],
-    $isRendering: false,
-
-    $isGpuAccelerated: undefined,
-    $isBelowIE9: undefined,
-    $numClog: 0,
-    $isSolving: false,
-    $isSolveRequiredOnRenderFinish: false,
-    $isOkayToEstimateWhitespaceHeight: true,
-    // The below refer to dimension
-    // dirty parts whereby the dimensions
-    // depend upon the child parts
-    $naturalHeightDirtyPartS: [],
-    $naturalWidthDirtyPartS: [],
-    $relayoutDirtyManyS: [],
-
-    $isDataTravellingShock: false,
-    $isDataTravelling: false,
-    $dataTravelDelta: 0.0,
-    $dataTravellingLevel: undefined,
-    $dataTravellingAttrInitialVal: undefined,
-    $dataTravellingAttrVal: undefined
-
-  };
-
-})();

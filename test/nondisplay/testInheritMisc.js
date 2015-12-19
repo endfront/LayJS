@@ -5,35 +5,27 @@ var
 
 
 var externalInherit = {
-  load: fnExternalLoad
+  $load: fnExternalLoad
 };
 
 
 LAY.run({
-  children:{
-    "Body": {
-      children: {
-        "Content": {
-            children: {
-              "InternalInherit": {
-                
-              },
-              "Box": {
-                $inherit: [externalInherit, "../InternalInherit" ],
-                
-                
-                
-                states: {
-                  "state1": {
-                  },
-                }
-              }
-            }
-          }
+  "Body": {
+    "Content": {
+      "InternalInherit": {
+        
+      },
+      "Box": {
+        $inherit: [externalInherit, "../InternalInherit" ],
+              
+        states: {
+          "state1": {
+          },
         }
       }
     }
-  });
+  }
+});
 
 
 

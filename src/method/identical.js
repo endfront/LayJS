@@ -1,34 +1,22 @@
 ( function () {
   "use strict";
   
-  // source: chai.js (https://github.com/chaijs/deep-eql)
-  /*!
-	* deep-eql
-	* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
-	* MIT Licensed
-	*/
+/*!
+* source: chai.js (https://github.com/chaijs/deep-eql)
+* deep-eql
+* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
+* MIT Licensed
+*/
 
-  /**
-	 * Assert super-strict (egal) equality between
-	 * two objects of any type.
-	 *
-	 * @param {Mixed} a
-	 * @param {Mixed} b
-	 * @param {Array} memoised (optional)
-	 * @return {Boolean} equal match
-	 */
-
-  LAY.$identical = function ( a, b ) {
+  
+  LAY.identical = function ( a, b ) {
   	return deepEqual( a, b, undefined );
   };
 
-  	/*!
-	* Module dependencies
-	*/
 
-	function type (x) {
-		return LAY.$type(x);
-	}
+function type (x) {
+	return LAY.$type(x);
+}
 
   function deepEqual(a,b,m) {
   	var
@@ -58,13 +46,8 @@
   }
 
 
-	/*!
-	* Primary Export
-	*/
 
-
-
-	/*!
+	/*
 	* Strict (egal) equality test. Ensures that NaN always
 	* equals NaN and `-0` does not equal `+0`.
 	*
@@ -79,7 +62,7 @@
 	}
 
 
-	/*!
+	/*
 	* Compare two Date objects by asserting that
 	* the time values are equal using `saveValue`.
 	*
@@ -102,7 +85,7 @@
 		return type(b) === "level" && ( a.pathName === b.pathName );		
 	}
 
-	/*!
+	/*
 	* Compare two regular expressions by converting them
 	* to string and checking for `sameValue`.
 	*
@@ -116,7 +99,7 @@
 		return sameValue(a.toString(), b.toString());
 	}
 
-	/*!
+	/*
 	* Assert deep equality of two `arguments` objects.
 	* Unfortunately, these must be sliced to arrays
 	* prior to test to ensure no bad behavior.
@@ -134,7 +117,7 @@
 		return deepEqual(a, b, m);
 	}
 
-	/*!
+	/*
 	* Get enumerable properties of a given object.
 	*
 	* @param {Object} a
@@ -147,7 +130,7 @@
 		return res;
 	}
 
-	/*!
+	/*
 	* Simple equality for flat iterable objects
 	* such as Arrays or Node.js buffers.
 	*
@@ -172,7 +155,7 @@
 		return match;
 	}
 
-	/*!
+	/*
 	* Extension to `iterableEqual` specifically
 	* for Node.js Buffers.
 	*
@@ -186,7 +169,7 @@
 		return iterableEqual(a, b);
 	}
 
-	/*!
+	/*
 	* Block for `objectEqual` ensuring non-existing
 	* values don't get in.
 	*
@@ -198,7 +181,7 @@
 		return a !== null && a !== undefined;
 	}
 
-	/*!
+	/*
 	* Recursively check the equality of two objects.
 	* Once basic sameness has been established it will
 	* defer to `deepEqual` for each enumerable key

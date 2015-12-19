@@ -1,3 +1,54 @@
+/*
+* Copyright 2015 Raj Nathani
+* @license: MIT
+* @author: Raj Nathani <me@relfor.co>
+*/
+
+(function () {
+  "use strict";
+
+  window.LAY = {
+
+    // version is a method in order
+    // to maintain the consistency of
+    // only method accesses from the user
+    version: function(){ return "beta"; },
+
+    $pathName2level: {},
+    $newlyInstalledStateLevelS: [],
+    $newlyUninstalledStateLevelS: [],
+    $newLevelS: [],
+    $recalculateDirtyAttrValS: [],
+    $renderDirtyPartS: [],
+    $prevFrameTime: 0,
+    $newManyS: [],
+    $isRendering: false,
+
+    $isGpuAccelerated: undefined,
+    $isBelowIE9: undefined,
+    $numClog: 0,
+    $isSolving: false,
+    $isSolveRequiredOnRenderFinish: false,
+    $isOkayToEstimateWhitespaceHeight: true,
+    // The below refer to dimension
+    // dirty parts whereby the dimensions
+    // depend upon the child parts
+    $naturalHeightDirtyPartS: [],
+    $naturalWidthDirtyPartS: [],
+    $relayoutDirtyManyS: [],
+
+    $isDataTravellingShock: false,
+    $isDataTravelling: false,
+    $dataTravelDelta: 0.0,
+    $dataTravellingLevel: undefined,
+    $dataTravellingAttrInitialVal: undefined,
+    $dataTravellingAttrVal: undefined
+
+  };
+
+})();
+
+
 // Polyfill for Array.indexOf must be implemented
 // before the LAY library executes
 //
@@ -69,50 +120,6 @@ if (!Array.prototype.indexOf) {
   };
 }
 
-
-(function () {
-  "use strict";
-
-  window.LAY = window.LAY = {
-
-    // version is a method in order
-    // to maintain the consistency of
-    // only method accesses from the user
-    version: function(){ return "beta"; },
-
-    $pathName2level: {},
-    $newlyInstalledStateLevelS: [],
-    $newlyUninstalledStateLevelS: [],
-    $newLevelS: [],
-    $recalculateDirtyAttrValS: [],
-    $renderDirtyPartS: [],
-    $prevFrameTime: 0,
-    $newManyS: [],
-    $isRendering: false,
-
-    $isGpuAccelerated: undefined,
-    $isBelowIE9: undefined,
-    $numClog: 0,
-    $isSolving: false,
-    $isSolveRequiredOnRenderFinish: false,
-    $isOkayToEstimateWhitespaceHeight: true,
-    // The below refer to dimension
-    // dirty parts whereby the dimensions
-    // depend upon the child parts
-    $naturalHeightDirtyPartS: [],
-    $naturalWidthDirtyPartS: [],
-    $relayoutDirtyManyS: [],
-
-    $isDataTravellingShock: false,
-    $isDataTravelling: false,
-    $dataTravelDelta: 0.0,
-    $dataTravellingLevel: undefined,
-    $dataTravellingAttrInitialVal: undefined,
-    $dataTravellingAttrVal: undefined
-
-  };
-
-})();
 
 ( function () {
   "use strict";
@@ -225,7 +232,7 @@ if (!Array.prototype.indexOf) {
   LAY.AttrVal.prototype.update = function ( val ) {
     
     this.val = val;
-    if ( !LAY.$identical( val, this.prevVal ) ) {
+    if ( !LAY.identical( val, this.prevVal ) ) {
       if ( this.prevVal instanceof LAY.Take ) {
         this.takeNot( this.prevVal );
       }
@@ -327,7 +334,7 @@ if (!Array.prototype.indexOf) {
         recalcVal = LAY.$clone( recalcVal );
       }
 
-      if ( !LAY.$identical( recalcVal, this.calcVal ) ) {
+      if ( !LAY.identical( recalcVal, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = recalcVal;
       }
@@ -336,7 +343,7 @@ if (!Array.prototype.indexOf) {
           attr.startsWith("row.") ) {
         this.val = LAY.$clone( this.val );
       }
-      if ( !LAY.$identical( this.val, this.calcVal ) ) {
+      if ( !LAY.identical( this.val, this.calcVal ) ) {
         isDirty = true;
         this.calcVal = this.val;
       }
@@ -2566,22 +2573,17 @@ if (!Array.prototype.indexOf) {
           attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
       }
     }
-
-
-
   };
 
-
-  console.log( "TODO: complete this");
 
   LAY.Many.prototype.remove = function () {
   };
   
 
-  // below code is taken from one of the responses
-  // to the stackoverflow question:
-  // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-  // source: http://stackoverflow.com/a/4760279
+  /*! below code is taken from one of the responses
+   to the stackoverflow question:
+   http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+   @source: http://stackoverflow.com/a/4760279 */
   function dynamicSort( sortDict ) {
     var key = sortDict.key,
       sortOrder = sortDict.ascending ? 1 : -1;
@@ -6466,6 +6468,252 @@ if (!Array.prototype.indexOf) {
 
   })();
 
+( function () {
+  "use strict";
+  
+/*!
+* source: chai.js (https://github.com/chaijs/deep-eql)
+* deep-eql
+* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
+* MIT Licensed
+*/
+
+  
+  LAY.identical = function ( a, b ) {
+  	return deepEqual( a, b, undefined );
+  };
+
+
+function type (x) {
+	return LAY.$type(x);
+}
+
+  function deepEqual(a,b,m) {
+  	var
+  		typeA = type( a ),
+  		typeB = type( b );
+
+  	if ( sameValue( a, b ) ) {
+			return true;
+		} else if ( 'color' === typeA ) {
+			return colorEqual(a, b);
+		} else if ( 'level' === typeA ) {
+			return levelEqual(a, b);
+		} else if ( 'take' === typeA || 'take' === typeB ) {
+			return false;
+		} else if ('date' === typeA ) {
+			return dateEqual(a, b);
+		} else if ('regexp' === typeA) {
+			return regexpEqual(a, b);
+		} else if ('arguments' === typeA) {
+			return argumentsEqual(a, b, m);
+		} else if (('object' !== typeA && 'object' !== typeB)
+			&& ('array' !== typeA && 'array' !== typeB)) {
+			return sameValue(a, b);
+		} else {
+			return objectEqual(a, b, m);
+		}
+  }
+
+
+
+	/*
+	* Strict (egal) equality test. Ensures that NaN always
+	* equals NaN and `-0` does not equal `+0`.
+	*
+	* @param {Mixed} a
+	* @param {Mixed} b
+	* @return {Boolean} equal match
+	*/
+
+	function sameValue(a, b) {
+		if (a === b) return a !== 0 || 1 / a === 1 / b;
+		return a !== a && b !== b;
+	}
+
+
+	/*
+	* Compare two Date objects by asserting that
+	* the time values are equal using `saveValue`.
+	*
+	* @param {Date} a
+	* @param {Date} b
+	* @return {Boolean} result
+	*/
+
+	function dateEqual(a, b) {
+		if ('date' !== type(b)) return false;
+		return sameValue(a.getTime(), b.getTime());
+	}
+
+
+	function colorEqual (a, b) {
+		return type(b) === "color" && a.equals(b);		
+	}
+
+	function levelEqual (a, b) {
+		return type(b) === "level" && ( a.pathName === b.pathName );		
+	}
+
+	/*
+	* Compare two regular expressions by converting them
+	* to string and checking for `sameValue`.
+	*
+	* @param {RegExp} a
+	* @param {RegExp} b
+	* @return {Boolean} result
+	*/
+
+	function regexpEqual(a, b) {
+		if ('regexp' !== type(b)) return false;
+		return sameValue(a.toString(), b.toString());
+	}
+
+	/*
+	* Assert deep equality of two `arguments` objects.
+	* Unfortunately, these must be sliced to arrays
+	* prior to test to ensure no bad behavior.
+	*
+	* @param {Arguments} a
+	* @param {Arguments} b
+	* @param {Array} memoize (optional)
+	* @return {Boolean} result
+	*/
+
+	function argumentsEqual(a, b, m) {
+		if ('arguments' !== type(b)) return false;
+		a = [].slice.call(a);
+		b = [].slice.call(b);
+		return deepEqual(a, b, m);
+	}
+
+	/*
+	* Get enumerable properties of a given object.
+	*
+	* @param {Object} a
+	* @return {Array} property names
+	*/
+
+	function enumerable(a) {
+		var res = [];
+		for (var key in a) res.push(key);
+		return res;
+	}
+
+	/*
+	* Simple equality for flat iterable objects
+	* such as Arrays or Node.js buffers.
+	*
+	* @param {Iterable} a
+	* @param {Iterable} b
+	* @return {Boolean} result
+	*/
+
+	function iterableEqual(a, b) {
+		if (a.length !==  b.length) return false;
+
+		var i = 0;
+		var match = true;
+
+		for (; i < a.length; i++) {
+			if (a[i] !== b[i]) {
+			  match = false;
+			  break;
+			}
+		}
+
+		return match;
+	}
+
+	/*
+	* Extension to `iterableEqual` specifically
+	* for Node.js Buffers.
+	*
+	* @param {Buffer} a
+	* @param {Mixed} b
+	* @return {Boolean} result
+	*/
+
+	function bufferEqual(a, b) {
+		if (!Buffer.isBuffer(b)) return false;
+		return iterableEqual(a, b);
+	}
+
+	/*
+	* Block for `objectEqual` ensuring non-existing
+	* values don't get in.
+	*
+	* @param {Mixed} object
+	* @return {Boolean} result
+	*/
+
+	function isValue(a) {
+		return a !== null && a !== undefined;
+	}
+
+	/*
+	* Recursively check the equality of two objects.
+	* Once basic sameness has been established it will
+	* defer to `deepEqual` for each enumerable key
+	* in the object.
+	*
+	* @param {Mixed} a
+	* @param {Mixed} b
+	* @return {Boolean} result
+	*/
+
+	function objectEqual(a, b, m) {
+		if (!isValue(a) || !isValue(b)) {
+			return false;
+		}
+
+		if (a.prototype !== b.prototype) {
+			return false;
+		}
+
+		var i;
+		if (m) {
+			for (i = 0; i < m.length; i++) {
+		 	 if ((m[i][0] === a && m[i][1] === b)
+		 	 ||  (m[i][0] === b && m[i][1] === a)) {
+		 	   return true;
+		 	 }
+			}
+		} else {
+			m = [];
+		}
+
+		try {
+			var ka = enumerable(a);
+			var kb = enumerable(b);
+		} catch (ex) {
+			return false;
+		}
+
+		ka.sort();
+		kb.sort();
+
+		if (!iterableEqual(ka, kb)) {
+			return false;
+		}
+
+		m.push([ a, b ]);
+
+		var key;
+		for (i = ka.length - 1; i >= 0; i--) {
+			key = ka[i];
+			if (!deepEqual(a[key], b[key], m)) {
+			  return false;
+			}
+		}
+
+		return true;
+	}
+
+
+
+
+})();
 (function() {
   "use strict";
 
@@ -6887,14 +7135,13 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 (function () {
   "use strict";
 
-  // source: https://github.com/pvorb/node-clone/blob/master/clone.js
+  /* @source: https://github.com/pvorb/node-clone/blob/master/clone.js
+  */
 
   function objectToString(o) {
     return Object.prototype.toString.call(o);
   }
 
-  // shim for Node's 'util' package
-  // DO NOT REMOVE THIS! It is required for compatibility with EnderJS (http://enderjs.com/).
   var util = {
     isArray: function (ar) {
       return Array.isArray(ar) || (typeof ar === 'object' && objectToString(ar) === '[object Array]');
@@ -6932,9 +7179,11 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     // maintain two arrays for circular references, where corresponding parents
     // and children have the same index
 
-    if ( typeof parent !== "object" ) {
+    if ( typeof parent !== "object" ||
+       parent instanceof LAY.Level ||
+       parent instanceof LAY.Take ) {
       return parent;
-    }
+    } 
 
     var allParents = [];
     var allChildren = [];
@@ -6954,7 +7203,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
           var child;
           var proto;
-          if (typeof parent != 'object') {
+          if (typeof parent != 'object' ||
+              parent instanceof LAY.Level ||
+              parent instanceof LAY.Take ) {
             return parent;
           }
           if ( parent instanceof LAY.Color ) {
@@ -8024,269 +8275,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   }
 
 })();
-( function () {
-  "use strict";
-  
-  // source: chai.js (https://github.com/chaijs/deep-eql)
-  /*!
-	* deep-eql
-	* Copyright(c) 2013 Jake Luer <jake@alogicalparadox.com>
-	* MIT Licensed
-	*/
-
-  /**
-	 * Assert super-strict (egal) equality between
-	 * two objects of any type.
-	 *
-	 * @param {Mixed} a
-	 * @param {Mixed} b
-	 * @param {Array} memoised (optional)
-	 * @return {Boolean} equal match
-	 */
-
-  LAY.$identical = function ( a, b ) {
-  	return deepEqual( a, b, undefined );
-  };
-
-  	/*!
-	* Module dependencies
-	*/
-
-	function type (x) {
-		return LAY.$type(x);
-	}
-
-  function deepEqual(a,b,m) {
-  	var
-  		typeA = type( a ),
-  		typeB = type( b );
-
-  	if ( sameValue( a, b ) ) {
-			return true;
-		} else if ( 'color' === typeA ) {
-			return colorEqual(a, b);
-		} else if ( 'level' === typeA ) {
-			return levelEqual(a, b);
-		} else if ( 'take' === typeA || 'take' === typeB ) {
-			return false;
-		} else if ('date' === typeA ) {
-			return dateEqual(a, b);
-		} else if ('regexp' === typeA) {
-			return regexpEqual(a, b);
-		} else if ('arguments' === typeA) {
-			return argumentsEqual(a, b, m);
-		} else if (('object' !== typeA && 'object' !== typeB)
-			&& ('array' !== typeA && 'array' !== typeB)) {
-			return sameValue(a, b);
-		} else {
-			return objectEqual(a, b, m);
-		}
-  }
-
-
-	/*!
-	* Primary Export
-	*/
-
-
-
-	/*!
-	* Strict (egal) equality test. Ensures that NaN always
-	* equals NaN and `-0` does not equal `+0`.
-	*
-	* @param {Mixed} a
-	* @param {Mixed} b
-	* @return {Boolean} equal match
-	*/
-
-	function sameValue(a, b) {
-		if (a === b) return a !== 0 || 1 / a === 1 / b;
-		return a !== a && b !== b;
-	}
-
-
-	/*!
-	* Compare two Date objects by asserting that
-	* the time values are equal using `saveValue`.
-	*
-	* @param {Date} a
-	* @param {Date} b
-	* @return {Boolean} result
-	*/
-
-	function dateEqual(a, b) {
-		if ('date' !== type(b)) return false;
-		return sameValue(a.getTime(), b.getTime());
-	}
-
-
-	function colorEqual (a, b) {
-		return type(b) === "color" && a.equals(b);		
-	}
-
-	function levelEqual (a, b) {
-		return type(b) === "level" && ( a.pathName === b.pathName );		
-	}
-
-	/*!
-	* Compare two regular expressions by converting them
-	* to string and checking for `sameValue`.
-	*
-	* @param {RegExp} a
-	* @param {RegExp} b
-	* @return {Boolean} result
-	*/
-
-	function regexpEqual(a, b) {
-		if ('regexp' !== type(b)) return false;
-		return sameValue(a.toString(), b.toString());
-	}
-
-	/*!
-	* Assert deep equality of two `arguments` objects.
-	* Unfortunately, these must be sliced to arrays
-	* prior to test to ensure no bad behavior.
-	*
-	* @param {Arguments} a
-	* @param {Arguments} b
-	* @param {Array} memoize (optional)
-	* @return {Boolean} result
-	*/
-
-	function argumentsEqual(a, b, m) {
-		if ('arguments' !== type(b)) return false;
-		a = [].slice.call(a);
-		b = [].slice.call(b);
-		return deepEqual(a, b, m);
-	}
-
-	/*!
-	* Get enumerable properties of a given object.
-	*
-	* @param {Object} a
-	* @return {Array} property names
-	*/
-
-	function enumerable(a) {
-		var res = [];
-		for (var key in a) res.push(key);
-		return res;
-	}
-
-	/*!
-	* Simple equality for flat iterable objects
-	* such as Arrays or Node.js buffers.
-	*
-	* @param {Iterable} a
-	* @param {Iterable} b
-	* @return {Boolean} result
-	*/
-
-	function iterableEqual(a, b) {
-		if (a.length !==  b.length) return false;
-
-		var i = 0;
-		var match = true;
-
-		for (; i < a.length; i++) {
-			if (a[i] !== b[i]) {
-			  match = false;
-			  break;
-			}
-		}
-
-		return match;
-	}
-
-	/*!
-	* Extension to `iterableEqual` specifically
-	* for Node.js Buffers.
-	*
-	* @param {Buffer} a
-	* @param {Mixed} b
-	* @return {Boolean} result
-	*/
-
-	function bufferEqual(a, b) {
-		if (!Buffer.isBuffer(b)) return false;
-		return iterableEqual(a, b);
-	}
-
-	/*!
-	* Block for `objectEqual` ensuring non-existing
-	* values don't get in.
-	*
-	* @param {Mixed} object
-	* @return {Boolean} result
-	*/
-
-	function isValue(a) {
-		return a !== null && a !== undefined;
-	}
-
-	/*!
-	* Recursively check the equality of two objects.
-	* Once basic sameness has been established it will
-	* defer to `deepEqual` for each enumerable key
-	* in the object.
-	*
-	* @param {Mixed} a
-	* @param {Mixed} b
-	* @return {Boolean} result
-	*/
-
-	function objectEqual(a, b, m) {
-		if (!isValue(a) || !isValue(b)) {
-			return false;
-		}
-
-		if (a.prototype !== b.prototype) {
-			return false;
-		}
-
-		var i;
-		if (m) {
-			for (i = 0; i < m.length; i++) {
-		 	 if ((m[i][0] === a && m[i][1] === b)
-		 	 ||  (m[i][0] === b && m[i][1] === a)) {
-		 	   return true;
-		 	 }
-			}
-		} else {
-			m = [];
-		}
-
-		try {
-			var ka = enumerable(a);
-			var kb = enumerable(b);
-		} catch (ex) {
-			return false;
-		}
-
-		ka.sort();
-		kb.sort();
-
-		if (!iterableEqual(ka, kb)) {
-			return false;
-		}
-
-		m.push([ a, b ]);
-
-		var key;
-		for (i = ka.length - 1; i >= 0; i--) {
-			key = ka[i];
-			if (!deepEqual(a[key], b[key], m)) {
-			  return false;
-			}
-		}
-
-		return true;
-	}
-
-
-
-
-})();
 
 (function () {
   "use strict";
@@ -9354,12 +9342,11 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
 })();
 
-// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-
-// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
-
-// MIT license
+/*
+http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+MIT license*/
 
 (function() {
   "use strict";
@@ -9970,10 +9957,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 })();
 
 
-// source of spring code below:
+// source of spring code insprired from below:
 // facebook pop framework & framer.js
-// ---
-// generated by coffee-script 1.9.0
 
 ( function() {
   "use strict";

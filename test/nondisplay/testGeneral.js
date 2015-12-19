@@ -6,8 +6,6 @@ function doNothing2() {
 }
 
 
-
-
 LAY.run({
   data: {
     lang: "en"
@@ -32,8 +30,8 @@ LAY.run({
             notTrue: false
           },
           props: {
-            centerX: LAY.take("../", "width").divide(2),
-            centerY: LAY.take("../", "height").divide(2),
+            centerX: 0,
+            centerY: 0,
             text: LAY.take("", "data.content"),
             textColor: LAY.rgb(255, 255, 255)
           }
@@ -41,14 +39,9 @@ LAY.run({
       }
     },
     "Body": {
-      children: {
-        "Content": {
+      "Content": {
+        "Box": {
 
-            children: {
-              "Box": {
-
-              }
-            }
         }
       }
     }
@@ -67,29 +60,27 @@ QUnit.test( "Level: root width", function( assert ) {
 });
 
 QUnit.test( "LAY.level()", function( assert ) {
-  assert.strictEqual( LAY.level("/") , LAY.$path2level[ "/" ],
+  assert.strictEqual( LAY.level("/") , LAY.$pathName2level[ "/" ],
    "root level" );
   assert.strictEqual( LAY.level("/Header/Text") ,
-   LAY.$path2level[ "/Header/Text" ], "non-root level" );
+   LAY.$pathName2level[ "/Header/Text" ], "non-root level" );
 });
 
 
 QUnit.test( "Level.level()", function( assert ) {
   assert.strictEqual( LAY.level("/Header").level("Text") ,
-   LAY.$path2level[ "/Header/Text" ],
+   LAY.$pathName2level[ "/Header/Text" ],
     "Child" );
   assert.strictEqual( LAY.level("/Header/Text").level("../") ,
-   LAY.$path2level[ "/Header" ], "Parent" );
+   LAY.$pathName2level[ "/Header" ], "Parent" );
   assert.strictEqual( LAY.level("/Header").level("../Body") ,
-    LAY.$path2level[ "/Body" ], "Sibling" );
+    LAY.$pathName2level[ "/Body" ], "Sibling" );
   assert.strictEqual( LAY.level("/Header/Text").level("../../") ,
-    LAY.$path2level[ "/" ], "Ancestor" );
+    LAY.$pathName2level[ "/" ], "Ancestor" );
   assert.strictEqual( LAY.level("/Header/Text").level("../../Body") ,
-    LAY.$path2level[ "/Body" ], "Cousin" );
+    LAY.$pathName2level[ "/Body" ], "Cousin" );
 
 });
-
-
 
 
 
@@ -104,10 +95,6 @@ QUnit.test( "LAY.attr()", function( assert ) {
 
 
 
-
-
-
-
 QUnit.test( "LSON.when", function( assert ) {
   assert.strictEqual( LAY.level("/Header").attr("when.click.1") ,
    doNothing1, "single" );
@@ -115,10 +102,6 @@ QUnit.test( "LSON.when", function( assert ) {
    doNothing2, "multiple" );
 
 });
-
-
-
-
 
 
 /*

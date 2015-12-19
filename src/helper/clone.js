@@ -1,14 +1,13 @@
 (function () {
   "use strict";
 
-  // source: https://github.com/pvorb/node-clone/blob/master/clone.js
+  /* @source: https://github.com/pvorb/node-clone/blob/master/clone.js
+  */
 
   function objectToString(o) {
     return Object.prototype.toString.call(o);
   }
 
-  // shim for Node's 'util' package
-  // DO NOT REMOVE THIS! It is required for compatibility with EnderJS (http://enderjs.com/).
   var util = {
     isArray: function (ar) {
       return Array.isArray(ar) || (typeof ar === 'object' && objectToString(ar) === '[object Array]');
@@ -46,9 +45,11 @@
     // maintain two arrays for circular references, where corresponding parents
     // and children have the same index
 
-    if ( typeof parent !== "object" ) {
+    if ( typeof parent !== "object" ||
+       parent instanceof LAY.Level ||
+       parent instanceof LAY.Take ) {
       return parent;
-    }
+    } 
 
     var allParents = [];
     var allChildren = [];
@@ -68,7 +69,9 @@
 
           var child;
           var proto;
-          if (typeof parent != 'object') {
+          if (typeof parent != 'object' ||
+              parent instanceof LAY.Level ||
+              parent instanceof LAY.Take ) {
             return parent;
           }
           if ( parent instanceof LAY.Color ) {

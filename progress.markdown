@@ -1,12 +1,8 @@
 
 Current:
-  - netflix responsive problem please fix
   - formationX/Y undefined then skip setting it? new thing = null?
   - move website, and examples to separate folder
   - $id attrVal undefined
-  - $$relayout at end of solving
-  - investigate "-text-size-adjust"
-  - grid formation fill vertically, vgrid?
   - invesitagte width (recalc) undefined in switch-case
   - defaultize many lson fargs which are mentioned in states but not otherwise
   - what is "$hovering" or any of the event binding events
@@ -24,7 +20,6 @@ Current:
   - transition multiple props comma separated, eg: "textColor, left, opacity"
   - test CSS Filter
   - non display test cases
-  - netflix example
   - feed example (overlay for likers, or tabindex=0)
   - website (with docs)
 
@@ -41,7 +36,8 @@ Current:
   - queryAll, queryFiltered
 
 Future:
-  - shortcircuit LAY.Take.and/or()
+  - investigate "-text-size-adjust"
+  - grid formation fill vertically, vgrid?
   - LAY.Take.percent()
   - input:file
   - fix bug of rows containing duplicate objects
