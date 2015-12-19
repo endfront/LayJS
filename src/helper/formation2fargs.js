@@ -14,6 +14,9 @@
     },
     "none": {
       
+    },
+    "circular": {
+      radius: null
     }
   };
 

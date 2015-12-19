@@ -6,13 +6,13 @@
 
 (function () {
   "use strict";
-
+  
   window.LAY = {
 
     // version is a method in order
     // to maintain the consistency of
     // only method accesses from the user
-    version: function(){ return "0.8.1"; },
+    version: function(){ return "0.8.3"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -8038,6 +8038,9 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     },
     "none": {
       
+    },
+    "circular": {
+      radius: null
     }
   };
 
@@ -8085,7 +8088,23 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 					"bottom" ).add(vgap);
 			}
 			return [ x, y ];
-		}
+		},
+		circular: function ( f, filteredLevel, filteredLevelS, fargs) {
+		    var angle = ( (f-1) * ( 360 / filteredLevelS.length ) ) - 90;
+		    var firstLevelPathName = filteredLevelS[ 0 ].path();
+		    var originX = LAY.take(firstLevelPathName, "centerX");
+		    var originY = LAY.take(firstLevelPathName, "centerY").add(
+		      fargs.radius );
+		    var degreesToRadian = Math.PI / 180;
+		    var paramX = fargs.radius * Math.cos(angle*degreesToRadian);
+		    var paramY = fargs.radius * Math.sin(angle*degreesToRadian);
+
+		    return [originX.add(paramX).minus(
+		      LAY.take("", "width").half()),
+		       originY.add(paramY).minus(LAY.take("", "height").half())];
+
+		  }
+
 	};
 })();
 ( function () {

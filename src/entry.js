@@ -6,13 +6,13 @@
 
 (function () {
   "use strict";
-
+  
   window.LAY = {
 
     // version is a method in order
     // to maintain the consistency of
     // only method accesses from the user
-    version: function(){ return "0.8.2"; },
+    version: function(){ return "0.8.3"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],

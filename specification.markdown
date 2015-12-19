@@ -1213,6 +1213,7 @@ All built-in formations:
   - "onebelow"
   - "totheright"
   - "grid"
+  - "circular"
 
 
 Formation Arguments:
@@ -1229,6 +1230,8 @@ Below are formation arguments for corresponding formations:
     - hgap: distance in pixels to be kept horizontally
     - vgap: distance in pixels to be kept vertically
     - columns: number of columns
+  - "circular"
+    - radius: radius of circle
 
 **Custom Formation**
 
