@@ -78,17 +78,17 @@
       if ( this.format === "hsl" ) {
         hsl = this.getHsl();
         if ( this.a === 1 ) {
-          return "hsl(" + hsl.h + "," + hsl.s + "," + hsl.l + ")";
+          return "hsl(" + Math.round(hsl.h) + "," + Math.round(hsl.s) + "%," + Math.round(hsl.l) + "%)";
         } else {
-          return "hsla(" + hsl.h + "," + hsl.s + "," + hsl.l + "," + this.a + ")";
+          return "hsla(" + Math.round(hsl.h) + "," + Math.round(hsl.s) + "%," + Math.round(hsl.l) + "%," + this.a + ")";
         }
 
       } else {
         rgb = this.getRgb();
         if ( this.a === 1 ) {
-          return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
+          return "rgb(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," + Math.round(rgb.b) + ")";
         } else {
-          return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," + this.a + ")";
+          return "rgba(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," + Math.round(rgb.b) + "," + this.a + ")";
         }
       }
 

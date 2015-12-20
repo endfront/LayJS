@@ -1,14 +1,12 @@
 
 Current:
   - formationX/Y undefined then skip setting it? new thing = null?
-  - move website, and examples to separate folder
   - $id attrVal undefined
   - invesitagte width (recalc) undefined in switch-case
   - defaultize many lson fargs which are mentioned in states but not otherwise
   - what is "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
-  - todoMVC Learn section
   - < state >.bottom/right/centerX/centerY
   - function to get all partLevelS from many?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
@@ -19,9 +17,9 @@ Current:
   - test Canvas
   - transition multiple props comma separated, eg: "textColor, left, opacity"
   - test CSS Filter
-  - non display test cases
-  - feed example (overlay for likers, or tabindex=0)
-  - website (with docs)
+  - add nondisplay test cases
+  - iframe
+  - website
 
 
   spec:
