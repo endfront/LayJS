@@ -13,11 +13,8 @@
   "moduleType": [],
   "homepage": "",
   "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests",
-    "src"
+    "*",
+    "!LAY.js",
+    "!LAY.min.js",
   ]
 }

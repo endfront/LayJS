@@ -9,10 +9,12 @@
   
   window.LAY = {
 
-    // version is a method in order
-    // to maintain the consistency of
-    // only method accesses from the user
-    version: function(){ return "0.8.4"; },
+    /* version is a method in order
+    to maintain the consistency of
+    only method accesses from the user
+    During build (gulp) the version will be set
+    so leave the string "0.8.5" just as is. */
+    version: function(){ return "0.8.5"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
