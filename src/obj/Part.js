@@ -102,7 +102,7 @@
 
   function setText ( node, text ) {
     if ( LAY.$isBelowIE9 ) {
-      node.innerHTML = text;
+      node.innerText = text;
     } else {
       node.textContent = text;
     }

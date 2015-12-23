@@ -13,8 +13,8 @@
     to maintain the consistency of
     only method accesses from the user
     During build (gulp) the version will be set
-    so leave the string "0.8.7" just as is. */
-    version: function(){ return "0.8.7"; },
+    so leave the string "0.8.8" just as is. */
+    version: function(){ return "0.8.8"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -2718,7 +2718,7 @@ if (!Array.prototype.indexOf) {
 
   function setText ( node, text ) {
     if ( LAY.$isBelowIE9 ) {
-      node.innerHTML = text;
+      node.innerText = text;
     } else {
       node.textContent = text;
     }
