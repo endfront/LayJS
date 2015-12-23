@@ -200,7 +200,8 @@
     }
 
     this.isText = this.type === "input" || 
-      this.type === "text" || this.type === "html";
+      this.type === "text" || this.type === "link" ||
+      this.type === "html";
 
 
     if ( this.isText ) {
@@ -598,10 +599,10 @@
     if ( isWidth ) {
       cssText += "display:inline;width:auto;";
       textSizeMeasureNode.style.cssText = cssText;
-      if ( this.type === "text" ) {
-        setText( textSizeMeasureNode, content );
-      } else {
+      if ( this.type === "html" ) {
         textSizeMeasureNode.innerHTML = content;
+      } else {
+        setText( textSizeMeasureNode, content );
       }
       ret = textSizeMeasureNode.offsetWidth;
 
@@ -612,10 +613,10 @@
 
       // If empty we will subsitute with the character "a"
       // as we wouldn't want the height to resolve to 0
-      if ( this.type === "text" ) {
-        setText( textSizeMeasureNode, content || "a" );
-      } else {
+      if ( this.type === "html" ) {
         textSizeMeasureNode.innerHTML = content || "a";
+      } else {
+        setText( textSizeMeasureNode, content || "a" );
       }
       
       ret = textSizeMeasureNode.offsetHeight;
@@ -1256,10 +1257,10 @@
 
   LAY.Part.prototype.renderFn_text = function () {
     var text = this.level.attr2attrVal.text.transitionCalcVal;
-    if ( this.type === "text" ) {
-      setText( this.node, text );
-    } else { //else is type "html"
+    if ( this.type === "html" ) {
       this.node.innerHTML = text;
+    } else { //else is type "html"
+      setText( this.node, text );
     }
 
   };

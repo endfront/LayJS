@@ -13,8 +13,8 @@
     to maintain the consistency of
     only method accesses from the user
     During build (gulp) the version will be set
-    so leave the string "0.8.8" just as is. */
-    version: function(){ return "0.8.8"; },
+    so leave the string "0.8.9" just as is. */
+    version: function(){ return "0.8.9"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -2816,7 +2816,8 @@ if (!Array.prototype.indexOf) {
     }
 
     this.isText = this.type === "input" || 
-      this.type === "text" || this.type === "html";
+      this.type === "text" || this.type === "link" ||
+      this.type === "html";
 
 
     if ( this.isText ) {
@@ -3214,10 +3215,10 @@ if (!Array.prototype.indexOf) {
     if ( isWidth ) {
       cssText += "display:inline;width:auto;";
       textSizeMeasureNode.style.cssText = cssText;
-      if ( this.type === "text" ) {
-        setText( textSizeMeasureNode, content );
-      } else {
+      if ( this.type === "html" ) {
         textSizeMeasureNode.innerHTML = content;
+      } else {
+        setText( textSizeMeasureNode, content );
       }
       ret = textSizeMeasureNode.offsetWidth;
 
@@ -3228,10 +3229,10 @@ if (!Array.prototype.indexOf) {
 
       // If empty we will subsitute with the character "a"
       // as we wouldn't want the height to resolve to 0
-      if ( this.type === "text" ) {
-        setText( textSizeMeasureNode, content || "a" );
-      } else {
+      if ( this.type === "html" ) {
         textSizeMeasureNode.innerHTML = content || "a";
+      } else {
+        setText( textSizeMeasureNode, content || "a" );
       }
       
       ret = textSizeMeasureNode.offsetHeight;
@@ -3872,10 +3873,10 @@ if (!Array.prototype.indexOf) {
 
   LAY.Part.prototype.renderFn_text = function () {
     var text = this.level.attr2attrVal.text.transitionCalcVal;
-    if ( this.type === "text" ) {
-      setText( this.node, text );
-    } else { //else is type "html"
+    if ( this.type === "html" ) {
       this.node.innerHTML = text;
+    } else { //else is type "html"
+      setText( this.node, text );
     }
 
   };
