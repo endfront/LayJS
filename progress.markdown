@@ -2,6 +2,7 @@
 Current:
   - formationX/Y undefined then skip setting it? new thing = null?
   - $id attrVal undefined
+  - video height auto
   - invesitagte width (recalc) undefined in switch-case
   - defaultize many lson fargs which are mentioned in states but not otherwise
   - what is "$hovering" or any of the event binding events
@@ -12,13 +13,7 @@ Current:
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
   - checkAndThrowErrorAttrAsTake
   - LAY.Many.remove()
-  - add copyright to js files
-  - test Textarea
-  - test Canvas
   - transition multiple props comma separated, eg: "textColor, left, opacity"
-  - test CSS Filter
-  - add nondisplay test cases
-  - iframe
   - website
 
 

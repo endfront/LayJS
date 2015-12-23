@@ -84,10 +84,12 @@ LAY involves writing LSON (Layout Syntax Object Notation)
   On of the below
   - "none"
   - "text" (auto-detect is on to distinguish between "none" and "text")
+  - "html"
   - "image"
   - "video"
   - "audio"
   - "canvas"
+  - "iframe"
   - "input:line"
   - "input:multiline"
   - "input:password"
@@ -618,6 +620,9 @@ Defaults:
   `number`
   Default: 1.0
 
+- iframeSrc  
+  `string` 
+  Default: none
 
 ### Attributes
 

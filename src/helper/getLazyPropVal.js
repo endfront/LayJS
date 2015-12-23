@@ -71,8 +71,6 @@
       backfaceVisibility: false,
       opacity:1.0,
       zIndex: "auto",
-      overflowX: "hidden",
-      overflowY: "hidden",
       scrollX: 0,
       scrollY: 0,
       focus: false,

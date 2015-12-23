@@ -52,9 +52,8 @@
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
     "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
-    "overflow-x:hidden;overflow-y:hidden;" +
     "-webkit-overflow-scrolling:touch;" + 
-    "user-drag:none;" +
+//    "user-drag:none;" +
     "white-space:nowrap;" +
     "outline:none;border:none;";
 
@@ -73,7 +72,6 @@
   textDimensionCalculateNodeCss = 
     defaultTextCss + 
     "visibility:hidden;height:auto;" + 
-    "overflow:visible;" +
     "border:0px solid transparent;";
 
   inputType2tag = {
@@ -85,6 +83,9 @@
   nonInputType2tag = {
     none: "div",
     text: "div",
+    html: "div",
+    iframe: "iframe",
+    canvas: "canvas",
     image: "img",
     video: "video",
     audio: "audio",
@@ -97,6 +98,14 @@
 
   function stringifyPlusPx ( val ) {
     return val + "px";
+  }
+
+  function setText ( node, text ) {
+    if ( LAY.$isBelowIE9 ) {
+      node.innerHTML = text;
+    } else {
+      node.textContent = text;
+    }
   }
 
   function generateSelectOptionsHTML( optionS ) {
@@ -191,7 +200,7 @@
     }
 
     this.isText = this.type === "input" || 
-      this.level.lson.states.root.props.text !== undefined;
+      this.type === "text" || this.type === "html";
 
 
     if ( this.isText ) {
@@ -406,7 +415,8 @@
   * then return the estimated height, else return -1;
   */
   LAY.Part.prototype.estimateTextNaturalHeight = function ( text ) {
-    if ( checkIfTextMayHaveHTML ( text ) ) {
+    if ( this.type === "html" &&
+        checkIfTextMayHaveHTML ( text ) ) {
       return -1;
     } else {
       var heightAttr2default = {
@@ -431,13 +441,12 @@
           heightAttr2default[ heightAttr ] : attrVal.calcVal;
       }
 
-
       // Do not turn the below statement into a ternary as
       // it will end up being unreadable
       var isEstimatePossible = false;
       if ( heightAttr2val.textWrap === "nowrap" ) {
         isEstimatePossible = true;
-      } else if ( 
+      } else if (
           LAY.$isOkayToEstimateWhitespaceHeight &&
           ( heightAttr2val.textWrap === "normal" ||
           text.indexOf( "\\" ) === -1 ) && //escape characters can
@@ -531,35 +540,35 @@
       attr2attrVal = this.level.attr2attrVal,
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
-      html, ret,
+      content, ret,
       cssText = textDimensionCalculateNodeCss;
 
     if ( this.type === "input" ) {
       if ( this.inputType === "select" ||
         this.inputType === "multiple" ) {
-        html = "<select" +
+        content = "<select" +
           ( this.inputType === "multiple" ? 
           " multiple='true' " : "" ) +  ">" +
           generateSelectOptionsHTML(
             attr2attrVal.input.calcVal
            ) + "</select>";
       } else {
-        html = attr2attrVal.$input ?
+        content = attr2attrVal.$input ?
           attr2attrVal.$input.calcVal : "a";
       }
     } else {
       if ( attr2attrVal.text.isRecalculateRequired ) {
         return 0;
       }
-      html = attr2attrVal.text.calcVal;
+      content = attr2attrVal.text.calcVal;
     }
 
-    if ( typeof html !== "string" ) {
-      html = html.toString();
+    if ( typeof content !== "string" ) {
+      content = content.toString();
     }
 
     if ( !isWidth ) {
-      var estimatedHeight = this.estimateTextNaturalHeight( html );
+      var estimatedHeight = this.estimateTextNaturalHeight( content );
       if ( estimatedHeight !== -1 ) {
         return estimatedHeight;
       }
@@ -589,7 +598,11 @@
     if ( isWidth ) {
       cssText += "display:inline;width:auto;";
       textSizeMeasureNode.style.cssText = cssText;
-      textSizeMeasureNode.innerHTML = html;
+      if ( this.type === "text" ) {
+        setText( textSizeMeasureNode, content );
+      } else {
+        textSizeMeasureNode.innerHTML = content;
+      }
       ret = textSizeMeasureNode.offsetWidth;
 
     } else {
@@ -599,7 +612,11 @@
 
       // If empty we will subsitute with the character "a"
       // as we wouldn't want the height to resolve to 0
-      textSizeMeasureNode.innerHTML = html || "a";
+      if ( this.type === "text" ) {
+        setText( textSizeMeasureNode, content || "a" );
+      } else {
+        textSizeMeasureNode.innerHTML = content || "a";
+      }
       
       ret = textSizeMeasureNode.offsetHeight;
       
@@ -919,20 +936,18 @@
   LAY.Part.prototype.renderFn_width = function () {
       this.node.style.width =
         this.level.attr2attrVal.width.transitionCalcVal + "px";
-      if ( this.type === "canvas" ||
-          this.type === "video" || 
-          this.type === "image" ) {
+      if ( [ "canvas", "video", "image","iframe" ].indexOf(
+          this.type ) !== -1 ) {
         this.node.width =
-        this.level.attr2attrVal.width.transitionCalcVal;
+          this.level.attr2attrVal.width.transitionCalcVal;
       }
     };
 
   LAY.Part.prototype.renderFn_height = function () {
     this.node.style.height =
       this.level.attr2attrVal.height.transitionCalcVal + "px";
-    if ( this.type === "canvas" ||
-        this.type === "video" || 
-        this.type === "image" ) {
+    if ( [ "canvas", "video", "image","iframe" ].indexOf(
+          this.type ) !== -1 ) {
       this.node.height =
         this.level.attr2attrVal.height.transitionCalcVal;
     }
@@ -1240,8 +1255,13 @@
   /* Text Related */
 
   LAY.Part.prototype.renderFn_text = function () {
-    this.node.innerHTML =
-     this.level.attr2attrVal.text.transitionCalcVal;
+    var text = this.level.attr2attrVal.text.transitionCalcVal;
+    if ( this.type === "text" ) {
+      setText( this.node, text );
+    } else { //else is type "html"
+      this.node.innerHTML = text;
+    }
+
   };
 
   LAY.Part.prototype.renderFn_textSize = function () {
@@ -1567,6 +1587,9 @@
     this.node.poster = this.level.attr2attrVal.videoPoster.transitionCalcVal;
   };
 
+  LAY.Part.prototype.renderFn_iframeSrc = function () {
+    this.node.src = this.level.attr2attrVal.iframeSrc.transitionCalcVal;
+  };
 
 
 })();
