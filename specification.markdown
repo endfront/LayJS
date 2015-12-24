@@ -272,12 +272,12 @@ Defaults:
 - overflowX  
   `string`  
   CSS overflow property  
-  Default: 'hidden'
+  Default: 'visible'
 
-- overflowY  
+- overflowY 
   `string`  
   CSS overflow property  
-  Default: 'hidden'
+  Default: 'visible'
 
 - overflow  
   `undefined`  
