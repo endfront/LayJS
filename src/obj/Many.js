@@ -411,6 +411,7 @@
           ascending:
           attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
       }
+      rowS.sort( dynamicSortMultiple( sortDictS ) );
     }
   };
 
