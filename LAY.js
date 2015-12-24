@@ -13,8 +13,8 @@
     to maintain the consistency of
     only method accesses from the user
     During build (gulp) the version will be set
-    so leave the string "0.8.10" just as is. */
-    version: function(){ return "0.8.10"; },
+    so leave the string "0.8.11" just as is. */
+    version: function(){ return "0.8.11"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -2725,9 +2725,6 @@ if (!Array.prototype.indexOf) {
   }
 
   function generateSelectOptionsHTML( optionS ) {
-    if ( optionS === undefined ) {
-      return "";
-    }
     var option, html = "";
     for ( var i=0, len=optionS.length; i<len; i++ ) {
       option = optionS[ i ];
@@ -3165,6 +3162,9 @@ if (!Array.prototype.indexOf) {
     if ( this.type === "input" ) {
       if ( this.inputType === "select" ||
         this.inputType === "multiple" ) {
+        if ( attr2attrVal.input.isRecalculateRequired ) {
+          return 0
+        }
         content = "<select" +
           ( this.inputType === "multiple" ? 
           " multiple='true' " : "" ) +  ">" +

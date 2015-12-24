@@ -109,9 +109,6 @@
   }
 
   function generateSelectOptionsHTML( optionS ) {
-    if ( optionS === undefined ) {
-      return "";
-    }
     var option, html = "";
     for ( var i=0, len=optionS.length; i<len; i++ ) {
       option = optionS[ i ];
@@ -549,6 +546,9 @@
     if ( this.type === "input" ) {
       if ( this.inputType === "select" ||
         this.inputType === "multiple" ) {
+        if ( attr2attrVal.input.isRecalculateRequired ) {
+          return 0
+        }
         content = "<select" +
           ( this.inputType === "multiple" ? 
           " multiple='true' " : "" ) +  ">" +
