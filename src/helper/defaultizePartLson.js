@@ -21,61 +21,58 @@
       when, transition, metaMax, maxProp,
       eventType, transitionProp,
       isRootLevel = parentLevel === undefined,
-      essentialProp2defaultValue = parentLevel ?
-        nonRootEssentialProp2defaultValue : 
-        rootEssentialProp2defaultValue,
       lazyVal,
-      parentLevelRootProps;
-
-    /* Filling in the defaults here for root state lson */
-    for ( essentialProp in essentialProp2defaultValue ) {
-      if ( rootStateProps[ essentialProp ] === undefined ) {
-        rootStateProps[ essentialProp ] =
-          essentialProp2defaultValue[ essentialProp ];
-      }
-    }
+      parentLevelRootProps,
+      takeWindowWidth = LAY.take("", "$windowWidth"),
+      takeWindowHeight = LAY.take("", "$windowHeight"),
+      takeNaturalWidth = LAY.take("", "$naturalWidth"),
+      takeNaturalHeight = LAY.take("", "$naturalHeight"),
+      takeParentWidth = LAY.take("../", "width");
   
 
-    if ( states ) {
-      for ( stateName in states ) {
-        state = states[ stateName ];
-        props = state.props;
-        when = state.when;
-        transition = state.transition;
-        metaMax = state.$$max;
+    for ( stateName in states ) {
+      state = states[ stateName ];
+      props = state.props;
+      when = state.when;
+      transition = state.transition;
+      metaMax = state.$$max;
 
-        for ( prop in props ) {
-
-          if (rootStateProps[ prop ] === undefined ) {
-            lazyVal = LAY.$getLazyPropVal( prop,
-              isRootLevel );
-            if ( lazyVal !== undefined ) {
-              rootStateProps[ prop ] = lazyVal;
-            }
+      for ( prop in props ) {
+        if ( isRootLevel ) {
+          if ( props.top || props.left || props.width || props.height ) {
+            throw "LAY ERROR: Cannot set top/left/width/height of root Level";
+          }
+        }
+        if (rootStateProps[ prop ] === undefined ) {
+          lazyVal = LAY.$getLazyPropVal( prop,
+            isRootLevel );
+          if ( lazyVal !== undefined ) {
+            rootStateProps[ prop ] = lazyVal;
           }
         }
       }
+    }
 
-      for ( maxProp in metaMax ) {
-        lson.$$max = lson.$$max || {};
+    for ( maxProp in metaMax ) {
+      lson.$$max = lson.$$max || {};
 
-        if ( !lson.$$max[ maxProp ] ) {
-          lson.$$max[ metaMax ] = metaMax[ maxProp ];
-        }
-      }
-
-      for ( eventType in when ) {
-        if ( !rootStateWhen[ eventType ] ) {
-          rootStateWhen[ eventType ] = [];
-        }
-      }
-
-      for ( transitionProp in rootStateTransition ) {
-        if ( !rootStateTransition[ transitionProp ] )  {
-          rootStateTransition[ transitionProp ] = {};
-        }
+      if ( !lson.$$max[ maxProp ] ) {
+        lson.$$max[ metaMax ] = metaMax[ maxProp ];
       }
     }
+
+    for ( eventType in when ) {
+      if ( !rootStateWhen[ eventType ] ) {
+        rootStateWhen[ eventType ] = [];
+      }
+    }
+
+    for ( transitionProp in rootStateTransition ) {
+      if ( !rootStateTransition[ transitionProp ] )  {
+        rootStateTransition[ transitionProp ] = {};
+      }
+    }
+  
 
     if ( !isRootLevel ) {
       // If the parent has an inheritable prop
@@ -90,7 +87,8 @@
           rootStateProps[ prop ] = LAY.$getLazyPropVal( prop );
         }
       }
-    }
+    } 
+
 
     if ( rootStateProps.text !== undefined &&
         ( lson.$type === undefined || lson.$type === "none" ) ) {
@@ -99,24 +97,41 @@
       lson.$type = "none";
     }
 
+
+    /* Filling in the defaults here for root state lson */
+    
+    if ( rootStateProps.left === undefined ) {
+      rootStateProps.left = 0;
+    }
+    if ( rootStateProps.top === undefined ) {
+      rootStateProps.top = 0;
+    }
+    if ( isRootLevel ) {
+      rootStateProps.width = takeWindowWidth; 
+      rootStateProps.height = takeWindowHeight; 
+    } else {
+      if ( rootStateProps.width === undefined ) {
+/*        if ( [
+          "text",
+          "html",
+          "input:select",
+          "input:multiple",
+          "image",
+          "link"
+          ].indexOf( lson.$type ) !== -1 ) {
+          rootStateProps.width = takeNaturalWidth;
+        } else {
+          rootStateProps.width = takeParentWidth;
+        }*/
+        rootStateProps.width = takeNaturalWidth;
+      }
+      if ( rootStateProps.height === undefined ) {
+        rootStateProps.height = takeNaturalHeight;
+      } 
+    }
+
   };
 
-
-
-  rootEssentialProp2defaultValue = {
-    top: 0,
-    left: 0,
-    width: LAY.take("", "$windowWidth"),
-    height: LAY.take("", "$windowHeight")
-  };
-
-
-  nonRootEssentialProp2defaultValue = {
-    top: 0,
-    left: 0,
-    width: LAY.take("", "$naturalWidth"),
-    height: LAY.take("", "$naturalHeight")
-  };
 
 
 

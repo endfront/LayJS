@@ -70,7 +70,6 @@
 
 
   LAY.Level.prototype.level = function ( relativePath ) {
-
     return ( new LAY.RelPath( relativePath ) ).resolve( this );
   };
 
@@ -78,10 +77,13 @@
     return this.parentLevel;
   };
 
+  LAY.Level.prototype.children = function () {
+    return this.childLevelS;
+  };
+
   LAY.Level.prototype.path = function () {
     return this.pathName;
   };
-
 
   LAY.Level.prototype.node = function () {
 
@@ -294,16 +296,35 @@
         LAY.$solve();
       }
     }
-    
   };
 
   LAY.Level.prototype.$remove = function () {
 
-    this.$disappear();
+    var
+      childLevelS = this.childLevelS,
+      attr2attrVal = this.attr2attrVal;
 
     LAY.$pathName2level[ this.pathName ] = undefined;
     LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
-  
+
+    if ( this.isPart ) {
+      this.part && this.part.remove();
+    }
+
+    for ( var attr in attr2attrVal ) {
+      attr2attrVal[ attr ].remove();
+    }
+
+    this.$removeDescendants();
+  };
+
+  LAY.Level.prototype.$removeDescendants = function () {
+    var descendantLevelS = this.isPart ?
+      this.childLevelS : this.manyObj.allLevelS;
+    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
+      descendantLevelS[ i ] &&
+        descendantLevelS[ i ].$remove();
+    }
   };
 
   LAY.Level.prototype.$addChildren = function ( name2lson ) {
@@ -559,6 +580,7 @@
   };  
 
    LAY.Level.prototype.$disappear = function () {
+    console.log(this.pathName);
     this.isExist = false;
     var attr2attrVal = this.attr2attrVal;
     for ( var attr in attr2attrVal ) {
@@ -566,19 +588,12 @@
         attr2attrVal[ attr ].remove();
       }
     }
-    var descendantLevelS = this.isPart ? 
-      this.childLevelS : this.manyObj.allLevelS ;
-    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
-      descendantLevelS[ i ] &&
-        descendantLevelS[ i ].$remove();
-    }
+
+    this.$removeDescendants();
 
     if ( this.isPart ) {
       this.part && this.part.remove();
-    } else {
-      this.manyObj.remove();
     }
-   
   };
 
   LAY.Level.prototype.$decideExistence = function () {
@@ -828,9 +843,7 @@
 
     var
       attr2val = {},
-      stringHashedStates2_cachedAttr2val_;
-  // Refer to the central cache for Many levels
-   stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
+      stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
       this.derivedMany.levelStringHashedStates2_cachedAttr2val_ :
       this.stringHashedStates2_cachedAttr2val_;
     
@@ -845,7 +858,6 @@
 
     return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
   
-
   };
 
   /*
@@ -886,7 +898,6 @@
     }
 
     return slson;
-
   };
 
 
@@ -903,30 +914,11 @@
       this.$setFormationXY( this.part.formationX,
           this.part.formationY );
     }
-
-
-    if ( this.pathName === "/" ) {
-      if ( this.attr2attrVal.width.val !==
-        this.lson.states.root.props.width ) {
-        throw "LAY Error: width of root level unchangeable";
-      }
-      if ( this.attr2attrVal.height.val !==
-        this.lson.states.root.props.height ) {
-        throw "LAY Error: height of root level unchangeable";
-      }
-      if ( this.attr2attrVal.top.val !== 0 ) {
-        throw "LAY Error: top of root level unchangeable";        
-      }
-      if ( this.attr2attrVal.left.val !== 0 ) {
-        throw "LAY Error: left of root level unchangeable";        
-      }
-    } 
   };
 
 
   LAY.Level.prototype.$getAttrVal = function ( attr ) {
     return this.attr2attrVal[ attr ];
-
   };
 
   /* Manually change attr value */
@@ -970,25 +962,5 @@
     }
  
   };
-
-  /*
-  LAY.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
-
-    LAY.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
-    LAY.$arrayUtils.pushUnique( LAY.$recalculateDirtyLevelS, this );
-
-  };
-  */
-
-
-  
-
-  
-
-
-
-
-
-
 
 })();

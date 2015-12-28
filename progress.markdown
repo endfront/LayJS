@@ -1,5 +1,8 @@
 
 Current:
+  - todo recursive remove level
+  - change "*" to many
+  - width default complete (with spec update)
   - formationX/Y undefined then skip setting it? new thing = null?
   - $id attrVal undefined
   - video height auto
@@ -23,7 +26,6 @@ Current:
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
   - add LAY.level.changeNativeInput/ScrollX/Y() to spec
-  - $centerX, $centerY, $right, $bottom
   - update spec to have quotes around state names
   - filter.finish() ?
   - queryAll, queryFiltered
@@ -57,6 +59,6 @@ Future:
   - LAY.Color mix
 
 
-cry about:
+Complain:
   - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/
   - "-moz-user-select" unactivated from JS

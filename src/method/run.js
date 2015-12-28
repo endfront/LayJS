@@ -3,13 +3,9 @@
 
   LAY.run =  function ( rootLson ) {
 
-    
     setRuntimeGlobals();
-
     ( new LAY.Level( "/", rootLson, undefined ) ).$init();
-
     LAY.$solve();
-
     window.onresize = updateSize;
 
   };

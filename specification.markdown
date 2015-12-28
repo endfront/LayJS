@@ -137,24 +137,30 @@ values should be provided.
 
 Defaults:
 
-- display  
-  `boolean`
+- display   
+  `boolean`  
   Default: true
 
 - visible  
-  `boolean`
+  `boolean`  
   CSS visibility (true for "inherit", false for "hidden")  
   Default: true
 
 - width  
-  `number`
-  Width
-  Default: LAY.take('', '$naturalWidth') [for "/": LAY.take("", "$windowWidth")]
+  `number`  
+  Width in pixels    
+  Default:  
+  For "/": LAY.take("", "$windowWidth")  
+  For remaining: LAY.take("", "$naturalWidth")
 
-- height  
-  `number`
-  Height
-  Default: LAY.take('', '$naturalHeight') [for "/": LAY.take("", "$windowHeight")]
+
+- height   
+  `number`  
+  Default:  
+  For "/": LAY.take("", "$windowHeight")  
+  For $type "video": 0
+  For remaining: LAY.take("", "$naturalHeight")
+
 
 - top  
   `number`  
@@ -590,7 +596,7 @@ Defaults:
 
 - videoController / audioController  
   `boolean`
-  Default: true
+  Default: false
 
 
 - videoCrossorigin  
@@ -626,8 +632,7 @@ Defaults:
 
 ### Attributes
 
-  The below values can be directly accessed through
-  the LAY Level through `.attr(< access key >)`
+  The below values can be directly accessed through the LAY Level through `.attr(< access key >)`  
   The same access keys are used as the 2nd argument in LAY.Take
 
   - < prop >
@@ -682,25 +687,25 @@ Defaults:
 
   - $windowHeight
 
-  - $naturalWidth (`number`)
-    Width of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the width occupied by the children parts.
+  - $naturalWidth (`number`)  
+    Width of the part occupied by text if its a text element, image if its an image element, otherwise the width occupied by the children levels.
 
-  - $naturalHeight (`number`)
-    Height of the part occupied by text if its a text element, image if its an image element, otherwise if a view then the height occupied by the children parts.
+  - $naturalHeight (`number`)  
+    Height of the part occupied by text if its a text element, image if its an image element, otherwise the height occupied by the children levels.
 
-  - $absoluteTop (`number`)
+  - $absoluteTop (`number`)  
     Top of the element added with $absoluteTop of its parent level.
 
-  - $absoluteLeft (`number`)
+  - $absoluteLeft (`number`)  
     Left of the element added with $absoluteLeft of its parent level.
 
-  - $id (`string`)
+  - $id (`string`)  
     The name of the unique key which is reponsible for id for each row in `rows` for many-level
 
-  - $i (`number`)
+  - $i (`number`)  
     Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the `sort` key. Numbering begins from 1.
 
-  - $f (`number`)
+  - $f (`number`)  
     Index of a (`Many`) derived `Level` with respect to other `Level`s derived in the `Many` Level, as decided by the  `filter`, `sort` keys. Levels which do not pass the filter have a an index of -1. Numbering begins from 1.
 
 
@@ -751,7 +756,7 @@ example with a single callback function specified:
         },
         when: {
           click: function() {
-              console.log( "Hello World!" );
+            console.log( "Hello World!" );
           }
         }
       }
@@ -796,6 +801,7 @@ LAY.Level methods:
   path()
   many()
   levels()
+  children()
   addChildren()
   remove()
   row()
@@ -818,7 +824,7 @@ creates LAY.Take object:
 
 or
 
-  LAY.take(val) //essentially just value val
+  LAY.take(val)
 
 
 LAY.Take methods
@@ -836,7 +842,7 @@ LAY.Take methods
   - concat, lowercase, capitalize, uppercase (for string)
   - fn (context `this` is the `Level`)
   - format, i18nFormat
-  - (these return booleans) eq (===), neq (!==), gt, lt, gte, lte, not, contains
+  - (these return booleans) eq (===), neq (!==), gt, lt, gte, lte, not, contains, identical (deep equal)
   - (these return booleans) and, or, xor
   - (these return booleans) match, test (for regex)
   - (LAY.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
@@ -933,24 +939,22 @@ looks like:
 for example:
 
     var box =  {
+      props: {
+        width: 200,
+        height: 200
+      },
+      data: {
+        foo: 10,
+        bar: "toystory3"
+      },
+      
+      "LeftSide": {
         props: {
-          width: 200,
-          height: 200
-        },
-        data: {
-          foo: 10,
-          bar: "toystory3"
-        },
-        children: {
-          LeftSide: {
-            props: {
-              width: LAY.take('parent', 'width').half(),
-              height: LAY.take('parent', 'height').half()
-            }
-          }
+          width: LAY.take('../', 'width').half(),
+          height: LAY.take('../', 'height')
+        }
       }
     }
-
 
 
     LAY.run({
@@ -960,15 +964,14 @@ for example:
           width: 300,
           height: 300
         },
-        LeftSide: {
+        "LeftSide": {
           props: {
             backgroundColor: LAY.color('blue')
           }
         },
-        RightSide: {
+        "RightSide": {
           props: {
             left: LAY.take('../LeftSide', 'right'),
-            width: LAY.take('', 'textWidth'),
             text: 'nothing here'
           }
         }
@@ -977,7 +980,7 @@ for example:
 
 becomes:
 
-    { BigBox: {
+    { "BigBox": {
         props: {
           width: 200,
           height: 200
@@ -986,16 +989,16 @@ becomes:
           foo: 10,
           bar: "lala"
         },
-        LeftSide: {
+        "LeftSide": {
           props: {
             width: LAY.take('parent', 'width').half(),
-            height: LAY.take('parent', 'height').half(),
+            height: LAY.take('parent', 'height'),
             backgroundColor: LAY.color('red')
           }
         }
-        RightSide: {
+        "RightSide": {
           props: {
-            left: LAY.take('prev-sibling', 'right'),
+            left: LAY.take('../LeftSide', 'right'),
             text: 'nothing here'
           }
         }
@@ -1024,7 +1027,7 @@ example of `when` stacking up:
       "OtherBox": {
         $inherit: ["Box"],
         when: {
-          "click": function() {
+          click: function() {
             console.log("OtherBox clicked");
           }
         }
@@ -1084,19 +1087,18 @@ would essentially compile to:
   LAY.run({
     LeaderBoard: {
       Nav: {
-        props: {
-          width:200,
-          left: 0,
-          backgroundColor: LAY.color('black'),
-          textColor:LAY.color('white')
+        data: {
+          closed: true
         },
-        state: ['closed'],
+        props: {
+          width:200
+        },
         states: {
           closed: {
-            onlyif: LAY.take('', 'data.locked').and(LAY.take('../', 'state.collapsed')),
+            onlyif: LAY.take('', 'data.closed'),
             props: {
               left: LAY.take('', 'width').negative()
-            },
+            }
           }
         }
       }  
@@ -1124,7 +1126,6 @@ LAY.run({
         }
       }
     }
-
 })
 
 
@@ -1383,4 +1384,3 @@ The following consitute reserved names:
 
 root, transition, data, when, onlyif, exist, many, formation,
 formationDisplayNone, sort, fargs, row, rows, filter, args, all
-

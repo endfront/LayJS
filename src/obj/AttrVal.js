@@ -326,6 +326,10 @@
           case "imageUrl":
             part.isImageLoaded = false;
             break;
+          case "audioController":
+            part.updateNaturalHeight();
+            part.updateNaturalHeight();
+            break;
 
           default:
             var checkIfAttrAffectsTextDimesion =
@@ -502,10 +506,10 @@
 
         node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
-          if ( eventType === "scroll" &&
+          if ( LAY.$checkIsWindowEvent( eventType ) &&
             this.level.pathName === "/" ) {
             node = window;
-          } 
+          }
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
           LAY.$eventUtils.add( node, eventType, fnBoundHandler );
@@ -529,7 +533,7 @@
          fnBoundHandler, node;
         node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
-          if ( eventType === "scroll" &&
+          if ( LAY.$checkIsWindowEvent( eventType ) &&
             this.level.pathName === "/" ) {
             node = window;
           }

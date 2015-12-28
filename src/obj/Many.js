@@ -417,6 +417,10 @@
 
 
   LAY.Many.prototype.remove = function () {
+    var allLevelS = this.allLevelS;
+    for ( var i=0, len=allLevelS.length; i<len; i++ ) {
+      allLevelS[ i ].remove()
+    }
   };
   
 

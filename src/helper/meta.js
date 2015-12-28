@@ -26,36 +26,7 @@
     },
 
     inherit: {
-      /*
-      $$keys: function ( intoLson, fromLson ) {
-
-        var
-        fromAttr2keyS = fromLson.$$keys,
-        intoAttr2keyS = intoLson.$$keys,
-        fromAttr,
-        fromKeyS,
-        intoKeyS,
-        i, len;
-
-
-        if ( intoAttr2keyS === undefined ) {
-          intoAttr2keyS = intoLson.$$keys = {};
-        }
-
-        for ( fromAttr in fromAttr2keyS ) {
-            fromKeyS = fromAttr2keyS[ fromAttr ];
-            intoKeyS = intoAttr2keyS[ fromAttr ];
-            if ( intoKeyS === undefined ) {
-              intoAttr2keyS[ fromAttr ] = LAY.$arrayUtils.cloneSingleLevel( fromKeyS );
-            } else {
-              for ( i = 0, len = fromKeyS.length; i < len; i++ ) {
-                LAY.$arrayUtils.pushUnique( intoKeys, fromKeyS[ i ] );
-              }
-          }
-        }
-      },
-      */
-
+     
       $$max: function ( intoLson, fromLson ) {
 
         var

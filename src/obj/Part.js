@@ -9,7 +9,8 @@
     inputType2tag, nonInputType2tag,
     textSizeMeasureNode,
     imageSizeMeasureNode,
-    supportedInputTypeS;
+    supportedInputTypeS,
+    audioWidth, audioHeight;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -95,6 +96,15 @@
   supportedInputTypeS = [
     "line", "multiline", "password", "select",
     "multiple" ];
+
+
+  var audioElement = document.createElement("audio");
+  audioElement.controls = true;
+  document.body.appendChild(audioElement);
+  audioWidth = audioElement.offsetWidth;
+  audioHeight = audioElement.offsetHeight;
+  document.body.removeChild(audioElement);
+  audioElement = undefined;
 
   function stringifyPlusPx ( val ) {
     return val + "px";
@@ -364,6 +374,8 @@
       return this.calculateTextNaturalDimesion( true );
     } else if ( this.type === "image" ) {
       return this.calculateImageNaturalDimesion( true );
+    } else if ( this.type === "audio" ) {
+      return this.calculateTextNaturalDimesion( true );
     } else {
       return this.findChildMaxOfAttr( "right" );
     }
@@ -376,6 +388,8 @@
       return this.calculateTextNaturalDimesion( false );
     } else if ( this.type === "image" ) {
       return this.calculateImageNaturalDimesion( false );
+    } else if ( this.type === "audio" ) {
+      return this.calculateTextNaturalDimesion( false );
     } else {
       return this.findChildMaxOfAttr( "bottom" );
     }
@@ -405,6 +419,20 @@
       }
     }
   };
+
+  LAY.Part.prototype.calculateAudioNaturalDimesion = function ( isWidth ) {
+    var isAudioController =
+      this.level.attr2attrVal.audioController &&
+      this.level.attr2attrVal.audioController.calcVal;
+
+    if ( isWidth ) {
+      return isAudioController ? audioWidth : 0;
+    } else {
+      return isAudioController ? audioHeight : 0;
+    }
+
+  };
+
 
   /*
   * ( Height occupied naturally by text can be estimated
@@ -652,11 +680,18 @@
       numFnHandlersForEventType =
         this.level.attr2attrVal[ "$$num.when." + eventType ].val,
       fnMainHandler,
-      thisLevel = this.level;
+      thisLevel = this.level,
+      node = this.node;
+
+
+    if ( LAY.$checkIsWindowEvent( eventType ) &&
+      this.level.pathName === "/" ) {
+      node = window;
+    }
 
     if ( this.whenEventType2fnMainHandler[ eventType ] !== undefined ) {
       LAY.$eventUtils.remove( 
-        this.node, eventType,
+        node, eventType,
           this.whenEventType2fnMainHandler[ eventType ] );
     }
 
@@ -672,7 +707,8 @@
           }
         }
       };
-      LAY.$eventUtils.add( this.node, eventType, fnMainHandler );
+      
+      LAY.$eventUtils.add( node, eventType, fnMainHandler );
       this.whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {

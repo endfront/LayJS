@@ -13,8 +13,8 @@
     to maintain the consistency of
     only method accesses from the user
     During build (gulp) the version will be set
-    so leave the string "0.8.12" just as is. */
-    version: function(){ return "0.8.12"; },
+    so leave the string "0.8.13" just as is. */
+    version: function(){ return "0.8.13"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -451,6 +451,10 @@ if (!Array.prototype.indexOf) {
           case "imageUrl":
             part.isImageLoaded = false;
             break;
+          case "audioController":
+            part.updateNaturalHeight();
+            part.updateNaturalHeight();
+            break;
 
           default:
             var checkIfAttrAffectsTextDimesion =
@@ -627,10 +631,10 @@ if (!Array.prototype.indexOf) {
 
         node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
-          if ( eventType === "scroll" &&
+          if ( LAY.$checkIsWindowEvent( eventType ) &&
             this.level.pathName === "/" ) {
             node = window;
-          } 
+          }
           fnBoundHandler =
            eventType2fnHandler[ eventType ].bind( this.level );
           LAY.$eventUtils.add( node, eventType, fnBoundHandler );
@@ -654,7 +658,7 @@ if (!Array.prototype.indexOf) {
          fnBoundHandler, node;
         node = this.level.part.node;
         for ( eventType in eventType2fnHandler ) {
-          if ( eventType === "scroll" &&
+          if ( LAY.$checkIsWindowEvent( eventType ) &&
             this.level.pathName === "/" ) {
             node = window;
           }
@@ -1238,7 +1242,6 @@ if (!Array.prototype.indexOf) {
 
 
   LAY.Level.prototype.level = function ( relativePath ) {
-
     return ( new LAY.RelPath( relativePath ) ).resolve( this );
   };
 
@@ -1246,10 +1249,13 @@ if (!Array.prototype.indexOf) {
     return this.parentLevel;
   };
 
+  LAY.Level.prototype.children = function () {
+    return this.childLevelS;
+  };
+
   LAY.Level.prototype.path = function () {
     return this.pathName;
   };
-
 
   LAY.Level.prototype.node = function () {
 
@@ -1462,16 +1468,35 @@ if (!Array.prototype.indexOf) {
         LAY.$solve();
       }
     }
-    
   };
 
   LAY.Level.prototype.$remove = function () {
 
-    this.$disappear();
+    var
+      childLevelS = this.childLevelS,
+      attr2attrVal = this.attr2attrVal;
 
     LAY.$pathName2level[ this.pathName ] = undefined;
     LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
-  
+
+    if ( this.isPart ) {
+      this.part && this.part.remove();
+    }
+
+    for ( var attr in attr2attrVal ) {
+      attr2attrVal[ attr ].remove();
+    }
+
+    this.$removeDescendants();
+  };
+
+  LAY.Level.prototype.$removeDescendants = function () {
+    var descendantLevelS = this.isPart ?
+      this.childLevelS : this.manyObj.allLevelS;
+    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
+      descendantLevelS[ i ] &&
+        descendantLevelS[ i ].$remove();
+    }
   };
 
   LAY.Level.prototype.$addChildren = function ( name2lson ) {
@@ -1727,6 +1752,7 @@ if (!Array.prototype.indexOf) {
   };  
 
    LAY.Level.prototype.$disappear = function () {
+    console.log(this.pathName);
     this.isExist = false;
     var attr2attrVal = this.attr2attrVal;
     for ( var attr in attr2attrVal ) {
@@ -1734,19 +1760,12 @@ if (!Array.prototype.indexOf) {
         attr2attrVal[ attr ].remove();
       }
     }
-    var descendantLevelS = this.isPart ? 
-      this.childLevelS : this.manyObj.allLevelS ;
-    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
-      descendantLevelS[ i ] &&
-        descendantLevelS[ i ].$remove();
-    }
+
+    this.$removeDescendants();
 
     if ( this.isPart ) {
       this.part && this.part.remove();
-    } else {
-      this.manyObj.remove();
     }
-   
   };
 
   LAY.Level.prototype.$decideExistence = function () {
@@ -1996,9 +2015,7 @@ if (!Array.prototype.indexOf) {
 
     var
       attr2val = {},
-      stringHashedStates2_cachedAttr2val_;
-  // Refer to the central cache for Many levels
-   stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
+      stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
       this.derivedMany.levelStringHashedStates2_cachedAttr2val_ :
       this.stringHashedStates2_cachedAttr2val_;
     
@@ -2013,7 +2030,6 @@ if (!Array.prototype.indexOf) {
 
     return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
   
-
   };
 
   /*
@@ -2054,7 +2070,6 @@ if (!Array.prototype.indexOf) {
     }
 
     return slson;
-
   };
 
 
@@ -2071,30 +2086,11 @@ if (!Array.prototype.indexOf) {
       this.$setFormationXY( this.part.formationX,
           this.part.formationY );
     }
-
-
-    if ( this.pathName === "/" ) {
-      if ( this.attr2attrVal.width.val !==
-        this.lson.states.root.props.width ) {
-        throw "LAY Error: width of root level unchangeable";
-      }
-      if ( this.attr2attrVal.height.val !==
-        this.lson.states.root.props.height ) {
-        throw "LAY Error: height of root level unchangeable";
-      }
-      if ( this.attr2attrVal.top.val !== 0 ) {
-        throw "LAY Error: top of root level unchangeable";        
-      }
-      if ( this.attr2attrVal.left.val !== 0 ) {
-        throw "LAY Error: left of root level unchangeable";        
-      }
-    } 
   };
 
 
   LAY.Level.prototype.$getAttrVal = function ( attr ) {
     return this.attr2attrVal[ attr ];
-
   };
 
   /* Manually change attr value */
@@ -2139,28 +2135,7 @@ if (!Array.prototype.indexOf) {
  
   };
 
-  /*
-  LAY.Level.prototype.addRecalculateDirtyAttrVal = function ( attrVal ) {
-
-    LAY.$arrayUtils.pushUnique( this.recalculateDirtyAttrValS, attrVal );
-    LAY.$arrayUtils.pushUnique( LAY.$recalculateDirtyLevelS, this );
-
-  };
-  */
-
-
-  
-
-  
-
-
-
-
-
-
-
 })();
-
 (function() {
   "use strict";
 
@@ -2580,6 +2555,10 @@ if (!Array.prototype.indexOf) {
 
 
   LAY.Many.prototype.remove = function () {
+    var allLevelS = this.allLevelS;
+    for ( var i=0, len=allLevelS.length; i<len; i++ ) {
+      allLevelS[ i ].remove()
+    }
   };
   
 
@@ -2626,7 +2605,8 @@ if (!Array.prototype.indexOf) {
     inputType2tag, nonInputType2tag,
     textSizeMeasureNode,
     imageSizeMeasureNode,
-    supportedInputTypeS;
+    supportedInputTypeS,
+    audioWidth, audioHeight;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -2712,6 +2692,15 @@ if (!Array.prototype.indexOf) {
   supportedInputTypeS = [
     "line", "multiline", "password", "select",
     "multiple" ];
+
+
+  var audioElement = document.createElement("audio");
+  audioElement.controls = true;
+  document.body.appendChild(audioElement);
+  audioWidth = audioElement.offsetWidth;
+  audioHeight = audioElement.offsetHeight;
+  document.body.removeChild(audioElement);
+  audioElement = undefined;
 
   function stringifyPlusPx ( val ) {
     return val + "px";
@@ -2981,6 +2970,8 @@ if (!Array.prototype.indexOf) {
       return this.calculateTextNaturalDimesion( true );
     } else if ( this.type === "image" ) {
       return this.calculateImageNaturalDimesion( true );
+    } else if ( this.type === "audio" ) {
+      return this.calculateTextNaturalDimesion( true );
     } else {
       return this.findChildMaxOfAttr( "right" );
     }
@@ -2993,6 +2984,8 @@ if (!Array.prototype.indexOf) {
       return this.calculateTextNaturalDimesion( false );
     } else if ( this.type === "image" ) {
       return this.calculateImageNaturalDimesion( false );
+    } else if ( this.type === "audio" ) {
+      return this.calculateTextNaturalDimesion( false );
     } else {
       return this.findChildMaxOfAttr( "bottom" );
     }
@@ -3022,6 +3015,20 @@ if (!Array.prototype.indexOf) {
       }
     }
   };
+
+  LAY.Part.prototype.calculateAudioNaturalDimesion = function ( isWidth ) {
+    var isAudioController =
+      this.level.attr2attrVal.audioController &&
+      this.level.attr2attrVal.audioController.calcVal;
+
+    if ( isWidth ) {
+      return isAudioController ? audioWidth : 0;
+    } else {
+      return isAudioController ? audioHeight : 0;
+    }
+
+  };
+
 
   /*
   * ( Height occupied naturally by text can be estimated
@@ -3269,11 +3276,18 @@ if (!Array.prototype.indexOf) {
       numFnHandlersForEventType =
         this.level.attr2attrVal[ "$$num.when." + eventType ].val,
       fnMainHandler,
-      thisLevel = this.level;
+      thisLevel = this.level,
+      node = this.node;
+
+
+    if ( LAY.$checkIsWindowEvent( eventType ) &&
+      this.level.pathName === "/" ) {
+      node = window;
+    }
 
     if ( this.whenEventType2fnMainHandler[ eventType ] !== undefined ) {
       LAY.$eventUtils.remove( 
-        this.node, eventType,
+        node, eventType,
           this.whenEventType2fnMainHandler[ eventType ] );
     }
 
@@ -3289,7 +3303,8 @@ if (!Array.prototype.indexOf) {
           }
         }
       };
-      LAY.$eventUtils.add( this.node, eventType, fnMainHandler );
+      
+      LAY.$eventUtils.add( node, eventType, fnMainHandler );
       this.whenEventType2fnMainHandler[ eventType ] = fnMainHandler;
 
     } else {
@@ -6801,13 +6816,9 @@ function type (x) {
 
   LAY.run =  function ( rootLson ) {
 
-    
     setRuntimeGlobals();
-
     ( new LAY.Level( "/", rootLson, undefined ) ).$init();
-
     LAY.$solve();
-
     window.onresize = updateSize;
 
   };
@@ -7111,6 +7122,43 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   };
 
 })();
+(function(){
+  "use strict";
+	LAY.$checkIsWindowEvent = function ( eventName ) {
+		return [
+			"beforeunload",
+			"blur",
+		  "error",
+      "focus",
+      "focusin",
+      "focusout",
+      "hashchange",
+      "load",
+      "message",
+      "offline",
+      "online",
+      "orientationchange",
+      "pagehide",
+      "pageshow",
+      "popstate",
+      "resize",
+      "scroll",
+      "storage",
+      "unload",
+      "webkitmouseforcechanged",
+      "webkitmouseforcedown",
+      "webkitmouseforceup",
+      "webkitmouseforcewillbegin",
+      "webkitwillrevealbottom",
+      "webkitwillrevealleft",
+      "webkitwillrevealright",
+      "webkitwillrevealtop",
+		].indexOf( eventName ) !== -1;
+	};
+
+})();
+
+
 ( function () {
   "use strict";
 
@@ -7345,61 +7393,58 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       when, transition, metaMax, maxProp,
       eventType, transitionProp,
       isRootLevel = parentLevel === undefined,
-      essentialProp2defaultValue = parentLevel ?
-        nonRootEssentialProp2defaultValue : 
-        rootEssentialProp2defaultValue,
       lazyVal,
-      parentLevelRootProps;
-
-    /* Filling in the defaults here for root state lson */
-    for ( essentialProp in essentialProp2defaultValue ) {
-      if ( rootStateProps[ essentialProp ] === undefined ) {
-        rootStateProps[ essentialProp ] =
-          essentialProp2defaultValue[ essentialProp ];
-      }
-    }
+      parentLevelRootProps,
+      takeWindowWidth = LAY.take("", "$windowWidth"),
+      takeWindowHeight = LAY.take("", "$windowHeight"),
+      takeNaturalWidth = LAY.take("", "$naturalWidth"),
+      takeNaturalHeight = LAY.take("", "$naturalHeight"),
+      takeParentWidth = LAY.take("../", "width");
   
 
-    if ( states ) {
-      for ( stateName in states ) {
-        state = states[ stateName ];
-        props = state.props;
-        when = state.when;
-        transition = state.transition;
-        metaMax = state.$$max;
+    for ( stateName in states ) {
+      state = states[ stateName ];
+      props = state.props;
+      when = state.when;
+      transition = state.transition;
+      metaMax = state.$$max;
 
-        for ( prop in props ) {
-
-          if (rootStateProps[ prop ] === undefined ) {
-            lazyVal = LAY.$getLazyPropVal( prop,
-              isRootLevel );
-            if ( lazyVal !== undefined ) {
-              rootStateProps[ prop ] = lazyVal;
-            }
+      for ( prop in props ) {
+        if ( isRootLevel ) {
+          if ( props.top || props.left || props.width || props.height ) {
+            throw "LAY ERROR: Cannot set top/left/width/height of root Level";
+          }
+        }
+        if (rootStateProps[ prop ] === undefined ) {
+          lazyVal = LAY.$getLazyPropVal( prop,
+            isRootLevel );
+          if ( lazyVal !== undefined ) {
+            rootStateProps[ prop ] = lazyVal;
           }
         }
       }
+    }
 
-      for ( maxProp in metaMax ) {
-        lson.$$max = lson.$$max || {};
+    for ( maxProp in metaMax ) {
+      lson.$$max = lson.$$max || {};
 
-        if ( !lson.$$max[ maxProp ] ) {
-          lson.$$max[ metaMax ] = metaMax[ maxProp ];
-        }
-      }
-
-      for ( eventType in when ) {
-        if ( !rootStateWhen[ eventType ] ) {
-          rootStateWhen[ eventType ] = [];
-        }
-      }
-
-      for ( transitionProp in rootStateTransition ) {
-        if ( !rootStateTransition[ transitionProp ] )  {
-          rootStateTransition[ transitionProp ] = {};
-        }
+      if ( !lson.$$max[ maxProp ] ) {
+        lson.$$max[ metaMax ] = metaMax[ maxProp ];
       }
     }
+
+    for ( eventType in when ) {
+      if ( !rootStateWhen[ eventType ] ) {
+        rootStateWhen[ eventType ] = [];
+      }
+    }
+
+    for ( transitionProp in rootStateTransition ) {
+      if ( !rootStateTransition[ transitionProp ] )  {
+        rootStateTransition[ transitionProp ] = {};
+      }
+    }
+  
 
     if ( !isRootLevel ) {
       // If the parent has an inheritable prop
@@ -7414,7 +7459,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           rootStateProps[ prop ] = LAY.$getLazyPropVal( prop );
         }
       }
-    }
+    } 
+
 
     if ( rootStateProps.text !== undefined &&
         ( lson.$type === undefined || lson.$type === "none" ) ) {
@@ -7423,24 +7469,41 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       lson.$type = "none";
     }
 
+
+    /* Filling in the defaults here for root state lson */
+    
+    if ( rootStateProps.left === undefined ) {
+      rootStateProps.left = 0;
+    }
+    if ( rootStateProps.top === undefined ) {
+      rootStateProps.top = 0;
+    }
+    if ( isRootLevel ) {
+      rootStateProps.width = takeWindowWidth; 
+      rootStateProps.height = takeWindowHeight; 
+    } else {
+      if ( rootStateProps.width === undefined ) {
+/*        if ( [
+          "text",
+          "html",
+          "input:select",
+          "input:multiple",
+          "image",
+          "link"
+          ].indexOf( lson.$type ) !== -1 ) {
+          rootStateProps.width = takeNaturalWidth;
+        } else {
+          rootStateProps.width = takeParentWidth;
+        }*/
+        rootStateProps.width = takeNaturalWidth;
+      }
+      if ( rootStateProps.height === undefined ) {
+        rootStateProps.height = takeNaturalHeight;
+      } 
+    }
+
   };
 
-
-
-  rootEssentialProp2defaultValue = {
-    top: 0,
-    left: 0,
-    width: LAY.take("", "$windowWidth"),
-    height: LAY.take("", "$windowHeight")
-  };
-
-
-  nonRootEssentialProp2defaultValue = {
-    top: 0,
-    left: 0,
-    width: LAY.take("", "$naturalWidth"),
-    height: LAY.take("", "$naturalHeight")
-  };
 
 
 
@@ -8738,36 +8801,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     },
 
     inherit: {
-      /*
-      $$keys: function ( intoLson, fromLson ) {
-
-        var
-        fromAttr2keyS = fromLson.$$keys,
-        intoAttr2keyS = intoLson.$$keys,
-        fromAttr,
-        fromKeyS,
-        intoKeyS,
-        i, len;
-
-
-        if ( intoAttr2keyS === undefined ) {
-          intoAttr2keyS = intoLson.$$keys = {};
-        }
-
-        for ( fromAttr in fromAttr2keyS ) {
-            fromKeyS = fromAttr2keyS[ fromAttr ];
-            intoKeyS = intoAttr2keyS[ fromAttr ];
-            if ( intoKeyS === undefined ) {
-              intoAttr2keyS[ fromAttr ] = LAY.$arrayUtils.cloneSingleLevel( fromKeyS );
-            } else {
-              for ( i = 0, len = fromKeyS.length; i < len; i++ ) {
-                LAY.$arrayUtils.pushUnique( intoKeys, fromKeyS[ i ] );
-              }
-          }
-        }
-      },
-      */
-
+     
       $$max: function ( intoLson, fromLson ) {
 
         var
