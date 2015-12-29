@@ -21,7 +21,7 @@ LAY involves writing LSON (Layout Syntax Object Notation)
 - LAY.levels()
 
 ### LAY.run()
-  
+
   The input to `LAY.run()` is an object known as LSON.
 
     LAY.run({
@@ -109,7 +109,7 @@ More about inheritance in inherit section of this document.
 
 ### LSON helper levels
 
-If a level name begins with "_", the level will not render.
+If a level name begins with '\_', the level will not render.
 (Primary usage for such a level exists solely for inheritance)
 
 
@@ -280,7 +280,7 @@ Defaults:
   CSS overflow property  
   Default: 'visible'
 
-- overflowY 
+- overflowY
   `string`  
   CSS overflow property  
   Default: 'visible'
@@ -298,7 +298,7 @@ Defaults:
   Default: 0
 
 - focus  
-  `boolean` 
+  `boolean`
   Default: false
 
 - scrollElastic  
@@ -523,8 +523,8 @@ Defaults:
 
 - input  
   `string` / `array`  
-  `array` for "input:select", "" for remaining 
-  Default: [] for "input:select", "" for remaining 
+  `array` for "input:select", "" for remaining
+  Default: [] for "input:select", "" for remaining
 
 - inputPlaceholder  
   `string`  
@@ -627,7 +627,7 @@ Defaults:
   Default: 1.0
 
 - iframeSrc  
-  `string` 
+  `string`
   Default: none
 
 ### Attributes
@@ -644,8 +644,6 @@ Defaults:
   - transition.< attr >.< duration/delay/done/type >
 
   - transition.< attr >.args.< arg >
-
-  - load
 
   - formation
 
@@ -793,7 +791,7 @@ To get the Level:
 
 LAY.Level methods:
 
-  
+
   attr( attr ) //gets attr value
   data( key, val ) //changes data value
   parent()
@@ -805,7 +803,6 @@ LAY.Level methods:
   addChildren()
   remove()
   row()
-  rowAdd()
   rowsMore()
   rowsCommit()
   rowsUpdate()
@@ -947,7 +944,7 @@ for example:
         foo: 10,
         bar: "toystory3"
       },
-      
+
       "LeftSide": {
         props: {
           width: LAY.take('../', 'width').half(),
@@ -1061,7 +1058,7 @@ would essentially compile to:
 
   - Relative
     'Winners/Stats'
-  
+
   - Parent
     '../'
 
@@ -1069,12 +1066,12 @@ would essentially compile to:
     ''
 
   - Many Level (from context of Level derived of Many)
-    "*" 
+    "\*"
 
   - Closest Many Derived Many Parent Level
     ".../"
 
-  
+
   - Many (by predetermined id field):
     /Page/Feed/Post:507c7f79bcf86cd7994f6c0e
 
@@ -1140,14 +1137,14 @@ LAY.run({
               onlyStarks: false
             },
             many: {
-           
+
               formation:'onebelow',
               sort: [{key:"name", ascending:true}],
               fargs: {
                 onebelow: { gap: 2 }
               },
-              
-              $id: "_id",
+
+              $id: "\_id",
 
               rows: [
                 {_id:'00423', name:'Eddard Stark',
@@ -1180,12 +1177,12 @@ LAY.run({
 `sort`: array of sort dicts contains a sub-key "key" and "ascending", the former refers to the key name within the row, the latter is a boolean. Either can have Take values.  
 `filter`: the levels which pass the filter will be displayed,
 the others will be hidden. (note: levels derived of many will have their "display" automatically handled through this filter, and thus manually using the "display" prop within a
-many derived level is prohibited) 
+many derived level is prohibited)
 
 
 `rows`
 
-This takes in either an 
+This takes in either an
 
 
 example:

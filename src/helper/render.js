@@ -18,7 +18,7 @@
         LAY.$prevTimeFrame = performance.now() - 16.7;
         render();
       }
-      
+
     }
   }
 
@@ -99,7 +99,7 @@
         }
 
         if ( isNormalAttrValTransitionComplete ) {
-          normalRenderDirtyAttrVal.transitionCalcVal =
+          normalRenderDirtyAttrVal.transCalcVal =
             normalRenderDirtyAttrVal.calcVal;
           LAY.$arrayUtils.removeAtIndex( normalRenderDirtyAttrValS, y );
           y--;
@@ -118,13 +118,7 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        var fnRender =
-          renderDirtyPart[ "renderFn_" + renderCallS[ i ] ];
-        if ( !fnRender ) {
-          throw "LAY Error: Inexistent prop: '" +
-           renderCallS[ i ] + "'"; 
-        }
-        renderDirtyPart[ "renderFn_" + renderCallS[ i ] ]();
+        renderDirtyPart.render( renderCallS[ i ] );      
       }
 
       if (
@@ -151,7 +145,7 @@
     }
 
     LAY.$isRendering = false;
-    
+
     if ( LAY.$isSolveRequiredOnRenderFinish ) {
       LAY.$isSolveRequiredOnRenderFinish = false;
       LAY.$solve();
@@ -163,12 +157,12 @@
 
   function transitionAttrVal( normalRenderDirtyAttrVal, delta ) {
     if ( normalRenderDirtyAttrVal.calcVal instanceof LAY.Color ) {
-      normalRenderDirtyAttrVal.transitionCalcVal =
+      normalRenderDirtyAttrVal.transCalcVal =
         LAY.$generateColorMix( normalRenderDirtyAttrVal.startCalcVal,
           normalRenderDirtyAttrVal.calcVal,
           delta );
     } else {
-      normalRenderDirtyAttrVal.transitionCalcVal =
+      normalRenderDirtyAttrVal.transCalcVal =
         normalRenderDirtyAttrVal.startCalcVal +
         ( delta *
           ( normalRenderDirtyAttrVal.calcVal -

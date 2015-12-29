@@ -1,6 +1,7 @@
 
 Current:
   - todo recursive remove level
+  - sort problem when update .row()
   - change "*" to many
   - width default complete (with spec update)
   - formationX/Y undefined then skip setting it? new thing = null?

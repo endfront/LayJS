@@ -21,7 +21,7 @@
           return multipleTypePropMatchDetails[ 1 ];
         }
 
-        renderCall = 
+        renderCall =
           LAY.$shorthandPropsUtils.getShorthandPropCenteralized(
             prop );
         if ( renderCall !== undefined ) {
@@ -40,7 +40,7 @@
           }
         }
         return prop;
-        
+
       }
     };
 })();

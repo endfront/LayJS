@@ -36,19 +36,6 @@ gulp.task("concat", function() {
 });
 
 
-/*gulp.task("minify", [ "concat" ], function() {
-
-	gulp.src("LAY.js").pipe(
-		concat("LAY.min.js")
-		).pipe( uglify({
-			preserveComments: "license"
-		})
-		).pipe( gulp.dest("./") );
-
-});*/
-
-
-
 gulp.task('default', function() {
   gulp.watch( js_fileS,  [ "concat" ] );
 //  gulp.watch( "LAY.js",  [ "minify" ] );

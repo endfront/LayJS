@@ -5,6 +5,7 @@
   // source inspired from:
   // http://lea.verou.me/2009/03/check-whether-the-browser-supports-rgba-and-other-css3-values/  
 
+
   var isCss3ColorSupported = (function () {
     var prevColor = document.body.style.color;
     try {

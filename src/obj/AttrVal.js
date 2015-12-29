@@ -19,7 +19,7 @@
     this.isRecalculateRequired = true;
 
     this.calcVal = undefined;
-    this.transitionCalcVal = undefined;
+    this.transCalcVal = undefined;
     this.startCalcVal = undefined;
     this.transition = undefined;
     this.isTransitionable = false;
@@ -235,7 +235,7 @@
       case "scrollX":
         // TODO: investigate the below code block's
         // redundancy
-         this.transitionCalcVal =
+         this.transCalcVal =
              this.level.part.node.scrollLeft;      
         if ( level.attr2attrVal.$scrolledX ) {
           level.$changeAttrVal( "$scrolledX",
@@ -246,7 +246,7 @@
       case "scrollY":
         // TODO: investigate the below code block's
         // redundancy
-         this.transitionCalcVal =
+         this.transCalcVal =
              this.level.part.node.scrollTop;
         if ( level.attr2attrVal.$scrolledY ) {
           level.$changeAttrVal( "$scrolledY",
@@ -282,7 +282,7 @@
       }
       
       if ( this.renderCall ) {
-        this.startCalcVal = this.transitionCalcVal;
+        this.startCalcVal = this.transCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
 
         if ( !LAY.$isDataTravellingShock ) {

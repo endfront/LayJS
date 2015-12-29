@@ -132,7 +132,6 @@
     }
   }
 
-
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAY.Take ) {
       throw ( "LAY Error: takes for special/expander props such as '" + name  + "' are not permitted." );

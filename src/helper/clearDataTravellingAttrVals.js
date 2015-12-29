@@ -24,7 +24,7 @@
           if ( travelRenderDirtyAttrVal.renderCall ) {
 
             travelRenderDirtyAttrVal.startCalcVal =
-              travelRenderDirtyAttrVal.transitionCalcVal;
+              travelRenderDirtyAttrVal.transCalcVal;
 
             // Adding to the "normal" render list automatically
             // removes the attrval from the "travel" render list
