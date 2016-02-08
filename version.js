@@ -49,7 +49,7 @@ switch (arg) {
 
 var
   gitCommit = `git commit -a -m "${msg}"`,
-  gitTag = `git tag -a v{newVersion} -m "${msg}"`,
+  gitTag = `git tag -a v${newVersion} -m "${msg}"`,
   gitPush = "git push origin master --tags";
 
 fs.writeFileSync("version.txt", newVersion);
