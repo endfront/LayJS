@@ -56,10 +56,10 @@ fs.writeFileSync("version.txt", newVersion);
 p.execSync("gulp build");
 p.execSync(gitCommit);
 p.execSync(gitTag);
-p.execSync(gitPush);
+p.exec(gitPush);
 
-p.execSync("cd ../build");
+p.execSync("cd ../dist");
 p.execSync("cp ../LayJS/LAY.* .");
 p.execSync(gitCommit);
 p.execSync(gitTag);
-p.execSync(gitPush);
+p.exec(gitPush);
