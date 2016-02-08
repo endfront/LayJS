@@ -13,8 +13,8 @@
     to maintain the consistency of
     only method accesses from the user
     During build (gulp) the version will be set
-    so leave the string "0.8.14" just as is. */
-    version: function(){ return "0.8.14"; },
+    so leave the string "0.8.15" just as is. */
+    version: function(){ return "0.8.15"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
@@ -133,7 +133,8 @@ if (!Array.prototype.indexOf) {
   LAY.AttrVal = function ( attr, level ) {
 
     // undefined initializations:
-    // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
+    // (1) performance
+    // (http://jsperf.com/objects-with-undefined-initialized-properties/2)
     // (2) readability
 
     this.level = level;
@@ -175,7 +176,7 @@ if (!Array.prototype.indexOf) {
   */
   function getStateNameOfOnlyIf ( attr ) {
     if ( attr.lastIndexOf( ".onlyif" ) !== -1 &&
-      !attr.startsWith("data.") && 
+      !attr.startsWith("data.") &&
       !attr.startsWith("row.")  ) {
       return attr.slice(0, attr.indexOf(".") );
     } else {
@@ -216,23 +217,22 @@ if (!Array.prototype.indexOf) {
       [ "centerX", "right",
        "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
-    } else if ( 
-      [ "formation", "filter", "sort" ].indexOf ( attr ) !== -1 ) {
+    } else if (
+      [ "formation", "filter" ].indexOf ( attr ) !== -1 ) {
       return true;
-    } else {
+    } else if ( i !== -1 ) {
       var prefix = attr.slice( 0, i );
-      return ( ( [ "when", "transition", "fargs", "sort", "$$num", "$$max" ] ).indexOf(
-         prefix ) !== -1 );
+      return ([ "when", "transition", "fargs", "sort", "$$num", "$$max" ].
+        indexOf( prefix ) !== -1 );
     }
   }
 
-  /* TODO: update this doc below along with its slash-asterisk
-  formatting
-
-  Returns true if the value is different,
-  false otherwise */
+  /*
+  * Returns true if the value is different,
+  * false otherwise
+  */
   LAY.AttrVal.prototype.update = function ( val ) {
-    
+
     this.val = val;
     if ( !LAY.identical( val, this.prevVal ) ) {
       if ( this.prevVal instanceof LAY.Take ) {
@@ -254,7 +254,6 @@ if (!Array.prototype.indexOf) {
     if ( this.level ) { // check for empty level
       LAY.$arrayUtils.pushUnique(
         LAY.$recalculateDirtyAttrValS, this );
-//      this.level.addRecalculateDirtyAttrVal( this );
     }
   };
 
@@ -355,32 +354,6 @@ if (!Array.prototype.indexOf) {
       isDirty = true;
     }
 
-    /*
-    switch ( attr ) {
-      case "scrollX":
-        // TODO: investigate the below code block's
-        // redundancy
-         this.transCalcVal =
-             this.level.part.node.scrollLeft;      
-        if ( level.attr2attrVal.$scrolledX ) {
-          level.$changeAttrVal( "$scrolledX",
-           this.calcVal );
-        }
-        isDirty = true;
-        break;
-      case "scrollY":
-        // TODO: investigate the below code block's
-        // redundancy
-         this.transCalcVal =
-             this.level.part.node.scrollTop;
-        if ( level.attr2attrVal.$scrolledY ) {
-          level.$changeAttrVal( "$scrolledY",
-           this.calcVal );
-        }
-        isDirty = true;
-        break;
-    }
-    */
 
     // rows is always dirty when recalculated
     // as changes made to rows would have rows
@@ -405,7 +378,7 @@ if (!Array.prototype.indexOf) {
       if ( LAY.$isDataTravellingShock ) {
         part.addTravelRenderDirtyAttrVal( this );
       }
-      
+
       if ( this.renderCall ) {
         this.startCalcVal = this.transCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
@@ -419,7 +392,7 @@ if (!Array.prototype.indexOf) {
             var parentLevel = this.level.parentLevel;
             if ( parentLevel ) {
               parentLevel.part.updateNaturalWidth();
-              parentLevel.part.updateNaturalHeight();              
+              parentLevel.part.updateNaturalHeight();
             }
             if ( this.calcVal === false ) {
               recursivelySwitchOffDoingEvents( level );
@@ -448,14 +421,13 @@ if (!Array.prototype.indexOf) {
               part.updateNaturalWidth();
             }
             break;
-          case "imageUrl":
+          case "imageSrc":
             part.isImageLoaded = false;
             break;
           case "audioController":
             part.updateNaturalHeight();
             part.updateNaturalHeight();
             break;
-
           default:
             var checkIfAttrAffectsTextDimesion =
               function ( attr ) {
@@ -471,7 +443,7 @@ if (!Array.prototype.indexOf) {
               if ( checkIfAttrAffectsTextDimesion( attr ) )  {
                   part.updateNaturalWidth();
                   part.updateNaturalHeight();
-                 
+
               } else if ( ( attr === "borderTopWidth" ) ||
                 ( attr === "borderBottomWidth" ) ) {
                   part.updateNaturalHeight();
@@ -515,6 +487,8 @@ if (!Array.prototype.indexOf) {
         part.updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
         part.updateTransitionProp( transitionProp );
+      } else if ( attr === "exist" ) {
+        level.$updateExistence();
       } else if ( many ) {
           if ( attr === "rows" ) {
             many.updateRows();
@@ -529,12 +503,8 @@ if (!Array.prototype.indexOf) {
            attr === "formation" ) {
             many.updateLayout();
         }
-          
-      } else {  
+      } else {
         switch( attr ) {
-          case "exist":
-            level.$updateExistence();
-            break;
           case "right":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
@@ -544,7 +514,7 @@ if (!Array.prototype.indexOf) {
           case "bottom":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
-                updateNaturalHeight(); 
+                updateNaturalHeight();
             }
             break;
           case "$naturalWidth":
@@ -578,7 +548,7 @@ if (!Array.prototype.indexOf) {
         }
       }
     }
-  
+
     this.isForceRecalculate = false;
     this.isRecalculateRequired = false;
     return true;
@@ -589,7 +559,7 @@ if (!Array.prototype.indexOf) {
   * Doing events: clicking, hovering
   */
   function recursivelySwitchOffDoingEvents( level ) {
-    var 
+    var
       hoveringAttrVal = level.attr2attrVal.$hovering,
       clickingAttrVal = level.attr2attrVal.$clicking,
       childLevel,
@@ -608,8 +578,8 @@ if (!Array.prototype.indexOf) {
         if ( childLevel.part ) {
           recursivelySwitchOffDoingEvents( childLevel );
         }
-      } 
-    }         
+      }
+    }
   }
 
 
@@ -647,7 +617,7 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.AttrVal.prototype.giveNot = function ( attrVal ) {
-    if ( LAY.$arrayUtils.remove( this.takerAttrValS, attrVal ) && 
+    if ( LAY.$arrayUtils.remove( this.takerAttrValS, attrVal ) &&
       this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
         // Given that no reference exists, remove event listeners
@@ -740,8 +710,12 @@ if (!Array.prototype.indexOf) {
 
   LAY.AttrVal.prototype.remove = function () {
     this.takeNot( this.val );
+    LAY.$arrayUtils.remove(
+      LAY.$recalculateDirtyAttrValS, this );
+    this.level.attr2attrVal[ this.attr ] = undefined;
+
   }
-  
+
 
 
 
@@ -752,7 +726,7 @@ if (!Array.prototype.indexOf) {
 
   // Check for CSS3 color support within the browser
   // source inspired from:
-  // http://lea.verou.me/2009/03/check-whether-the-browser-supports-rgba-and-other-css3-values/  
+  // http://lea.verou.me/2009/03/check-whether-the-browser-supports-rgba-and-other-css3-values/
 
 
   var isCss3ColorSupported = (function () {
@@ -766,7 +740,7 @@ if (!Array.prototype.indexOf) {
 
   })();
 
-  
+
   // inspiration from: sass (https://github.com/sass/sass/)
 
   LAY.Color = function ( format, key2value, alpha ) {
@@ -785,40 +759,6 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  LAY.Color.prototype.getFormat = function () {
-    return this.format;
-  };
-
-  LAY.Color.prototype.getRed = function () {
-    return this.r;
-
-  };
-
-  LAY.Color.prototype.getGreen = function () {
-    return this.g;
-  };
-
-  LAY.Color.prototype.getBlue = function () {
-    return this.b;
-  };
-
-  LAY.Color.prototype.getHue = function () {
-    return this.h;
-  };
-
-  LAY.Color.prototype.getSaturation = function () {
-    return this.s;
-
-  };
-
-  LAY.Color.prototype.getLightness = function () {
-    return this.l;
-
-  };
-
-  LAY.Color.prototype.getAlpha = function () {
-    return this.a;
-  };
 
   LAY.Color.prototype.stringify = function () {
 
@@ -828,17 +768,21 @@ if (!Array.prototype.indexOf) {
       if ( this.format === "hsl" ) {
         hsl = this.getHsl();
         if ( this.a === 1 ) {
-          return "hsl(" + Math.round(hsl.h) + "," + Math.round(hsl.s) + "%," + Math.round(hsl.l) + "%)";
+          return "hsl(" + hsl.h + "," + hsl.s*100 +
+            "%," + hsl.l*100 + "%)";
         } else {
-          return "hsla(" + Math.round(hsl.h) + "," + Math.round(hsl.s) + "%," + Math.round(hsl.l) + "%," + this.a + ")";
+          return "hsla(" + hsl.h + "," + hsl.s*100 +
+            "%," + hsl.l*100 + "%," + this.a + ")";
         }
 
       } else {
         rgb = this.getRgb();
         if ( this.a === 1 ) {
-          return "rgb(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," + Math.round(rgb.b) + ")";
+          return "rgb(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," +
+            Math.round(rgb.b) + ")";
         } else {
-          return "rgba(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," + Math.round(rgb.b) + "," + this.a + ")";
+          return "rgba(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," +
+            Math.round(rgb.b) + "," + this.a + ")";
         }
       }
 
@@ -853,17 +797,13 @@ if (!Array.prototype.indexOf) {
         rgb = this.getRgb();
         return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
       }
-
     }
-
   };
 
   LAY.Color.prototype.copy = function () {
-
     return this.format === "rgb" ?
       new LAY.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
       new LAY.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
-
   };
 
   LAY.Color.prototype.equals = function ( otherColor ) {
@@ -885,58 +825,67 @@ if (!Array.prototype.indexOf) {
           this.l === otherColor.l
         )
       );
-
-
   };
+
+  // Getter
 
   LAY.Color.prototype.getRgb = function () {
     if ( this.format === "rgb" ) {
-
       return { r: this.r, g: this.g, b: this.b };
-
-
     } else {
-
       return convertHslToRgb( this.r, this.g, this.b );
-
     }
   };
 
   LAY.Color.prototype.getHsl = function () {
     if ( this.format === "hsl" ) {
-
       return { h: this.h, s: this.s, l: this.l };
-
     } else {
-
       return convertRgbToHsl( this.r, this.g, this.b );
     }
   };
 
 
   LAY.Color.prototype.getRgba = function () {
-
     var rgb = this.getRgb();
     rgb.a = this.a;
     return rgb;
-
   };
 
-
-
   LAY.Color.prototype.getHsla = function () {
-
     var hsl = this.getHsl();
     hsl.a = this.a;
     return hsl;
-
   };
 
-  // mix, invert, saturate, desaturate
+  // Getters
+  LAY.Color.prototype.getRed = function () {
+    return this.getRgb().r;
+  };
+  LAY.Color.prototype.getGreen = function () {
+    return this.getRgb().g;
+  };
+  LAY.Color.prototype.getBlue = function () {
+    return this.getRgb().b;
+  };
 
+  LAY.Color.prototype.getHue = function () {
+    return this.getHsl().h;
+  };
+  LAY.Color.prototype.getSaturation = function () {
+    return this.getHsl().s;
+  };
+  LAY.Color.prototype.getLightness = function () {
+    return this.getHsl().l;
+  };
 
+  LAY.Color.prototype.getAlpha = function () {
+    return this.a;
+  };
 
-  LAY.Color.prototype.red = function ( val ) {
+  // Setters
+
+  LAY.Color.prototype.setRed = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.r = val;
@@ -950,7 +899,7 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Color.prototype.green = function ( val ) {
+  LAY.Color.prototype.setGreen = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.g = val;
@@ -964,7 +913,7 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Color.prototype.blue = function ( val ) {
+  LAY.Color.prototype.setBlue = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.b = val;
@@ -978,7 +927,7 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Color.prototype.hue = function ( val ) {
+  LAY.Color.prototype.setHue = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.h = val;
@@ -992,7 +941,7 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Color.prototype.saturation = function ( val ) {
+  LAY.Color.prototype.setSaturation = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.s = val;
@@ -1006,7 +955,7 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Color.prototype.lightness = function ( val ) {
+  LAY.Color.prototype.setLightness = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.l = val;
@@ -1020,12 +969,13 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-
-  /* Sets alpha */
-  LAY.Color.prototype.alpha = function ( alpha ) {
+  LAY.Color.prototype.setAlpha = function ( alpha ) {
     this.a = alpha;
     return this;
   };
+
+
+  // Color Functions
 
   LAY.Color.prototype.darken = function ( fraction ) {
 
@@ -1087,8 +1037,13 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
+  LAY.Color.prototype.transparentize = function ( fraction ) {
+    this.a = this.a * fraction;
+    return this;
+  };
 
-  LAY.Color.prototype.invert = function ( ) {
+
+  LAY.Color.prototype.invert = function () {
 
     var rgb = this.getRgb();
     rgb.r = 255 - rgb.r;
@@ -1110,6 +1065,21 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
+  LAY.Color.prototype.mix = function ( color ) {
+
+    var
+      curRgb = this.getRgb(),
+      otherRgb = color.getRgb();
+
+    this.r = ( curRgb.r + otherRgb.r ) / 2;
+    this.g = ( curRgb.g + otherRgb.g ) / 2;
+    this.b = ( curRgb.b + otherRgb.b ) / 2;
+    this.a = ( this.alpha + color.alpha ) / 2;
+
+    return this;
+
+  };
+
 
 
   function convertHslToRgb( h, s, l ) {
@@ -1117,10 +1087,10 @@ if (!Array.prototype.indexOf) {
     // calculate
     // source: http://stackoverflow.com/a/9493060
     var r, g, b;
-
+    h = h / 360;
     if(s === 0){
       r = g = b = l; // achromatic
-    }else{
+    } else{
 
 
       var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
@@ -1154,7 +1124,7 @@ if (!Array.prototype.indexOf) {
       h /= 6;
     }
 
-    return { h: h, s: s, l: l };
+    return { h: h*360, s: s, l: l };
   }
 
 
@@ -1180,7 +1150,7 @@ if (!Array.prototype.indexOf) {
     this.lson = lson;
     // if level is many, partLson contains the non-many part of the lson
     this.partLson = undefined;
-    this.isGpu = undefined;
+    this.isGpu = false;
     this.isInitialized = false;
 
     this.parentLevel = parent; // parent Level
@@ -1188,7 +1158,9 @@ if (!Array.prototype.indexOf) {
 
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
-    this.isPart = undefined;
+    this.isPart = false;
+
+    this.isView = false;
 
     // If the level name begins with "_",
     // the level is considered a helper (non-renderable)
@@ -1268,7 +1240,7 @@ if (!Array.prototype.indexOf) {
 
     if ( this.attr2attrVal[ attr ] ) {
       return this.attr2attrVal[ attr ].calcVal;
-    } else { 
+    } else {
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
         if ( LAY.$checkIfDoingReadonly( attr ) ) {
@@ -1277,7 +1249,7 @@ if (!Array.prototype.indexOf) {
         } else if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
           return this.part.getImmidiateReadonlyVal( attr );
         }
-      } 
+      }
       if ( this.$createLazyAttr( attr, true ) ) {
         var attrVal = this.attr2attrVal[ attr ];
         attrVal.give( LAY.$emptyAttrVal );
@@ -1318,10 +1290,11 @@ if (!Array.prototype.indexOf) {
     return this.derivedMany && this.derivedMany.level;
   };
 
-  LAY.Level.prototype.levels = function () {
-    return this.manyObj && this.manyObj.allLevelS;
+  LAY.Level.prototype.rowsLevels = function ( query ) {
+    if ( !this.isPart ) {
+      return this.manyObj.rowsLevels( query );
+    }
   };
-
 
   LAY.Level.prototype.rowsCommit = function ( newRowS ) {
 
@@ -1348,21 +1321,15 @@ if (!Array.prototype.indexOf) {
     }
   };
 
-  LAY.Level.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+  LAY.Level.prototype.rowsUpdate = function ( key, val, query ) {
     if ( !this.isPart ) {
-      if ( queryRowS instanceof LAY.Query ) {
-        queryRowS = queryRowS.rowS;
-      }
-      this.manyObj.rowsUpdate( key, val, queryRowS );
+      this.manyObj.rowsUpdate( key, val, query );
     }
   };
 
   LAY.Level.prototype.rowsDelete = function ( queryRowS ) {
     if ( !this.isPart ) {
-      if ( queryRowS instanceof LAY.Query ) {
-        queryRowS = queryRowS.rowS;
-      }
-      this.manyObj.rowsDelete( queryRowS );
+      this.manyObj.rowsDelete( query );
     }
   };
 
@@ -1447,10 +1414,11 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Level.prototype.addChildren = function ( name2lson ) {
-    
+
     for ( var name in name2lson ) {
       var lson = name2lson[ lson ];
-      this.lson.children[ name ] = lson; 
+      LAY.$normalize( lson );
+      this.lson.children[ name ] = lson;
       this.$addChild( name, name2lson );
     }
 
@@ -1458,7 +1426,7 @@ if (!Array.prototype.indexOf) {
 
 
   LAY.Level.prototype.remove = function () {
-    
+
     if ( this.pathName === "/" ) {
       console.error("LAY Error: Attempt to remove root level '/' prohibited");
     } else {
@@ -1472,32 +1440,33 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Level.prototype.$remove = function () {
-
     var
       childLevelS = this.childLevelS,
       attr2attrVal = this.attr2attrVal;
-
-    LAY.$pathName2level[ this.pathName ] = undefined;
-    LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
-
-    if ( this.isPart ) {
-      this.part && this.part.remove();
-    }
 
     for ( var attr in attr2attrVal ) {
       attr2attrVal[ attr ].remove();
     }
 
+    if ( this.isPart ) {
+      this.part && this.part.remove();
+    } else {
+      this.manyObj && this.manyObj.remove();
+    }
     this.$removeDescendants();
+
+    LAY.$pathName2level[ this.pathName ] = undefined;
+    LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
+
   };
 
+
   LAY.Level.prototype.$removeDescendants = function () {
-    var descendantLevelS = this.isPart ?
-      this.childLevelS : this.manyObj.allLevelS;
-    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
-      descendantLevelS[ i ] &&
-        descendantLevelS[ i ].$remove();
+    var descendantLevelS = this.childLevelS;
+    while ( descendantLevelS.length ) {
+      descendantLevelS[ 0 ].$remove();
     }
+
   };
 
   LAY.Level.prototype.$addChildren = function ( name2lson ) {
@@ -1532,17 +1501,16 @@ if (!Array.prototype.indexOf) {
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
   */
-  LAY.Level.prototype.$normalizeAndInherit = function () {
+  LAY.Level.prototype.$inherit = function () {
 
-    var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-    LAY.$normalize( this.lson, this.isHelper );
-    
+    var lson, refS, i, len, ref, level, otherLevelLson;
+
     // check if it contains anything to inherit from
-    if ( this.lson.$inherit !== undefined ) { 
+    if ( this.lson.$inherit !== undefined ) {
       lson = {};
       refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
-        
+
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
           if ( ref === this.pathName ) {
@@ -1558,20 +1526,20 @@ if (!Array.prototype.indexOf) {
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-          
+
           level = ( new LAY.RelPath( ref ) ).resolve( this );
-          inheritedAndNormalizedLson = level.lson;
+          otherLevelLson = level.lson;
 
         } else { // object reference
-           LAY.$normalize( ref, true );
-           inheritedAndNormalizedLson = ref;
+           LAY.$normalize( ref );
+           otherLevelLson= ref;
         }
 
-        LAY.$inherit( lson, inheritedAndNormalizedLson );
+        LAY.$inherit( lson, otherLevelLson );
       }
 
       LAY.$inherit( lson, this.lson );
-      
+
       this.lson = lson;
     }
 
@@ -1585,7 +1553,7 @@ if (!Array.prototype.indexOf) {
     if ( this.isPart ) {
       this.part = new LAY.Part( this );
       this.part.init();
-      
+
       if ( this.lson.children !== undefined ) {
         this.$addChildren( this.lson.children );
       }
@@ -1596,11 +1564,11 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Level.prototype.$identify = function () {
-    this.isPart = this.lson.many === undefined ||
-      this.derivedMany;
+    this.isView = !!this.lson.$view;
+    this.isPart = this.lson.many === undefined || this.derivedMany;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
-        true : 
+        true :
         this.lson.$gpu;
     } else {
       this.isGpu = this.lson.$gpu === undefined ?
@@ -1620,7 +1588,7 @@ if (!Array.prototype.indexOf) {
       }
       this.partLson = this.lson;
       this.lson = this.lson.many;
-      
+
       LAY.$defaultizeManyLson( this.lson );
     }
   };
@@ -1640,9 +1608,7 @@ if (!Array.prototype.indexOf) {
 
   function initAttrsArray( attrPrefix, elementS, attr2val ) {
 
-    var i, len;
-
-    for ( i = 0, len = elementS.length ; i < len; i++ ) {
+    for ( var i = 0, len = elementS.length ; i < len; i++ ) {
       attr2val[ attrPrefix + "." + ( i + 1 ) ] = elementS[ i ];
     }
   }
@@ -1651,22 +1617,17 @@ if (!Array.prototype.indexOf) {
   function convertSLSONtoAttr2Val( slson, attr2val, isPart ) {
 
     var
-      prop,
-      transitionProp, transitionDirective,
-      transitionPropPrefix,
-      eventType, fnCallbackS,
       prop2val = slson.props,
       when = slson.when,
       transition = slson.transition,
-      fargs = slson.fargs,
-      i, len;
-          
-    if ( isPart ){ 
+      fargs = slson.fargs;
+
+    if ( isPart ){
       initAttrsObj( "", slson.props, attr2val, true );
 
-      for ( transitionProp in transition ) {
-        transitionDirective = transition[ transitionProp ];
-        transitionPropPrefix =  "transition." + transitionProp + ".";
+      for ( var transitionProp in transition ) {
+        var transitionDirective = transition[ transitionProp ];
+        var transitionPropPrefix =  "transition." + transitionProp + ".";
         if ( transitionDirective.type !== undefined ) {
           attr2val[ transitionPropPrefix + "type" ] =
             transitionDirective.type;
@@ -1689,8 +1650,8 @@ if (!Array.prototype.indexOf) {
         }
       }
 
-      for ( eventType in when ) {
-        fnCallbackS = when[ eventType ];
+      for ( var eventType in when ) {
+        var fnCallbackS = when[ eventType ];
         initAttrsArray( "when." + eventType, fnCallbackS, attr2val );
       }
 
@@ -1699,7 +1660,7 @@ if (!Array.prototype.indexOf) {
       }
 
       if ( slson.$$max !== undefined ) {
-        initAttrsObj(  "$$max.", slson.$$max, attr2val, false );
+        initAttrsObj( "$$max.", slson.$$max, attr2val, false );
       }
     } else {
 
@@ -1709,39 +1670,30 @@ if (!Array.prototype.indexOf) {
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
-            fargs[ formationFarg ], attr2val, false );        
+            fargs[ formationFarg ], attr2val, false );
         }
       }
 
       attr2val[ "$$num.sort" ] = slson.sort.length;
 
-      for ( i = 0, len = slson.sort.length; i < len; i++ ) {
+      for ( var i = 0, len = slson.sort.length; i < len; i++ ) {
         initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[ i ],
          attr2val, false );
       }
-      
+
     }
   }
 
   LAY.Level.prototype.$updateExistence = function () {
-    var isExist = this.attr2attrVal.exist.calcVal;
-    if ( isExist ) {
+    if ( this.attr2attrVal.exist.calcVal ) {
       this.$appear();
     } else {
       this.$disappear();
     }
   };
 
-  /*
-  LAY.Level.prototype.$checkIfParentExists = function () {
-    if ( this.pathName === "/" ) {
-      return this.isExist;
-    } else {
-      return this.isExist ? this.parentLevel.$checkIfParentExists() : false;
-    }
-  };*/
-
   LAY.Level.prototype.$appear = function () {
+
     this.isExist = true;
     this.$reproduce();
     this.$initAllAttrs();
@@ -1749,11 +1701,10 @@ if (!Array.prototype.indexOf) {
     if ( this.isPart ) {
       this.part.add();
     }
-    
-  };  
+
+  };
 
    LAY.Level.prototype.$disappear = function () {
-    console.log(this.pathName);
     this.isExist = false;
     var attr2attrVal = this.attr2attrVal;
     for ( var attr in attr2attrVal ) {
@@ -1766,13 +1717,15 @@ if (!Array.prototype.indexOf) {
 
     if ( this.isPart ) {
       this.part && this.part.remove();
+    } else {
+      this.manyObj && this.manyObj.remove();
     }
   };
 
   LAY.Level.prototype.$decideExistence = function () {
     if ( !this.isHelper ) {
       this.$createAttrVal( "exist", this.lson.exist ===
-        undefined ? true : this.lson.exist );    
+        undefined ? true : this.lson.exist );
     }
   };
 
@@ -1782,7 +1735,7 @@ if (!Array.prototype.indexOf) {
       obdurateReadonlyS = this.lson.$obdurate ?
        this.lson.$obdurate : [],
       obdurateReadonly, i, len;
-  
+
     this.isInitialized = true;
 
     if ( this.isPart ) {
@@ -1792,7 +1745,7 @@ if (!Array.prototype.indexOf) {
       if ( this.lson.states.root.props.scrollY ) {
         obdurateReadonlyS.push( "$naturalHeight" );
       }
-      
+
       if ( this.part.type === "input" &&
           this.part.inputType !== "line" ) {
         // $input will be required to compute
@@ -1821,12 +1774,11 @@ if (!Array.prototype.indexOf) {
 
   LAY.Level.prototype.$initNonStateProjectedAttrs = function () {
 
-    var 
+    var
       key, val, stateName, state,
       states = this.lson.states,
       lson = this.lson,
       attr2val = {};
-
 
     initAttrsObj( "data.", lson.data, attr2val, false );
 
@@ -1843,7 +1795,7 @@ if (!Array.prototype.indexOf) {
         }
     }
 
-    if ( this.isPart ) { 
+    if ( this.isPart ) {
       attr2val.right = LAY.$essentialPosAttr2take.right;
       attr2val.bottom = LAY.$essentialPosAttr2take.bottom;
       if ( this.pathName === "/" ) {
@@ -1965,7 +1917,7 @@ if (!Array.prototype.indexOf) {
             } else if ( splitAttrLsonComponentS[ 0 ] !== "transition" ) {
               // props
               if ( attrLsonComponentObj.props !== undefined ) {
-                attrLsonComponentObj = attrLsonComponentObj.props; 
+                attrLsonComponentObj = attrLsonComponentObj.props;
               } else {
                 return false;
               }
@@ -1993,7 +1945,7 @@ if (!Array.prototype.indexOf) {
     return true;
   };
 
- 
+
 
   /*
   Undefine all current attributes which are influencable
@@ -2001,10 +1953,10 @@ if (!Array.prototype.indexOf) {
   */
   LAY.Level.prototype.$undefineStateProjectedAttrs = function() {
 
-    var attr;
-    for ( attr in this.attr2attrVal ) {
-      if ( this.attr2attrVal[ attr ].isStateProjectedAttr ) {
-        this.attr2attrVal[ attr ].update( undefined );
+    for ( var attr in this.attr2attrVal ) {
+      var attrVal = this.attr2attrVal[ attr ];
+      if ( attrVal !== undefined && attrVal.isStateProjectedAttr ) {
+        attrVal.update( undefined );
       }
     }
   };
@@ -2019,7 +1971,7 @@ if (!Array.prototype.indexOf) {
       stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
       this.derivedMany.levelStringHashedStates2_cachedAttr2val_ :
       this.stringHashedStates2_cachedAttr2val_;
-    
+
     this.$sortStates();
     var stringHashedStates = this.stateS.join( "&" );
     if ( stringHashedStates2_cachedAttr2val_[
@@ -2030,7 +1982,7 @@ if (!Array.prototype.indexOf) {
     }
 
     return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
-  
+
   };
 
   /*
@@ -2133,10 +2085,11 @@ if (!Array.prototype.indexOf) {
       topAttrVal.requestRecalculation();
       leftAttrVal.requestRecalculation();
     }
- 
+
   };
 
 })();
+
 (function() {
   "use strict";
 
@@ -2147,6 +2100,8 @@ if (!Array.prototype.indexOf) {
 
     this.allLevelS = [];
     this.filteredLevelS = [];
+    this.id2level = {};
+    this.id2row = {};
 
     // "stringHashedStates2_cachedAttr2val_"
     // for levels derived from the many
@@ -2157,8 +2112,7 @@ if (!Array.prototype.indexOf) {
 	  this.levelStringHashedStates2_cachedAttr2val_ = {};
 
     this.id = level.lson.$id || "id";
-    this.id2level = {};
-    this.id2row = {};
+
     this.isLoaded = false;
     this.isAutoId = false;
 
@@ -2184,10 +2138,31 @@ if (!Array.prototype.indexOf) {
     this.defaultFormationX = this.partLson.states.root.props.left;
     this.defaultFormationY = this.partLson.states.root.props.top;
 
+    if ( this.partLson.exist ) {
+      throw "LAY ERROR: many derived levels cannot contain exist";
+    }
+
+  };
+
+  LAY.Many.prototype.rowsLevels = function ( query ) {
+
+    if ( !query ) {
+      return this.allLevelS;
+    } else {
+      var
+        queryRowS = query.rowS,
+        queryLevelS = [];
+
+      for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
+        queryLevelS.push( this.id2row[ queryRowS[ i ][ this.id ] ]);
+      }
+      return queryLevelS;
+    }
+
   };
 
   LAY.Many.prototype.queryRows = function () {
-    return new LAY.Query( 
+    return new LAY.Query(
        LAY.$arrayUtils.cloneSingleLevel(
         this.level.attr2attrVal.rows.calcVal ) );
   };
@@ -2234,7 +2209,7 @@ if (!Array.prototype.indexOf) {
       row = this.id2row [ id ];
 
     if ( row ) {
-      LAY.$arrayUtils.remove( 
+      LAY.$arrayUtils.remove(
         curRowS, row );
       rowsAttrVal.val = rowsAttrVal.calcVal;
       rowsAttrVal.requestRecalculation();
@@ -2243,14 +2218,15 @@ if (!Array.prototype.indexOf) {
     }
   };
 
-  LAY.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
 
-    var rowsAttrVal = this.level.attr2attrVal.rows;
+  LAY.Many.prototype.rowsUpdate = function ( key, val, query ) {
 
-    // If no queriedRowS parameter is supplied then
-    // update all the rows
-    queryRowS = queryRowS ||
-      rowsAttrVal.calcVal || [];
+    var
+      rowsAttrVal = this.level.attr2attrVal.rows,
+      // If no query parameter is supplied then
+      // update all the rows
+      queryRowS = query instanceof LAY.Query ? query.rowS :
+        rowsAttrVal.calcVal;
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
       var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
@@ -2266,15 +2242,14 @@ if (!Array.prototype.indexOf) {
   };
 
   LAY.Many.prototype.rowsDelete = function ( queryRowS ) {
-    
+
     var
       rowsAttrVal = this.level.attr2attrVal.rows,
-      curRowS = rowsAttrVal.calcVal;
-
-    // If no queriedRowS parameter is supplied then
-    // delete all the rows
-    queryRowS = queryRowS ||
-      rowsAttrVal.calcVal || [];
+      curRowS = rowsAttrVal.calcVal,
+      // If no query parameter is supplied then
+      // delete all the rows
+      queryRowS = query instanceof LAY.Query ? query.rowS :
+        rowsAttrVal.calcVal
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
       var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
@@ -2298,9 +2273,9 @@ if (!Array.prototype.indexOf) {
   function objectifyRows ( rowS, idKey ) {
     var objectifiedRowS = [];
     for ( var i = 0, len = rowS.length; i < len; i++ ) {
-      var objectifiedRow = { content: rowS[ i ]};
-      objectifiedRow[ idKey ] = i+1;
-      objectifiedRowS.push( objectifiedRow ); 
+      var objectifiedRow = { content: rowS[ i ] };
+      objectifiedRow[ idKey ] = i + 1;
+      objectifiedRowS.push( objectifiedRow );
     }
     return objectifiedRowS;
   }
@@ -2336,7 +2311,7 @@ if (!Array.prototype.indexOf) {
       if ( rowS[ i ][ idKey ] !== i+1 ) {
         hasDuplicates = true;
         break;
-      } 
+      }
     }
     if ( hasDuplicates ) {
       for ( var i=0, len=rowS.length; i<len; i++ ) {
@@ -2348,14 +2323,13 @@ if (!Array.prototype.indexOf) {
   }
 
 
-
   /*
   *	Update the rows by:
   * (1) Creating new levels in accordance to new rows
   * (2) Updating existing levels in accordance to changes in changed rows
   */
   LAY.Many.prototype.updateRows = function () {
-    var 
+    var
   		rowS = this.level.attr2attrVal.rows.calcVal,
   		row,
   		id,
@@ -2386,14 +2360,21 @@ if (!Array.prototype.indexOf) {
       rowsAttrVal.calcVal = rowS;
     }
 
-    this.sort( rowS );
+    // if sort returns false
+    // then sort requires recalculation
+    // and therefore we will skip the remaining
+    // of the method, as this current method will
+    // be invoked again when sort is dirty
+    if ( !this.sort( rowS ) ) {
+      return;
+    }
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
   		id = row[ this.id ];
       id2row[ id ] = row;
   		level = this.id2level[ id ];
-      
+
       if ( !level ) {
         // create new level with row
 
@@ -2443,7 +2424,7 @@ if (!Array.prototype.indexOf) {
   * initialized, else return true
   */
   LAY.Many.prototype.updateFilter = function () {
-    var  
+    var
       allLevelS = this.allLevelS,
       filteredRowS =
         this.level.attr2attrVal.filter.calcVal || [],
@@ -2451,28 +2432,28 @@ if (!Array.prototype.indexOf) {
       filteredLevel, f = 1,
       level;
 
-    for ( 
+    for (
       var i = 0, len = allLevelS.length;
       i < len; i++ ) {
       level = allLevelS[ i ];
       // has not been initialized as yet
       if ( !level.isInitialized ) {
         return false;
-      } 
-      level.attr2attrVal.$i.update( i + 1 );      
-      level.attr2attrVal.$f.update( -1 );        
-      
+      }
+      level.attr2attrVal.$i.update( i + 1 );
+      level.attr2attrVal.$f.update( -1 );
+
     }
 
     var idKey = this.id;
-    for ( 
+    for (
       var i = 0, len = filteredRowS.length;
       i < len; i++ ) {
       filteredLevel = this.id2level[ filteredRowS[ i ][ idKey ] ];
       if ( filteredLevel ) {
         filteredLevelS.push( filteredLevel );
         filteredLevel.attr2attrVal.$f.update( f++ );
-        
+
       }
     }
 
@@ -2498,9 +2479,9 @@ if (!Array.prototype.indexOf) {
       fargAttrVal;
 
     for ( var farg in defaultFargs ) {
-      fargAttrVal = attr2attrVal[ "fargs." + 
+      fargAttrVal = attr2attrVal[ "fargs." +
         formation + "." + farg ];
-      fargs[ farg ] = fargAttrVal ? 
+      fargs[ farg ] = fargAttrVal ?
         fargAttrVal.calcVal : defaultFargs[ farg ];
     }
 
@@ -2511,7 +2492,7 @@ if (!Array.prototype.indexOf) {
         undefined, undefined );
     }
 
-    for ( 
+    for (
       var f = 1, len = filteredLevelS.length, filteredLevel, xy;
       f < len;
       f++
@@ -2528,14 +2509,15 @@ if (!Array.prototype.indexOf) {
         xy[ 0 ],
         xy[ 1 ]
       );
-    
+
     }
   };
 
-  
 
+  // return false if one of the sort Attributes
+  // requires recalculation, else return true
   LAY.Many.prototype.sort = function ( rowS ) {
-    var sortAttrPrefix,
+    var
       attr2attrVal = this.level.attr2attrVal,
       numSorts = attr2attrVal["$$num.sort"] ?
         attr2attrVal["$$num.sort"].calcVal : 0,
@@ -2543,30 +2525,44 @@ if (!Array.prototype.indexOf) {
 
     if ( numSorts > 0 ) {
       for ( var i=0; i<numSorts; i++ ) {
-        sortAttrPrefix = "sort." + ( i + 1 ) + ".";
-      
+        var
+          sortAttrPrefix = "sort." + ( i + 1 ) + ".",
+          sortKeyAttrVal = attr2attrVal[ sortAttrPrefix + "key" ],
+          sortAscendingAttrVal = attr2attrVal[ sortAttrPrefix + "ascending" ];
+
+        if ( sortKeyAttrVal.isRecalculateRequired ||
+          sortAscendingAttrVal.isRecalculateRequired ) {
+            return false;
+        }
+
         sortDictS.push(
-          { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
-          ascending:
-          attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+          { key: sortKeyAttrVal.calcVal,
+          ascending: sortAscendingAttrVal.calcVal  });
       }
       rowS.sort( dynamicSortMultiple( sortDictS ) );
+
     }
+    return true;
+
   };
 
 
   LAY.Many.prototype.remove = function () {
     var allLevelS = this.allLevelS;
     for ( var i=0, len=allLevelS.length; i<len; i++ ) {
-      allLevelS[ i ].remove()
+      allLevelS[ i ].$remove();
     }
+    this.allLevelS = [];
+    this.filteredLevelS = [];
+    this.id2level = {};
+    this.id2row = {};
   };
-  
 
-  /*! below code is taken from one of the responses
-   to the stackoverflow question:
-   http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-   @source: http://stackoverflow.com/a/4760279 */
+
+  // below code is taken from one of the responses
+  // to the stackoverflow question:
+  // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+  /*! @source: http://stackoverflow.com/a/4760279 */
   function dynamicSort( sortDict ) {
     var key = sortDict.key,
       sortOrder = sortDict.ascending ? 1 : -1;
@@ -2578,7 +2574,7 @@ if (!Array.prototype.indexOf) {
   }
 
   function dynamicSortMultiple( sortDictS ) {
-    
+
     return function (obj1, obj2) {
         var i = 0, result = 0,
         numberOfProperties = sortDictS.length;
@@ -2654,7 +2650,6 @@ if (!Array.prototype.indexOf) {
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
     "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "-webkit-overflow-scrolling:touch;" +
-//    "user-drag:none;" +
     "white-space:nowrap;" +
     "outline:none;border:none;";
 
@@ -2683,14 +2678,16 @@ if (!Array.prototype.indexOf) {
 
   nonInputType2tag = {
     none: "div",
+    "link:text": "a",
+    "link:html": "a",
+    "link:block": "a",
     text: "div",
     html: "div",
     iframe: "iframe",
     canvas: "canvas",
     image: "img",
     video: "video",
-    audio: "audio",
-    link: "a"
+    audio: "audio"
   };
 
   supportedInputTypeS = [
@@ -2808,8 +2805,10 @@ if (!Array.prototype.indexOf) {
         nonInputType2tag[ this.type]);
     }
 
+
     this.isText = this.type === "input" ||
-      this.type === "text" || this.type === "link" ||
+      this.type === "text" || this.type === "link:text" ||
+      this.type === "link:html" ||
       this.type === "html";
 
 
@@ -2847,6 +2846,12 @@ if (!Array.prototype.indexOf) {
       if ( this.node.parentNode === parentPart.node ) {
         parentPart.node.removeChild( this.node );
       }
+      LAY.$arrayUtils.remove(
+        LAY.$naturalWidthDirtyPartS, this );
+      LAY.$arrayUtils.remove(
+        LAY.$naturalHeightDirtyPartS, this );
+      LAY.$arrayUtils.remove(
+        LAY.$renderDirtyPartS, this );
     }
   };
 
@@ -2864,10 +2869,7 @@ if (!Array.prototype.indexOf) {
     var attrValDisplay = level.attr2attrVal.display;
     return !attrValDisplay || attrValDisplay.calcVal;
   }
-  /*
-  * Additional constraint of not being dependent upon
-  * parent for the attr
-  */
+
   LAY.Part.prototype.findChildMaxOfAttr =
    function ( attr ) {
     var
@@ -2912,7 +2914,7 @@ if (!Array.prototype.indexOf) {
       case "$scrolledY":
         return this.node.scrollTop;
       case "$focused":
-        return node === document.activeElement;
+        return this.node === document.activeElement;
       case "$input":
         if ( this.inputType === "multiple" ||
           this.inputType === "select" ) {
@@ -3000,7 +3002,7 @@ if (!Array.prototype.indexOf) {
       return 0;
     } else {
       imageSizeMeasureNode.src =
-        this.level.attr2attrVal.imageUrl.calcVal;
+        this.level.attr2attrVal.imageSrc.calcVal;
       var otherDim = isWidth ? "height" : "width",
         otherDimAttrVal = this.level.attr2attrVal[
         otherDim ],
@@ -3658,18 +3660,20 @@ if (!Array.prototype.indexOf) {
         }
         break;
       case "title":
-        this.node.title =
-          attr2attrVal.title.transCalcVal;
+        this.node.title = attr2attrVal.title.transCalcVal;
         break;
+      case "id":
+        this.node.id = attr2attrVal.id.transCalcVal;
       case "tabindex":
-        this.node.tabindex =
-          attr2attrVal.
-          tabindex.transCalcVal;
+        this.node.tabindex = attr2attrVal.tabindex.transCalcVal;
         break;
       case "backgroundColor":
         this.node.style.backgroundColor =
-          attr2attrVal.
-          backgroundColor.transCalcVal.stringify();
+          attr2attrVal.backgroundColor.transCalcVal.stringify();
+        break;
+      case "backgroundImage":
+        this.node.style.backgroundImage =
+          attr2attrVal.backgroundImage.transCalcVal;
         break;
       case "backgroundAttachment":
         this.node.style.backgroundAttachment =
@@ -3723,10 +3727,12 @@ if (!Array.prototype.indexOf) {
         }
         break;
       case "filters":
-        var s = "", filterType;
+        var s = "";
         for ( var i = 1, len = attr2attrVal[ "$$max.filters" ].calcVal;
           i <= len; i++ ) {
-          filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;
+          var filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;
+          var filterValue = attr2attrVal[ "filters" + i + "Value" ] &&
+            attr2attrVal[ "filters" + i + "Value" ].transCalcVal;
           switch ( filterType ) {
             case "dropShadow":
               s +=  "drop-shadow(" +
@@ -3740,18 +3746,16 @@ if (!Array.prototype.indexOf) {
               ") ";
               break;
             case "blur":
-              s += "blur(" + attr2attrVal[ "filters" + i + "Blur" ] + ") ";
+              s += "blur(" + filterValue + "px) ";
               break;
             case "hueRotate":
-              s += "hue-rotate(" + attr2attrVal[ "filters" + i +
-                "HueRotate" ] + "deg) ";
+              s += "hue-rotate(" + filterValue + "deg) ";
               break;
             case "url":
-              s += "url(" + attr2attrVal[ "filters" + i + "Url" ] + ") ";
+              s += "url(" + filterValue + ") ";
               break;
             default:
-              s += filterType + "(" + ( attr2attrVal[ "filters" + i +
-                LAY.$capitalize( filterType ) ] * 100 ) + "%) ";
+              s += filterType + "(" + ( filterValue  * 100 ) + "%) ";
 
           }
         }
@@ -3973,8 +3977,8 @@ if (!Array.prototype.indexOf) {
       case "linkTarget":
         this.node.target = attr2attrVal.linkTarget.transCalcVal;
         break;
-      case "imageUrl":
-        this.node.src = attr2attrVal.imageUrl.transCalcVal;
+      case "imageSrc":
+        this.node.src = attr2attrVal.imageSrc.transCalcVal;
         break;
       case "imageAlt":
         this.node.alt = attr2attrVal.imageAlt.transCalcVal;
@@ -4226,8 +4230,8 @@ if (!Array.prototype.indexOf) {
     this.isAbsolute = false;
     this.traverseArray = [];
 
-
-    if  ( relativePath === "" ) {
+    if ( relativePath === "" || relativePath === "." ||
+      relativePath === "./" ) {
       this.isMe = true;
     } else {
       if ( relativePath.charAt(0) === "/" ) {
@@ -4235,23 +4239,28 @@ if (!Array.prototype.indexOf) {
         this.path = relativePath;
       } else {
         var i=0;
-        while ( relativePath.charAt( i ) === "." ) {
+        while ( i !== relativePath.length - 1 &&
+          ( relativePath.charAt( i ) === "." ||
+          relativePath.charAt( i ) === "~" ) ) {
           if ( relativePath.slice(i, i+3) === "../" ) {
             this.traverseArray.push(0);
             i +=3;
-          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+          } else if ( relativePath.slice(i, i+2) === "~/" ) {
             this.traverseArray.push(1);
+            i += 2;
+          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+            this.traverseArray.push(2);
             i += 4;
           } else {
             throw "LAY Error: Error in Take path: " + relativePath;
           }
-        }  
+        }
         // strip off the "../"s
-        // eg: "../../Body" should become "Body"
+        // eg: "~/../.../Body" should become "Body"
         this.path = relativePath.slice( i );
       }
       if ( this.path.length !== 0 &&
-          this.path.indexOf("*") === this.path.length - 1 ) {
+          this.path.lastIndexOf("~") === this.path.length - 1 ) {
         this.isMany = true;
         if ( this.path.length === 1 ) {
           this.path = "";
@@ -4279,14 +4288,21 @@ if (!Array.prototype.indexOf) {
         for ( var i=0, len=traverseArray.length; i<len; i++ ) {
           if ( traverseArray[ i ] === 0 ) { //parent traversal
             level = level.parentLevel;
-          } else { //closest row traversal
+          } else if ( traverseArray[ i ] === 1 ) { //closest row traversal
             do {
               level = level.parentLevel;
-            } while ( !level.derivedMany )
-            
+            } while ( !level.derivedMany );
+          } else {
+            do {
+              level = level.parentLevel;
+              if ( !level ) {
+                throw "No View Found (.../) from level " +
+                  referenceLevel.pathName;
+              }
+            } while ( !level.isView );
           }
         }
-        
+
         level =  ( this.path === "" ) ? level :
               LAY.$pathName2level[ level.pathName +
               ( ( level.pathName === "/" ) ? "" : "/" )+
@@ -4316,7 +4332,7 @@ if (!Array.prototype.indexOf) {
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+        return path.resolve( this ).$getAttrVal( attr ).calcVal;
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -4446,6 +4462,25 @@ if (!Array.prototype.indexOf) {
 
       this.executable = function () {
         return oldExecutable.call( this ) % val;
+      };
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.mod = LAY.Take.prototype.remainder;
+
+  LAY.Take.prototype.percent = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ) * ( val.execute( this ) / 100 );
+      };
+    } else {
+      this.executable = function () {
+        return oldExecutable.call( this ) * ( val / 100 );
       };
     }
     return this;
@@ -4822,35 +4857,15 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-
-  LAY.Take.prototype.sin = function () {
+  LAY.Take.prototype.trunc = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
-      return Math.sin( oldExecutable.call( this ) );
+      return Math.trunc( oldExecutable.call( this ) );
     };
     return this;
   };
 
-
-  LAY.Take.prototype.cos = function () {
-
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return Math.cos( oldExecutable.call( this ) );
-    };
-    return this;
-  };
-
-
-  LAY.Take.prototype.tan = function () {
-
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return Math.tan( oldExecutable.call( this ) );
-    };
-    return this;
-  };
 
   LAY.Take.prototype.abs = function () {
 
@@ -4880,17 +4895,8 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Take.prototype.log = function () {
 
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return Math.log( oldExecutable.call( this ) );
-    };
-    return this;
-  };
-
-
-  LAY.Take.prototype.match = function ( val ) {
+  LAY.Take.prototype.regexMatch = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAY.Take ) {
@@ -4909,7 +4915,26 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  LAY.Take.prototype.test = function ( val ) {
+  LAY.Take.prototype.regexSearch = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).search( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).search( val );
+      };
+    }
+    return this;
+
+  };
+
+  LAY.Take.prototype.regexTest = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAY.Take ) {
@@ -4922,6 +4947,25 @@ if (!Array.prototype.indexOf) {
 
       this.executable = function () {
         return oldExecutable.call( this ).test( val );
+      };
+    }
+    return this;
+
+  };
+
+  LAY.Take.prototype.regexExec = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).exec( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).exec( val );
       };
     }
     return this;
@@ -4989,28 +5033,38 @@ if (!Array.prototype.indexOf) {
 
   };
 
-  
 
 
-  LAY.Take.prototype.colorEquals = function ( val ) {
+
+  LAY.Take.prototype.colorEquals = function ( color ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
+    if ( color instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( color );
 
       this.executable = function () {
-        return oldExecutable.call( this ).equals( val.execute( this ) );
+        return oldExecutable.call( this ).equals( color.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return oldExecutable.call( this ).equals( val );
+        return oldExecutable.call( this ).equals( color );
       };
     }
     return this;
 
   };
 
+  LAY.Take.prototype.colorStringify = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().stringify( );
+    };
+
+    return this;
+
+  };
 
   LAY.Take.prototype.colorLighten = function ( val ) {
 
@@ -5052,18 +5106,7 @@ if (!Array.prototype.indexOf) {
   };
 
 
-  LAY.Take.prototype.colorStringify = function ( ) {
-
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return oldExecutable.call( this ).copy().stringify( );
-    };
-
-    return this;
-
-  };
-
-  LAY.Take.prototype.colorInvert = function ( ) {
+  LAY.Take.prototype.colorInvert = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -5112,134 +5155,49 @@ if (!Array.prototype.indexOf) {
 
   };
 
-
-  LAY.Take.prototype.colorAlpha = function ( val ) {
-
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().alpha( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().alpha( val );
-      };
-    }
-    return this;
-
-  };
-
-  LAY.Take.prototype.colorRed = function ( val ) {
+  LAY.Take.prototype.colorTransparentize = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().red( val.execute( this ) );
+        return oldExecutable.call( this ).copy().transparentize( val.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().red( val );
+        return oldExecutable.call( this ).copy().transparentize( val );
       };
     }
     return this;
+
   };
 
-
-  LAY.Take.prototype.colorGreen = function ( val ) {
+  LAY.Take.prototype.colorMix = function ( color ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
+    if ( color instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( color );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().green( val.execute( this ) );
+        return oldExecutable.call( this ).copy().mix( color.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().green( val );
+        return oldExecutable.call( this ).copy().mix( color );
       };
     }
     return this;
+
   };
 
-  LAY.Take.prototype.colorBlue = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
 
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().blue( val.execute( this ) );
-      };
-    } else {
 
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().blue( val );
-      };
-    }
-    return this;
-  };
 
-  LAY.Take.prototype.colorHue = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().hue( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().hue( val );
-      };
-    }
-    return this;
-  };
-
-  LAY.Take.prototype.colorSaturation = function ( val ) {
-
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().saturation( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().saturation( val );
-      };
-    }
-    return this;
-  };
-
-  LAY.Take.prototype.colorLightness = function ( val ) {
-
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().lightness( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().lightness( val );
-      };
-    }
-    return this;
-  };
 
   LAY.Take.prototype.filterEq = function ( attr, val ) {
 
@@ -5665,50 +5623,27 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  LAY.Take.prototype.filterFn = function ( attr, val ) {
+  LAY.Take.prototype.filterFn = function ( fn ) {
 
     var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
-
-      if ( val instanceof LAY.Take ) {
-        this.$mergePathAndAttrs( val );
-        this.executable = function () {
-          return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr.execute( this ),
-            val.execute( this )
-          );
-        }
-
-      } else {
-        this.executable = function () {
-          return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr.execute( this ),
-            val
-          );
-        }
-      }
-    } else if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
+    if ( fn instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( fn );
       this.executable = function () {
         return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr,
-            val.execute( this )
-          );
+          oldExecutable.call( this ),
+          fn.execute( this )
+        );
       }
     } else {
       this.executable = function () {
         return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr,
-            val
-          );
+          oldExecutable.call( this ),
+          fn
+        );
       }
     }
+
     return this;
   };
 
@@ -5731,7 +5666,7 @@ if (!Array.prototype.indexOf) {
           attr
         );
       }
-      
+
     }
     return this;
   };
@@ -5755,7 +5690,7 @@ if (!Array.prototype.indexOf) {
           attr
         );
       }
-      
+
     }
     return this;
   };
@@ -5779,24 +5714,24 @@ if (!Array.prototype.indexOf) {
           attr
         );
       }
-      
+
     }
     return this;
   };
 
-  LAY.Take.prototype.foldFn = function ( attr, acc ) {
+  LAY.Take.prototype.foldFn = function ( fn, acc ) {
 
-     var oldExecutable = this.executable;
+    var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
+    if ( fn instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( fn );
 
       if ( acc instanceof LAY.Take ) {
         this.$mergePathAndAttrs( acc );
         this.executable = function () {
           return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr.execute( this ),
+            fn.execute( this ),
             acc.execute( this )
           );
         }
@@ -5805,7 +5740,7 @@ if (!Array.prototype.indexOf) {
         this.executable = function () {
           return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr.execute( this ),
+            fn.execute( this ),
             acc
           );
         }
@@ -5815,7 +5750,7 @@ if (!Array.prototype.indexOf) {
       this.executable = function () {
         return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr,
+            fn,
             acc.execute( this )
           );
       }
@@ -5823,7 +5758,7 @@ if (!Array.prototype.indexOf) {
       this.executable = function () {
         return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr,
+            fn,
             ac
           );
       }
@@ -6661,11 +6596,8 @@ function type (x) {
   "use strict";
 
   LAY.level = function ( path ) {
-
     return LAY.$pathName2level[ path ];
-
   };
-
 
 })();
 
@@ -6715,6 +6647,7 @@ function type (x) {
 
   LAY.run =  function ( rootLson ) {
 
+    LAY.$normalize( rootLson );
     setRuntimeGlobals();
     ( new LAY.Level( "/", rootLson, undefined ) ).$init();
     LAY.$solve();
@@ -6726,7 +6659,7 @@ function type (x) {
     var
       takeMidpointX = LAY.take("", "width").half(),
       takeMidpointY = LAY.take("", "height").half();
-    
+
     LAY.$miscPosAttr2take = {
       centerX: LAY.take("","left").add( takeMidpointX ),
       centerY: LAY.take("","top").add( takeMidpointY ),
@@ -6917,17 +6850,17 @@ function type (x) {
 
 
 })();
-(function(){	
+(function(){
   "use strict";
 
 
-  var reservedNameS = [ 
+  var reservedNameS = [
     "root", "transition", "data", "when", "onlyif",
     "states", "exist",
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
-    "rows", "row", "filter", "args", "all"
+    "rows", "row", "filter", "args"
   ];
 
   function stripStateAttrPrefix( attr ) {
@@ -6945,14 +6878,14 @@ function type (x) {
     }
   }
 
-  /* 
-  * Must not contain ".", "/" or ":"
+  /*
+  * Must not contain ".", "/", "~" or ":"
   */
   function checkIfNoIllegalCharacters ( name ) {
     return ( name.indexOf(".") === -1 ) &&
       ( name.indexOf("/") === -1 ) &&
       ( name.indexOf(":") === -1) &&
-      ( name.indexOf("*") === -1 );
+      ( name.indexOf("~") === -1);
   }
 
   LAY.$checkIsValidUtils = {
@@ -6965,13 +6898,13 @@ function type (x) {
   	* (1) Must not contain any illegal characters
 l  	* (2) Must not be a reserved name with the exception of "root"
     * as "root" state name has already been checked at the
-    * start of normalizing 
+    * start of normalizing
   	*/
   	stateName: function ( stateName ) {
   		 return checkIfNoIllegalCharacters( stateName ) &&
         ( ( reservedNameS.indexOf( stateName ) === -1 ) ||
            ( stateName === "root" ) );
-		           
+
   	},
 
     checkIsAttrExpandable: function ( attr ) {
@@ -7021,6 +6954,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   };
 
 })();
+
 (function(){
   "use strict";
 	LAY.$checkIsWindowEvent = function ( eventName ) {
@@ -7240,13 +7174,13 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     formation2defaultArgs;
 
   LAY.$defaultizeManyLson = function ( lson ) {
-    
+
     var
       essentialProp,
       rootState = lson.states.root;
-  
+
     lson.rows = lson.rows || [];
-    
+
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootState[ essentialProp ] === undefined ) {
@@ -7255,13 +7189,13 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       }
     }
     // TODO: defaultize fargs here?
-  
+
   };
 
 
   essentialProp2defaultValue = {
     filter:  new LAY.Take( "", "rows" ),
-    sort: [{key:"id", ascending:true}],
+    sort:[],
     formation: "onebelow",
     fargs: {}
   };
@@ -7299,7 +7233,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       takeNaturalWidth = LAY.take("", "$naturalWidth"),
       takeNaturalHeight = LAY.take("", "$naturalHeight"),
       takeParentWidth = LAY.take("../", "width");
-  
+
 
     for ( stateName in states ) {
       state = states[ stateName ];
@@ -7343,7 +7277,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         rootStateTransition[ transitionProp ] = {};
       }
     }
-  
+
 
     if ( !isRootLevel ) {
       // If the parent has an inheritable prop
@@ -7358,19 +7292,27 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           rootStateProps[ prop ] = LAY.$getLazyPropVal( prop );
         }
       }
-    } 
+    }
 
-
-    if ( rootStateProps.text !== undefined &&
-        ( lson.$type === undefined || lson.$type === "none" ) ) {
+    if ( rootStateProps.linkHref !== undefined ) {
+      if ( lson.$type === "html" ) {
+        lson.$type = "link:html";
+      } else {
+        lson.$type = rootStateProps.text !== undefined ?
+          "link:text" : "link:block";
+      }
+    } else if ( ( rootStateProps.text !== undefined ) &&
+      ( lson.$type === undefined || lson.$type === "none" )) {
       lson.$type = "text";
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";
     }
 
 
+
+
     /* Filling in the defaults here for root state lson */
-    
+
     if ( rootStateProps.left === undefined ) {
       rootStateProps.left = 0;
     }
@@ -7378,27 +7320,15 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       rootStateProps.top = 0;
     }
     if ( isRootLevel ) {
-      rootStateProps.width = takeWindowWidth; 
-      rootStateProps.height = takeWindowHeight; 
+      rootStateProps.width = takeWindowWidth;
+      rootStateProps.height = takeWindowHeight;
     } else {
       if ( rootStateProps.width === undefined ) {
-/*        if ( [
-          "text",
-          "html",
-          "input:select",
-          "input:multiple",
-          "image",
-          "link"
-          ].indexOf( lson.$type ) !== -1 ) {
-          rootStateProps.width = takeNaturalWidth;
-        } else {
-          rootStateProps.width = takeParentWidth;
-        }*/
         rootStateProps.width = takeNaturalWidth;
       }
       if ( rootStateProps.height === undefined ) {
         rootStateProps.height = takeNaturalHeight;
-      } 
+      }
     }
 
   };
@@ -7588,7 +7518,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 					return row[ key ] === val;
 				}, rowS );
 		},
-		
+
 		neq: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return row[ key ] !== val;
@@ -7599,50 +7529,50 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 			return filter( function ( row ) {
 					return row[ key ] > val;
 				}, rowS );
-			
+
 		},
-		
+
 		gte: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return row[ key ] >= val;
 				}, rowS );
-			
+
 		},
 		lt: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return row[ key ] < val;
 				}, rowS );
-			
+
 		},
 		lte: function ( rowS, key, val ) {
 			return  filter( function ( row ) {
 					return row[ key ] <= val;
 				}, rowS );
-			
+
 		},
 		regex: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return val.test( row[ key ] );
 				}, rowS );
-			
+
 		},
 		contains: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return row[ key ].indexOf( val ) !== -1;
 				}, rowS );
-			
+
 		},
 		within: function ( rowS, key, val ) {
 			return filter( function ( row ) {
 					return val.indexOf( row[ key ] ) !== -1;
 				}, rowS );
-			
+
 		},
 
 		fn: function ( rowS, fnFilter ) {
-			return filter( fnFilter , rowS );
+			return filter( fnFilter, rowS );
 		}
-		
+
 
 	};
 
@@ -7652,7 +7582,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 			row = rowS[ i ];
 			if ( fnFilter( row ) ) {
 				filteredRowS.push( row );
-			} 
+			}
 		}
 		return filteredRowS;
 	}
@@ -8154,10 +8084,10 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       textSmoothing: "antialiased",
       textRendering: "auto"
     },
-    
+
     nonRootLazyProp2defaultVal = {
-      userSelect: LAY.take("../", "userSelect"),      
-      cursor: LAY.take("../", "cursor"),      
+      userSelect: LAY.take("../", "userSelect"),
+      cursor: LAY.take("../", "cursor"),
       textSize: LAY.take("../", "textSize"),
       textFamily: LAY.take("../", "textFamily"),
       textWeight: LAY.take("../", "textWeight"),
@@ -8252,8 +8182,10 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       inputAutocorrect: true,
       inputDisabled: false,
 
-      imageUrl:null,
+      imageSrc:null,
       imageAlt: null,
+
+      linkHref: null,
 
       videoAutoplay: false,
       videoControls: true,
@@ -8276,13 +8208,14 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     var commonLazyVal = commonLazyProp2defaultVal[ prop ];
     return commonLazyVal !== undefined ?
       commonLazyVal :
-      ( isRootLevel ? 
+      ( isRootLevel ?
         rootLazyProp2defaultVal[ prop ] :
         nonRootLazyProp2defaultVal[ prop ] );
 
   }
 
 })();
+
 
 (function () {
   "use strict";
@@ -8519,7 +8452,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
 
         if ( fromLsonRowS ) {
           if ( fromLsonRowS instanceof LAY.Take ) {
-            intoLson.rows = fromLsonRowS;            
+            intoLson.rows = fromLsonRowS;
           } else {
             intoLson.rows = new Array( fromLsonRowS.length );
             intoLsonRowS = intoLson.rows;
@@ -8549,10 +8482,10 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           for ( formationFarg in fromFargs ) {
             if ( !intoFargs[ formationFarg  ] ) {
               intoFargs[ formationFarg ] = {};
-            } 
-            inheritSingleLevelObject( 
+            }
+            inheritSingleLevelObject(
               intoFargs, fromFargs, formationFarg );
-            
+
           }
         }
       },
@@ -8568,9 +8501,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         }
 
         for ( var name in fromChildName2lson ) {
-
           if ( intoChildName2lson[ name ] === undefined ) { // inexistent child
-
             intoChildName2lson[ name ] = {};
 
           }
@@ -8733,7 +8664,6 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   "use strict";
 
   var
-    normalizedExternalLsonS = [],
     fnCenterToPos,
     fnOppEdgeToPos,
     takeWidth,
@@ -8765,27 +8695,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
   takeZeroCenterY = ( new LAY.take("../", "height")).half().minus(
     ( new LAY.take("", "height") ).half() );
 
-  LAY.$normalize = function( lson, isExternal ) {
 
-    if ( isExternal ) {
-      // If we haven't previously normalized it, only then proceed
-      if ( normalizedExternalLsonS.indexOf( lson ) === -1 ) {
-
-        normalize( lson, true );
-        normalizedExternalLsonS.push( lson );
-
-      }
-
-    } else {      
-      normalize( lson, false );
-    }
-  };
-
-  function normalize( lson, isRecursive ) {
-
-    var
-      lsonKey,
-      rootLson = lson;
+  LAY.$normalize = function ( lson ) {
 
     if ( !lson.$$normalized ) {
 
@@ -8797,6 +8708,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         throw "LAY Error: State name 'root' is reserved.";
       }
 
+
       checkForInconsistentReadonlyKeys( lson );
       normalizeLazyChildren( lson );
 
@@ -8806,24 +8718,19 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         transition: lson.transition
       };
 
-      for ( lsonKey in lson ) {
-        if ( lsonKey !== "children" || isRecursive ) {
-          if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
-            if ( !key2fnNormalize[ lsonKey ] ) {
-              throw "LAY Error: LSON key: '" + lsonKey  + "' not found";
-            }
-            key2fnNormalize[ lsonKey ]( lson );
+      for ( var lsonKey in lson ) {
+        if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
+          if ( !key2fnNormalize[ lsonKey ] ) {
+            throw "LAY Error: LSON key: '" + lsonKey  + "' not found";
           }
+          key2fnNormalize[ lsonKey ]( lson );
         }
       }
 
       lson.props = undefined;
       lson.when = undefined;
       lson.transition = undefined;
-
       lson.$$normalized = true;
-
-
 
     }
   }
@@ -8858,14 +8765,15 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     for ( var key in lson ) {
       if ( !key2fnNormalize[ key ]) {
         lson.children[ key ] = lson[ key ];
-        lson[ key ] = undefined; 
+        lson[ key ] = undefined;
       }
     }
   }
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAY.Take ) {
-      throw ( "LAY Error: takes for special/expander props such as '" + name  + "' are not permitted." );
+      throw ( "LAY Error: takes for special/expander props such as '" +
+        name  + "' are not permitted." );
     }
   }
 
@@ -9016,14 +8924,15 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         prop2val.bottom = undefined;
       }
 
-    
+
 
       for ( prop in prop2val ) {
         flattenProp( prop2val, prop2val, prop, prop );
       }
 
       for ( prop in prop2val ) {
-        longhandPropS = LAY.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
+        longhandPropS = LAY.$shorthandPropsUtils.
+          getLonghandPropsDecenteralized( prop );
         if ( longhandPropS !== undefined ) {
           shorthandVal = prop2val[ prop ];
           for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
@@ -9038,7 +8947,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       for ( prop in prop2val ) {
         if ( prop.lastIndexOf("Color") !== -1 ) {
           if ( typeof prop2val[ prop ] === "string" ) {
-            throw "LAY Error: '" + prop + "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()";
+            throw "LAY Error: '" + prop +
+              "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()";
           }
         }
         multipleTypePropMatchDetails =
@@ -9047,13 +8957,12 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           curMultipleMax =
             LAY.$meta.get( lson, "max", multipleTypePropMatchDetails[ 1 ] );
           if ( ( curMultipleMax === undefined ) ||
-            ( curMultipleMax < parseInt( multipleTypePropMatchDetails[ 2 ] ) ) ) {
+            ( curMultipleMax < parseInt( multipleTypePropMatchDetails[ 2 ] ))) {
             LAY.$meta.set( lson, "max", multipleTypePropMatchDetails[ 1 ],
               parseInt( multipleTypePropMatchDetails[ 2 ] ) );
           }
         }
       }
-
     },
 
   when: function ( lson ) {
@@ -9063,21 +8972,18 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     } else {
       checkAndThrowErrorAttrAsTake( "when", lson.when );
 
-      var eventType2_fnCallbackS_ = lson.when,
-        eventType, fnCallbackS, i, len;
+      var eventType2_fnCallbackS_ = lson.when;
 
-      for ( eventType in eventType2_fnCallbackS_ ) {
-        fnCallbackS = eventType2_fnCallbackS_[ eventType ];
-        //console.log(eventType2_fnCallbackS_[ eventType ]);
+      for ( var eventType in eventType2_fnCallbackS_ ) {
+        var fnCallbackS = eventType2_fnCallbackS_[ eventType ];
 
-        if ( ! ( fnCallbackS instanceof Array ) ) {
+        if ( !( fnCallbackS instanceof Array ) ) {
           fnCallbackS =
             eventType2_fnCallbackS_[ eventType ] =
               [ fnCallbackS ];
         }
         checkAndThrowErrorAttrAsTake( "when." + eventType,
           fnCallbackS );
-        //LAY.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
       }
     }
   },
@@ -9109,8 +9015,11 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         }
 
         for ( transitionProp in transition ) {
-          if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable( transitionProp ) ) {
-            throw ( "LAY Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
+          if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable(
+              transitionProp ) ) {
+            throw (
+              "LAY Error: transitions for special/expander props such as '" +
+                name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
           checkAndThrowErrorAttrAsTake( "transition." + transitionProp,
@@ -9119,7 +9028,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           transitionArgKey2val = transitionDirective.args;
           if ( transitionArgKey2val !== undefined ) {
 
-            checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
+            checkAndThrowErrorAttrAsTake( "transition." + transitionProp +
+              ".args",
             transitionArgKey2val  );
 
           }
@@ -9151,7 +9061,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
           key2fnNormalize.transition( state );
         } else {
           key2fnNormalize.fargs( state );
-          key2fnNormalize.sort( state ); 
+          key2fnNormalize.sort( state );
         }
 
       }
@@ -9167,8 +9077,8 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       checkAndThrowErrorAttrAsTake( "children",  childName2childLson );
 
       for ( var childName in childName2childLson ) {
-        
-        normalize( childName2childLson[ childName ], true );
+
+        LAY.$normalize( childName2childLson[ childName ] );
 
       }
     }
@@ -9187,7 +9097,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
       }
 
       many.states.root = {
-        
+
         formation: many.formation,
         sort: many.sort,
         filter: many.filter,
@@ -9239,7 +9149,7 @@ l  	* (2) Must not be a reserved name with the exception of "root"
         }
 
       }
-    } 
+    }
   }
 
 };
@@ -9651,7 +9561,7 @@ MIT license*/
     if ( LAY.$isRendering ) {
       LAY.$isSolveRequiredOnRenderFinish = true;
     } else if ( !LAY.$isSolving && LAY.$numClog === 0 ) {
-      var 
+      var
         ret,
         isSolveNewComplete,
         isSolveRecalculationComplete,
@@ -9671,7 +9581,7 @@ MIT license*/
         if ( ret < 2 ) {
           isSolveProgressed = true;
         }
-          
+
         ret = LAY.$solveForRecalculation();
         if ( ret < 2 ) {
           isSolveProgressed = true;
@@ -9683,7 +9593,7 @@ MIT license*/
         // for recalculation new levels could have been
         // added ((from many.rows), and during execution
         //  of state installation new recalculations or
-        // levels could have been created 
+        // levels could have been created
 
         isSolveRecalculationComplete =
           LAY.$recalculateDirtyAttrValS.length === 0;
@@ -9711,17 +9621,17 @@ MIT license*/
           msg += "Uninstantiable Attr: " +
               circularAttrVal.attr +
             " (Level: " + circularAttrVal.level.pathName  + ")";
-        } 
+        }
         msg += "]";
         throw msg;
 
       }
 
       relayout();
-      recalculateNaturalDimensions();      
+      recalculateNaturalDimensions();
       executeManyLoads();
       executeStateInstallation();
-      // If the load/install functions of 
+      // If the load/install functions of
       // many or level demands a recalculation
       // then we will solve, otherwise we shall
       // render
@@ -9738,7 +9648,10 @@ MIT license*/
   function relayout() {
     var relayoutDirtyManyS = LAY.$relayoutDirtyManyS;
     for ( var i=0, len=relayoutDirtyManyS.length; i<len; i++ ) {
-      relayoutDirtyManyS[ i ].relayout();
+      var relayoutDirtyMany = relayoutDirtyManyS[ i ];
+      if ( relayoutDirtyMany.level.isExist ) {
+        relayoutDirtyMany.relayout();
+      }
     }
     LAY.$relayoutDirtyManyS = [];
   };
@@ -9748,7 +9661,7 @@ MIT license*/
     var
       naturalWidthDirtyPartS =
         LAY.$naturalWidthDirtyPartS,
-      naturalHeightDirtyPartS = 
+      naturalHeightDirtyPartS =
         LAY.$naturalHeightDirtyPartS,
       i, len, attrVal;
 
@@ -9757,18 +9670,18 @@ MIT license*/
     // while calculating natural height
     for ( i=naturalWidthDirtyPartS.length - 1;
         i >= 0; i-- ) {
-      attrVal = 
+      attrVal =
         naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth;
-      if ( attrVal ) {
+      if ( attrVal && attrVal.level.isExist ) {
         attrVal.requestRecalculation();
       }
     }
 
     for ( i=naturalHeightDirtyPartS.length - 1;
         i >= 0; i-- ) {
-      attrVal = 
+      attrVal =
         naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight;
-      if ( attrVal ) {
+      if ( attrVal && attrVal.level.isExist ) {
         attrVal.requestRecalculation();
       }
     }
@@ -9785,7 +9698,7 @@ MIT license*/
       newMany = newManyS[ i ];
       newMany.isLoaded = true;
       fnLoad = newMany.level.lson.$load;
-      if ( fnLoad ) {
+      if ( newMany.level.isExist && fnLoad ) {
         fnLoad.call( newMany.level );
       }
     }
@@ -9807,15 +9720,17 @@ MIT license*/
     for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
       newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
-      for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
-        attrValNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
-          ".install" ];
-        attrValNewlyInstalledStateInstall &&
-          ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
-          "function") &&
-          attrValNewlyInstalledStateInstall.calcVal.call(
-          newlyInstalledStateLevel );
+      if ( newlyInstalledStateLevel.isExist ) {
+        for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
+          attrValNewlyInstalledStateInstall =
+            newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
+            ".install" ];
+          attrValNewlyInstalledStateInstall &&
+            ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
+            "function") &&
+            attrValNewlyInstalledStateInstall.calcVal.call(
+            newlyInstalledStateLevel );
+        }
       }
       // empty the list
       newlyInstalledStateLevel.newlyInstalledStateS = [];
@@ -9825,15 +9740,17 @@ MIT license*/
     for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
       newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
-      for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
-        attrValNewlyUninstalledStateUninstall =
-          newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
-          ".uninstall" ];
-        attrValNewlyUninstalledStateUninstall &&
-          ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
-          "function") &&
-          attrValNewlyUninstalledStateUninstall.calcVal.call( 
-          newlyUninstalledStateLevel );
+      if ( newlyUninstalledStateLevel.isExist ) {
+        for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
+          attrValNewlyUninstalledStateUninstall =
+            newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
+            ".uninstall" ];
+          attrValNewlyUninstalledStateUninstall &&
+            ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
+            "function") &&
+            attrValNewlyUninstalledStateUninstall.calcVal.call(
+            newlyUninstalledStateLevel );
+        }
       }
       // empty the list
       newlyUninstalledStateLevel.newlyUninstalledStateS = [];
@@ -9859,12 +9776,12 @@ MIT license*/
     if ( !newLevelS.length ) {
       return 3;
     }
-    
+
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
         newLevel = newLevelS[ i ];
-        if ( newLevel.$normalizeAndInherit() ) {
+        if ( newLevel.$inherit() ) {
           newLevel.$identify();
           isSolveProgressed = true;
           isSolveProgressedOnce = true;
@@ -9873,7 +9790,7 @@ MIT license*/
           i--;
         }
       }
-   
+
     } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
@@ -9884,7 +9801,7 @@ MIT license*/
 
     return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
-   
+
   }
 
 })();
@@ -9893,14 +9810,13 @@ MIT license*/
   "use strict";
   LAY.$solveForRecalculation = function () {
 
-
-    var 
+    var
       i,
       isSolveProgressed,
       isSolveProgressedOnce = false,
       ret,
       recalculateDirtyAttrValS = LAY.$recalculateDirtyAttrValS;
-      
+
     if ( !recalculateDirtyAttrValS.length ) {
       return 3;
     }
@@ -9918,11 +9834,11 @@ MIT license*/
           i--;
         }
       }
-    
+
     } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
 
-    return recalculateDirtyAttrValS.length === 0 ?  0 :
+    return recalculateDirtyAttrValS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
 
   };

@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 .idea/
+tmp/
+LAY.js
+LAY.min.js

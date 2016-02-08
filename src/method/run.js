@@ -3,6 +3,7 @@
 
   LAY.run =  function ( rootLson ) {
 
+    LAY.$normalize( rootLson );
     setRuntimeGlobals();
     ( new LAY.Level( "/", rootLson, undefined ) ).$init();
     LAY.$solve();
@@ -14,7 +15,7 @@
     var
       takeMidpointX = LAY.take("", "width").half(),
       takeMidpointY = LAY.take("", "height").half();
-    
+
     LAY.$miscPosAttr2take = {
       centerX: LAY.take("","left").add( takeMidpointX ),
       centerY: LAY.take("","top").add( takeMidpointY ),

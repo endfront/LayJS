@@ -90,7 +90,7 @@ LAY.run({
                 {foo: "bar"}
               ),
               sampleObjIdenticalTakeSampleObj:
-                LAY.take("", "data.sampleObj").identical( 
+                LAY.take("", "data.sampleObj").identical(
                   LAY.take("", "data.sampleObj")
               ),
 
@@ -192,10 +192,6 @@ LAY.run({
               floorThreePointFive:
                 LAY.take("", "data.threePointFive").floor(),
 
-              sinFive: LAY.take("", "data.five").sin(),
-              cosFive: LAY.take("", "data.five").cos(),
-              tanFive: LAY.take("", "data.five").tan(),
-
               absThree: LAY.take("", "data.three").abs(),
               absMinusOne: LAY.take("", "data.minusOne").abs(),
 
@@ -204,14 +200,12 @@ LAY.run({
                 LAY.take("", "data.threePointFive")
               ),
 
-              logFive: LAY.take("", "data.five").log(),
-
-              matchFooFo: LAY.take("", "data.foo").match("fo"),
-              matchFooTakeFo: LAY.take("", "data.foo").match(
+              matchFooFo: LAY.take("", "data.foo").regexMatch("fo"),
+              matchFooTakeFo: LAY.take("", "data.foo").regexMatch(
                 LAY.take("", "data.fo")),
 
-              testFoFoo: LAY.take("", "data.regexFo").test("foo"),
-              testFoTakeFoo: LAY.take("", "data.regexFo").test(
+              testFoFoo: LAY.take("", "data.regexFo").regexTest("foo"),
+              testFoTakeFoo: LAY.take("", "data.regexFo").regexTest(
                 LAY.take("", "data.foo") ),
 
 
@@ -571,7 +565,7 @@ QUnit.test( "LAY.Take.contains()", function( assert ) {
     "data.containsTakeThreePointFive") );
 
 });
-  
+
 QUnit.test( "LAY.Take.identical()", function( assert ) {
 
   assert.ok( LAY.level("/Body/Content").attr("data.sampleObjIdenticalObj"),
@@ -761,23 +755,7 @@ QUnit.test( "LAY.Take.floor()", function( assert ) {
     3);
 });
 
-QUnit.test( "LAY.Take.sin()", function( assert ) {
-  assert.strictEqual( LAY.level("/Body/Content").attr(
-    "data.sinFive") ,
-    Math.sin( 5 ) );
-});
-
-QUnit.test( "LAY.Take.cos()", function( assert ) {
-  assert.strictEqual( LAY.level("/Body/Content").attr(
-    "data.cosFive") ,
-    Math.cos( 5 ) );
-});
-
-QUnit.test( "LAY.Take.tan()", function( assert ) {
-  assert.strictEqual( LAY.level("/Body/Content").attr(
-    "data.tanFive") ,
-    Math.tan( 5 ) );
-});
+// TODO: test for trunc()
 
 QUnit.test( "LAY.Take.abs()", function( assert ) {
   assert.strictEqual( LAY.level("/Body/Content").attr(
@@ -796,13 +774,7 @@ QUnit.test( "LAY.Take.pow()", function( assert ) {
 });
 
 
-QUnit.test( "LAY.Take.log()", function( assert ) {
-  assert.strictEqual( LAY.level("/Body/Content").attr(
-    "data.logFive") ,
-    Math.log( 5 ) );
-});
-
-QUnit.test( "LAY.Take.match()", function( assert ) {
+QUnit.test( "LAY.Take.regexMatch()", function( assert ) {
   assert.deepEqual( LAY.level("/Body/Content").attr(
     "data.matchFooFo"),
     "foo".match("fo") );
@@ -811,7 +783,7 @@ QUnit.test( "LAY.Take.match()", function( assert ) {
     "foo".match("fo") );
 });
 
-QUnit.test( "LAY.Take.test()", function( assert ) {
+QUnit.test( "LAY.Take.regexTest()", function( assert ) {
   assert.ok( LAY.level("/Body/Content").attr(
     "data.testFoFoo") );
   assert.ok( LAY.level("/Body/Content").attr(
@@ -937,7 +909,7 @@ QUnit.test( "LAY.Take.i18nFormat()", function( assert ) {
 
 
 });
-  
+
 
 QUnit.test( "LAY.Take.colorEquals()", function ( assert ) {
   assert.ok( LAY.level("/Body/Content").attr(

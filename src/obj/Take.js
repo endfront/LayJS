@@ -10,7 +10,7 @@
       _relPath00attr_S = [ [ path, attr ] ];
 
       this.executable = function () {
-        return path.resolve( this ).$getAttrVal( attr ).calcVal;          
+        return path.resolve( this ).$getAttrVal( attr ).calcVal;
       };
     } else { // direct value provided
       _relPath00attr_S = [];
@@ -140,6 +140,25 @@
 
       this.executable = function () {
         return oldExecutable.call( this ) % val;
+      };
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.mod = LAY.Take.prototype.remainder;
+
+  LAY.Take.prototype.percent = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ) * ( val.execute( this ) / 100 );
+      };
+    } else {
+      this.executable = function () {
+        return oldExecutable.call( this ) * ( val / 100 );
       };
     }
     return this;
@@ -516,35 +535,15 @@
     return this;
   };
 
-
-  LAY.Take.prototype.sin = function () {
+  LAY.Take.prototype.trunc = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
-      return Math.sin( oldExecutable.call( this ) );
+      return Math.trunc( oldExecutable.call( this ) );
     };
     return this;
   };
 
-
-  LAY.Take.prototype.cos = function () {
-
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return Math.cos( oldExecutable.call( this ) );
-    };
-    return this;
-  };
-
-
-  LAY.Take.prototype.tan = function () {
-
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return Math.tan( oldExecutable.call( this ) );
-    };
-    return this;
-  };
 
   LAY.Take.prototype.abs = function () {
 
@@ -574,17 +573,8 @@
     return this;
   };
 
-  LAY.Take.prototype.log = function () {
 
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return Math.log( oldExecutable.call( this ) );
-    };
-    return this;
-  };
-
-
-  LAY.Take.prototype.match = function ( val ) {
+  LAY.Take.prototype.regexMatch = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAY.Take ) {
@@ -603,7 +593,26 @@
 
   };
 
-  LAY.Take.prototype.test = function ( val ) {
+  LAY.Take.prototype.regexSearch = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).search( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).search( val );
+      };
+    }
+    return this;
+
+  };
+
+  LAY.Take.prototype.regexTest = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAY.Take ) {
@@ -616,6 +625,25 @@
 
       this.executable = function () {
         return oldExecutable.call( this ).test( val );
+      };
+    }
+    return this;
+
+  };
+
+  LAY.Take.prototype.regexExec = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).exec( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).exec( val );
       };
     }
     return this;
@@ -683,28 +711,38 @@
 
   };
 
-  
 
 
-  LAY.Take.prototype.colorEquals = function ( val ) {
+
+  LAY.Take.prototype.colorEquals = function ( color ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
+    if ( color instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( color );
 
       this.executable = function () {
-        return oldExecutable.call( this ).equals( val.execute( this ) );
+        return oldExecutable.call( this ).equals( color.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return oldExecutable.call( this ).equals( val );
+        return oldExecutable.call( this ).equals( color );
       };
     }
     return this;
 
   };
 
+  LAY.Take.prototype.colorStringify = function () {
+
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).copy().stringify( );
+    };
+
+    return this;
+
+  };
 
   LAY.Take.prototype.colorLighten = function ( val ) {
 
@@ -746,18 +784,7 @@
   };
 
 
-  LAY.Take.prototype.colorStringify = function ( ) {
-
-    var oldExecutable = this.executable;
-    this.executable = function () {
-      return oldExecutable.call( this ).copy().stringify( );
-    };
-
-    return this;
-
-  };
-
-  LAY.Take.prototype.colorInvert = function ( ) {
+  LAY.Take.prototype.colorInvert = function () {
 
     var oldExecutable = this.executable;
     this.executable = function () {
@@ -806,134 +833,49 @@
 
   };
 
-
-  LAY.Take.prototype.colorAlpha = function ( val ) {
-
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().alpha( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().alpha( val );
-      };
-    }
-    return this;
-
-  };
-
-  LAY.Take.prototype.colorRed = function ( val ) {
+  LAY.Take.prototype.colorTransparentize = function ( val ) {
 
     var oldExecutable = this.executable;
     if ( val instanceof LAY.Take ) {
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().red( val.execute( this ) );
+        return oldExecutable.call( this ).copy().transparentize( val.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().red( val );
+        return oldExecutable.call( this ).copy().transparentize( val );
       };
     }
     return this;
+
   };
 
-
-  LAY.Take.prototype.colorGreen = function ( val ) {
+  LAY.Take.prototype.colorMix = function ( color ) {
 
     var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
+    if ( color instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( color );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().green( val.execute( this ) );
+        return oldExecutable.call( this ).copy().mix( color.execute( this ) );
       };
     } else {
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().green( val );
+        return oldExecutable.call( this ).copy().mix( color );
       };
     }
     return this;
+
   };
 
-  LAY.Take.prototype.colorBlue = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
 
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().blue( val.execute( this ) );
-      };
-    } else {
 
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().blue( val );
-      };
-    }
-    return this;
-  };
 
-  LAY.Take.prototype.colorHue = function ( val ) {
 
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().hue( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().hue( val );
-      };
-    }
-    return this;
-  };
-
-  LAY.Take.prototype.colorSaturation = function ( val ) {
-
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().saturation( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().saturation( val );
-      };
-    }
-    return this;
-  };
-
-  LAY.Take.prototype.colorLightness = function ( val ) {
-
-    var oldExecutable = this.executable;
-    if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().lightness( val.execute( this ) );
-      };
-    } else {
-
-      this.executable = function () {
-        return oldExecutable.call( this ).copy().lightness( val );
-      };
-    }
-    return this;
-  };
 
   LAY.Take.prototype.filterEq = function ( attr, val ) {
 
@@ -1359,50 +1301,27 @@
     return this;
   };
 
-  LAY.Take.prototype.filterFn = function ( attr, val ) {
+  LAY.Take.prototype.filterFn = function ( fn ) {
 
     var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
-
-      if ( val instanceof LAY.Take ) {
-        this.$mergePathAndAttrs( val );
-        this.executable = function () {
-          return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr.execute( this ),
-            val.execute( this )
-          );
-        }
-
-      } else {
-        this.executable = function () {
-          return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr.execute( this ),
-            val
-          );
-        }
-      }
-    } else if ( val instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( val );
+    if ( fn instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( fn );
       this.executable = function () {
         return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr,
-            val.execute( this )
-          );
+          oldExecutable.call( this ),
+          fn.execute( this )
+        );
       }
     } else {
       this.executable = function () {
         return LAY.$filterUtils.fn(
-            oldExecutable.call( this ),
-            attr,
-            val
-          );
+          oldExecutable.call( this ),
+          fn
+        );
       }
     }
+
     return this;
   };
 
@@ -1425,7 +1344,7 @@
           attr
         );
       }
-      
+
     }
     return this;
   };
@@ -1449,7 +1368,7 @@
           attr
         );
       }
-      
+
     }
     return this;
   };
@@ -1473,24 +1392,24 @@
           attr
         );
       }
-      
+
     }
     return this;
   };
 
-  LAY.Take.prototype.foldFn = function ( attr, acc ) {
+  LAY.Take.prototype.foldFn = function ( fn, acc ) {
 
-     var oldExecutable = this.executable;
+    var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
+    if ( fn instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( fn );
 
       if ( acc instanceof LAY.Take ) {
         this.$mergePathAndAttrs( acc );
         this.executable = function () {
           return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr.execute( this ),
+            fn.execute( this ),
             acc.execute( this )
           );
         }
@@ -1499,7 +1418,7 @@
         this.executable = function () {
           return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr.execute( this ),
+            fn.execute( this ),
             acc
           );
         }
@@ -1509,7 +1428,7 @@
       this.executable = function () {
         return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr,
+            fn,
             acc.execute( this )
           );
       }
@@ -1517,7 +1436,7 @@
       this.executable = function () {
         return LAY.$foldUtils.fn(
             oldExecutable.call( this ),
-            attr,
+            fn,
             ac
           );
       }

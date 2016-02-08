@@ -234,7 +234,7 @@
 
         if ( fromLsonRowS ) {
           if ( fromLsonRowS instanceof LAY.Take ) {
-            intoLson.rows = fromLsonRowS;            
+            intoLson.rows = fromLsonRowS;
           } else {
             intoLson.rows = new Array( fromLsonRowS.length );
             intoLsonRowS = intoLson.rows;
@@ -264,10 +264,10 @@
           for ( formationFarg in fromFargs ) {
             if ( !intoFargs[ formationFarg  ] ) {
               intoFargs[ formationFarg ] = {};
-            } 
-            inheritSingleLevelObject( 
+            }
+            inheritSingleLevelObject(
               intoFargs, fromFargs, formationFarg );
-            
+
           }
         }
       },
@@ -283,9 +283,7 @@
         }
 
         for ( var name in fromChildName2lson ) {
-
           if ( intoChildName2lson[ name ] === undefined ) { // inexistent child
-
             intoChildName2lson[ name ] = {};
 
           }

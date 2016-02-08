@@ -1,14 +1,14 @@
-(function(){	
+(function(){
   "use strict";
 
 
-  var reservedNameS = [ 
+  var reservedNameS = [
     "root", "transition", "data", "when", "onlyif",
     "states", "exist",
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
-    "rows", "row", "filter", "args", "all"
+    "rows", "row", "filter", "args"
   ];
 
   function stripStateAttrPrefix( attr ) {
@@ -26,14 +26,14 @@
     }
   }
 
-  /* 
-  * Must not contain ".", "/" or ":"
+  /*
+  * Must not contain ".", "/", "~" or ":"
   */
   function checkIfNoIllegalCharacters ( name ) {
     return ( name.indexOf(".") === -1 ) &&
       ( name.indexOf("/") === -1 ) &&
       ( name.indexOf(":") === -1) &&
-      ( name.indexOf("*") === -1 );
+      ( name.indexOf("~") === -1);
   }
 
   LAY.$checkIsValidUtils = {
@@ -46,13 +46,13 @@
   	* (1) Must not contain any illegal characters
 l  	* (2) Must not be a reserved name with the exception of "root"
     * as "root" state name has already been checked at the
-    * start of normalizing 
+    * start of normalizing
   	*/
   	stateName: function ( stateName ) {
   		 return checkIfNoIllegalCharacters( stateName ) &&
         ( ( reservedNameS.indexOf( stateName ) === -1 ) ||
            ( stateName === "root" ) );
-		           
+
   	},
 
     checkIsAttrExpandable: function ( attr ) {

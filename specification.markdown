@@ -1,25 +1,6 @@
 
 (warning: specification not up to date)
 
-### LAY
-
-LAY involves writing LSON (Layout Syntax Object Notation)
-
-
-### LAY methods
-
-- LAY.run()
-- LAY.level()
-- LAY.take()
-- LAY.rgb()
-- LAY.rgba()
-- LAY.color()
-- LAY.hex()
-- LAY.hsla()
-- LAY.hsl()
-- LAY.transparent()
-- LAY.levels()
-
 ### LAY.run()
 
   The input to `LAY.run()` is an object known as LSON.
@@ -27,10 +8,11 @@ LAY involves writing LSON (Layout Syntax Object Notation)
     LAY.run({
       "<ChildName>": {
         $type: string,
-        $gpu: boolean,
         $inherit: string | object | [ string | object, ... ],
-        $obdurate: [ string, ... ],
         $load: function,
+        $obdurate: [ string, ... ],
+        $gpu: boolean,
+        $view: boolean,
 
         exist: boolean (take),
         data: object,
@@ -85,6 +67,9 @@ LAY involves writing LSON (Layout Syntax Object Notation)
   - "none"
   - "text" (auto-detect is on to distinguish between "none" and "text")
   - "html"
+  - "link:text"
+  - "link:html"
+  - "link:block"
   - "image"
   - "video"
   - "audio"
@@ -320,6 +305,10 @@ Defaults:
   `string`  
   Default: none
 
+- id  
+  `string`  
+  Default: none
+
 - tabindex  
   `number`  
   Default: none
@@ -372,24 +361,22 @@ Defaults:
     [  
       [    
         type: "url" | "blur" | "brightness" | "contrast" | "dropShadow" | "grayscale" | "hueRotate" | "invert" | "opacity" | "saturate" | "sepia",  
-        blur: number (in pixels) |  
-        brightness: number (in fraction (percent)) |  
-        contrast: number (in fraction (percent)) |  
-        dropShadow: {  
-          x: number (in pixels),  
-          y: number (in pixels),  
-          blur: number (in pixels),  
-          spread: number (in pixel) [ currently disabled due
-          to lack of browser support],  
-          color: LAY.Color  
-        },  
-        grayscale: number (in fraction (percent)),  
-        hueRotate: number (in degrees),  
-        invert: number (in fraction (percent)),  
-        opacity: number (in fraction (percent)),  
-        saturate: number (in fraction (percent)),  
-        sepia: number (in fraction (percent)),  
-        url: string  
+
+        x: [ dropShadow x number (in pixels) ],  
+        y: [ dropShadow y number (in pixels) ],  
+        blur: [ dropShadow number (in pixels) ],  
+        spread: [ dropShadow number (in pixel) [ currently disabled due to lack of browser support]],
+        color: [ dropShadow LAY.Color ],
+        value: [ blur (number in pixels) ] |  
+          [ brightness ( number in fraction (percent)) ] |  
+          [ contrast ( number in fraction (percent)) ] |
+          [ grayscale: number (in fraction (percent))] |
+          [ hueRotate: number (in degrees) ] |
+          [ invert: number (in fraction (percent)) ] |
+          [ opacity: number (in fraction (percent)) ] |  
+          [ saturate: number (in fraction (percent)) ] |  
+          [ sepia: number (in fraction (percent)) ] |  
+          [ url: string ]
       ]  
       ...  
     ]  
@@ -556,7 +543,7 @@ Defaults:
   `string`  
   HTML a[target]  
 
-- imageUrl  
+- imageSrc  
   `string`  
 
 - imageAlt  
@@ -782,120 +769,8 @@ example with multiple callback functions specified (with the aid on array):
 
 
 
-### Level
-
-To get the Level:
-
-  LAY.level(level) // fetches level
-  <level>.level(level) // fetches level wrt reference
-
-LAY.Level methods:
 
 
-  attr( attr ) //gets attr value
-  data( key, val ) //changes data value
-  parent()
-  level()
-  path()
-  many()
-  levels()
-  children()
-  addChildren()
-  remove()
-  row()
-  rowsMore()
-  rowsCommit()
-  rowsUpdate()
-  rowDeleteByID()
-  rowsDelete()
-  queryRows()
-  queryFilter()
-
-
-
-### LAY.take & LAY.Take
-
-creates LAY.Take object:
-
-  LAY.take(level, property)
-
-or
-
-  LAY.take(val)
-
-
-LAY.Take methods
-
-  - add(alias:plus),subtract(alias:minus),divide,multiply
-  - remainder
-  - half, double (unary)
-  - min, max
-  - ceil, floor, round, abs, sin, cos, tan
-  - log, pow
-  - negative (unary)
-  - number (converts to number)
-  - index, length, slice (for array)
-  - key (for dict)
-  - concat, lowercase, capitalize, uppercase (for string)
-  - fn (context `this` is the `Level`)
-  - format, i18nFormat
-  - (these return booleans) eq (===), neq (!==), gt, lt, gte, lte, not, contains, identical (deep equal)
-  - (these return booleans) and, or, xor
-  - (these return booleans) match, test (for regex)
-  - (LAY.Color) colorLighten, colorDarken, colorSaturate, colorDesaturate, colorContrast, colorAlpha, colorRed, colorGreen, colorBlue, colorInvert, colorHue, colorLightness, colorSaturation, colorEquals
-  - (many) filterEq, filterNeq, filterGt, filterLt, filterLte, filterGte, filterRegex,
-  filterContains, filterWithin, filterFn,
-  foldMax, foldMin, foldSum, foldFn,
-   queryFetch, length
-
-
-  takes one argument, either:
-    - LAY.Take object
-    - anything else
-
-  LAY.take(levelPath, property).add(10).divide(LAY.take(levelPath2,attr2)).subtract(10).multiply(1.2)
-  LAY.take(level, attr).min(LAY.take(levelPath2,attr2), 20, 30)
-  LAY.take("foo:%s, bar:%s, baz:%s").format(LAY.take(levelPath1, attr1), LAY.take(levelPath2, attr2), LAY.take(levelPath3, attr3) )
-  LAY.take(function).fn(LAY.take(levelPath1, attr1), LAY.take(levelPath2, attr2), LAY.take(levelPath3, attr3), function( arg1, arg2, arg3 ) {
-    return something
-  })
-  LAY.take('/', 'data.lang').i18nFormat(
-  {
-    lang-code: formattable string
-    .....
-  },
-  LAY.take(level1, attr1), LAY.take(level2,attr2)
-  )
-
-  LAY.take(manyLevelPath, "many").filterGt("age", 10).filterLt(
-  "age", LAY.take(level, attr)).length()
-
-
-
-)
-
-
-### LAY.Color (LAY.rgb, LAY.rgba, LAY.hsl, LAY.hsla, LAY.color)
-
-LAY.rgb(r,g,b)   (r,g,b:[0,255])
-LAY.rgba(r,g,b,a) (r,g,b:[0,255], a:[0,1])
-LAY.hsl(h,s,l)   (h:[0,240], s,l: [0,1])
-LAY.hsla(h,s,l,a) (h:[0,240], s,l,a: [0,1])
-LAY.color(name)  [name: XML recognized color]
-LAY.hex(hex) [hex: hexadecimal number]
-LAY.transparent()
-
-
-eg of take with color:
-
-  color: LAY.take('header', 'color').colorDarken(0.5)
-  color: LAY.rgb(100, LAY.take('','data.green'),200).colorLighten(0.1)
-
-
-
-### Order of Transformation
-
-Position -> Scale -> Skew -> Rotate
 
 
 ### Inheritance
@@ -1006,7 +881,7 @@ becomes:
 ##### LAY inheritance rules
 
 - events within 'when' key stacks up as an array
-- the scope of `states[state]` and `many` are inherited recursively iwth the same inheritance rulest
+- the scope of `states[state]` and `many` are inherited recursively with the same inheritance rulest
 - the `transiton` key inherits to the lowest level
 - all other props are overwritten at single level, and data values which are objects are cloned before copying over.
 - the 'many.sort' key is overwritten
@@ -1014,22 +889,22 @@ becomes:
 example of `when` stacking up:
 
   LAY.run({
-      "Box": {
-        when: {
-          "click": function() {
-            console.log("Box clicked");
-          }
-        }
-      },
-      "OtherBox": {
-        $inherit: ["Box"],
-        when: {
-          click: function() {
-            console.log("OtherBox clicked");
-          }
+    "Box": {
+      when: {
+        "click": function() {
+          console.log("Box clicked");
         }
       }
-  })
+    },
+    "OtherBox": {
+      $inherit: ["Box"],
+      when: {
+        click: function() {
+          console.log("OtherBox clicked");
+        }
+      }
+    }
+  });
 
 would essentially compile to:
 
@@ -1063,16 +938,18 @@ would essentially compile to:
     '../'
 
   - Current
-    ''
+    '', '.', or './'
 
   - Many Level (from context of Level derived of Many)
-    "\*"
+    '~'
 
-  - Closest Many Derived Many Parent Level
-    ".../"
+  - Closest Many Derived Ancestor
+    '~/'
 
+  - Closest View
+    '.../'
 
-  - Many (by predetermined id field):
+  - Many (by value of predetermined id key):
     /Page/Feed/Post:507c7f79bcf86cd7994f6c0e
 
 
@@ -1182,7 +1059,62 @@ many derived level is prohibited)
 
 `rows`
 
-This takes in either an
+This takes an array of the following forms:
+(1) Array of objects (with id value)
+
+  [
+    {id:100, name:'Homer' },
+    {id:101, name:'Bart' },
+    {id:102, name:'Homer' }
+  ]
+
+(2) Array of objects (without id value)
+
+  [
+    { name:'Homer' },
+    { name:'Bart' },
+    { name:'Marge' }
+  ]
+
+In this case each object is automatically given an id of value that of the
+index of the object within the array, the index beginning count from 1.  
+Thus the above example becomes:
+
+  [
+    { id: 1, name:'Homer' },
+    { id: 2, name:'Bart' },
+    { id: 3, name:'Marge' }
+  ]
+
+(3) Array of non-objects
+
+  [
+    'Homer',
+    'Bart',
+    'Marge'
+  ]
+
+In this case each element is converted to an object, with the content of each
+element becomes a value referred to by the key "content".  
+Thus the above example becomes:
+
+  [
+    { content: 'Homer' },
+    { content: 'Bart' },
+    { content: 'Marge' }
+  ]
+
+Furthermore the above case then becomes case 2 ( array of objects without
+id value). And follows the same translation, which in the case of the above
+example becomes:
+
+  [
+    { id: 1, content: 'Homer' },
+    { id: 2, content: 'Bart' },
+    { id: 3, content: 'Marge' }
+  ]
+
+
 
 
 example:
@@ -1222,7 +1154,7 @@ Below are formation arguments for corresponding formations:
 
   - "onebelow"
     - gap: distance in pixels to be kept vertically between consecutive Levels
-  - "totheight"
+  - "totheright"
     - gap: distance in pixels to be kept horizontally between consecutive Levels
   - "grid"
     - hgap: distance in pixels to be kept horizontally

@@ -4,11 +4,24 @@ var
   qunit = require('node-qunit-phantomjs'),
   testDomainS,
   i, len,
-  exec = require('child_process').exec;
+  exec = require('child_process').exec,
+  execSync = require('child_process').execSync,
+  fs = require('fs');
 
-  exec('ls test*.html', function (error, stdout, stderr) {
-    testDomainS = stdout.trim().split("\n");
-    for ( i = 0, len = testDomainS.length; i < len; i++ ) {
-      qunit( "./" + testDomainS[ i ], { "verbose": false } );
+function recursivelyTestDir( path ) {
+  var fileNameS = fs.readdirSync(path);
+  for ( var fileName of fileNameS ) {
+    var filePath = path + "/" + fileName;
+    var statFile = fs.statSync( filePath );
+    if ( statFile.isDirectory() ) {
+      recursivelyTestDir( filePath )
+    } else if ( statFile.isFile() ) {
+      if ( filePath.endsWith(".html")) {
+        qunit( filePath, { verbose: false });
+      }
     }
-  });
+  }
+}
+
+recursivelyTestDir( execSync("pwd").toString().trim() +
+  ( process.argv[ 2 ] ? ( "/" + process.argv[ 2 ] )  : "" ) );

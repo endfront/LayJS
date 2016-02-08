@@ -3,7 +3,7 @@
 
   // Check for CSS3 color support within the browser
   // source inspired from:
-  // http://lea.verou.me/2009/03/check-whether-the-browser-supports-rgba-and-other-css3-values/  
+  // http://lea.verou.me/2009/03/check-whether-the-browser-supports-rgba-and-other-css3-values/
 
 
   var isCss3ColorSupported = (function () {
@@ -17,7 +17,7 @@
 
   })();
 
-  
+
   // inspiration from: sass (https://github.com/sass/sass/)
 
   LAY.Color = function ( format, key2value, alpha ) {
@@ -36,40 +36,6 @@
 
   };
 
-  LAY.Color.prototype.getFormat = function () {
-    return this.format;
-  };
-
-  LAY.Color.prototype.getRed = function () {
-    return this.r;
-
-  };
-
-  LAY.Color.prototype.getGreen = function () {
-    return this.g;
-  };
-
-  LAY.Color.prototype.getBlue = function () {
-    return this.b;
-  };
-
-  LAY.Color.prototype.getHue = function () {
-    return this.h;
-  };
-
-  LAY.Color.prototype.getSaturation = function () {
-    return this.s;
-
-  };
-
-  LAY.Color.prototype.getLightness = function () {
-    return this.l;
-
-  };
-
-  LAY.Color.prototype.getAlpha = function () {
-    return this.a;
-  };
 
   LAY.Color.prototype.stringify = function () {
 
@@ -79,17 +45,21 @@
       if ( this.format === "hsl" ) {
         hsl = this.getHsl();
         if ( this.a === 1 ) {
-          return "hsl(" + Math.round(hsl.h) + "," + Math.round(hsl.s) + "%," + Math.round(hsl.l) + "%)";
+          return "hsl(" + hsl.h + "," + hsl.s*100 +
+            "%," + hsl.l*100 + "%)";
         } else {
-          return "hsla(" + Math.round(hsl.h) + "," + Math.round(hsl.s) + "%," + Math.round(hsl.l) + "%," + this.a + ")";
+          return "hsla(" + hsl.h + "," + hsl.s*100 +
+            "%," + hsl.l*100 + "%," + this.a + ")";
         }
 
       } else {
         rgb = this.getRgb();
         if ( this.a === 1 ) {
-          return "rgb(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," + Math.round(rgb.b) + ")";
+          return "rgb(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," +
+            Math.round(rgb.b) + ")";
         } else {
-          return "rgba(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," + Math.round(rgb.b) + "," + this.a + ")";
+          return "rgba(" + Math.round(rgb.r) + "," + Math.round(rgb.g) + "," +
+            Math.round(rgb.b) + "," + this.a + ")";
         }
       }
 
@@ -104,17 +74,13 @@
         rgb = this.getRgb();
         return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
       }
-
     }
-
   };
 
   LAY.Color.prototype.copy = function () {
-
     return this.format === "rgb" ?
       new LAY.Color( "rgb", { r: this.r, g: this.g,  b: this.b } , this.a ) :
       new LAY.Color( "hsl", { h: this.h, s: this.s,  l: this.l } , this.a );
-
   };
 
   LAY.Color.prototype.equals = function ( otherColor ) {
@@ -136,58 +102,67 @@
           this.l === otherColor.l
         )
       );
-
-
   };
+
+  // Getter
 
   LAY.Color.prototype.getRgb = function () {
     if ( this.format === "rgb" ) {
-
       return { r: this.r, g: this.g, b: this.b };
-
-
     } else {
-
       return convertHslToRgb( this.r, this.g, this.b );
-
     }
   };
 
   LAY.Color.prototype.getHsl = function () {
     if ( this.format === "hsl" ) {
-
       return { h: this.h, s: this.s, l: this.l };
-
     } else {
-
       return convertRgbToHsl( this.r, this.g, this.b );
     }
   };
 
 
   LAY.Color.prototype.getRgba = function () {
-
     var rgb = this.getRgb();
     rgb.a = this.a;
     return rgb;
-
   };
 
-
-
   LAY.Color.prototype.getHsla = function () {
-
     var hsl = this.getHsl();
     hsl.a = this.a;
     return hsl;
-
   };
 
-  // mix, invert, saturate, desaturate
+  // Getters
+  LAY.Color.prototype.getRed = function () {
+    return this.getRgb().r;
+  };
+  LAY.Color.prototype.getGreen = function () {
+    return this.getRgb().g;
+  };
+  LAY.Color.prototype.getBlue = function () {
+    return this.getRgb().b;
+  };
 
+  LAY.Color.prototype.getHue = function () {
+    return this.getHsl().h;
+  };
+  LAY.Color.prototype.getSaturation = function () {
+    return this.getHsl().s;
+  };
+  LAY.Color.prototype.getLightness = function () {
+    return this.getHsl().l;
+  };
 
+  LAY.Color.prototype.getAlpha = function () {
+    return this.a;
+  };
 
-  LAY.Color.prototype.red = function ( val ) {
+  // Setters
+
+  LAY.Color.prototype.setRed = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.r = val;
@@ -201,7 +176,7 @@
     return this;
   };
 
-  LAY.Color.prototype.green = function ( val ) {
+  LAY.Color.prototype.setGreen = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.g = val;
@@ -215,7 +190,7 @@
     return this;
   };
 
-  LAY.Color.prototype.blue = function ( val ) {
+  LAY.Color.prototype.setBlue = function ( val ) {
 
     if ( this.format === "rgb" ) {
       this.b = val;
@@ -229,7 +204,7 @@
     return this;
   };
 
-  LAY.Color.prototype.hue = function ( val ) {
+  LAY.Color.prototype.setHue = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.h = val;
@@ -243,7 +218,7 @@
     return this;
   };
 
-  LAY.Color.prototype.saturation = function ( val ) {
+  LAY.Color.prototype.setSaturation = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.s = val;
@@ -257,7 +232,7 @@
     return this;
   };
 
-  LAY.Color.prototype.lightness = function ( val ) {
+  LAY.Color.prototype.setLightness = function ( val ) {
 
     if ( this.format === "hsl" ) {
       this.l = val;
@@ -271,12 +246,13 @@
     return this;
   };
 
-
-  /* Sets alpha */
-  LAY.Color.prototype.alpha = function ( alpha ) {
+  LAY.Color.prototype.setAlpha = function ( alpha ) {
     this.a = alpha;
     return this;
   };
+
+
+  // Color Functions
 
   LAY.Color.prototype.darken = function ( fraction ) {
 
@@ -338,8 +314,13 @@
     return this;
   };
 
+  LAY.Color.prototype.transparentize = function ( fraction ) {
+    this.a = this.a * fraction;
+    return this;
+  };
 
-  LAY.Color.prototype.invert = function ( ) {
+
+  LAY.Color.prototype.invert = function () {
 
     var rgb = this.getRgb();
     rgb.r = 255 - rgb.r;
@@ -361,6 +342,21 @@
     return this;
   };
 
+  LAY.Color.prototype.mix = function ( color ) {
+
+    var
+      curRgb = this.getRgb(),
+      otherRgb = color.getRgb();
+
+    this.r = ( curRgb.r + otherRgb.r ) / 2;
+    this.g = ( curRgb.g + otherRgb.g ) / 2;
+    this.b = ( curRgb.b + otherRgb.b ) / 2;
+    this.a = ( this.alpha + color.alpha ) / 2;
+
+    return this;
+
+  };
+
 
 
   function convertHslToRgb( h, s, l ) {
@@ -368,10 +364,10 @@
     // calculate
     // source: http://stackoverflow.com/a/9493060
     var r, g, b;
-
+    h = h / 360;
     if(s === 0){
       r = g = b = l; // achromatic
-    }else{
+    } else{
 
 
       var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
@@ -405,7 +401,7 @@
       h /= 6;
     }
 
-    return { h: h, s: s, l: l };
+    return { h: h*360, s: s, l: l };
   }
 
 

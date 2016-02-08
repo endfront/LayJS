@@ -8,7 +8,8 @@
   LAY.AttrVal = function ( attr, level ) {
 
     // undefined initializations:
-    // (1) performance (http://jsperf.com/objects-with-undefined-initialized-properties/2)
+    // (1) performance
+    // (http://jsperf.com/objects-with-undefined-initialized-properties/2)
     // (2) readability
 
     this.level = level;
@@ -50,7 +51,7 @@
   */
   function getStateNameOfOnlyIf ( attr ) {
     if ( attr.lastIndexOf( ".onlyif" ) !== -1 &&
-      !attr.startsWith("data.") && 
+      !attr.startsWith("data.") &&
       !attr.startsWith("row.")  ) {
       return attr.slice(0, attr.indexOf(".") );
     } else {
@@ -91,23 +92,22 @@
       [ "centerX", "right",
        "centerY", "bottom" ].indexOf( attr ) === -1 ) {
       return true;
-    } else if ( 
-      [ "formation", "filter", "sort" ].indexOf ( attr ) !== -1 ) {
+    } else if (
+      [ "formation", "filter" ].indexOf ( attr ) !== -1 ) {
       return true;
-    } else {
+    } else if ( i !== -1 ) {
       var prefix = attr.slice( 0, i );
-      return ( ( [ "when", "transition", "fargs", "sort", "$$num", "$$max" ] ).indexOf(
-         prefix ) !== -1 );
+      return ([ "when", "transition", "fargs", "sort", "$$num", "$$max" ].
+        indexOf( prefix ) !== -1 );
     }
   }
 
-  /* TODO: update this doc below along with its slash-asterisk
-  formatting
-
-  Returns true if the value is different,
-  false otherwise */
+  /*
+  * Returns true if the value is different,
+  * false otherwise
+  */
   LAY.AttrVal.prototype.update = function ( val ) {
-    
+
     this.val = val;
     if ( !LAY.identical( val, this.prevVal ) ) {
       if ( this.prevVal instanceof LAY.Take ) {
@@ -129,7 +129,6 @@
     if ( this.level ) { // check for empty level
       LAY.$arrayUtils.pushUnique(
         LAY.$recalculateDirtyAttrValS, this );
-//      this.level.addRecalculateDirtyAttrVal( this );
     }
   };
 
@@ -230,32 +229,6 @@
       isDirty = true;
     }
 
-    /*
-    switch ( attr ) {
-      case "scrollX":
-        // TODO: investigate the below code block's
-        // redundancy
-         this.transCalcVal =
-             this.level.part.node.scrollLeft;      
-        if ( level.attr2attrVal.$scrolledX ) {
-          level.$changeAttrVal( "$scrolledX",
-           this.calcVal );
-        }
-        isDirty = true;
-        break;
-      case "scrollY":
-        // TODO: investigate the below code block's
-        // redundancy
-         this.transCalcVal =
-             this.level.part.node.scrollTop;
-        if ( level.attr2attrVal.$scrolledY ) {
-          level.$changeAttrVal( "$scrolledY",
-           this.calcVal );
-        }
-        isDirty = true;
-        break;
-    }
-    */
 
     // rows is always dirty when recalculated
     // as changes made to rows would have rows
@@ -280,7 +253,7 @@
       if ( LAY.$isDataTravellingShock ) {
         part.addTravelRenderDirtyAttrVal( this );
       }
-      
+
       if ( this.renderCall ) {
         this.startCalcVal = this.transCalcVal;
         this.isTransitionable = this.checkIsTransitionable();
@@ -294,7 +267,7 @@
             var parentLevel = this.level.parentLevel;
             if ( parentLevel ) {
               parentLevel.part.updateNaturalWidth();
-              parentLevel.part.updateNaturalHeight();              
+              parentLevel.part.updateNaturalHeight();
             }
             if ( this.calcVal === false ) {
               recursivelySwitchOffDoingEvents( level );
@@ -323,14 +296,13 @@
               part.updateNaturalWidth();
             }
             break;
-          case "imageUrl":
+          case "imageSrc":
             part.isImageLoaded = false;
             break;
           case "audioController":
             part.updateNaturalHeight();
             part.updateNaturalHeight();
             break;
-
           default:
             var checkIfAttrAffectsTextDimesion =
               function ( attr ) {
@@ -346,7 +318,7 @@
               if ( checkIfAttrAffectsTextDimesion( attr ) )  {
                   part.updateNaturalWidth();
                   part.updateNaturalHeight();
-                 
+
               } else if ( ( attr === "borderTopWidth" ) ||
                 ( attr === "borderBottomWidth" ) ) {
                   part.updateNaturalHeight();
@@ -390,6 +362,8 @@
         part.updateWhenEventType( whenEventType );
       } else if ( transitionProp !== "" ) {
         part.updateTransitionProp( transitionProp );
+      } else if ( attr === "exist" ) {
+        level.$updateExistence();
       } else if ( many ) {
           if ( attr === "rows" ) {
             many.updateRows();
@@ -404,12 +378,8 @@
            attr === "formation" ) {
             many.updateLayout();
         }
-          
-      } else {  
+      } else {
         switch( attr ) {
-          case "exist":
-            level.$updateExistence();
-            break;
           case "right":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
@@ -419,7 +389,7 @@
           case "bottom":
             if ( level.parentLevel !== undefined ) {
               level.parentLevel.part.
-                updateNaturalHeight(); 
+                updateNaturalHeight();
             }
             break;
           case "$naturalWidth":
@@ -453,7 +423,7 @@
         }
       }
     }
-  
+
     this.isForceRecalculate = false;
     this.isRecalculateRequired = false;
     return true;
@@ -464,7 +434,7 @@
   * Doing events: clicking, hovering
   */
   function recursivelySwitchOffDoingEvents( level ) {
-    var 
+    var
       hoveringAttrVal = level.attr2attrVal.$hovering,
       clickingAttrVal = level.attr2attrVal.$clicking,
       childLevel,
@@ -483,8 +453,8 @@
         if ( childLevel.part ) {
           recursivelySwitchOffDoingEvents( childLevel );
         }
-      } 
-    }         
+      }
+    }
   }
 
 
@@ -522,7 +492,7 @@
   };
 
   LAY.AttrVal.prototype.giveNot = function ( attrVal ) {
-    if ( LAY.$arrayUtils.remove( this.takerAttrValS, attrVal ) && 
+    if ( LAY.$arrayUtils.remove( this.takerAttrValS, attrVal ) &&
       this.takerAttrValS.length === 0 ) {
       if ( this.isEventReadonlyAttr ) {
         // Given that no reference exists, remove event listeners
@@ -615,8 +585,12 @@
 
   LAY.AttrVal.prototype.remove = function () {
     this.takeNot( this.val );
+    LAY.$arrayUtils.remove(
+      LAY.$recalculateDirtyAttrValS, this );
+    this.level.attr2attrVal[ this.attr ] = undefined;
+
   }
-  
+
 
 
 

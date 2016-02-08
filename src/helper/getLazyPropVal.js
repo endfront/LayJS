@@ -24,10 +24,10 @@
       textSmoothing: "antialiased",
       textRendering: "auto"
     },
-    
+
     nonRootLazyProp2defaultVal = {
-      userSelect: LAY.take("../", "userSelect"),      
-      cursor: LAY.take("../", "cursor"),      
+      userSelect: LAY.take("../", "userSelect"),
+      cursor: LAY.take("../", "cursor"),
       textSize: LAY.take("../", "textSize"),
       textFamily: LAY.take("../", "textFamily"),
       textWeight: LAY.take("../", "textWeight"),
@@ -122,8 +122,10 @@
       inputAutocorrect: true,
       inputDisabled: false,
 
-      imageUrl:null,
+      imageSrc:null,
       imageAlt: null,
+
+      linkHref: null,
 
       videoAutoplay: false,
       videoControls: true,
@@ -146,7 +148,7 @@
     var commonLazyVal = commonLazyProp2defaultVal[ prop ];
     return commonLazyVal !== undefined ?
       commonLazyVal :
-      ( isRootLevel ? 
+      ( isRootLevel ?
         rootLazyProp2defaultVal[ prop ] :
         nonRootLazyProp2defaultVal[ prop ] );
 

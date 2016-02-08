@@ -4,6 +4,7 @@ var
   semver = require("semver"),
   util = require("util"),
   fs = require('fs'),
+  p = require("child_process"),
   curVersion = fs.readFileSync("version.txt").toString().trim(),
   newVersion;
 
@@ -15,7 +16,7 @@ if ( arg === undefined ) {
   return 1;
 } else if ( msg === undefined ) {
   console.error("ERROR: No message provided");
-  return 1;  
+  return 1;
 }
 
 var
@@ -46,13 +47,19 @@ switch (arg) {
     }
 }
 
+var
+  gitCommit = `git commit -a -m "${msg}"`,
+  gitTag = `git tag -a v{newVersion} -m "${msg}"`,
+  gitPush = "git push origin master --tags";
 
 fs.writeFileSync("version.txt", newVersion);
-require("child_process").execSync("gulp concat");
-require("child_process").execSync("git commit -a -m " + '"' + msg + '"');
-require("child_process").execSync("git tag -a v" + newVersion + " -m " + '"' + msg + '"');
+p.execSync("gulp build");
+p.execSync(gitCommit);
+p.execSync(gitTag);
+p.execSync(gitPush);
 
-
-
-
-
+p.execSync("cd ../LayJS-dist");
+p.execSync("cp ../LayJS/LAY.* .");
+p.execSync(gitCommit);
+p.execSync(gitTag);
+p.execSync(gitPush);

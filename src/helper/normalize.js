@@ -2,7 +2,6 @@
   "use strict";
 
   var
-    normalizedExternalLsonS = [],
     fnCenterToPos,
     fnOppEdgeToPos,
     takeWidth,
@@ -34,27 +33,8 @@
   takeZeroCenterY = ( new LAY.take("../", "height")).half().minus(
     ( new LAY.take("", "height") ).half() );
 
-  LAY.$normalize = function( lson, isExternal ) {
 
-    if ( isExternal ) {
-      // If we haven't previously normalized it, only then proceed
-      if ( normalizedExternalLsonS.indexOf( lson ) === -1 ) {
-
-        normalize( lson, true );
-        normalizedExternalLsonS.push( lson );
-
-      }
-
-    } else {      
-      normalize( lson, false );
-    }
-  };
-
-  function normalize( lson, isRecursive ) {
-
-    var
-      lsonKey,
-      rootLson = lson;
+  LAY.$normalize = function ( lson ) {
 
     if ( !lson.$$normalized ) {
 
@@ -66,6 +46,7 @@
         throw "LAY Error: State name 'root' is reserved.";
       }
 
+
       checkForInconsistentReadonlyKeys( lson );
       normalizeLazyChildren( lson );
 
@@ -75,24 +56,19 @@
         transition: lson.transition
       };
 
-      for ( lsonKey in lson ) {
-        if ( lsonKey !== "children" || isRecursive ) {
-          if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
-            if ( !key2fnNormalize[ lsonKey ] ) {
-              throw "LAY Error: LSON key: '" + lsonKey  + "' not found";
-            }
-            key2fnNormalize[ lsonKey ]( lson );
+      for ( var lsonKey in lson ) {
+        if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
+          if ( !key2fnNormalize[ lsonKey ] ) {
+            throw "LAY Error: LSON key: '" + lsonKey  + "' not found";
           }
+          key2fnNormalize[ lsonKey ]( lson );
         }
       }
 
       lson.props = undefined;
       lson.when = undefined;
       lson.transition = undefined;
-
       lson.$$normalized = true;
-
-
 
     }
   }
@@ -127,14 +103,15 @@
     for ( var key in lson ) {
       if ( !key2fnNormalize[ key ]) {
         lson.children[ key ] = lson[ key ];
-        lson[ key ] = undefined; 
+        lson[ key ] = undefined;
       }
     }
   }
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAY.Take ) {
-      throw ( "LAY Error: takes for special/expander props such as '" + name  + "' are not permitted." );
+      throw ( "LAY Error: takes for special/expander props such as '" +
+        name  + "' are not permitted." );
     }
   }
 
@@ -285,14 +262,15 @@
         prop2val.bottom = undefined;
       }
 
-    
+
 
       for ( prop in prop2val ) {
         flattenProp( prop2val, prop2val, prop, prop );
       }
 
       for ( prop in prop2val ) {
-        longhandPropS = LAY.$shorthandPropsUtils.getLonghandPropsDecenteralized( prop );
+        longhandPropS = LAY.$shorthandPropsUtils.
+          getLonghandPropsDecenteralized( prop );
         if ( longhandPropS !== undefined ) {
           shorthandVal = prop2val[ prop ];
           for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
@@ -307,7 +285,8 @@
       for ( prop in prop2val ) {
         if ( prop.lastIndexOf("Color") !== -1 ) {
           if ( typeof prop2val[ prop ] === "string" ) {
-            throw "LAY Error: '" + prop + "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()";
+            throw "LAY Error: '" + prop +
+              "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()";
           }
         }
         multipleTypePropMatchDetails =
@@ -316,13 +295,12 @@
           curMultipleMax =
             LAY.$meta.get( lson, "max", multipleTypePropMatchDetails[ 1 ] );
           if ( ( curMultipleMax === undefined ) ||
-            ( curMultipleMax < parseInt( multipleTypePropMatchDetails[ 2 ] ) ) ) {
+            ( curMultipleMax < parseInt( multipleTypePropMatchDetails[ 2 ] ))) {
             LAY.$meta.set( lson, "max", multipleTypePropMatchDetails[ 1 ],
               parseInt( multipleTypePropMatchDetails[ 2 ] ) );
           }
         }
       }
-
     },
 
   when: function ( lson ) {
@@ -332,21 +310,18 @@
     } else {
       checkAndThrowErrorAttrAsTake( "when", lson.when );
 
-      var eventType2_fnCallbackS_ = lson.when,
-        eventType, fnCallbackS, i, len;
+      var eventType2_fnCallbackS_ = lson.when;
 
-      for ( eventType in eventType2_fnCallbackS_ ) {
-        fnCallbackS = eventType2_fnCallbackS_[ eventType ];
-        //console.log(eventType2_fnCallbackS_[ eventType ]);
+      for ( var eventType in eventType2_fnCallbackS_ ) {
+        var fnCallbackS = eventType2_fnCallbackS_[ eventType ];
 
-        if ( ! ( fnCallbackS instanceof Array ) ) {
+        if ( !( fnCallbackS instanceof Array ) ) {
           fnCallbackS =
             eventType2_fnCallbackS_[ eventType ] =
               [ fnCallbackS ];
         }
         checkAndThrowErrorAttrAsTake( "when." + eventType,
           fnCallbackS );
-        //LAY.$meta.set( lson, "num", "when." + eventType, fnCallbackS.length );
       }
     }
   },
@@ -378,8 +353,11 @@
         }
 
         for ( transitionProp in transition ) {
-          if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable( transitionProp ) ) {
-            throw ( "LAY Error: transitions for special/expander props such as '" + name  + "' are not permitted." );
+          if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable(
+              transitionProp ) ) {
+            throw (
+              "LAY Error: transitions for special/expander props such as '" +
+                name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
           checkAndThrowErrorAttrAsTake( "transition." + transitionProp,
@@ -388,7 +366,8 @@
           transitionArgKey2val = transitionDirective.args;
           if ( transitionArgKey2val !== undefined ) {
 
-            checkAndThrowErrorAttrAsTake( "transition." + transitionProp + ".args",
+            checkAndThrowErrorAttrAsTake( "transition." + transitionProp +
+              ".args",
             transitionArgKey2val  );
 
           }
@@ -420,7 +399,7 @@
           key2fnNormalize.transition( state );
         } else {
           key2fnNormalize.fargs( state );
-          key2fnNormalize.sort( state ); 
+          key2fnNormalize.sort( state );
         }
 
       }
@@ -436,8 +415,8 @@
       checkAndThrowErrorAttrAsTake( "children",  childName2childLson );
 
       for ( var childName in childName2childLson ) {
-        
-        normalize( childName2childLson[ childName ], true );
+
+        LAY.$normalize( childName2childLson[ childName ] );
 
       }
     }
@@ -456,7 +435,7 @@
       }
 
       many.states.root = {
-        
+
         formation: many.formation,
         sort: many.sort,
         filter: many.filter,
@@ -508,7 +487,7 @@
         }
 
       }
-    } 
+    }
   }
 
 };

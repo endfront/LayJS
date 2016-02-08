@@ -9,7 +9,8 @@ var
 	curVersion = fs.readFileSync("version.txt").toString().trim();
 
 if ( !semver.valid(curVersion) ) {
-	console.error("ERROR: current version within version.txt is invalid: " + curVersion );
+	console.error("ERROR: current version within version.txt is invalid: " +
+		curVersion );
 	return 1;
 }
 
@@ -20,26 +21,26 @@ var js_fileS = [
 	"./src/helper/*.js"
 ];
 
-gulp.task("concat", function() {
-
+gulp.task("build", function() {
 	gulp.src( js_fileS )
 	.pipe( concat( "LAY.js" ) )
 	.pipe( replace("<version>", curVersion))
 	.pipe( gulp.dest( "./" ))
 	.pipe( concat("LAY.min.js"))
-	.pipe(uglify({
+	.pipe( uglify({
 			preserveComments: "license"
 		}))
 	.pipe(gulp.dest("./"))
-
-	
 });
+
+gulp.task("test", function() {
+	require("child_process").execSync("cd test/nondisplay; node runner.js");
+});
+
 
 
 gulp.task('default', function() {
-  gulp.watch( js_fileS,  [ "concat" ] );
-//  gulp.watch( "LAY.js",  [ "minify" ] );
-  gulp.start( "concat" );
+  gulp.watch( js_fileS,  [ "build" ] );
+  gulp.start( "build" );
 
 });
-

@@ -5,7 +5,7 @@
     if ( LAY.$isRendering ) {
       LAY.$isSolveRequiredOnRenderFinish = true;
     } else if ( !LAY.$isSolving && LAY.$numClog === 0 ) {
-      var 
+      var
         ret,
         isSolveNewComplete,
         isSolveRecalculationComplete,
@@ -25,7 +25,7 @@
         if ( ret < 2 ) {
           isSolveProgressed = true;
         }
-          
+
         ret = LAY.$solveForRecalculation();
         if ( ret < 2 ) {
           isSolveProgressed = true;
@@ -37,7 +37,7 @@
         // for recalculation new levels could have been
         // added ((from many.rows), and during execution
         //  of state installation new recalculations or
-        // levels could have been created 
+        // levels could have been created
 
         isSolveRecalculationComplete =
           LAY.$recalculateDirtyAttrValS.length === 0;
@@ -65,17 +65,17 @@
           msg += "Uninstantiable Attr: " +
               circularAttrVal.attr +
             " (Level: " + circularAttrVal.level.pathName  + ")";
-        } 
+        }
         msg += "]";
         throw msg;
 
       }
 
       relayout();
-      recalculateNaturalDimensions();      
+      recalculateNaturalDimensions();
       executeManyLoads();
       executeStateInstallation();
-      // If the load/install functions of 
+      // If the load/install functions of
       // many or level demands a recalculation
       // then we will solve, otherwise we shall
       // render
@@ -92,7 +92,10 @@
   function relayout() {
     var relayoutDirtyManyS = LAY.$relayoutDirtyManyS;
     for ( var i=0, len=relayoutDirtyManyS.length; i<len; i++ ) {
-      relayoutDirtyManyS[ i ].relayout();
+      var relayoutDirtyMany = relayoutDirtyManyS[ i ];
+      if ( relayoutDirtyMany.level.isExist ) {
+        relayoutDirtyMany.relayout();
+      }
     }
     LAY.$relayoutDirtyManyS = [];
   };
@@ -102,7 +105,7 @@
     var
       naturalWidthDirtyPartS =
         LAY.$naturalWidthDirtyPartS,
-      naturalHeightDirtyPartS = 
+      naturalHeightDirtyPartS =
         LAY.$naturalHeightDirtyPartS,
       i, len, attrVal;
 
@@ -111,18 +114,18 @@
     // while calculating natural height
     for ( i=naturalWidthDirtyPartS.length - 1;
         i >= 0; i-- ) {
-      attrVal = 
+      attrVal =
         naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth;
-      if ( attrVal ) {
+      if ( attrVal && attrVal.level.isExist ) {
         attrVal.requestRecalculation();
       }
     }
 
     for ( i=naturalHeightDirtyPartS.length - 1;
         i >= 0; i-- ) {
-      attrVal = 
+      attrVal =
         naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight;
-      if ( attrVal ) {
+      if ( attrVal && attrVal.level.isExist ) {
         attrVal.requestRecalculation();
       }
     }
@@ -139,7 +142,7 @@
       newMany = newManyS[ i ];
       newMany.isLoaded = true;
       fnLoad = newMany.level.lson.$load;
-      if ( fnLoad ) {
+      if ( newMany.level.isExist && fnLoad ) {
         fnLoad.call( newMany.level );
       }
     }
@@ -161,15 +164,17 @@
     for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
       newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
       newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
-      for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
-        attrValNewlyInstalledStateInstall =
-          newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
-          ".install" ];
-        attrValNewlyInstalledStateInstall &&
-          ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
-          "function") &&
-          attrValNewlyInstalledStateInstall.calcVal.call(
-          newlyInstalledStateLevel );
+      if ( newlyInstalledStateLevel.isExist ) {
+        for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
+          attrValNewlyInstalledStateInstall =
+            newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
+            ".install" ];
+          attrValNewlyInstalledStateInstall &&
+            ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
+            "function") &&
+            attrValNewlyInstalledStateInstall.calcVal.call(
+            newlyInstalledStateLevel );
+        }
       }
       // empty the list
       newlyInstalledStateLevel.newlyInstalledStateS = [];
@@ -179,15 +184,17 @@
     for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
       newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
       newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
-      for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
-        attrValNewlyUninstalledStateUninstall =
-          newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
-          ".uninstall" ];
-        attrValNewlyUninstalledStateUninstall &&
-          ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
-          "function") &&
-          attrValNewlyUninstalledStateUninstall.calcVal.call( 
-          newlyUninstalledStateLevel );
+      if ( newlyUninstalledStateLevel.isExist ) {
+        for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
+          attrValNewlyUninstalledStateUninstall =
+            newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
+            ".uninstall" ];
+          attrValNewlyUninstalledStateUninstall &&
+            ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
+            "function") &&
+            attrValNewlyUninstalledStateUninstall.calcVal.call(
+            newlyUninstalledStateLevel );
+        }
       }
       // empty the list
       newlyUninstalledStateLevel.newlyUninstalledStateS = [];

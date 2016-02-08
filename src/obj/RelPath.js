@@ -10,8 +10,8 @@
     this.isAbsolute = false;
     this.traverseArray = [];
 
-
-    if  ( relativePath === "" ) {
+    if ( relativePath === "" || relativePath === "." ||
+      relativePath === "./" ) {
       this.isMe = true;
     } else {
       if ( relativePath.charAt(0) === "/" ) {
@@ -19,23 +19,28 @@
         this.path = relativePath;
       } else {
         var i=0;
-        while ( relativePath.charAt( i ) === "." ) {
+        while ( i !== relativePath.length - 1 &&
+          ( relativePath.charAt( i ) === "." ||
+          relativePath.charAt( i ) === "~" ) ) {
           if ( relativePath.slice(i, i+3) === "../" ) {
             this.traverseArray.push(0);
             i +=3;
-          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+          } else if ( relativePath.slice(i, i+2) === "~/" ) {
             this.traverseArray.push(1);
+            i += 2;
+          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+            this.traverseArray.push(2);
             i += 4;
           } else {
             throw "LAY Error: Error in Take path: " + relativePath;
           }
-        }  
+        }
         // strip off the "../"s
-        // eg: "../../Body" should become "Body"
+        // eg: "~/../.../Body" should become "Body"
         this.path = relativePath.slice( i );
       }
       if ( this.path.length !== 0 &&
-          this.path.indexOf("*") === this.path.length - 1 ) {
+          this.path.lastIndexOf("~") === this.path.length - 1 ) {
         this.isMany = true;
         if ( this.path.length === 1 ) {
           this.path = "";
@@ -63,14 +68,21 @@
         for ( var i=0, len=traverseArray.length; i<len; i++ ) {
           if ( traverseArray[ i ] === 0 ) { //parent traversal
             level = level.parentLevel;
-          } else { //closest row traversal
+          } else if ( traverseArray[ i ] === 1 ) { //closest row traversal
             do {
               level = level.parentLevel;
-            } while ( !level.derivedMany )
-            
+            } while ( !level.derivedMany );
+          } else {
+            do {
+              level = level.parentLevel;
+              if ( !level ) {
+                throw "No View Found (.../) from level " +
+                  referenceLevel.pathName;
+              }
+            } while ( !level.isView );
           }
         }
-        
+
         level =  ( this.path === "" ) ? level :
               LAY.$pathName2level[ level.pathName +
               ( ( level.pathName === "/" ) ? "" : "/" )+

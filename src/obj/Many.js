@@ -8,6 +8,8 @@
 
     this.allLevelS = [];
     this.filteredLevelS = [];
+    this.id2level = {};
+    this.id2row = {};
 
     // "stringHashedStates2_cachedAttr2val_"
     // for levels derived from the many
@@ -18,8 +20,7 @@
 	  this.levelStringHashedStates2_cachedAttr2val_ = {};
 
     this.id = level.lson.$id || "id";
-    this.id2level = {};
-    this.id2row = {};
+
     this.isLoaded = false;
     this.isAutoId = false;
 
@@ -45,10 +46,31 @@
     this.defaultFormationX = this.partLson.states.root.props.left;
     this.defaultFormationY = this.partLson.states.root.props.top;
 
+    if ( this.partLson.exist ) {
+      throw "LAY ERROR: many derived levels cannot contain exist";
+    }
+
+  };
+
+  LAY.Many.prototype.rowsLevels = function ( query ) {
+
+    if ( !query ) {
+      return this.allLevelS;
+    } else {
+      var
+        queryRowS = query.rowS,
+        queryLevelS = [];
+
+      for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
+        queryLevelS.push( this.id2row[ queryRowS[ i ][ this.id ] ]);
+      }
+      return queryLevelS;
+    }
+
   };
 
   LAY.Many.prototype.queryRows = function () {
-    return new LAY.Query( 
+    return new LAY.Query(
        LAY.$arrayUtils.cloneSingleLevel(
         this.level.attr2attrVal.rows.calcVal ) );
   };
@@ -95,7 +117,7 @@
       row = this.id2row [ id ];
 
     if ( row ) {
-      LAY.$arrayUtils.remove( 
+      LAY.$arrayUtils.remove(
         curRowS, row );
       rowsAttrVal.val = rowsAttrVal.calcVal;
       rowsAttrVal.requestRecalculation();
@@ -104,14 +126,15 @@
     }
   };
 
-  LAY.Many.prototype.rowsUpdate = function ( key, val, queryRowS ) {
 
-    var rowsAttrVal = this.level.attr2attrVal.rows;
+  LAY.Many.prototype.rowsUpdate = function ( key, val, query ) {
 
-    // If no queriedRowS parameter is supplied then
-    // update all the rows
-    queryRowS = queryRowS ||
-      rowsAttrVal.calcVal || [];
+    var
+      rowsAttrVal = this.level.attr2attrVal.rows,
+      // If no query parameter is supplied then
+      // update all the rows
+      queryRowS = query instanceof LAY.Query ? query.rowS :
+        rowsAttrVal.calcVal;
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
       var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
@@ -127,15 +150,14 @@
   };
 
   LAY.Many.prototype.rowsDelete = function ( queryRowS ) {
-    
+
     var
       rowsAttrVal = this.level.attr2attrVal.rows,
-      curRowS = rowsAttrVal.calcVal;
-
-    // If no queriedRowS parameter is supplied then
-    // delete all the rows
-    queryRowS = queryRowS ||
-      rowsAttrVal.calcVal || [];
+      curRowS = rowsAttrVal.calcVal,
+      // If no query parameter is supplied then
+      // delete all the rows
+      queryRowS = query instanceof LAY.Query ? query.rowS :
+        rowsAttrVal.calcVal
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
       var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
@@ -159,9 +181,9 @@
   function objectifyRows ( rowS, idKey ) {
     var objectifiedRowS = [];
     for ( var i = 0, len = rowS.length; i < len; i++ ) {
-      var objectifiedRow = { content: rowS[ i ]};
-      objectifiedRow[ idKey ] = i+1;
-      objectifiedRowS.push( objectifiedRow ); 
+      var objectifiedRow = { content: rowS[ i ] };
+      objectifiedRow[ idKey ] = i + 1;
+      objectifiedRowS.push( objectifiedRow );
     }
     return objectifiedRowS;
   }
@@ -197,7 +219,7 @@
       if ( rowS[ i ][ idKey ] !== i+1 ) {
         hasDuplicates = true;
         break;
-      } 
+      }
     }
     if ( hasDuplicates ) {
       for ( var i=0, len=rowS.length; i<len; i++ ) {
@@ -209,14 +231,13 @@
   }
 
 
-
   /*
   *	Update the rows by:
   * (1) Creating new levels in accordance to new rows
   * (2) Updating existing levels in accordance to changes in changed rows
   */
   LAY.Many.prototype.updateRows = function () {
-    var 
+    var
   		rowS = this.level.attr2attrVal.rows.calcVal,
   		row,
   		id,
@@ -247,14 +268,21 @@
       rowsAttrVal.calcVal = rowS;
     }
 
-    this.sort( rowS );
+    // if sort returns false
+    // then sort requires recalculation
+    // and therefore we will skip the remaining
+    // of the method, as this current method will
+    // be invoked again when sort is dirty
+    if ( !this.sort( rowS ) ) {
+      return;
+    }
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[ i ];
   		id = row[ this.id ];
       id2row[ id ] = row;
   		level = this.id2level[ id ];
-      
+
       if ( !level ) {
         // create new level with row
 
@@ -304,7 +332,7 @@
   * initialized, else return true
   */
   LAY.Many.prototype.updateFilter = function () {
-    var  
+    var
       allLevelS = this.allLevelS,
       filteredRowS =
         this.level.attr2attrVal.filter.calcVal || [],
@@ -312,28 +340,28 @@
       filteredLevel, f = 1,
       level;
 
-    for ( 
+    for (
       var i = 0, len = allLevelS.length;
       i < len; i++ ) {
       level = allLevelS[ i ];
       // has not been initialized as yet
       if ( !level.isInitialized ) {
         return false;
-      } 
-      level.attr2attrVal.$i.update( i + 1 );      
-      level.attr2attrVal.$f.update( -1 );        
-      
+      }
+      level.attr2attrVal.$i.update( i + 1 );
+      level.attr2attrVal.$f.update( -1 );
+
     }
 
     var idKey = this.id;
-    for ( 
+    for (
       var i = 0, len = filteredRowS.length;
       i < len; i++ ) {
       filteredLevel = this.id2level[ filteredRowS[ i ][ idKey ] ];
       if ( filteredLevel ) {
         filteredLevelS.push( filteredLevel );
         filteredLevel.attr2attrVal.$f.update( f++ );
-        
+
       }
     }
 
@@ -359,9 +387,9 @@
       fargAttrVal;
 
     for ( var farg in defaultFargs ) {
-      fargAttrVal = attr2attrVal[ "fargs." + 
+      fargAttrVal = attr2attrVal[ "fargs." +
         formation + "." + farg ];
-      fargs[ farg ] = fargAttrVal ? 
+      fargs[ farg ] = fargAttrVal ?
         fargAttrVal.calcVal : defaultFargs[ farg ];
     }
 
@@ -372,7 +400,7 @@
         undefined, undefined );
     }
 
-    for ( 
+    for (
       var f = 1, len = filteredLevelS.length, filteredLevel, xy;
       f < len;
       f++
@@ -389,14 +417,15 @@
         xy[ 0 ],
         xy[ 1 ]
       );
-    
+
     }
   };
 
-  
 
+  // return false if one of the sort Attributes
+  // requires recalculation, else return true
   LAY.Many.prototype.sort = function ( rowS ) {
-    var sortAttrPrefix,
+    var
       attr2attrVal = this.level.attr2attrVal,
       numSorts = attr2attrVal["$$num.sort"] ?
         attr2attrVal["$$num.sort"].calcVal : 0,
@@ -404,30 +433,44 @@
 
     if ( numSorts > 0 ) {
       for ( var i=0; i<numSorts; i++ ) {
-        sortAttrPrefix = "sort." + ( i + 1 ) + ".";
-      
+        var
+          sortAttrPrefix = "sort." + ( i + 1 ) + ".",
+          sortKeyAttrVal = attr2attrVal[ sortAttrPrefix + "key" ],
+          sortAscendingAttrVal = attr2attrVal[ sortAttrPrefix + "ascending" ];
+
+        if ( sortKeyAttrVal.isRecalculateRequired ||
+          sortAscendingAttrVal.isRecalculateRequired ) {
+            return false;
+        }
+
         sortDictS.push(
-          { key:attr2attrVal[ sortAttrPrefix + "key" ].calcVal,
-          ascending:
-          attr2attrVal[ sortAttrPrefix + "ascending" ].calcVal  });
+          { key: sortKeyAttrVal.calcVal,
+          ascending: sortAscendingAttrVal.calcVal  });
       }
       rowS.sort( dynamicSortMultiple( sortDictS ) );
+
     }
+    return true;
+
   };
 
 
   LAY.Many.prototype.remove = function () {
     var allLevelS = this.allLevelS;
     for ( var i=0, len=allLevelS.length; i<len; i++ ) {
-      allLevelS[ i ].remove()
+      allLevelS[ i ].$remove();
     }
+    this.allLevelS = [];
+    this.filteredLevelS = [];
+    this.id2level = {};
+    this.id2row = {};
   };
-  
 
-  /*! below code is taken from one of the responses
-   to the stackoverflow question:
-   http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-   @source: http://stackoverflow.com/a/4760279 */
+
+  // below code is taken from one of the responses
+  // to the stackoverflow question:
+  // http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+  /*! @source: http://stackoverflow.com/a/4760279 */
   function dynamicSort( sortDict ) {
     var key = sortDict.key,
       sortOrder = sortDict.ascending ? 1 : -1;
@@ -439,7 +482,7 @@
   }
 
   function dynamicSortMultiple( sortDictS ) {
-    
+
     return function (obj1, obj2) {
         var i = 0, result = 0,
         numberOfProperties = sortDictS.length;

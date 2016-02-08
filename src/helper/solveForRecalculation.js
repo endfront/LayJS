@@ -2,14 +2,13 @@
   "use strict";
   LAY.$solveForRecalculation = function () {
 
-
-    var 
+    var
       i,
       isSolveProgressed,
       isSolveProgressedOnce = false,
       ret,
       recalculateDirtyAttrValS = LAY.$recalculateDirtyAttrValS;
-      
+
     if ( !recalculateDirtyAttrValS.length ) {
       return 3;
     }
@@ -27,11 +26,11 @@
           i--;
         }
       }
-    
+
     } while ( ( recalculateDirtyAttrValS.length !== 0 ) && isSolveProgressed );
 
 
-    return recalculateDirtyAttrValS.length === 0 ?  0 :
+    return recalculateDirtyAttrValS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
 
   };

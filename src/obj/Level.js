@@ -7,7 +7,7 @@
     this.lson = lson;
     // if level is many, partLson contains the non-many part of the lson
     this.partLson = undefined;
-    this.isGpu = undefined;
+    this.isGpu = false;
     this.isInitialized = false;
 
     this.parentLevel = parent; // parent Level
@@ -15,7 +15,9 @@
 
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
-    this.isPart = undefined;
+    this.isPart = false;
+
+    this.isView = false;
 
     // If the level name begins with "_",
     // the level is considered a helper (non-renderable)
@@ -95,7 +97,7 @@
 
     if ( this.attr2attrVal[ attr ] ) {
       return this.attr2attrVal[ attr ].calcVal;
-    } else { 
+    } else {
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
         if ( LAY.$checkIfDoingReadonly( attr ) ) {
@@ -104,7 +106,7 @@
         } else if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
           return this.part.getImmidiateReadonlyVal( attr );
         }
-      } 
+      }
       if ( this.$createLazyAttr( attr, true ) ) {
         var attrVal = this.attr2attrVal[ attr ];
         attrVal.give( LAY.$emptyAttrVal );
@@ -145,10 +147,11 @@
     return this.derivedMany && this.derivedMany.level;
   };
 
-  LAY.Level.prototype.levels = function () {
-    return this.manyObj && this.manyObj.allLevelS;
+  LAY.Level.prototype.rowsLevels = function ( query ) {
+    if ( !this.isPart ) {
+      return this.manyObj.rowsLevels( query );
+    }
   };
-
 
   LAY.Level.prototype.rowsCommit = function ( newRowS ) {
 
@@ -175,21 +178,15 @@
     }
   };
 
-  LAY.Level.prototype.rowsUpdate = function ( key, val, queryRowS ) {
+  LAY.Level.prototype.rowsUpdate = function ( key, val, query ) {
     if ( !this.isPart ) {
-      if ( queryRowS instanceof LAY.Query ) {
-        queryRowS = queryRowS.rowS;
-      }
-      this.manyObj.rowsUpdate( key, val, queryRowS );
+      this.manyObj.rowsUpdate( key, val, query );
     }
   };
 
   LAY.Level.prototype.rowsDelete = function ( queryRowS ) {
     if ( !this.isPart ) {
-      if ( queryRowS instanceof LAY.Query ) {
-        queryRowS = queryRowS.rowS;
-      }
-      this.manyObj.rowsDelete( queryRowS );
+      this.manyObj.rowsDelete( query );
     }
   };
 
@@ -274,10 +271,11 @@
   };
 
   LAY.Level.prototype.addChildren = function ( name2lson ) {
-    
+
     for ( var name in name2lson ) {
       var lson = name2lson[ lson ];
-      this.lson.children[ name ] = lson; 
+      LAY.$normalize( lson );
+      this.lson.children[ name ] = lson;
       this.$addChild( name, name2lson );
     }
 
@@ -285,7 +283,7 @@
 
 
   LAY.Level.prototype.remove = function () {
-    
+
     if ( this.pathName === "/" ) {
       console.error("LAY Error: Attempt to remove root level '/' prohibited");
     } else {
@@ -299,32 +297,33 @@
   };
 
   LAY.Level.prototype.$remove = function () {
-
     var
       childLevelS = this.childLevelS,
       attr2attrVal = this.attr2attrVal;
-
-    LAY.$pathName2level[ this.pathName ] = undefined;
-    LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
-
-    if ( this.isPart ) {
-      this.part && this.part.remove();
-    }
 
     for ( var attr in attr2attrVal ) {
       attr2attrVal[ attr ].remove();
     }
 
+    if ( this.isPart ) {
+      this.part && this.part.remove();
+    } else {
+      this.manyObj && this.manyObj.remove();
+    }
     this.$removeDescendants();
+
+    LAY.$pathName2level[ this.pathName ] = undefined;
+    LAY.$arrayUtils.remove( this.parentLevel.childLevelS, this );
+
   };
 
+
   LAY.Level.prototype.$removeDescendants = function () {
-    var descendantLevelS = this.isPart ?
-      this.childLevelS : this.manyObj.allLevelS;
-    for ( var i=0, len=descendantLevelS.length; i<len; i++ ) {
-      descendantLevelS[ i ] &&
-        descendantLevelS[ i ].$remove();
+    var descendantLevelS = this.childLevelS;
+    while ( descendantLevelS.length ) {
+      descendantLevelS[ 0 ].$remove();
     }
+
   };
 
   LAY.Level.prototype.$addChildren = function ( name2lson ) {
@@ -359,17 +358,16 @@
   * Return false if the level could not be inherited (due
   * to another level not being present or started as yet)
   */
-  LAY.Level.prototype.$normalizeAndInherit = function () {
+  LAY.Level.prototype.$inherit = function () {
 
-    var lson, refS, i, len, ref, level, inheritedAndNormalizedLson;
-    LAY.$normalize( this.lson, this.isHelper );
-    
+    var lson, refS, i, len, ref, level, otherLevelLson;
+
     // check if it contains anything to inherit from
-    if ( this.lson.$inherit !== undefined ) { 
+    if ( this.lson.$inherit !== undefined ) {
       lson = {};
       refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
-        
+
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
           if ( ref === this.pathName ) {
@@ -385,20 +383,20 @@
 
         ref = refS[ i ];
         if ( typeof ref === "string" ) { // pathname reference
-          
+
           level = ( new LAY.RelPath( ref ) ).resolve( this );
-          inheritedAndNormalizedLson = level.lson;
+          otherLevelLson = level.lson;
 
         } else { // object reference
-           LAY.$normalize( ref, true );
-           inheritedAndNormalizedLson = ref;
+           LAY.$normalize( ref );
+           otherLevelLson= ref;
         }
 
-        LAY.$inherit( lson, inheritedAndNormalizedLson );
+        LAY.$inherit( lson, otherLevelLson );
       }
 
       LAY.$inherit( lson, this.lson );
-      
+
       this.lson = lson;
     }
 
@@ -412,7 +410,7 @@
     if ( this.isPart ) {
       this.part = new LAY.Part( this );
       this.part.init();
-      
+
       if ( this.lson.children !== undefined ) {
         this.$addChildren( this.lson.children );
       }
@@ -423,11 +421,11 @@
   };
 
   LAY.Level.prototype.$identify = function () {
-    this.isPart = this.lson.many === undefined ||
-      this.derivedMany;
+    this.isView = !!this.lson.$view;
+    this.isPart = this.lson.many === undefined || this.derivedMany;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
-        true : 
+        true :
         this.lson.$gpu;
     } else {
       this.isGpu = this.lson.$gpu === undefined ?
@@ -447,7 +445,7 @@
       }
       this.partLson = this.lson;
       this.lson = this.lson.many;
-      
+
       LAY.$defaultizeManyLson( this.lson );
     }
   };
@@ -467,9 +465,7 @@
 
   function initAttrsArray( attrPrefix, elementS, attr2val ) {
 
-    var i, len;
-
-    for ( i = 0, len = elementS.length ; i < len; i++ ) {
+    for ( var i = 0, len = elementS.length ; i < len; i++ ) {
       attr2val[ attrPrefix + "." + ( i + 1 ) ] = elementS[ i ];
     }
   }
@@ -478,22 +474,17 @@
   function convertSLSONtoAttr2Val( slson, attr2val, isPart ) {
 
     var
-      prop,
-      transitionProp, transitionDirective,
-      transitionPropPrefix,
-      eventType, fnCallbackS,
       prop2val = slson.props,
       when = slson.when,
       transition = slson.transition,
-      fargs = slson.fargs,
-      i, len;
-          
-    if ( isPart ){ 
+      fargs = slson.fargs;
+
+    if ( isPart ){
       initAttrsObj( "", slson.props, attr2val, true );
 
-      for ( transitionProp in transition ) {
-        transitionDirective = transition[ transitionProp ];
-        transitionPropPrefix =  "transition." + transitionProp + ".";
+      for ( var transitionProp in transition ) {
+        var transitionDirective = transition[ transitionProp ];
+        var transitionPropPrefix =  "transition." + transitionProp + ".";
         if ( transitionDirective.type !== undefined ) {
           attr2val[ transitionPropPrefix + "type" ] =
             transitionDirective.type;
@@ -516,8 +507,8 @@
         }
       }
 
-      for ( eventType in when ) {
-        fnCallbackS = when[ eventType ];
+      for ( var eventType in when ) {
+        var fnCallbackS = when[ eventType ];
         initAttrsArray( "when." + eventType, fnCallbackS, attr2val );
       }
 
@@ -526,7 +517,7 @@
       }
 
       if ( slson.$$max !== undefined ) {
-        initAttrsObj(  "$$max.", slson.$$max, attr2val, false );
+        initAttrsObj( "$$max.", slson.$$max, attr2val, false );
       }
     } else {
 
@@ -536,39 +527,30 @@
       if ( fargs ) {
         for ( var formationFarg in fargs ) {
           initAttrsObj( "fargs." + formationFarg + ".",
-            fargs[ formationFarg ], attr2val, false );        
+            fargs[ formationFarg ], attr2val, false );
         }
       }
 
       attr2val[ "$$num.sort" ] = slson.sort.length;
 
-      for ( i = 0, len = slson.sort.length; i < len; i++ ) {
+      for ( var i = 0, len = slson.sort.length; i < len; i++ ) {
         initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[ i ],
          attr2val, false );
       }
-      
+
     }
   }
 
   LAY.Level.prototype.$updateExistence = function () {
-    var isExist = this.attr2attrVal.exist.calcVal;
-    if ( isExist ) {
+    if ( this.attr2attrVal.exist.calcVal ) {
       this.$appear();
     } else {
       this.$disappear();
     }
   };
 
-  /*
-  LAY.Level.prototype.$checkIfParentExists = function () {
-    if ( this.pathName === "/" ) {
-      return this.isExist;
-    } else {
-      return this.isExist ? this.parentLevel.$checkIfParentExists() : false;
-    }
-  };*/
-
   LAY.Level.prototype.$appear = function () {
+
     this.isExist = true;
     this.$reproduce();
     this.$initAllAttrs();
@@ -576,11 +558,10 @@
     if ( this.isPart ) {
       this.part.add();
     }
-    
-  };  
+
+  };
 
    LAY.Level.prototype.$disappear = function () {
-    console.log(this.pathName);
     this.isExist = false;
     var attr2attrVal = this.attr2attrVal;
     for ( var attr in attr2attrVal ) {
@@ -593,13 +574,15 @@
 
     if ( this.isPart ) {
       this.part && this.part.remove();
+    } else {
+      this.manyObj && this.manyObj.remove();
     }
   };
 
   LAY.Level.prototype.$decideExistence = function () {
     if ( !this.isHelper ) {
       this.$createAttrVal( "exist", this.lson.exist ===
-        undefined ? true : this.lson.exist );    
+        undefined ? true : this.lson.exist );
     }
   };
 
@@ -609,7 +592,7 @@
       obdurateReadonlyS = this.lson.$obdurate ?
        this.lson.$obdurate : [],
       obdurateReadonly, i, len;
-  
+
     this.isInitialized = true;
 
     if ( this.isPart ) {
@@ -619,7 +602,7 @@
       if ( this.lson.states.root.props.scrollY ) {
         obdurateReadonlyS.push( "$naturalHeight" );
       }
-      
+
       if ( this.part.type === "input" &&
           this.part.inputType !== "line" ) {
         // $input will be required to compute
@@ -648,12 +631,11 @@
 
   LAY.Level.prototype.$initNonStateProjectedAttrs = function () {
 
-    var 
+    var
       key, val, stateName, state,
       states = this.lson.states,
       lson = this.lson,
       attr2val = {};
-
 
     initAttrsObj( "data.", lson.data, attr2val, false );
 
@@ -670,7 +652,7 @@
         }
     }
 
-    if ( this.isPart ) { 
+    if ( this.isPart ) {
       attr2val.right = LAY.$essentialPosAttr2take.right;
       attr2val.bottom = LAY.$essentialPosAttr2take.bottom;
       if ( this.pathName === "/" ) {
@@ -792,7 +774,7 @@
             } else if ( splitAttrLsonComponentS[ 0 ] !== "transition" ) {
               // props
               if ( attrLsonComponentObj.props !== undefined ) {
-                attrLsonComponentObj = attrLsonComponentObj.props; 
+                attrLsonComponentObj = attrLsonComponentObj.props;
               } else {
                 return false;
               }
@@ -820,7 +802,7 @@
     return true;
   };
 
- 
+
 
   /*
   Undefine all current attributes which are influencable
@@ -828,10 +810,10 @@
   */
   LAY.Level.prototype.$undefineStateProjectedAttrs = function() {
 
-    var attr;
-    for ( attr in this.attr2attrVal ) {
-      if ( this.attr2attrVal[ attr ].isStateProjectedAttr ) {
-        this.attr2attrVal[ attr ].update( undefined );
+    for ( var attr in this.attr2attrVal ) {
+      var attrVal = this.attr2attrVal[ attr ];
+      if ( attrVal !== undefined && attrVal.isStateProjectedAttr ) {
+        attrVal.update( undefined );
       }
     }
   };
@@ -846,7 +828,7 @@
       stringHashedStates2_cachedAttr2val_ = this.derivedMany ?
       this.derivedMany.levelStringHashedStates2_cachedAttr2val_ :
       this.stringHashedStates2_cachedAttr2val_;
-    
+
     this.$sortStates();
     var stringHashedStates = this.stateS.join( "&" );
     if ( stringHashedStates2_cachedAttr2val_[
@@ -857,7 +839,7 @@
     }
 
     return stringHashedStates2_cachedAttr2val_[ stringHashedStates ];
-  
+
   };
 
   /*
@@ -960,7 +942,7 @@
       topAttrVal.requestRecalculation();
       leftAttrVal.requestRecalculation();
     }
- 
+
   };
 
 })();

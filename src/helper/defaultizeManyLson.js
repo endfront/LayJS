@@ -6,13 +6,13 @@
     formation2defaultArgs;
 
   LAY.$defaultizeManyLson = function ( lson ) {
-    
+
     var
       essentialProp,
       rootState = lson.states.root;
-  
+
     lson.rows = lson.rows || [];
-    
+
     /* Filling in the defaults here for root lson */
     for ( essentialProp in essentialProp2defaultValue ) {
       if ( rootState[ essentialProp ] === undefined ) {
@@ -21,13 +21,13 @@
       }
     }
     // TODO: defaultize fargs here?
-  
+
   };
 
 
   essentialProp2defaultValue = {
     filter:  new LAY.Take( "", "rows" ),
-    sort: [{key:"id", ascending:true}],
+    sort:[],
     formation: "onebelow",
     fargs: {}
   };

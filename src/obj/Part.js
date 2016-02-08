@@ -57,7 +57,6 @@
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
     "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
     "-webkit-overflow-scrolling:touch;" +
-//    "user-drag:none;" +
     "white-space:nowrap;" +
     "outline:none;border:none;";
 
@@ -86,14 +85,16 @@
 
   nonInputType2tag = {
     none: "div",
+    "link:text": "a",
+    "link:html": "a",
+    "link:block": "a",
     text: "div",
     html: "div",
     iframe: "iframe",
     canvas: "canvas",
     image: "img",
     video: "video",
-    audio: "audio",
-    link: "a"
+    audio: "audio"
   };
 
   supportedInputTypeS = [
@@ -211,8 +212,10 @@
         nonInputType2tag[ this.type]);
     }
 
+
     this.isText = this.type === "input" ||
-      this.type === "text" || this.type === "link" ||
+      this.type === "text" || this.type === "link:text" ||
+      this.type === "link:html" ||
       this.type === "html";
 
 
@@ -250,6 +253,12 @@
       if ( this.node.parentNode === parentPart.node ) {
         parentPart.node.removeChild( this.node );
       }
+      LAY.$arrayUtils.remove(
+        LAY.$naturalWidthDirtyPartS, this );
+      LAY.$arrayUtils.remove(
+        LAY.$naturalHeightDirtyPartS, this );
+      LAY.$arrayUtils.remove(
+        LAY.$renderDirtyPartS, this );
     }
   };
 
@@ -267,10 +276,7 @@
     var attrValDisplay = level.attr2attrVal.display;
     return !attrValDisplay || attrValDisplay.calcVal;
   }
-  /*
-  * Additional constraint of not being dependent upon
-  * parent for the attr
-  */
+
   LAY.Part.prototype.findChildMaxOfAttr =
    function ( attr ) {
     var
@@ -315,7 +321,7 @@
       case "$scrolledY":
         return this.node.scrollTop;
       case "$focused":
-        return node === document.activeElement;
+        return this.node === document.activeElement;
       case "$input":
         if ( this.inputType === "multiple" ||
           this.inputType === "select" ) {
@@ -403,7 +409,7 @@
       return 0;
     } else {
       imageSizeMeasureNode.src =
-        this.level.attr2attrVal.imageUrl.calcVal;
+        this.level.attr2attrVal.imageSrc.calcVal;
       var otherDim = isWidth ? "height" : "width",
         otherDimAttrVal = this.level.attr2attrVal[
         otherDim ],
@@ -1061,18 +1067,20 @@
         }
         break;
       case "title":
-        this.node.title =
-          attr2attrVal.title.transCalcVal;
+        this.node.title = attr2attrVal.title.transCalcVal;
         break;
+      case "id":
+        this.node.id = attr2attrVal.id.transCalcVal;
       case "tabindex":
-        this.node.tabindex =
-          attr2attrVal.
-          tabindex.transCalcVal;
+        this.node.tabindex = attr2attrVal.tabindex.transCalcVal;
         break;
       case "backgroundColor":
         this.node.style.backgroundColor =
-          attr2attrVal.
-          backgroundColor.transCalcVal.stringify();
+          attr2attrVal.backgroundColor.transCalcVal.stringify();
+        break;
+      case "backgroundImage":
+        this.node.style.backgroundImage =
+          attr2attrVal.backgroundImage.transCalcVal;
         break;
       case "backgroundAttachment":
         this.node.style.backgroundAttachment =
@@ -1126,10 +1134,12 @@
         }
         break;
       case "filters":
-        var s = "", filterType;
+        var s = "";
         for ( var i = 1, len = attr2attrVal[ "$$max.filters" ].calcVal;
           i <= len; i++ ) {
-          filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;
+          var filterType = attr2attrVal[ "filters" + i + "Type" ].calcVal;
+          var filterValue = attr2attrVal[ "filters" + i + "Value" ] &&
+            attr2attrVal[ "filters" + i + "Value" ].transCalcVal;
           switch ( filterType ) {
             case "dropShadow":
               s +=  "drop-shadow(" +
@@ -1143,18 +1153,16 @@
               ") ";
               break;
             case "blur":
-              s += "blur(" + attr2attrVal[ "filters" + i + "Blur" ] + ") ";
+              s += "blur(" + filterValue + "px) ";
               break;
             case "hueRotate":
-              s += "hue-rotate(" + attr2attrVal[ "filters" + i +
-                "HueRotate" ] + "deg) ";
+              s += "hue-rotate(" + filterValue + "deg) ";
               break;
             case "url":
-              s += "url(" + attr2attrVal[ "filters" + i + "Url" ] + ") ";
+              s += "url(" + filterValue + ") ";
               break;
             default:
-              s += filterType + "(" + ( attr2attrVal[ "filters" + i +
-                LAY.$capitalize( filterType ) ] * 100 ) + "%) ";
+              s += filterType + "(" + ( filterValue  * 100 ) + "%) ";
 
           }
         }
@@ -1376,8 +1384,8 @@
       case "linkTarget":
         this.node.target = attr2attrVal.linkTarget.transCalcVal;
         break;
-      case "imageUrl":
-        this.node.src = attr2attrVal.imageUrl.transCalcVal;
+      case "imageSrc":
+        this.node.src = attr2attrVal.imageSrc.transCalcVal;
         break;
       case "imageAlt":
         this.node.alt = attr2attrVal.imageAlt.transCalcVal;

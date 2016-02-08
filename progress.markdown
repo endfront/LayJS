@@ -1,29 +1,19 @@
 
 Current:
-  - todo recursive remove level
-  - sort problem when update .row()
-  - change "*" to many
-  - width default complete (with spec update)
-  - formationX/Y undefined then skip setting it? new thing = null?
-  - $id attrVal undefined
-  - video height auto
-  - invesitagte width (recalc) undefined in switch-case
-  - defaultize many lson fargs which are mentioned in states but not otherwise
+  - separate dist from github
+  - add test command from within gulp
+  - transition multiple props comma separated, eg: "textColor, left, opacity"
+  - naturalwidth/height of video
+  - $load cascading
+  - input:file
+  - lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - what is "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
-  - < state >.bottom/right/centerX/centerY
-  - function to get all partLevelS from many?
-  - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$observe"
-  - checkAndThrowErrorAttrAsTake
-  - LAY.Many.remove()
-  - transition multiple props comma separated, eg: "textColor, left, opacity"
-  - website
+  - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
 
 
   spec:
-  - Many.rowsUpdate()
-  - many.rows can take array of non-objects
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
   - add LAY.level.changeNativeInput/ScrollX/Y() to spec
@@ -33,9 +23,9 @@ Current:
 
 Future:
   - investigate "-text-size-adjust"
+  - allow state name "all"
+  - formation dict? {x,y,z,rotateX,rotateY,rotateZ,skewX,skewY, scaleX, scaleY}
   - grid formation fill vertically, vgrid?
-  - LAY.Take.percent()
-  - input:file
   - fix bug of rows containing duplicate objects
   - objectEqual(a, b, m) [remove 3rd arg m]
   - check for illegal characters id row.id val

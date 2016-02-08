@@ -28,7 +28,7 @@
       takeNaturalWidth = LAY.take("", "$naturalWidth"),
       takeNaturalHeight = LAY.take("", "$naturalHeight"),
       takeParentWidth = LAY.take("../", "width");
-  
+
 
     for ( stateName in states ) {
       state = states[ stateName ];
@@ -72,7 +72,7 @@
         rootStateTransition[ transitionProp ] = {};
       }
     }
-  
+
 
     if ( !isRootLevel ) {
       // If the parent has an inheritable prop
@@ -87,19 +87,27 @@
           rootStateProps[ prop ] = LAY.$getLazyPropVal( prop );
         }
       }
-    } 
+    }
 
-
-    if ( rootStateProps.text !== undefined &&
-        ( lson.$type === undefined || lson.$type === "none" ) ) {
+    if ( rootStateProps.linkHref !== undefined ) {
+      if ( lson.$type === "html" ) {
+        lson.$type = "link:html";
+      } else {
+        lson.$type = rootStateProps.text !== undefined ?
+          "link:text" : "link:block";
+      }
+    } else if ( ( rootStateProps.text !== undefined ) &&
+      ( lson.$type === undefined || lson.$type === "none" )) {
       lson.$type = "text";
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";
     }
 
 
+
+
     /* Filling in the defaults here for root state lson */
-    
+
     if ( rootStateProps.left === undefined ) {
       rootStateProps.left = 0;
     }
@@ -107,27 +115,15 @@
       rootStateProps.top = 0;
     }
     if ( isRootLevel ) {
-      rootStateProps.width = takeWindowWidth; 
-      rootStateProps.height = takeWindowHeight; 
+      rootStateProps.width = takeWindowWidth;
+      rootStateProps.height = takeWindowHeight;
     } else {
       if ( rootStateProps.width === undefined ) {
-/*        if ( [
-          "text",
-          "html",
-          "input:select",
-          "input:multiple",
-          "image",
-          "link"
-          ].indexOf( lson.$type ) !== -1 ) {
-          rootStateProps.width = takeNaturalWidth;
-        } else {
-          rootStateProps.width = takeParentWidth;
-        }*/
         rootStateProps.width = takeNaturalWidth;
       }
       if ( rootStateProps.height === undefined ) {
         rootStateProps.height = takeNaturalHeight;
-      } 
+      }
     }
 
   };
