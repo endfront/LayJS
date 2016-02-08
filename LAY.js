@@ -13,8 +13,8 @@
     to maintain the consistency of
     only method accesses from the user
     During build (gulp) the version will be set
-    so leave the string "0.8.19" just as is. */
-    version: function(){ return "0.8.19"; },
+    so leave the string "0.8.20" just as is. */
+    version: function(){ return "0.8.20"; },
 
     $pathName2level: {},
     $newlyInstalledStateLevelS: [],
