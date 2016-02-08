@@ -58,8 +58,4 @@ p.execSync(gitCommit);
 p.execSync(gitTag);
 p.exec(gitPush);
 
-p.execSync("cd ../dist");
-p.execSync("cp ../LayJS/LAY.* .");
-p.execSync(gitCommit);
-p.execSync(gitTag);
-p.exec(gitPush);
+p.exec(`cd ../dist;cp ../LayJS/LAY.* .;${gitCommit};${gitTag};${gitPush}`);
