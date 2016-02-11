@@ -50,12 +50,16 @@ switch (arg) {
 var
   gitCommit = `git commit -a -m "${msg}"`,
   gitTag = `git tag -a v${newVersion} -m "${msg}"`,
-  gitPush = "git push origin master --tags";
+  gitPush = "git push origin master --tags",
+  npmVersion = `npm version ${newVersion}`;
 
 fs.writeFileSync("version.txt", newVersion);
-p.execSync("gulp build");
-p.execSync(gitCommit);
-p.execSync(gitTag);
-p.exec(gitPush);
+console.log(p.execSync("gulp build").toString());
+console.log(p.execSync(gitCommit).toString());
+console.log(p.execSync(gitTag).toString());
+console.log(p.execSync(gitPush).toString());
 
-p.exec(`cd ../dist;cp ../LayJS/LAY.* .;${gitCommit};${gitTag};${gitPush}`);
+console.log(
+  p.execSync(
+    `cd ../dist;cp ../LayJS/LAY.* .;${gitCommit};${npmVersion};${gitPush}`).
+    toString());
