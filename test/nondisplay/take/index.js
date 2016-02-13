@@ -320,48 +320,6 @@ LAY.run({
                 LAY.take("", "data.red").colorDesaturate(
                   LAY.take("","data.pointSeven") ),
 
-              colorAlphaPointSeven:
-                LAY.take("", "data.red").colorAlpha( 0.7 ),
-              colorAlphaTakePointSeven:
-                LAY.take("", "data.red").colorAlpha(
-                  LAY.take("","data.pointSeven") ),
-
-              colorRedFive:
-                LAY.take("", "data.red").colorRed( 5 ),
-              colorRedTakeFive:
-                LAY.take("", "data.red").colorRed(
-                  LAY.take("","data.five") ),
-
-              colorBlueFive:
-                LAY.take("", "data.red").colorBlue( 5 ),
-              colorBlueTakeFive:
-                LAY.take("", "data.red").colorBlue(
-                  LAY.take("","data.five") ),
-
-              colorGreenFive:
-                LAY.take("", "data.red").colorGreen( 5 ),
-              colorGreenTakeFive:
-                LAY.take("", "data.red").colorGreen(
-                  LAY.take("","data.five") ),
-
-              colorHueFive:
-                LAY.take("", "data.red").colorHue( 5 ),
-              colorHueTakeFive:
-                LAY.take("", "data.red").colorHue(
-                  LAY.take("","data.five") ),
-
-              colorSaturationPointSeven:
-                LAY.take("", "data.red").colorSaturation( 0.7 ),
-              colorSaturationTakePointSeven:
-                LAY.take("", "data.red").colorSaturation(
-                  LAY.take("","data.pointSeven") ),
-
-              colorLightnessPointSeven:
-                LAY.take("", "data.red").colorLightness( 0.7 ),
-              colorLightnessTakePointSeven:
-                LAY.take("", "data.red").colorLightness(
-                  LAY.take("","data.pointSeven") ),
-
 
               fnNoArgs: LAY.take(function(){
                 return [this, null];
@@ -974,83 +932,6 @@ QUnit.test( "LAY.Take.colorDesaturate()", function ( assert ) {
   assert.ok( LAY.level("/Body/Content").attr(
     "data.colorDesaturateTakePointSeven").equals(
       LAY.color("red").desaturate(0.7)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorAlpha()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorAlphaPointSeven").equals(
-      LAY.color("red").alpha(0.7)
-    ) );
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorAlphaTakePointSeven").equals(
-      LAY.color("red").alpha(0.7)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorRed()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorRedFive").equals(
-      LAY.color("red").red(5)
-    ) );
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorRedTakeFive").equals(
-      LAY.color("red").red(5)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorBlue()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorBlueFive").equals(
-      LAY.color("red").blue(5)
-    ) );
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorBlueTakeFive").equals(
-      LAY.color("red").blue(5)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorGreen()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorGreenFive").equals(
-      LAY.color("red").green(5)
-    ) );
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorGreenTakeFive").equals(
-      LAY.color("red").green(5)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorHue()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorHueFive").equals(
-      LAY.color("red").hue(5)
-    ) );
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorHueTakeFive").equals(
-      LAY.color("red").hue(5)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorSaturation()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorSaturationPointSeven").equals(
-      LAY.color("red").saturation(0.7)
-    ) );
-    assert.ok( LAY.level("/Body/Content").attr(
-      "data.colorSaturationTakePointSeven").equals(
-        LAY.color("red").saturation(0.7)
-    ) );
-});
-
-QUnit.test( "LAY.Take.colorLightness()", function ( assert ) {
-  assert.ok( LAY.level("/Body/Content").attr(
-    "data.colorLightnessPointSeven").equals(
-      LAY.color("red").lightness(0.7)
-    ) );
-    assert.ok( LAY.level("/Body/Content").attr(
-      "data.colorLightnessTakePointSeven").equals(
-        LAY.color("red").lightness(0.7)
     ) );
 });
 

@@ -99,10 +99,31 @@ Checks if the base value is identical (deep equal) to (any | [LAY.Take](#)) `val
 ### String-related methods
 
 - `capitalize()`  
-Capitalizes the base value.
+Capitalizes the (string) base value.
 
 - `concat( val )`  
-Concatenates the base value with (string | [LAY.Take](#)) `val`.
+Concatenates the (string) base value with (string | [LAY.Take](#)) `val`.
+
+- `startsWith( val )`
+Checks if the (string) base value starts with (string | [LAY.Take](#)) `val`.
+
+- `endsWith( val )`
+Checks if the (string) base value ends with (string | [LAY.Take](#)) `val`.
+
+- `indexOf( val )`
+Gets the index of (string | [LAY.Take](#)) `val`, within (string) base value. Returns -1 if not found.
+
+- `trim()`
+Strips the leading and trailing whitespace of (string) base value.
+
+- `index( i )`  
+Gets the value at index (number | [LAY.Take](#)) `i` of the (string) base value.
+
+- `length()`  
+Length of the (string) base value.
+
+- `contains( val )`  
+Checks if the (string) base value contains (string | [LAY.Take](#)) `val`.
 
 - `format( arg1, arg2, ... argN )`  
 Formats the (string) base value with the arguments (each type: any | [LAY.Take](#)) using the [printf](https://en.wikipedia.org/wiki/Printf_format_string) rules.
@@ -111,13 +132,13 @@ Formats the (string) base value with the arguments (each type: any | [LAY.Take](
 Formats the (string) key-value of the (object) base value of the key specified by the "data.en" [attribute](../concept/attribute.md) of the [root level "/"](../concept/level.md#root-level), with the arguments (each type: any | [LAY.Take](#)) using the [printf](https://en.wikipedia.org/wiki/Printf_format_string) rules.
 
 - `number()`  
-Convert the base value to type number.  
+Convert the (string) base value to type number.  
 
 - `lowercase()`  
-Lowercases the base value.
+Lowercases the (string) base value.
 
 - `uppercase()`  
-Uppercases the base value.
+Uppercases the (string) base value.
 
 
 <br>
@@ -125,6 +146,9 @@ Uppercases the base value.
 
 - `index( i )`  
 Gets the value at index (number | [LAY.Take](#)) `i` of the (array) base value.
+
+- `indexOf( val )`
+Gets the index of (any | [LAY.Take](#)) `val`, within (array) base value. Returns -1 if not found.
 
 - `length()`  
 Length of the (array) base value.
@@ -167,9 +191,6 @@ Applies the [LAY.Color.transparentize()](Color.md#method-transparentize) method 
 
 - `colorInvert()`  
 Applies the [LAY.Color.invert()](Color.md#method-invert) method to the ([LAY.Color](Color.md)) base value.
-
-- `colorMix( color )`  
-Applies the [LAY.Color.mix()](Color.md#method-mix) method to the ([LAY.Color](Color.md)) base value with argument ([LAY.Color](Color.md) | [LAY.Take](#)) `color`.
 
 - `colorMix( color )`  
 Applies the [LAY.Color.mix()](Color.md#method-mix) method to the ([LAY.Color](Color.md)) base value with argument ([LAY.Color](Color.md) | [LAY.Take](#)) `color`.
@@ -257,4 +278,4 @@ Retrieves the value associated with key (string | [LAY.Take](#)) within the (obj
 
 - `fn( arg1, arg2, ... argN )`  
 Applies the (function) base value with arguments (each type: any | [LAY.Take](#)), the return of the function being the transformed base value.  
-Note: the context (`this`) within the function is that of the current [Level][Level.md].
+Note: the context (`this`) within the function is that of the current [Level](Level.md).

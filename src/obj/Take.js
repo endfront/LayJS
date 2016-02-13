@@ -647,10 +647,71 @@
       };
     }
     return this;
-
   };
 
   LAY.Take.prototype.concat = LAY.Take.prototype.add;
+
+  LAY.Take.prototype.startsWith = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).startsWith( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).startsWith( val );
+      };
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.endsWith = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).endsWith( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).endsWith( val );
+      };
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.indexOf = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return oldExecutable.call( this ).indexOf( val.execute( this ) );
+      };
+    } else {
+
+      this.executable = function () {
+        return oldExecutable.call( this ).indexOf( val );
+      };
+    }
+    return this;
+  };
+
+  LAY.Take.prototype.trim = function () {
+    var oldExecutable = this.executable;
+    this.executable = function () {
+      return oldExecutable.call( this ).trim()();
+    };
+    return this;
+  };
 
   LAY.Take.prototype.lowercase = function () {
     var oldExecutable = this.executable;

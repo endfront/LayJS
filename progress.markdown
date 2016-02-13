@@ -1,6 +1,7 @@
 
 Current:
-  - separate dist from github
+  - startswith, endswith lay.take testing
+  - common string and array take methods
   - add test command from within gulp
   - transition multiple props comma separated, eg: "textColor, left, opacity"
   - naturalwidth/height of video

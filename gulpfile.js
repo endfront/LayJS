@@ -34,7 +34,10 @@ gulp.task("build", function() {
 });
 
 gulp.task("test", function() {
-	require("child_process").execSync("cd test/nondisplay; node runner.js");
+	console.log(
+		require("child_process").execSync(
+			"cd test/nondisplay; node runner.js").toString()
+	);
 });
 
 

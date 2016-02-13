@@ -51,7 +51,8 @@ var
   gitCommit = `git commit -a -m "${msg}"`,
   gitTag = `git tag -a v${newVersion} -m "${msg}"`,
   gitPush = "git push origin master --tags",
-  npmVersion = `npm version ${newVersion}`;
+  npmVersion = `npm version ${newVersion}`,
+  npmPublish = "npm publish";
 
 fs.writeFileSync("version.txt", newVersion);
 console.log(p.execSync("gulp build").toString());
@@ -61,5 +62,6 @@ console.log(p.execSync(gitPush).toString());
 
 console.log(
   p.execSync(
-    `cd ../dist;cp ../LayJS/LAY.* .;${gitCommit};${npmVersion};${gitPush}`).
+    `cd ../dist;cp ../LayJS/LAY.* .;${gitCommit};${npmVersion};${npmPublish};
+    ${gitPush}`).
     toString());

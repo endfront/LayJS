@@ -99,6 +99,8 @@
     } else if ( ( rootStateProps.text !== undefined ) &&
       ( lson.$type === undefined || lson.$type === "none" )) {
       lson.$type = "text";
+    } else if ( rootStateProps.imageSrc !== undefined ) {
+      lson.$type = "image";
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";
     }
