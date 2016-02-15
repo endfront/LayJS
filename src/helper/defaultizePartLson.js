@@ -89,7 +89,7 @@
       }
     }
 
-    if ( rootStateProps.linkHref !== undefined ) {
+    if ( rootStateProps.link !== undefined ) {
       if ( lson.$type === "html" ) {
         lson.$type = "link:html";
       } else {
@@ -99,7 +99,7 @@
     } else if ( ( rootStateProps.text !== undefined ) &&
       ( lson.$type === undefined || lson.$type === "none" )) {
       lson.$type = "text";
-    } else if ( rootStateProps.imageSrc !== undefined ) {
+    } else if ( rootStateProps.image !== undefined ) {
       lson.$type = "image";
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";

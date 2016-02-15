@@ -1,10 +1,10 @@
 ( function() {
   "use strict";
   LAY.$formation2fargs = {
-    "onebelow": {
+    "vertical": {
       gap: 0
     },
-    "totheright": {
+    "horizontal": {
       gap: 0
     },
     "grid": {

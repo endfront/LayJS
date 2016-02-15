@@ -6,7 +6,7 @@
 
 (function () {
   "use strict";
-  
+
   window.LAY = {
 
     /* version is a method in order
@@ -121,4 +121,3 @@ if (!Array.prototype.indexOf) {
     return -1;
   };
 }
-

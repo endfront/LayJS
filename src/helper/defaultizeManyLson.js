@@ -28,7 +28,7 @@
   essentialProp2defaultValue = {
     filter:  new LAY.Take( "", "rows" ),
     sort:[],
-    formation: "onebelow",
+    formation: "vertical",
     fargs: {}
   };
 

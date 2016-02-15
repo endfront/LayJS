@@ -529,7 +529,7 @@ Defaults:
   `boolean`  
   Default: false  
 
-- linkHref  
+- link  
   `string`  
 
 - linkRel  
@@ -543,7 +543,7 @@ Defaults:
   `string`  
   HTML a[target]  
 
-- imageSrc  
+- image  
   `string`  
 
 - imageAlt  
@@ -1015,10 +1015,10 @@ LAY.run({
             },
             many: {
 
-              formation:'onebelow',
+              formation:'vertical',
               sort: [{key:"name", ascending:true}],
               fargs: {
-                onebelow: { gap: 2 }
+                vertical: { gap: 2 }
               },
 
               $id: "\_id",
@@ -1140,8 +1140,8 @@ formation:
   `String`
 
 All built-in formations:
-  - "onebelow"
-  - "totheright"
+  - "vertical"
+  - "horizontal"
   - "grid"
   - "circular"
 
@@ -1152,9 +1152,9 @@ Arguments for formation are to be specified in the
 LSON key "many.fargs.< formation name >"
 Below are formation arguments for corresponding formations:
 
-  - "onebelow"
+  - "vertical"
     - gap: distance in pixels to be kept vertically between consecutive Levels
-  - "totheright"
+  - "horizontal"
     - gap: distance in pixels to be kept horizontally between consecutive Levels
   - "grid"
     - hgap: distance in pixels to be kept horizontally
@@ -1167,7 +1167,7 @@ Below are formation arguments for corresponding formations:
 
 Formations can be added on the go, using `LAY.formation()`,
 with a unique formation name and formation function to it.
-An example of the "onebelow" formation:
+An example of the "vertical" formation:
 
 `LAY.formation( name, fargs, fn )`
 

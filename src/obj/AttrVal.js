@@ -296,7 +296,7 @@
               part.updateNaturalWidth();
             }
             break;
-          case "imageSrc":
+          case "image":
             part.isImageLoaded = false;
             break;
           case "audioController":
@@ -470,7 +470,8 @@
       if ( this.isEventReadonlyAttr ) {
         // Given that a reference exists, add event listeners
         var
-          eventType2fnHandler = LAY.$eventReadonlyUtils.getEventType2fnHandler( this.attr ),
+          eventType2fnHandler = LAY.$eventReadonlyUtils.getEventType2fnHandler(
+             this.attr ),
           eventType,
           fnBoundHandler, node;
 

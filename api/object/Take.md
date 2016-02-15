@@ -159,6 +159,10 @@ Slices the (array) base value using the Javascript [slice array prototype method
 - `contains( val )`  
 Checks if the (array) base value contains (any | [LAY.Take](#)) `val`.
 
+- `within( val )`  
+Checks if the (any) base value is contained within (array | [LAY.Take](#)) `val`.
+
+
 <br>
 ### Logic-related methods
 

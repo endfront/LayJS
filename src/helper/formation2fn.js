@@ -5,7 +5,7 @@
 		none: function ( f , filteredLevel, filteredLevelS, fargs ) {
 			return [ undefined, undefined ];
 		},
-		onebelow: function ( f, filteredLevel, filteredLevelS, fargs ) {
+		vertical: function ( f, filteredLevel, filteredLevelS, fargs ) {
 			return [
 				undefined,
 				fargs.gap === 0 ? 
@@ -14,7 +14,7 @@
 					fargs.gap)
 			];
 		},
-		totheright: function ( f, filteredLevel, filteredLevelS, fargs ) {
+		horizontal: function ( f, filteredLevel, filteredLevelS, fargs ) {
 			return [
 				fargs.gap === 0 ? 
 					LAY.take(filteredLevelS[ f - 2 ].path(), "right") :

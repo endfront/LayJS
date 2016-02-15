@@ -56,7 +56,26 @@
 
       }
     },
-
+    $hash: {
+      hashchange: function () {
+        this.$requestRecalculation( "$hash" );
+      }
+    },
+    $pathname: {
+      popstate: function () {
+        this.$requestRecalculation( "$pathname");
+      }
+    },
+    $href: {
+      popstate: function () {
+        this.$requestRecalculation( "$href");
+      }
+    },
+    $host: {
+      popstate: function () {
+        this.$requestRecalculation( "$host");
+      }
+    },
     $input: {
       click: function () {
         if ( this.part.inputType === "multiline" ||

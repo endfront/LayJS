@@ -1,7 +1,10 @@
 
 Current:
-  - startswith, endswith lay.take testing
-  - common string and array take methods
+  - resize bug in zone, swithcing between exist bug zone
+  - $hash, $pathname, $host, $href,
+  - change "image" to "image", and "link" to "link"
+  - change "horizontal" to "horizontal" and same for "vertical"
+  - lay.take testing
   - add test command from within gulp
   - transition multiple props comma separated, eg: "textColor, left, opacity"
   - naturalwidth/height of video
@@ -15,6 +18,7 @@ Current:
 
 
   spec:
+  - $hash, $path
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
   - add LAY.level.changeNativeInput/ScrollX/Y() to spec

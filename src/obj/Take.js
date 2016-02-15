@@ -205,6 +205,24 @@
     return this;
   };
 
+  LAY.Take.prototype.within = function ( val ) {
+
+    var oldExecutable = this.executable;
+    if ( val instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( val );
+
+      this.executable = function () {
+        return val.execute( this ).indexOf( oldExecutable.call( this ) ) !== -1;
+      };
+    } else {
+
+      this.executable = function () {
+        return val.indexOf( oldExecutable.call( this ) ) !== -1;
+      };
+    }
+    return this;
+  };
+
   LAY.Take.prototype.identical = function ( val ) {
 
     var oldExecutable = this.executable;

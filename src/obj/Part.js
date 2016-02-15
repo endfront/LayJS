@@ -322,6 +322,14 @@
         return this.node.scrollTop;
       case "$focused":
         return this.node === document.activeElement;
+      case "$hash":
+        return document.location.hash.substr(1);
+      case "$pathname":
+        return document.location.pathname;
+      case "$href":
+        return document.location.href;
+      case "$host":
+        return document.location.host;
       case "$input":
         if ( this.inputType === "multiple" ||
           this.inputType === "select" ) {
@@ -409,7 +417,7 @@
       return 0;
     } else {
       imageSizeMeasureNode.src =
-        this.level.attr2attrVal.imageSrc.calcVal;
+        this.level.attr2attrVal.image.calcVal;
       var otherDim = isWidth ? "height" : "width",
         otherDimAttrVal = this.level.attr2attrVal[
         otherDim ],
@@ -1372,8 +1380,8 @@
       case "inputDisabled":
         this.node.disabled = attr2attrVal.inputDisabled.transCalcVal;
         break;
-      case "linkHref":
-        this.node.href = attr2attrVal.linkHref.transCalcVal;
+      case "link":
+        this.node.href = attr2attrVal.link.transCalcVal;
         break;
       case "linkRel":
         this.node.rel = attr2attrVal.linkRel.transCalcVal;
@@ -1384,8 +1392,8 @@
       case "linkTarget":
         this.node.target = attr2attrVal.linkTarget.transCalcVal;
         break;
-      case "imageSrc":
-        this.node.src = attr2attrVal.imageSrc.transCalcVal;
+      case "image":
+        this.node.src = attr2attrVal.image.transCalcVal;
         break;
       case "imageAlt":
         this.node.alt = attr2attrVal.imageAlt.transCalcVal;

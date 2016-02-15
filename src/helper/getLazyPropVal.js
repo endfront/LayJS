@@ -122,10 +122,10 @@
       inputAutocorrect: true,
       inputDisabled: false,
 
-      imageSrc:null,
+      image:null,
       imageAlt: null,
 
-      linkHref: null,
+      link: null,
 
       videoAutoplay: false,
       videoControls: true,
