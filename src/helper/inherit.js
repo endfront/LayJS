@@ -136,6 +136,19 @@
     // Precondition: `into<Scope>.key (eg: intoLAY.key)` is already defined
     var key2fnInherit = {
 
+      $load: function( intoLson, fromLson ) {
+        var
+          intoLoadFnS = intoLson.$load,
+          fromLoadFnS = fromLson.$load;
+
+        if ( fromLoadFnS ) {
+          if ( !intoLoadFnS ) {
+            intoLoadFnS = intoLson.$load = [];
+          }
+          intoLoadFnS.concat( fromLoadFnS );
+        }
+      },
+
       data: function( intoLson, fromLson ) {
         inheritSingleLevelObject( intoLson, fromLson, "data" );
       },

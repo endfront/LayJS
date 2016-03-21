@@ -1,24 +1,23 @@
 
 Current:
-  - resize bug in zone, swithcing between exist bug zone
-  - $hash, $pathname, $host, $href,
-  - change "image" to "image", and "link" to "link"
-  - change "horizontal" to "horizontal" and same for "vertical"
-  - lay.take testing
-  - add test command from within gulp
-  - transition multiple props comma separated, eg: "textColor, left, opacity"
-  - naturalwidth/height of video
-  - $load cascading
-  - input:file
+  - fetch level by id (remove delete by id)
+  - node method for Level in spec
+  - format dict args
+  - format dict args for todomvc
+  - remove link type, link and image within same level
+  - markdown and html props
+  - todomvc specification link broken
   - lazy defaultize many lson fargs which are mentioned in states but not otherwise
-  - what is "$hovering" or any of the event binding events
+  - $xfonts, recalculate without animation
+  - what if "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
-
+  - error: undefined text string val (ie not a string)
+  - error: unknown formation know
 
   spec:
-  - $hash, $path
+  - $hash, $pathname, etc
   - Add "$i" index for Many to spec
   - formation spec (include part for creating formations)
   - add LAY.level.changeNativeInput/ScrollX/Y() to spec
@@ -27,6 +26,17 @@ Current:
   - queryAll, queryFiltered
 
 Future:
+  - test for popstate (url) change
+  - add "style" prop
+  - switching between exist bug zone
+  - take.replace
+  - lay.take testing
+  - image without height/width
+  - naturalwidth/height of video
+  - font loading
+  - LAY.Many.rowsMap(fn, query)
+  - exist delay
+  - LAY.view method
   - investigate "-text-size-adjust"
   - allow state name "all"
   - formation dict? {x,y,z,rotateX,rotateY,rotateZ,skewX,skewY, scaleX, scaleY}

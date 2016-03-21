@@ -4,7 +4,7 @@
 
   var reservedNameS = [
     "root", "transition", "data", "when", "onlyif",
-    "states", "exist",
+    "states", "exist", "css",
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
@@ -75,10 +75,10 @@ l  	* (2) Must not be a reserved name with the exception of "root"
     checkIsPropAttrExpandable: function ( attr ) {
       var expanderPropS = [
         "border", "background", "boxShadows", "textShadows",
-         "videoSources", "audioSources", "videoTracks", "audioTracks",
+         "videos", "audios", "videoTracks", "audioTracks",
           "filters","borderTop", "borderRight", "borderBottom", "borderLeft",
       ];
-       var regexExpanderProps = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videoSources\d+$)|(^audioSources\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)/;
+       var regexExpanderProps = /(^boxShadows\d+$)|(^textShadows\d+$)|(^videos\d+$)|(^audios\d+$)|(^videoTracks\d+$)|(^audioTracks\d+$)|(^filters\d+$)|(^filters\d+DropShadow$)/;
 
       var strippedStateAttr = stripStateAttrPrefix( attr );
       return ( ( expanderPropS.indexOf( strippedStateAttr ) !== -1 ) ||

@@ -10,7 +10,6 @@ LAY.run({
       children: {
         "Content": {
             data: {
-
               zero: LAY.take( 0 ),
               zeroCopy: LAY.take("", "data.zero"),
               five: 5,
@@ -383,7 +382,7 @@ LAY.run({
 
 
 
-// TODO: TEST single ARG LAY.take() HEREEEEE
+// TODO: TEST single ARG LAY.take() HERE
 
 
 
@@ -985,5 +984,7 @@ QUnit.test( "LAY.Take()", function ( assert ) {
   assert.strictEqual( LAY.level("/Body/Content").attr(
     "data.takeChained"
   ) , 8.5);
+
+
 
 });

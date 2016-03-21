@@ -54,7 +54,7 @@
       if (this.$$handleEvent(event) === false) {
         returnValue = false;
       }
-    
+
     }
     return returnValue;
   }
@@ -72,5 +72,3 @@
     this.cancelBubble = true;
   }
 })();
-
-

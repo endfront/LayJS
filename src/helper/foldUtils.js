@@ -2,42 +2,39 @@
   "use strict";
 
   LAY.$foldlUtils = {
-    min: function ( rowS, key ) {
-      return fold( function ( row, acc ) {
-        var val = row[ key ];
-          if ( ( acc === undefined ) || ( val < acc ) ) {
-            return val;
+    min: function ( itemS ) {
+      return fold( function ( item, acc ) {
+          if ( ( acc === undefined ) || ( item < acc ) ) {
+            return item;
           } else {
             return acc;
           }
-        }, undefined, rowS ); 
+        }, undefined, itemS );
     },
-    max: function ( rowS, key ) {
-      return fold( function ( row, acc ) {
-        var val = row[ key ];
-          if ( ( acc === undefined ) || ( val > acc ) ) {
-            return val;
+    max: function ( itemS ) {
+      return fold( function ( item, acc ) {
+          if ( ( acc === undefined ) || ( item > acc ) ) {
+            return item;
           } else {
             return acc;
           }
-        }, undefined, rowS ); 
+        }, undefined, itemS );
     },
-    sum: function ( rowS, key ) {
-      return fold( function ( row, acc ) {
-        return acc + row[ key ];
-        }, 0, rowS );
+    sum: function ( itemS ) {
+      return fold( function ( item, acc ) {
+        return item + row[ key ];
+      }, 0, itemS );
     },
 
-    
-    fn: function ( rowS, fnFold, acc ) {
-      return fold( fnFold, acc, rowS );      
+
+    fn: function ( itemS, fnFold, acc ) {
+      return fold( fnFold, acc, itemS );
     }
-  
 
   };
 
-  function fold ( fnFold, acc, rowS ) {
-    for ( var i = 0, len = rowS.length; i < len; i++ ) {
+  function fold ( fnFold, acc, itemS ) {
+    for ( var i = 0, len = itemS.length; i < len; i++ ) {
       acc = fnFold( rowS[ i ], acc );
     }
     return acc;

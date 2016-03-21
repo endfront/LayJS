@@ -10,7 +10,8 @@
     textSizeMeasureNode,
     imageSizeMeasureNode,
     supportedInputTypeS,
-    audioWidth, audioHeight;
+    audioWidth, audioHeight,
+    INPUT_FILE_WIDTH = 240;
 
 
   // source: http://davidwalsh.name/vendor-prefix
@@ -52,7 +53,8 @@
 
   defaultCss = "position:absolute;display:block;visibility:inherit;" +
     "margin:0;padding:0;" +
-    "backface-visibility: hidden;" +
+    "backface-visibility:hidden;" +
+    "contain:style;" +
     "-webkit-backface-visibility: hidden;" +
     "box-sizing:border-box;-moz-box-sizing:border-box;" +
     "transform-style:preserve-3d;-webkit-transform-style:preserve-3d;" +
@@ -65,6 +67,7 @@
   // for ones which do not match the
   // below list contains their default css
   defaultTextCss = defaultCss +
+    "contain:style layout;" +
     "font-size:15px;" +
     "font-family:sans-serif;color:black;" +
     "text-decoration:none;" +
@@ -75,12 +78,13 @@
   textDimensionCalculateNodeCss =
     defaultTextCss +
     "visibility:hidden;height:auto;" +
+    "contain:none;" +
     "border:0px solid transparent;";
 
   inputType2tag = {
-    multiline: "textarea",
-    select: "select",
-    multiple: "select"
+    lines: "textarea",
+    option: "select",
+    options: "select"
   };
 
   nonInputType2tag = {
@@ -98,8 +102,8 @@
   };
 
   supportedInputTypeS = [
-    "line", "multiline", "password", "select",
-    "multiple" ];
+    "line", "lines", "password", "option",
+    "options", "file", "files" ];
 
 
   var audioElement = document.createElement("audio");
@@ -137,14 +141,13 @@
   textSizeMeasureNode = document.createElement("div");
   textSizeMeasureNode.style.cssText =
     textDimensionCalculateNodeCss;
-
   document.body.appendChild( textSizeMeasureNode );
 
   imageSizeMeasureNode = document.createElement("img");
   imageSizeMeasureNode.style.cssText = defaultCss +
     "visibility:hidden;"
-
   document.body.appendChild( imageSizeMeasureNode );
+
 
   LAY.Part = function ( level ) {
 
@@ -161,6 +164,7 @@
     this.whenEventType2fnMainHandler = {};
 
     this.isImageLoaded = false;
+    this.isVideoLoaded = false;
 
     // for many derived levels
     this.formationX = undefined;
@@ -191,25 +195,28 @@
       inputTag = inputType2tag[ this.inputType ];
       if ( inputTag ) {
         this.node = document.createElement( inputTag );
-        if ( inputType === "multiple" ) {
+        if ( inputType === "options" ) {
           this.node.multiple = true;
         }
       } else {
         this.node = document.createElement( "input" );
         this.node.type = this.inputType === "line" ?
-          "text" : this.inputType;
+          "text" : ( this.inputType === "files" ? "file" : this.inputType );
+
         if ( inputType === "password" ) {
           // we wil treat password as a line
           // for logic purposes, as we we will
           // not alter the input[type] during
           // runtime
           this.inputType = "line";
+        } else if ( inputType === "files" ) {
+          this.node.multiple = true;
         }
       }
 
     } else {
       this.node = document.createElement(
-        nonInputType2tag[ this.type]);
+        nonInputType2tag[ this.type ]);
     }
 
 
@@ -218,14 +225,13 @@
       this.type === "link:html" ||
       this.type === "html";
 
-
     if ( this.isText ) {
       this.node.style.cssText = defaultTextCss;
     } else {
       this.node.style.cssText = defaultCss;
     }
 
-    if ( this.type === "input" && this.inputType === "multiline" ) {
+    if ( this.type === "input" && this.inputType === "lines" ) {
       this.node.style.resize = "none";
     }
 
@@ -234,6 +240,14 @@
       var part = this;
       LAY.$eventUtils.add( this.node, "load", function() {
         part.isImageLoaded = true;
+        part.updateNaturalWidth();
+        part.updateNaturalHeight();
+        LAY.$solve();
+      });
+    } else if ( this.type === "video" ) {
+      var part = this;
+      LAY.$eventUtils.add( this.node, "loadedmetadata", function() {
+        part.isVideoLoaded = true;
         part.updateNaturalWidth();
         part.updateNaturalHeight();
         LAY.$solve();
@@ -331,8 +345,7 @@
       case "$host":
         return document.location.host;
       case "$input":
-        if ( this.inputType === "multiple" ||
-          this.inputType === "select" ) {
+        if ( this.inputType.startsWith("option") ) {
           var optionS =
             this.isInitiallyRendered ?
             this.node.options :
@@ -350,12 +363,15 @@
           // Select the first option if none is selected
           // as that will be the default
           if ( optionS.length && !valS.length &&
-              this.inputType === "select" ) {
+              this.inputType === "option" ) {
             valS.push(optionS[ 0 ].value );
           }
-          return this.inputType === "select" ?
+          return this.inputType === "option" ?
             valS[ 0 ] : valS ;
 
+        } else if ( this.inputType.startsWith("file") ) {
+          return this.inputType === "file" ?
+            this.node.files[ 0 ] : this.node.files;
         } else {
           return this.node.value;
         }
@@ -391,6 +407,8 @@
       return this.calculateTextNaturalDimesion( true );
     } else if ( this.type === "image" ) {
       return this.calculateImageNaturalDimesion( true );
+    } else if ( this.type === "video" ) {
+      return this.calculateVideoNaturalDimesion( true );
     } else if ( this.type === "audio" ) {
       return this.calculateTextNaturalDimesion( true );
     } else {
@@ -405,6 +423,8 @@
       return this.calculateTextNaturalDimesion( false );
     } else if ( this.type === "image" ) {
       return this.calculateImageNaturalDimesion( false );
+    } else if ( this.type === "video" ) {
+      return this.calculateVideoNaturalDimesion( false );
     } else if ( this.type === "audio" ) {
       return this.calculateTextNaturalDimesion( false );
     } else {
@@ -418,21 +438,67 @@
     } else {
       imageSizeMeasureNode.src =
         this.level.attr2attrVal.image.calcVal;
+      imageSizeMeasureNode.style.width = "auto";
+      imageSizeMeasureNode.style.height = "auto";
+
       var otherDim = isWidth ? "height" : "width",
         otherDimAttrVal = this.level.attr2attrVal[
         otherDim ],
         otherDimVal = otherDimAttrVal ?
           ( otherDimAttrVal.calcVal !== undefined ?
-          otherDimAttrVal.calcVal + "px" : "auto" ) : "auto";
+          otherDimAttrVal.calcVal : undefined ) : undefined;
+
 
       if ( isWidth ) {
-        imageSizeMeasureNode.style.height = otherDimVal;
-        imageSizeMeasureNode.style.width = "auto";
-        return imageSizeMeasureNode.offsetWidth;
+        if ( typeof otherDimVal !== "number" ||
+          otherDimVal === 0 ) {
+          return imageSizeMeasureNode.width;
+        } else {
+          return imageSizeMeasureNode.width *
+            ( otherDimVal / imageSizeMeasureNode.height );
+        }
       } else {
-        imageSizeMeasureNode.style.width = otherDimVal;
-        imageSizeMeasureNode.style.height = "auto";
-        return imageSizeMeasureNode.offsetHeight;
+        if ( typeof otherDimVal !== "number" ||
+        otherDimVal === 0 ) {
+          return imageSizeMeasureNode.height;
+        } else {
+          return imageSizeMeasureNode.height *
+            ( otherDimVal / imageSizeMeasureNode.width );
+        }
+      }
+    }
+  };
+
+  LAY.Part.prototype.calculateVideoNaturalDimesion = function ( isWidth ) {
+    if ( !this.isVideoLoaded ) {
+      return 0;
+    } else {
+      var node = this.node;
+      node.style.visibility = "hidden";
+
+      var otherDim = isWidth ? "height" : "width",
+        otherDimAttrVal = this.level.attr2attrVal[
+        otherDim ],
+        otherDimVal = otherDimAttrVal ?
+          ( otherDimAttrVal.calcVal !== undefined ?
+          otherDimAttrVal.calcVal : "auto" ) : "auto";
+
+      node.height = "auto";
+      node.width = "auto";
+      console.log("here");
+      if ( isWidth ) {
+        node.height = otherDimVal;
+        console.log(node.videoWidth);
+
+        node.style.visibility = "visible";
+
+        return node.offsetWidth;
+      } else {
+        node.width = otherDimVal;
+
+        node.style.visibility = "visible";
+
+        return node.videoHeight;
       }
     }
   };
@@ -460,8 +526,9 @@
   * then return the estimated height, else return -1;
   */
   LAY.Part.prototype.estimateTextNaturalHeight = function ( text ) {
-    if ( this.type === "html" &&
-        checkIfTextMayHaveHTML ( text ) ) {
+    if ( [ "file", "files" ].indexOf( this.type ) !== -1 ||
+      ( this.type === "html" &&
+        checkIfTextMayHaveHTML ( text ) ) ) {
       return -1;
     } else {
       var heightAttr2default = {
@@ -589,10 +656,9 @@
       cssText = textDimensionCalculateNodeCss;
 
     if ( this.type === "input" ) {
-      if ( this.inputType === "select" ||
-        this.inputType === "multiple" ) {
+      if ( this.inputType.startsWith("option") ) {
         if ( attr2attrVal.input.isRecalculateRequired ) {
-          return 0
+          return 0;
         }
         content = "<select" +
           ( this.inputType === "multiple" ?
@@ -600,7 +666,17 @@
           generateSelectOptionsHTML(
             attr2attrVal.input.calcVal
            ) + "</select>";
+      } else if ( this.inputType.startsWith("file") ) {
+        if ( isWidth ) {
+          return INPUT_FILE_WIDTH;
+        } else {
+          content = "<input type='file' " +
+            ( this.inputType === "multiple" ?
+            " multiple='true' " : "" ) +  "/>";
+        }
       } else {
+        // letter "a" is a random letter
+        // used as a placeholder
         content = attr2attrVal.$input ?
           attr2attrVal.$input.calcVal : "a";
       }
@@ -976,21 +1052,25 @@
             "rotateZ(" + attr2attrVal.rotateZ.transCalcVal + "deg)" : "" );
         break;
       case "width":
-        this.node.style.width =
-          attr2attrVal.width.transCalcVal + "px";
-        if ( [ "canvas", "video", "image","iframe" ].indexOf(
-            this.type ) !== -1 ) {
-          this.node.width =
-            attr2attrVal.width.transCalcVal;
+        if ( !(this.type === "video" && !this.isVideoLoaded ) ) {
+          this.node.style.width =
+            attr2attrVal.width.transCalcVal + "px";
+          if ( [ "canvas", "video", "image","iframe" ].indexOf(
+              this.type ) !== -1 ) {
+            this.node.width =
+              attr2attrVal.width.transCalcVal;
+          }
         }
         break;
       case "height":
-        this.node.style.height =
-          attr2attrVal.height.transCalcVal + "px";
-        if ( [ "canvas", "video", "image","iframe" ].indexOf(
-              this.type ) !== -1 ) {
-          this.node.height =
-            attr2attrVal.height.transCalcVal;
+        if ( !(this.type === "video" && !this.isVideoLoaded ) ) {
+          this.node.style.height =
+            attr2attrVal.height.transCalcVal + "px";
+          if ( [ "canvas", "video", "image","iframe" ].indexOf(
+                this.type ) !== -1 ) {
+            this.node.height =
+              attr2attrVal.height.transCalcVal;
+          }
         }
         break;
       case "origin":
@@ -1153,7 +1233,9 @@
               s +=  "drop-shadow(" +
               ( attr2attrVal["filters" + i + "X" ].transCalcVal + "px " ) +
               (  attr2attrVal["filters" + i + "Y" ].transCalcVal  + "px " ) +
-              ( attr2attrVal["filters" + i + "Blur" ].transCalcVal + "px " ) +
+              ( ( attr2attrVal["filters" + i + "Blur" ] ?
+                attr2attrVal["filters" + i + "Blur" ].transCalcVal : 0 ) +
+                "px " ) +
         //      ( ( attr2attrVal["filters" + i + "Spread" ] !== undefined ?
   // attr2attrVal[ "filters" + i + "Spread" ].transCalcVal : 0 ) + "px " ) +
               (  attr2attrVal["filters" + i + "Color" ].
@@ -1359,7 +1441,7 @@
         break;
       case "input":
         var inputVal = attr2attrVal.input.transCalcVal;
-        if ( this.inputType === "select" || this.inputType === "multiple" ) {
+        if ( this.inputType === "option" || this.inputType === "options" ) {
           this.node.innerHTML = generateSelectOptionsHTML( inputVal );
         } else {
           this.node.value = inputVal;
@@ -1367,6 +1449,9 @@
         break;
       case "inputLabel":
         this.node.label = attr2attrVal.inputLabel.transCalcVal;
+        break;
+      case "inputAccept":
+        this.node.accept = attr2attrVal.inputAccept.transCalcVal;
         break;
       case "inputPlaceholder":
         this.node.placeholder = attr2attrVal.inputPlaceholder.transCalcVal;
@@ -1398,10 +1483,10 @@
       case "imageAlt":
         this.node.alt = attr2attrVal.imageAlt.transCalcVal;
         break;
-      case "audioSrc":
-        this.node.src = attr2attrVal.audioSrc.transCalcVal;
+      case "audio":
+        this.node.src = attr2attrVal.audio.transCalcVal;
         break;
-      case "audioSources":
+      case "audios":
         var
           documentFragment = document.createDocumentFragment(),
           childNodes = this.node.childNodes,
@@ -1413,13 +1498,13 @@
             childNode.parentNode.removeChild( childNode );
           }
         }
-        for ( var i = 1, len = attr2attrVal[ "$$max.audioSources" ].calcVal;
+        for ( var i = 1, len = attr2attrVal[ "$$max.audios" ].calcVal;
           i <= len; i++ ) {
           childNode = document.createElement( "source" );
           childNode.type =
-            attr2attrVal[ "audioSources" + i + "Type" ].transCalcVal;
+            attr2attrVal[ "audios" + i + "Type" ].transCalcVal;
           childNode.src =
-            attr2attrVal[ "audioSources" + i + "Src" ].transCalcVal;
+            attr2attrVal[ "audios" + i + "Src" ].transCalcVal;
           documentFragment.appendChild( childNode );
         }
         this.node.appendChild( documentFragment );
@@ -1462,10 +1547,10 @@
       case "audioPreload":
         this.node.preload = attr2attrVal.audioPreload.transCalcVal;
         break;
-      case "videoSrc":
-        this.node.src = attr2attrVal.videoSrc.transCalcVal;
+      case "video":
+        this.node.src = attr2attrVal.video.transCalcVal;
         break;
-      case "videoSources":
+      case "videos":
         var
           documentFragment = document.createDocumentFragment(),
           childNodes = this.node.childNodes,
@@ -1477,13 +1562,13 @@
             childNode.parentNode.removeChild( childNode );
           }
         }
-        for ( var i = 1, len = attr2attrVal[ "$$max.videoSources" ].calcVal;
+        for ( var i = 1, len = attr2attrVal[ "$$max.videos" ].calcVal;
           i <= len; i++ ) {
           childNode = document.createElement( "source" );
           childNode.type =
-            attr2attrVal[ "videoSources" + i + "Type" ].transCalcVal;
+            attr2attrVal[ "videos" + i + "Type" ].transCalcVal;
           childNode.src =
-            attr2attrVal[ "videoSources" + i + "Src" ].transCalcVal;
+            attr2attrVal[ "videos" + i + "Src" ].transCalcVal;
           documentFragment.appendChild( childNode );
         }
         this.node.appendChild( documentFragment );

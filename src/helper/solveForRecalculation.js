@@ -16,14 +16,19 @@
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-        ret =
-          recalculateDirtyAttrValS[ i ].recalculate();
-
-        if ( ret ) {
-          isSolveProgressed = true;
-          isSolveProgressedOnce = true;
+        if ( recalculateDirtyAttrValS[ i ].isRemoved ) {
           LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
           i--;
+        } else {
+          ret =
+            recalculateDirtyAttrValS[ i ].recalculate();
+
+          if ( ret ) {
+            isSolveProgressed = true;
+            isSolveProgressedOnce = true;
+            LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
+            i--;
+          }
         }
       }
 

@@ -18,6 +18,7 @@
     this.isTakeValReady = undefined;
     this.attr = attr;
     this.isRecalculateRequired = true;
+    this.isRemoved = false;
 
     this.calcVal = undefined;
     this.transCalcVal = undefined;
@@ -274,8 +275,8 @@
             }
             break;
           case "input":
-            if ( part.inputType === "multiple" ||
-                part.inputType === "select" ) {
+            if ( part.inputType === "option" ||
+                part.inputType === "options" ) {
               level.attr2attrVal.$input.requestRecalculation();
             }
             break;
@@ -287,50 +288,57 @@
                 textWrapAttrVal.calcVal !== "nowrap" ) {
                 part.updateNaturalHeight();
               }
-            } else if ( part.type === "image" ) {
+            } else if ( part.type === "image" ||
+              part.type === "video") {
               part.updateNaturalHeight();
             }
             break;
           case "height":
-            if ( part.type === "image" ) {
+            if ( part.type === "image" ||
+              part.type === "video" ) {
               part.updateNaturalWidth();
             }
             break;
           case "image":
             part.isImageLoaded = false;
             break;
+          case "video":
+            part.isVideoLoaded = false;
+            break;
           case "audioController":
             part.updateNaturalHeight();
             part.updateNaturalHeight();
             break;
           default:
-            var checkIfAttrAffectsTextDimesion =
-              function ( attr ) {
-                return attr.startsWith("text") &&
-                  !attr.startsWith("textShadows") &&
-                  ([ "textColor",
-                    "textDecoration",
-                    "textSmoothing",
-                    "textShadows"
-                  ]).indexOf( attr ) === -1;
-            };
-            if ( part.isText ) {
-              if ( checkIfAttrAffectsTextDimesion( attr ) )  {
+            if ( attr.startsWith("videos") ) {
+              part.isVideoLoaded = false;
+            } else {
+              var checkIfAttrAffectsTextDimesion =
+                function ( attr ) {
+                  return attr.startsWith("text") &&
+                    !attr.startsWith("textShadows") &&
+                    ([ "textColor",
+                      "textDecoration",
+                      "textSmoothing",
+                      "textShadows"
+                    ]).indexOf( attr ) === -1;
+              };
+              if ( part.isText ) {
+                if ( checkIfAttrAffectsTextDimesion( attr ) )  {
+                    part.updateNaturalWidth();
+                    part.updateNaturalHeight();
+
+                } else if ( ( attr === "borderTopWidth" ) ||
+                  ( attr === "borderBottomWidth" ) ) {
+                    part.updateNaturalHeight();
+                } else if ( ( attr === "borderLeftWidth" ) ||
+                  ( attr === "borderRightWidth" ) ) {
                   part.updateNaturalWidth();
                   part.updateNaturalHeight();
-
-              } else if ( ( attr === "borderTopWidth" ) ||
-                ( attr === "borderBottomWidth" ) ) {
-                  part.updateNaturalHeight();
-              } else if ( ( attr === "borderLeftWidth" ) ||
-                ( attr === "borderRightWidth" ) ) {
-                part.updateNaturalWidth();
-                part.updateNaturalHeight();
+                }
               }
             }
-
         }
-
         // In case there exists a transition
         // for the given prop then update it
         part.updateTransitionProp( attr );
@@ -419,7 +427,11 @@
               part.updateNaturalHeight();
             }
             break;
-
+          case "css":
+            if ( recalcVal ) {
+              LAY.$insertCSS( recalcVal );
+            }
+            break;
         }
       }
     }
@@ -586,8 +598,7 @@
 
   LAY.AttrVal.prototype.remove = function () {
     this.takeNot( this.val );
-    LAY.$arrayUtils.remove(
-      LAY.$recalculateDirtyAttrValS, this );
+    this.isRemoved = true;
     this.level.attr2attrVal[ this.attr ] = undefined;
 
   }

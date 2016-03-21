@@ -184,7 +184,7 @@
     }
   };
 
-  LAY.Level.prototype.rowsDelete = function ( queryRowS ) {
+  LAY.Level.prototype.rowsDelete = function ( query ) {
     if ( !this.isPart ) {
       this.manyObj.rowsDelete( query );
     }
@@ -640,16 +640,20 @@
     initAttrsObj( "data.", lson.data, attr2val, false );
 
     for ( stateName in states ) {
-        state = states[ stateName ];
-        if ( stateName !== "root" ) {
-          attr2val[ stateName + "." + "onlyif" ] = state.onlyif;
-          if ( state.install ) {
-            attr2val[ stateName + "." + "install" ] = state.install;
-          }
-          if ( state.uninstall ) {
-            attr2val[ stateName + "." + "uninstall" ] = state.uninstall;
-          }
+      state = states[ stateName ];
+      if ( stateName !== "root" ) {
+        attr2val[ stateName + "." + "onlyif" ] = state.onlyif;
+        if ( state.install ) {
+          attr2val[ stateName + "." + "install" ] = state.install;
         }
+        if ( state.uninstall ) {
+          attr2val[ stateName + "." + "uninstall" ] = state.uninstall;
+        }
+      }
+    }
+
+    if ( lson.css ) {
+      attr2val.css = lson.css;
     }
 
     if ( this.isPart ) {

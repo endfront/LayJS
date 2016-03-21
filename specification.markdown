@@ -14,6 +14,7 @@
         $gpu: boolean,
         $view: boolean,
 
+        css: string (take),
         exist: boolean (take),
         data: object,
         props: object,
@@ -76,11 +77,12 @@
   - "canvas"
   - "iframe"
   - "input:line"
-  - "input:multiline"
+  - "input:lines"
   - "input:password"
-  - "input:select"
-  - "input:multiple"
-  - "input:file" [coming soon]
+  - "input:option"
+  - "input:options"
+  - "input:file"
+  - "input:files"
   - "input:< any other valid input[type] html property i.e color, date, etc >" [coming soon]
 
 
@@ -504,9 +506,6 @@ Defaults:
       ...  
     ]  
 
-- inputLabel  
-  `string`  
-  Default: ""  
 
 - input  
   `string` / `array`  
@@ -516,6 +515,14 @@ Defaults:
 - inputPlaceholder  
   `string`  
   Default: ""  
+
+- inputLabel  
+  `string`  
+  Default: ""  
+
+- inputAccept
+  `string`
+  Default: ""
 
 - inputAutocomplete  
   `boolean`  
@@ -549,10 +556,10 @@ Defaults:
 - imageAlt  
   `string`  
 
-- audioSrc / videoSrc  
+- audio / video
   `string`  
 
-- videoSources / audioSources  
+- videos / audios  
   This is a "multiple-type" and an "object-type" prop.
     [  
       {  
@@ -631,6 +638,8 @@ Defaults:
   - transition.< attr >.< duration/delay/done/type >
 
   - transition.< attr >.args.< arg >
+
+  - css
 
   - formation
 

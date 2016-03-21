@@ -13,11 +13,11 @@ LAY.run({
   "Body": {
     "Content": {
       "InternalInherit": {
-        
+
       },
       "Box": {
         $inherit: [externalInherit, "../InternalInherit" ],
-              
+
         states: {
           "state1": {
           },
@@ -29,6 +29,7 @@ LAY.run({
 
 
 
+// TODO: complete for $load
 
 QUnit.test( "LSON.inherit", function( assert ) {
 
@@ -45,5 +46,3 @@ QUnit.test( "LSON.inherit", function( assert ) {
   assert.strictEqual(true, true);
 
 });
-
-

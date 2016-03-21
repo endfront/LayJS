@@ -1404,77 +1404,86 @@
     return this;
   };
 
-  LAY.Take.prototype.foldMin = function ( attr ) {
-
+  LAY.Take.prototype.mapFn = function ( fn ) {
     var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
-        this.executable = function () {
-          return LAY.$foldUtils.min(
-            oldExecutable.call( this ),
-            attr.execute( this )
+    if ( fn instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( fn );
+      this.executable = function () {
+        return LAY.$mapUtils.fn(
+          oldExecutable.call( this ),
+          fn.execute( this )
         );
       }
     } else {
       this.executable = function () {
-        return LAY.$foldUtils.min(
+        return LAY.$mapUtils.fn(
           oldExecutable.call( this ),
-          attr
+          fn
         );
       }
-
     }
     return this;
   };
 
-  LAY.Take.prototype.foldMax = function ( attr ) {
-
+  LAY.Take.prototype.mapKey = function ( key ) {
     var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
-        this.executable = function () {
-          return LAY.$foldUtils.max(
-            oldExecutable.call( this ),
-            attr.execute( this )
+    if ( key instanceof LAY.Take ) {
+      this.$mergePathAndAttrs( key );
+      this.executable = function () {
+        return LAY.$mapUtils.key(
+          oldExecutable.call( this ),
+          key.execute( this )
         );
       }
     } else {
       this.executable = function () {
-        return LAY.$foldUtils.max(
+        return LAY.$mapUtils.key(
           oldExecutable.call( this ),
-          attr
+          key
         );
       }
-
     }
     return this;
   };
 
-  LAY.Take.prototype.foldSum = function ( attr ) {
+  LAY.Take.prototype.foldMin = function () {
 
     var oldExecutable = this.executable;
 
-    if ( attr instanceof LAY.Take ) {
-      this.$mergePathAndAttrs( attr );
-        this.executable = function () {
-          return LAY.$foldUtils.sum(
-            oldExecutable.call( this ),
-            attr.execute( this )
-        );
-      }
-    } else {
-      this.executable = function () {
-        return LAY.$foldUtils.sum(
-          oldExecutable.call( this ),
-          attr
-        );
-      }
-
-    }
+    this.executable = function () {
+      return LAY.$foldUtils.min(
+        oldExecutable.call( this )
+      );
+    };
     return this;
   };
+
+  LAY.Take.prototype.foldMax = function () {
+
+    var oldExecutable = this.executable;
+
+    this.executable = function () {
+      return LAY.$foldUtils.max(
+        oldExecutable.call( this )
+      );
+    };
+    return this;
+  };
+
+  LAY.Take.prototype.foldSum = function () {
+
+    var oldExecutable = this.executable;
+
+    this.executable = function () {
+      return LAY.$foldUtils.sum(
+        oldExecutable.call( this )
+      );
+    };
+    return this;
+  };
+
 
   LAY.Take.prototype.foldFn = function ( fn, acc ) {
 

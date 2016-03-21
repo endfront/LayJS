@@ -78,7 +78,7 @@
     },
     $input: {
       click: function () {
-        if ( this.part.inputType === "multiline" ||
+        if ( this.part.inputType === "lines" ||
             this.part.inputType === "line" ) {
           this.$requestRecalculation( "$input" );
         }
@@ -87,7 +87,7 @@
         this.$requestRecalculation( "$input" );
       },
       keyup: function () {
-        if ( this.part.inputType === "multiline" ||
+        if ( this.part.inputType === "lines" ||
             this.part.inputType === "line" ) {
           this.$requestRecalculation( "$input" );
         }

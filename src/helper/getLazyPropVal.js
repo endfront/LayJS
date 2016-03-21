@@ -118,24 +118,24 @@
       input: "",
       inputLabel: "",
       inputPlaceholder: "",
+      inputAccept: "",
       inputAutocomplete: false,
       inputAutocorrect: true,
       inputDisabled: false,
 
-      image:null,
       imageAlt: null,
 
       link: null,
 
       videoAutoplay: false,
-      videoControls: true,
+      videoController: true,
       videoCrossorigin: "anonymous",
       videoLoop: false,
       videoMuted: false,
       videoPreload: "auto",
       videoPoster: null,
 
-      audioControls: true,
+      audioController: true,
       audioLoop: false,
       audioMuted: false,
       audioPreload: "auto",

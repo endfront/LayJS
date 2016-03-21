@@ -149,7 +149,7 @@
 
   };
 
-  LAY.Many.prototype.rowsDelete = function ( queryRowS ) {
+  LAY.Many.prototype.rowsDelete = function ( query ) {
 
     var
       rowsAttrVal = this.level.attr2attrVal.rows,

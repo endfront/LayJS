@@ -101,6 +101,12 @@
       lson.$type = "text";
     } else if ( rootStateProps.image !== undefined ) {
       lson.$type = "image";
+    } else if ( rootStateProps.video !== undefined ||
+        rootStateProps.videos !== undefined ) {
+      lson.$type = "video";
+    } else if ( rootStateProps.audio !== undefined ||
+        rootStateProps.audios !== undefined ) {
+      lson.$type = "audio";
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";
     }

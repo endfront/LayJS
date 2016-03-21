@@ -91,6 +91,8 @@
       errorReadonly = "obdurate";
     } else if ( lson.type ) {
       errorReadonly = "type"
+    } else if ( lson.view ) {
+      errorReadonly = "view";
     }
     if ( errorReadonly ) {
       throw "LAY Error: prefix readonly '" +
@@ -196,6 +198,9 @@
 
     $load: function ( lson ) {
       checkAndThrowErrorAttrAsTake( "$load", lson.$load );
+      if ( !( lson.$load instanceof Array ) ) {
+        lson.$load = [ lson.$load ];
+      }
     },
 
     $gpu: function ( lson ) {
@@ -208,6 +213,10 @@
 
     exist: function ( lson ) {
     },
+
+    css: function ( lson ) {
+    },
+
     /*
     * normalize the `lson`
     */
@@ -353,6 +362,21 @@
         }
 
         for ( transitionProp in transition ) {
+          // Check if multiple props are specified for transition.
+          if ( transitionProp.indexOf(",") !== -1 ) {
+            // Split the transitions
+            var splitPropS = transitionProp.split(",");
+            for ( var i=0, len=splitPropS.length; i<len; i++ ) {
+              var splitProp = splitPropS[ i ].trim();
+              transition[ splitProp ] = transition[ transitionProp ];
+            }
+            // remove the main transition
+            transition[ transitionProp ] = undefined;
+          }
+        }
+
+        for ( transitionProp in transition ) {
+
           if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable(
               transitionProp ) ) {
             throw (
@@ -365,7 +389,6 @@
 
           transitionArgKey2val = transitionDirective.args;
           if ( transitionArgKey2val !== undefined ) {
-
             checkAndThrowErrorAttrAsTake( "transition." + transitionProp +
               ".args",
             transitionArgKey2val  );

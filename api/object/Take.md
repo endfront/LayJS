@@ -71,7 +71,7 @@ Base value by the power of (number | [LAY.Take](#)) `val`.
 - `sqrt()`  
 Square root value of the base value.  
 
-<br>
+
 ### Comparator-related methods
 
 - `eq( val )`  
@@ -95,7 +95,7 @@ Checks if the base value is lesser than or equal to (<=) (any | [LAY.Take](#)) `
 - `identical( val )`  
 Checks if the base value is identical (deep equal) to (any | [LAY.Take](#)) `val`.  
 
-<br>
+
 ### String-related methods
 
 - `capitalize()`  
@@ -141,7 +141,7 @@ Lowercases the (string) base value.
 Uppercases the (string) base value.
 
 
-<br>
+
 ### Array-related methods
 
 - `index( i )`  
@@ -163,7 +163,7 @@ Checks if the (array) base value contains (any | [LAY.Take](#)) `val`.
 Checks if the (any) base value is contained within (array | [LAY.Take](#)) `val`.
 
 
-<br>
+
 ### Logic-related methods
 
 - `and( val )`  
@@ -175,7 +175,7 @@ Logical "or" (||) of base value with (any | [LAY.Take](#)) `val`.
 - `not()`  
 Logical "negation" (!) of base value.
 
-<br>
+
 ### Color-related methods
 
 - `colorLighten( val )`  
@@ -206,7 +206,7 @@ Applies the [LAY.Color.stringify()](Color.md#method-stringify) method to the ([L
 Applies the [LAY.Color.equals()](Color.md#method-equals) method to the ([LAY.Color](Color.md)) base value with argument ([LAY.Color](Color.md) | [LAY.Take](#)) `color`.
 
 
-<br>
+
 ### Regex-related methods
 
 - `regexMatch( pattern )`  
@@ -221,7 +221,7 @@ Tests the (regexp) base value for match on (string | [LAY.Take](#)) `val` using 
 - `regexExec( val )`  
 Tests the (regexp) base value for match on (string | [LAY.Take](#)) `val` using the [RegExp.prototype.exec()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec) method with argument (string | [LAY.Take](#)) `val`.  
 
-<br>
+
 ### Filter-related methods
 
 - `filterEq( key, val )`  
@@ -258,23 +258,33 @@ Filters the objects of the (array of objects) base value which have the value as
 Filters the objects of the (array of objects) base value which return true on the application of function (function | [LAY.Take](#)) `fn` on the iterated object, with the iterated object being the argument.
 
 
-<br>
+
 ### Fold-related methods
 
-- `foldMax( key )`  
-Obtains the maximum value associated with the iterated object's key (string | [LAY.Take](#)) `key` of the (array of objects) base value.
+- `foldMax()`  
+Obtains the maximum value within the (array) base value.
 
-- `foldMin( key )`  
-Obtains the minimum value associated with the iterated object's key (string | [LAY.Take](#)) `key` of the (array of objects) base value.
+- `foldMin()`  
+Obtains the minimum value within the (array) base value.
 
-- `foldSum( key )`  
-Obtains the sum of each of the values associated with the iterated object's key (string | [LAY.Take](#)) `key` of the (array of objects) base value.
+- `foldSum()`  
+Obtains the sum of values within the (array) base value.
 
 - `foldFn( fn, acc )`  
-Performs a [fold operation](https://en.wikipedia.org/wiki/Fold_(higher-order_function)) on the (array of objects) base value, with the function (function | [LAY.Take](#)) `fn` (where the argument provided is the iterated object). The accumulator being (any | [LAY.Take](#)) `acc`.
+Performs a [fold operation](https://en.wikipedia.org/wiki/Fold_(higher-order_function)) on the (array) base value, with the function (function | [LAY.Take](#)) `fn` (where the argument provided is the iterated element). The accumulator being (any | [LAY.Take](#)) `acc`.
 
 
-<br>
+### map-related methods
+
+- `mapKey( key )`  
+Maps the (array of objects) to an array of (any type) values associated with
+the key name (string | [LAY.Take](#)) `key` of the iterated object.
+
+- `mapFn( fn )`  
+Performs a [mao operation](https://en.wikipedia.org/wiki/Map_(higher-order_function)) on the (array) base value, with the function (function | [LAY.Take](#)) `fn` (where the argument provided is the iterated element). 
+
+
+
 ### Remaining methods
 
 - `key( name )`  
