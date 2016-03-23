@@ -171,10 +171,10 @@
     this.rowsMore( [ newRow ] );
   };
 
-  LAY.Level.prototype.rowDeleteByID = function ( id ) {
+  LAY.Level.prototype.rowLevelById = function ( id ) {
 
     if ( !this.isPart ) {
-      this.manyObj.rowDeleteByID( id );
+      this.manyObj.rowLevelById( id );
     }
   };
 

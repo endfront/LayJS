@@ -110,20 +110,8 @@
 
   };
 
-  LAY.Many.prototype.rowDeleteByID = function ( id ) {
-    var
-      rowsAttrVal = this.level.attr2attrVal.rows,
-      curRowS = rowsAttrVal.calcVal,
-      row = this.id2row [ id ];
-
-    if ( row ) {
-      LAY.$arrayUtils.remove(
-        curRowS, row );
-      rowsAttrVal.val = rowsAttrVal.calcVal;
-      rowsAttrVal.requestRecalculation();
-      LAY.$solve();
-
-    }
+  LAY.Many.prototype.rowLevelById = function ( id ) {
+    return this.id2level[ id ];
   };
 
 

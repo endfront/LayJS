@@ -759,12 +759,33 @@
 
   LAY.Take.prototype.format = function () {
 
-    var argS = Array.prototype.slice.call( arguments ),
-      takeFormat = new LAY.Take( LAY.$format );
+    console.log(arguments);
+    var argS = Array.prototype.slice.call( arguments );
 
-    argS.unshift( this );
-
-    return takeFormat.fn.apply( takeFormat, argS );
+    // Check if its an object based format
+    if ( argS.length === 1 && typeof argS[0] === 'object' ) {
+      console.log("here", argS);
+      var key2val = argS[0];
+      for (var key in key2val) {
+        var val  = key2val[key];
+        if ( val instanceof LAY.Take ) {
+          this.$mergePathAndAttrs( val );
+        }
+      }
+      this.executable = function () {
+        var executedObject = {};
+        for ( var key in key2val ) {
+          var val = key2val[key];
+          executedObject[key] = val instanceof LAY.Take ?
+            val.execute(this) : val;
+        }
+        return LAY.$format(oldExecutable.call( this ), executedObject);
+      };
+    } else {
+      var takeFormat = new LAY.Take( LAY.$format );
+      argS.unshift( this );
+      return takeFormat.fn.apply( takeFormat, argS );
+    }
 
   };
 

@@ -428,8 +428,8 @@
             }
             break;
           case "css":
-            if ( recalcVal ) {
-              LAY.$insertCSS( recalcVal );
+            if ( this.calcVal ) {
+              LAY.$insertCSS( this.calcVal );
             }
             break;
         }

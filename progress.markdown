@@ -1,12 +1,11 @@
 
 Current:
-  - fetch level by id (remove delete by id)
-  - node method for Level in spec
+  - optimize arguments slice (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments)
   - format dict args
   - format dict args for todomvc
+  - i18n format using object
   - remove link type, link and image within same level
   - markdown and html props
-  - todomvc specification link broken
   - lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - $xfonts, recalculate without animation
   - what if "$hovering" or any of the event binding events
@@ -15,6 +14,7 @@ Current:
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
   - error: undefined text string val (ie not a string)
   - error: unknown formation know
+  - update format string doc (option for object argument)
 
   spec:
   - $hash, $pathname, etc

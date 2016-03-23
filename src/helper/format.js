@@ -221,26 +221,28 @@
     LAY.$format = function() {
 
       var i,
-          result,
-          argSLength = arguments.length,
-          argS = Array.prototype.slice.call(arguments),
-          arg;
+        result,
+        argS = Array.prototype.slice.call(arguments);
 
-        try {
-          // result contians the formattable string
-          result = argS[ 0 ];
-          for ( i = 1; i < argSLength; i++ ) {
-            arg = argS[ i ];
-            if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
-              arg = arg instanceof LAY.Color ? arg.stringify() : arg; 
-              result = new Formatter(RegExp.$1).format(result, arg );
-            }
+      // result contains the formattable string
+      result = argS[ 0 ];
+
+      if (argS.length === 2 && typeof argS[1] === 'object') {
+        for (i=1; i < Object.keys(argS[1]).length; i++) {
+          if (result.match(/(#\{\w+\})/)) {
+            result = new Formatter(RegExp.$1).format(result, args[1]);
           }
-          return result;
-        } catch (err) {
-          return "";
         }
-
-    };
+      } else {
+        for ( i=1; i<argS.length; i++ ) {
+          var arg = argS[i];
+          if (result.match(/%([.#0-9\-]*[bcdefosuxX])/)) {
+            arg = arg instanceof LAY.Color ? arg.stringify() : arg;
+            result = new Formatter(RegExp.$1).format(result, arg );
+          }
+        }
+      }
+      return result;
+    }
 
 }());

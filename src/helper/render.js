@@ -41,7 +41,6 @@
       renderCallS, isNormalAttrValTransitionComplete,
       renderNewLevelS = [],
       renderNewLevel,
-      fnLoad,
       isAllNormalTransitionComplete = true;
 
     LAY.$isRendering = true;
@@ -118,7 +117,7 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        renderDirtyPart.render( renderCallS[ i ] );      
+        renderDirtyPart.render( renderCallS[ i ] );
       }
 
       if (
@@ -138,9 +137,11 @@
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[ i ];
       renderNewLevel.part.isInitiallyRendered = true;
-      fnLoad = renderNewLevel.lson.$load;
-      if ( fnLoad ) {
-        fnLoad.call( renderNewLevel );
+      var fnLoadS = renderNewLevel.lson.$load;
+      if ( fnLoadS ) {
+        for (var j=0; j<fnLoadS.length; j++) {
+          fnLoadS[j].call(renderNewLevel);
+        }
       }
     }
 

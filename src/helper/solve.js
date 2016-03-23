@@ -136,13 +136,15 @@
   }
 
   function executeManyLoads () {
-    var newManyS = LAY.$newManyS, newMany, fnLoad;
-
+    var newManyS = LAY.$newManyS;
     for ( var i = 0, len = newManyS.length; i < len; i++ ) {
-      newMany = newManyS[ i ];
+      var newMany = newManyS[ i ];
       newMany.isLoaded = true;
-      fnLoad = newMany.level.lson.$load;
-      if ( newMany.level.isExist && fnLoad ) {
+      var fnLoadS = newMany.level.lson.$load;
+      if ( newMany.level.isExist && fnLoadS ) {
+        for (var j=0; j<fnLoadS.length; j++) {
+          fnLoadS[j].call(newMany.level);
+        }
         fnLoad.call( newMany.level );
       }
     }
