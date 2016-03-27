@@ -315,7 +315,8 @@
             } else {
               var checkIfAttrAffectsTextDimesion =
                 function ( attr ) {
-                  return attr.startsWith("text") &&
+                  return attr === "html" ||
+                    attr.startsWith("text") &&
                     !attr.startsWith("textShadows") &&
                     ([ "textColor",
                       "textDecoration",
@@ -327,7 +328,6 @@
                 if ( checkIfAttrAffectsTextDimesion( attr ) )  {
                     part.updateNaturalWidth();
                     part.updateNaturalHeight();
-
                 } else if ( ( attr === "borderTopWidth" ) ||
                   ( attr === "borderBottomWidth" ) ) {
                     part.updateNaturalHeight();
