@@ -67,7 +67,6 @@
   // for ones which do not match the
   // below list contains their default css
   defaultTextCss = defaultCss +
-    "contain:style layout;" +
     "font-size:15px;" +
     "font-family:sans-serif;color:black;" +
     "text-decoration:none;" +
@@ -78,7 +77,6 @@
   textDimensionCalculateNodeCss =
     defaultTextCss +
     "visibility:hidden;height:auto;" +
-    "contain:none;" +
     "border:0px solid transparent;";
 
   inputType2tag = {

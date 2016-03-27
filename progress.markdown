@@ -9,6 +9,7 @@ Current:
     then what happens?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
   - remove link type, link and image within same level
+  - error: check if explicit type such as "html" has no given prop
   - error: undefined text string val (ie not a string)
   - error: unknown formation know
   - update format string doc (option for object argument)
