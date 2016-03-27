@@ -40,7 +40,7 @@
       for ( prop in props ) {
         if ( isRootLevel ) {
           if ( props.top || props.left || props.width || props.height ) {
-            throw "LAY ERROR: Cannot set top/left/width/height of root Level";
+            LAY.$error("Cannot set top/left/width/height of root Level");
           }
         }
         if (rootStateProps[ prop ] === undefined ) {
@@ -89,16 +89,11 @@
       }
     }
 
-    if ( rootStateProps.link !== undefined ) {
-      if ( lson.$type === "html" ) {
-        lson.$type = "link:html";
-      } else {
-        lson.$type = rootStateProps.text !== undefined ?
-          "link:text" : "link:block";
-      }
-    } else if ( ( rootStateProps.text !== undefined ) &&
+    if ( ( rootStateProps.text !== undefined ) &&
       ( lson.$type === undefined || lson.$type === "none" )) {
       lson.$type = "text";
+    } else if ( rootStateProps.html !== undefined ) {
+      lson.$type = "html"
     } else if ( rootStateProps.image !== undefined ) {
       lson.$type = "image";
     } else if ( rootStateProps.video !== undefined ||
@@ -107,6 +102,8 @@
     } else if ( rootStateProps.audio !== undefined ||
         rootStateProps.audios !== undefined ) {
       lson.$type = "audio";
+    } else if ( rootStateProps.iframe !== undefined ) {
+      lson.$type = "iframe"
     } else if ( lson.$type === undefined ) {
       lson.$type = "none";
     }

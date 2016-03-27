@@ -16,7 +16,10 @@
         return fToBind.apply(this instanceof fNOP && oThis ?
           this
           : oThis,
-          aArgs.concat(Array.prototype.slice.call(arguments)));
+          aArgs.concat(
+              // V8 optimized slice
+              arguments.length === 1 ?
+                [arguments[0]] : Array.apply(null, arguments)));
         };
 
         fNOP.prototype = this.prototype;

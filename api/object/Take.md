@@ -125,11 +125,17 @@ Length of the (string) base value.
 - `contains( val )`  
 Checks if the (string) base value contains (string | [LAY.Take](#)) `val`.
 
-- `format( arg1, arg2, ... argN )`  
-Formats the (string) base value with the arguments (each type: any | [LAY.Take](#)) using the [printf](https://en.wikipedia.org/wiki/Printf_format_string) rules.
+- `format(...)`  
+There exists 2 cases of formatting:
+1. `format( arg1, arg2, ... argN )`  
+Formats the (string) base value with the arguments (each type: any | [LAY.Take](#)) using the [printf](https://en.wikipedia.org/wiki/Printf_format_string) rules
+2. `format( obj )`  
+Formats the (string) base value with the arguments with key-value arguments specified within (object) `obj`, where the (string) keys are substituted with "#{< key >}" pattern, with the associated (any | [LAY.Take](#)) values.
 
-- `i18nFormat( arg1, arg2, ... argN )`  
-Formats the (string) key-value of the (object) base value of the key specified by the "data.en" [attribute](../concept/attribute.md) of the [root level "/"](../concept/level.md#root-level), with the arguments (each type: any | [LAY.Take](#)) using the [printf](https://en.wikipedia.org/wiki/Printf_format_string) rules.
+
+- `i18nFormat(...)`  
+This is the same as the method as [LAY.Take.format()](#method-format) except that the base value is an object, where the keys are language codes, and the values are the respective string over which to format. The language code is specified by setting the "data.lang" attribute of the root level.
+
 
 - `number()`  
 Convert the (string) base value to type number.  
@@ -281,7 +287,7 @@ Maps the (array of objects) to an array of (any type) values associated with
 the key name (string | [LAY.Take](#)) `key` of the iterated object.
 
 - `mapFn( fn )`  
-Performs a [mao operation](https://en.wikipedia.org/wiki/Map_(higher-order_function)) on the (array) base value, with the function (function | [LAY.Take](#)) `fn` (where the argument provided is the iterated element). 
+Performs a [mao operation](https://en.wikipedia.org/wiki/Map_(higher-order_function)) on the (array) base value, with the function (function | [LAY.Take](#)) `fn` (where the argument provided is the iterated element).
 
 
 

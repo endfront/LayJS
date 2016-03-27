@@ -35,9 +35,9 @@
             }
           }
         }
-      } 
+      }
     }
-    throw ("LAY Error: Color name: " + colorName +  " not found." );
+    LAY.$error("Color name: " + colorName +  " not found." );
 
   };
 

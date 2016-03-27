@@ -163,7 +163,7 @@ config.modules.push( config.currentModule );
 
 	if ( params[ 0 ] ) {
 		for ( i = 0; i < length; i++ ) {
-			current = params[ i ].split( "=" );
+			current = params[i].split( "=" );
 			current[ 0 ] = decodeURIComponent( current[ 0 ] );
 
 			// allow just a key to turn on a flag, e.g., test.html?noglobals
@@ -191,7 +191,7 @@ config.modules.push( config.currentModule );
 		// Ensure that urlParams.testId is an array
 		urlParams.testId = [].concat( urlParams.testId );
 		for ( i = 0; i < urlParams.testId.length; i++ ) {
-			config.testId.push( urlParams.testId[ i ] );
+			config.testId.push( urlParams.testId[i] );
 		}
 	}
 
@@ -412,7 +412,7 @@ extend( QUnit, {
 	}
 
 	for ( i = 0, l = callbacks.length; i < l; i++ ) {
-		key = callbacks[ i ];
+		key = callbacks[i];
 
 		// Initialize key collection of logging callback
 		if ( QUnit.objectType( config.callbacks[ key ] ) === "undefined" ) {
@@ -505,10 +505,10 @@ function extractStacktrace( e, offset ) {
 		if ( fileName ) {
 			include = [];
 			for ( i = offset; i < stack.length; i++ ) {
-				if ( stack[ i ].indexOf( fileName ) !== -1 ) {
+				if ( stack[i].indexOf( fileName ) !== -1 ) {
 					break;
 				}
-				include.push( stack[ i ] );
+				include.push( stack[i] );
 			}
 			if ( include.length ) {
 				return include.join( "\n" );
@@ -602,8 +602,8 @@ function begin() {
 		// Avoid unnecessary information by not logging modules' test environments
 		for ( i = 0, l = config.modules.length; i < l; i++ ) {
 			modulesLog.push({
-				name: config.modules[ i ].name,
-				tests: config.modules[ i ].tests
+				name: config.modules[i].name,
+				tests: config.modules[i].tests
 			});
 		}
 
@@ -696,7 +696,7 @@ function diff( a, b ) {
 
 	for ( i = 0; i < result.length; i++ ) {
 		for ( j = 0; j < b.length; j++ ) {
-			if ( result[ i ] === b[ j ] ) {
+			if ( result[i] === b[ j ] ) {
 				result.splice( i, 1 );
 				i--;
 				break;
@@ -729,7 +729,7 @@ function runLoggingCallbacks( key, args ) {
 
 	callbacks = config.callbacks[ key ];
 	for ( i = 0, l = callbacks.length; i < l; i++ ) {
-		callbacks[ i ]( args );
+		callbacks[i]( args );
 	}
 }
 
@@ -768,7 +768,7 @@ function inArray( elem, array ) {
 	}
 
 	for ( var i = 0, length = array.length; i < length; i++ ) {
-		if ( array[ i ] === elem ) {
+		if ( array[i] === elem ) {
 			return i;
 		}
 	}
@@ -790,7 +790,7 @@ function Test( settings ) {
 
 	// Register unique strings
 	for ( i = 0, l = this.module.tests; i < l.length; i++ ) {
-		if ( this.module.tests[ i ].name === this.testName ) {
+		if ( this.module.tests[i].name === this.testName ) {
 			this.testName += " ";
 		}
 	}
@@ -960,7 +960,7 @@ Test.prototype = {
 		config.moduleStats.all += this.assertions.length;
 
 		for ( i = 0; i < this.assertions.length; i++ ) {
-			if ( !this.assertions[ i ].result ) {
+			if ( !this.assertions[i].result ) {
 				bad++;
 				config.stats.bad++;
 				config.moduleStats.bad++;
@@ -1540,10 +1540,10 @@ QUnit.equiv = (function() {
 					for ( i = 0; i < len; i++ ) {
 						loop = false;
 						for ( j = 0; j < parents.length; j++ ) {
-							aCircular = parents[ j ] === a[ i ];
-							bCircular = parentsB[ j ] === b[ i ];
+							aCircular = parents[ j ] === a[i];
+							bCircular = parentsB[ j ] === b[i];
 							if ( aCircular || bCircular ) {
-								if ( a[ i ] === b[ i ] || aCircular && bCircular ) {
+								if ( a[i] === b[i] || aCircular && bCircular ) {
 									loop = true;
 								} else {
 									parents.pop();
@@ -1552,7 +1552,7 @@ QUnit.equiv = (function() {
 								}
 							}
 						}
-						if ( !loop && !innerEquiv( a[ i ], b[ i ] ) ) {
+						if ( !loop && !innerEquiv( a[i], b[i] ) ) {
 							parents.pop();
 							parentsB.pop();
 							return false;
@@ -1595,10 +1595,10 @@ QUnit.equiv = (function() {
 					for ( i in a ) {
 						loop = false;
 						for ( j = 0; j < parents.length; j++ ) {
-							aCircular = parents[ j ] === a[ i ];
-							bCircular = parentsB[ j ] === b[ i ];
+							aCircular = parents[ j ] === a[i];
+							bCircular = parentsB[ j ] === b[i];
 							if ( aCircular || bCircular ) {
-								if ( a[ i ] === b[ i ] || aCircular && bCircular ) {
+								if ( a[i] === b[i] || aCircular && bCircular ) {
 									loop = true;
 								} else {
 									eq = false;
@@ -1607,7 +1607,7 @@ QUnit.equiv = (function() {
 							}
 						}
 						aProperties.push( i );
-						if ( !loop && !innerEquiv( a[ i ], b[ i ] ) ) {
+						if ( !loop && !innerEquiv( a[i], b[i] ) ) {
 							eq = false;
 							break;
 						}
@@ -1685,7 +1685,7 @@ QUnit.dump = (function() {
 
 		this.up();
 		while ( i-- ) {
-			ret[ i ] = this.parse( arr[ i ], undefined, stack );
+			ret[i] = this.parse( arr[i], undefined, stack );
 		}
 		this.down();
 		return join( "[", ret, "]" );
@@ -1829,14 +1829,14 @@ QUnit.dump = (function() {
 					// Some properties are not always enumerable on Error objects.
 					nonEnumerableProperties = [ "message", "name" ];
 					for ( i in nonEnumerableProperties ) {
-						key = nonEnumerableProperties[ i ];
+						key = nonEnumerableProperties[i];
 						if ( key in map && !( key in keys ) ) {
 							keys.push( key );
 						}
 					}
 					keys.sort();
 					for ( i = 0; i < keys.length; i++ ) {
-						key = keys[ i ];
+						key = keys[i];
 						val = map[ key ];
 						ret.push( dump.parse( key, "key" ) + ": " +
 							dump.parse( val, undefined, stack ) );
@@ -1854,13 +1854,13 @@ QUnit.dump = (function() {
 
 					if ( attrs ) {
 						for ( i = 0, len = attrs.length; i < len; i++ ) {
-							val = attrs[ i ].nodeValue;
+							val = attrs[i].nodeValue;
 
 							// IE6 includes all attributes in .attributes, even ones not explicitly
 							// set. Those have values like undefined, null, 0, false, "" or
 							// "inherit".
 							if ( val && val !== "inherit" ) {
-								ret += " " + attrs[ i ].nodeName + "=" +
+								ret += " " + attrs[i].nodeName + "=" +
 									dump.parse( val, "attribute" );
 							}
 						}
@@ -1935,7 +1935,7 @@ if ( typeof window !== "undefined" ) {
 		}
 
 		for ( i in assertions ) {
-			QUnit[ i ] = applyCurrent( assertions[ i ] );
+			QUnit[i] = applyCurrent( assertions[i] );
 		}
 	})();
 
@@ -1961,7 +1961,7 @@ if ( typeof window !== "undefined" ) {
 			];
 
 		for ( i = 0, l = keys.length; i < l; i++ ) {
-			window[ keys[ i ] ] = QUnit[ keys[ i ] ];
+			window[ keys[i] ] = QUnit[ keys[i] ];
 		}
 	})();
 
@@ -2012,65 +2012,65 @@ QUnit.diff = (function() {
 			os = {};
 
 		for ( i = 0; i < n.length; i++ ) {
-			if ( !hasOwn.call( ns, n[ i ] ) ) {
-				ns[ n[ i ] ] = {
+			if ( !hasOwn.call( ns, n[i] ) ) {
+				ns[ n[i] ] = {
 					rows: [],
 					o: null
 				};
 			}
-			ns[ n[ i ] ].rows.push( i );
+			ns[ n[i] ].rows.push( i );
 		}
 
 		for ( i = 0; i < o.length; i++ ) {
-			if ( !hasOwn.call( os, o[ i ] ) ) {
-				os[ o[ i ] ] = {
+			if ( !hasOwn.call( os, o[i] ) ) {
+				os[ o[i] ] = {
 					rows: [],
 					n: null
 				};
 			}
-			os[ o[ i ] ].rows.push( i );
+			os[ o[i] ].rows.push( i );
 		}
 
 		for ( i in ns ) {
 			if ( hasOwn.call( ns, i ) ) {
-				if ( ns[ i ].rows.length === 1 && hasOwn.call( os, i ) && os[ i ].rows.length === 1 ) {
-					n[ ns[ i ].rows[ 0 ] ] = {
-						text: n[ ns[ i ].rows[ 0 ] ],
-						row: os[ i ].rows[ 0 ]
+				if ( ns[i].rows.length === 1 && hasOwn.call( os, i ) && os[i].rows.length === 1 ) {
+					n[ ns[i].rows[ 0 ] ] = {
+						text: n[ ns[i].rows[ 0 ] ],
+						row: os[i].rows[ 0 ]
 					};
-					o[ os[ i ].rows[ 0 ] ] = {
-						text: o[ os[ i ].rows[ 0 ] ],
-						row: ns[ i ].rows[ 0 ]
+					o[ os[i].rows[ 0 ] ] = {
+						text: o[ os[i].rows[ 0 ] ],
+						row: ns[i].rows[ 0 ]
 					};
 				}
 			}
 		}
 
 		for ( i = 0; i < n.length - 1; i++ ) {
-			if ( n[ i ].text != null && n[ i + 1 ].text == null && n[ i ].row + 1 < o.length && o[ n[ i ].row + 1 ].text == null &&
-				n[ i + 1 ] == o[ n[ i ].row + 1 ] ) {
+			if ( n[i].text != null && n[ i + 1 ].text == null && n[i].row + 1 < o.length && o[ n[i].row + 1 ].text == null &&
+				n[ i + 1 ] == o[ n[i].row + 1 ] ) {
 
 				n[ i + 1 ] = {
 					text: n[ i + 1 ],
-					row: n[ i ].row + 1
+					row: n[i].row + 1
 				};
-				o[ n[ i ].row + 1 ] = {
-					text: o[ n[ i ].row + 1 ],
+				o[ n[i].row + 1 ] = {
+					text: o[ n[i].row + 1 ],
 					row: i + 1
 				};
 			}
 		}
 
 		for ( i = n.length - 1; i > 0; i-- ) {
-			if ( n[ i ].text != null && n[ i - 1 ].text == null && n[ i ].row > 0 && o[ n[ i ].row - 1 ].text == null &&
-				n[ i - 1 ] == o[ n[ i ].row - 1 ] ) {
+			if ( n[i].text != null && n[ i - 1 ].text == null && n[i].row > 0 && o[ n[i].row - 1 ].text == null &&
+				n[ i - 1 ] == o[ n[i].row - 1 ] ) {
 
 				n[ i - 1 ] = {
 					text: n[ i - 1 ],
-					row: n[ i ].row - 1
+					row: n[i].row - 1
 				};
-				o[ n[ i ].row - 1 ] = {
-					text: o[ n[ i ].row - 1 ],
+				o[ n[i].row - 1 ] = {
+					text: o[ n[i].row - 1 ],
 					row: i - 1
 				};
 			}
@@ -2106,7 +2106,7 @@ QUnit.diff = (function() {
 
 		if ( out.n.length === 0 ) {
 			for ( i = 0; i < out.o.length; i++ ) {
-				str += "<del>" + out.o[ i ] + oSpace[ i ] + "</del>";
+				str += "<del>" + out.o[i] + oSpace[i] + "</del>";
 			}
 		} else {
 			if ( out.n[ 0 ].text == null ) {
@@ -2116,17 +2116,17 @@ QUnit.diff = (function() {
 			}
 
 			for ( i = 0; i < out.n.length; i++ ) {
-				if ( out.n[ i ].text == null ) {
-					str += "<ins>" + out.n[ i ] + nSpace[ i ] + "</ins>";
+				if ( out.n[i].text == null ) {
+					str += "<ins>" + out.n[i] + nSpace[i] + "</ins>";
 				} else {
 
 					// `pre` initialized at top of scope
 					pre = "";
 
-					for ( n = out.n[ i ].row + 1; n < out.o.length && out.o[ n ].text == null; n++ ) {
+					for ( n = out.n[i].row + 1; n < out.o.length && out.o[ n ].text == null; n++ ) {
 						pre += "<del>" + out.o[ n ] + oSpace[ n ] + "</del>";
 					}
-					str += " " + out.n[ i ].text + nSpace[ i ] + pre;
+					str += " " + out.n[i].text + nSpace[i] + pre;
 				}
 			}
 		}
@@ -2268,7 +2268,7 @@ function addEvent( elem, type, fn ) {
 function addEvents( elems, type, fn ) {
 	var i = elems.length;
 	while ( i-- ) {
-		addEvent( elems[ i ], type, fn );
+		addEvent( elems[i], type, fn );
 	}
 }
 
@@ -2314,7 +2314,7 @@ function getUrlConfigHtml() {
 		urlConfigHtml = "";
 
 	for ( i = 0; i < len; i++ ) {
-		val = config.urlConfig[ i ];
+		val = config.urlConfig[i];
 		if ( typeof val === "string" ) {
 			val = {
 				id: val,
@@ -2508,9 +2508,9 @@ function toolbarModuleFilterHtml() {
 
 	for ( i = 0; i < modulesList.length; i++ ) {
 		moduleFilterHtml += "<option value='" +
-			escapeText( encodeURIComponent( modulesList[ i ] ) ) + "' " +
-			( QUnit.urlParams.module === modulesList[ i ] ? "selected='selected'" : "" ) +
-			">" + escapeText( modulesList[ i ] ) + "</option>";
+			escapeText( encodeURIComponent( modulesList[i] ) ) + "' " +
+			( QUnit.urlParams.module === modulesList[i] ? "selected='selected'" : "" ) +
+			">" + escapeText( modulesList[i] ) + "</option>";
 	}
 	moduleFilterHtml += "</select>";
 
@@ -2598,7 +2598,7 @@ function appendTestsList( modules ) {
 	var i, l, x, z, test, moduleObj;
 
 	for ( i = 0, l = modules.length; i < l; i++ ) {
-		moduleObj = modules[ i ];
+		moduleObj = modules[i];
 
 		if ( moduleObj.name ) {
 			modulesList.push( moduleObj.name );

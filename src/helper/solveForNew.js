@@ -17,7 +17,7 @@
     do {
       isSolveProgressed = false;
       for ( i = 0; i < newLevelS.length; i++ ) {
-        newLevel = newLevelS[ i ];
+        newLevel = newLevelS[i];
         if ( newLevel.$inherit() ) {
           newLevel.$identify();
           isSolveProgressed = true;
@@ -31,7 +31,7 @@
     } while ( ( newLevelS.length !== 0 ) && isSolveProgressed );
 
     for ( i = 0, len = solvedLevelS.length; i < len; i++ ) {
-      solvedLevelS[ i ].$decideExistence();
+      solvedLevelS[i].$decideExistence();
     }
 
 

@@ -32,7 +32,7 @@
             this.traverseArray.push(2);
             i += 4;
           } else {
-            throw "LAY Error: Error in Take path: " + relativePath;
+            LAY.$error("Error in Take path: " + relativePath);
           }
         }
         // strip off the "../"s
@@ -66,9 +66,9 @@
         var traverseArray = this.traverseArray;
 
         for ( var i=0, len=traverseArray.length; i<len; i++ ) {
-          if ( traverseArray[ i ] === 0 ) { //parent traversal
+          if ( traverseArray[i] === 0 ) { //parent traversal
             level = level.parentLevel;
-          } else if ( traverseArray[ i ] === 1 ) { //closest row traversal
+          } else if ( traverseArray[i] === 1 ) { //closest row traversal
             do {
               level = level.parentLevel;
             } while ( !level.derivedMany );

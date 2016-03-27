@@ -89,9 +89,6 @@
 
   nonInputType2tag = {
     none: "div",
-    "link:text": "a",
-    "link:html": "a",
-    "link:block": "a",
     text: "div",
     html: "div",
     iframe: "iframe",
@@ -129,7 +126,7 @@
   function generateSelectOptionsHTML( optionS ) {
     var option, html = "";
     for ( var i=0, len=optionS.length; i<len; i++ ) {
-      option = optionS[ i ];
+      option = optionS[i];
       html += "<option value='" + option.value + "'" +
         ( option.selected ? " selected='true'" : "" ) +
         ( option.disabled ? " disabled='true'" : "" ) +
@@ -165,6 +162,16 @@
 
     this.isImageLoaded = false;
     this.isVideoLoaded = false;
+    // If the element tag is not "div", then
+    // the link is created by wrapping an "a"
+    // tag around the element (for instance
+    // a lson $type "image" or "canvas" )
+    this.isWrappedLink = false;
+    // acting node will be the same as this.node
+    // is this.isWrappedLink is false,
+    // however in the case of this.isWrappedLink
+    // being true, actingNode will be the inner node
+    this.actingNode = undefined;
 
     // for many derived levels
     this.formationX = undefined;
@@ -186,8 +193,7 @@
      this.level.lson.$type;
     if ( inputType && supportedInputTypeS.indexOf(
         inputType ) === -1 ) {
-      throw "LAY Error: Unsupported $type: input:" +
-        inputType;
+      LAY.$error("Unsupported $type: input:" + inputType);
     }
     if ( this.level.pathName === "/" ) {
       this.node = document.body;
@@ -215,14 +221,25 @@
       }
 
     } else {
-      this.node = document.createElement(
-        nonInputType2tag[ this.type ]);
+      var tag = nonInputType2tag[this.type];
+      if (this.level.lson.states.root.props.link !== undefined ) {
+        this.node = document.createElement("a");
+        if (inputTag !== "div" ) {
+          this.isWrappedLink = true;
+          this.actingNode =  document.createElement(tag);
+          this.actingNode.style.cssText = defaultCss;
+          this.node.appendChild(this.actingNode);
+        }
+      } else {
+        this.node = document.createElement(tag);
+      }
+    }
+    if (!this.isWrappedLink) {
+      this.actingNode = this.node;
     }
 
-
     this.isText = this.type === "input" ||
-      this.type === "text" || this.type === "link:text" ||
-      this.type === "link:html" ||
+      this.type === "text" ||
       this.type === "html";
 
     if ( this.isText ) {
@@ -238,7 +255,7 @@
 
     if ( this.type === "image" ) {
       var part = this;
-      LAY.$eventUtils.add( this.node, "load", function() {
+      LAY.$eventUtils.add( this.actingNode, "load", function() {
         part.isImageLoaded = true;
         part.updateNaturalWidth();
         part.updateNaturalHeight();
@@ -246,7 +263,7 @@
       });
     } else if ( this.type === "video" ) {
       var part = this;
-      LAY.$eventUtils.add( this.node, "loadedmetadata", function() {
+      LAY.$eventUtils.add( this.actingNode, "loadedmetadata", function() {
         part.isVideoLoaded = true;
         part.updateNaturalWidth();
         part.updateNaturalHeight();
@@ -301,7 +318,7 @@
          childLevelS = this.level.childLevelS,
         len = childLevelS.length;
          i < len; i++ ) {
-      childLevel = childLevelS[ i ];
+      childLevel = childLevelS[i];
       if ( childLevel.isPart && !childLevel.isHelper &&
         childLevel.isExist ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
@@ -356,8 +373,8 @@
           var valS = [];
           for ( var i = 0, len = optionS.length;
             i < len; i++ ) {
-            if ( optionS[ i ].selected ) {
-              valS.push( optionS[ i ].value )
+            if ( optionS[i].selected ) {
+              valS.push( optionS[i].value )
             }
           }
           // Select the first option if none is selected
@@ -382,8 +399,7 @@
 
   LAY.Part.prototype.updateNaturalWidth = function () {
 
-    var naturalWidthAttrVal =
-      this.level.$getAttrVal("$naturalWidth");
+    var naturalWidthAttrVal = this.level.$getAttrVal("$naturalWidth");
     if ( naturalWidthAttrVal ) {
       LAY.$arrayUtils.pushUnique(
         LAY.$naturalWidthDirtyPartS,
@@ -392,8 +408,7 @@
   };
 
   LAY.Part.prototype.updateNaturalHeight = function () {
-    var naturalHeightAttrVal =
-      this.level.$getAttrVal("$naturalHeight");
+    var naturalHeightAttrVal = this.level.$getAttrVal("$naturalHeight");
     if ( naturalHeightAttrVal ) {
       LAY.$arrayUtils.pushUnique(
         LAY.$naturalHeightDirtyPartS,
@@ -473,7 +488,7 @@
     if ( !this.isVideoLoaded ) {
       return 0;
     } else {
-      var node = this.node;
+      var node = this.actingNode;
       node.style.visibility = "hidden";
 
       var otherDim = isWidth ? "height" : "width",
@@ -485,19 +500,13 @@
 
       node.height = "auto";
       node.width = "auto";
-      console.log("here");
       if ( isWidth ) {
         node.height = otherDimVal;
-        console.log(node.videoWidth);
-
         node.style.visibility = "visible";
-
         return node.offsetWidth;
       } else {
         node.width = otherDimVal;
-
         node.style.visibility = "visible";
-
         return node.videoHeight;
       }
     }
@@ -680,6 +689,11 @@
         content = attr2attrVal.$input ?
           attr2attrVal.$input.calcVal : "a";
       }
+    }  else if ( this.type === "html" ) {
+      if ( attr2attrVal.html.isRecalculateRequired ) {
+        return 0;
+      }
+      content = attr2attrVal.html.calcVal;
     } else {
       if ( attr2attrVal.text.isRecalculateRequired ) {
         return 0;
@@ -704,17 +718,14 @@
         dimensionAlteringAttr ];
       if ( textRelatedAttrVal &&
         textRelatedAttrVal.calcVal !== undefined ) {
-
         fnStyle = dimensionAlteringAttr2fnStyle[
             dimensionAlteringAttr ];
-
         cssText +=
           dimensionAlteringAttr2cssProp[
           dimensionAlteringAttr ] + ":" +
           ( (fnStyle === null) ?
           textRelatedAttrVal.calcVal :
           fnStyle( textRelatedAttrVal.calcVal ) ) + ";";
-
       }
     }
 
@@ -872,11 +883,11 @@
 
       for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
 
-        transitionArg2val[ transitionArgS[ i ] ] = (
+        transitionArg2val[ transitionArgS[i] ] = (
            attr2attrVal[ transitionPrefix + "args." +
-            transitionArgS[ i ] ] ?
+            transitionArgS[i] ] ?
            attr2attrVal[ transitionPrefix + "args." +
-            transitionArgS[ i ] ].calcVal : undefined );
+            transitionArgS[i] ].calcVal : undefined );
       }
 
       if ( !allAffectedProp && ( transitionProp === "all" ) ) {
@@ -986,26 +997,40 @@
   }
 
   LAY.Part.prototype.render = function ( renderCall ) {
-    var attr2attrVal = this.level.attr2attrVal;
+    var
+      attr2attrVal = this.level.attr2attrVal,
+      isWrappedLink = this.isWrappedLink,
+      node = this.actingNode,
+      wrappedLinkNode = isWrappedLink && this.node,
+      linkNode = this.node;
+
     switch ( renderCall ) {
       case "x":
-        this.node.style.left =
-          ( attr2attrVal.left.transCalcVal +
-            ( attr2attrVal.shiftX !== undefined ?
-              attr2attrVal.shiftX.transCalcVal : 0 ) ) +
-              "px";
+        var x = ( attr2attrVal.left.transCalcVal +
+          ( attr2attrVal.shiftX !== undefined ?
+            attr2attrVal.shiftX.transCalcVal : 0 ) ) +
+            "px";
+        if ( isWrappedLink ) {
+          wrappedLinkNode.style.left = x;
+        } else {
+          node.style.left = x;
+        }
         break;
       case "y":
-        this.node.style.top =
-          ( attr2attrVal.top.transCalcVal +
+        var y = ( attr2attrVal.top.transCalcVal +
             ( attr2attrVal.shiftY !== undefined ?
               attr2attrVal.shiftY.transCalcVal : 0 ) ) +
               "px";
+        if ( isWrappedLink ) {
+          wrappedLinkNode.style.top = y;
+        } else {
+          node.style.top = y;
+        }
         break;
       case "positionAndTransform":
-        cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
-        this.node.style[ cssPrefix + "transform" ] =
-          "translate(" +
+        var prop = (cssPrefix === "-moz-" ? "" : cssPrefix) +
+          "transform";
+        var val = "translate(" +
           ( ( attr2attrVal.left.transCalcVal +
             ( attr2attrVal.shiftX !== undefined ?
               attr2attrVal.shiftX.transCalcVal : 0 ) ) + "px, " ) +
@@ -1030,11 +1055,16 @@
             "rotateY(" + attr2attrVal.rotateY.transCalcVal + "deg) " : "" ) +
           ( attr2attrVal.rotateZ !== undefined ?
             "rotateZ(" + attr2attrVal.rotateZ.transCalcVal + "deg)" : "" );
+        if ( isWrappedLink ) {
+          wrappedLinkNode.style[prop] = val;
+        } else {
+          node.style[prop] = val;
+        }
         break;
       case "transform":
-        cssPrefix = cssPrefix === "-moz-" ? "" : cssPrefix;
-          this.node.style[ cssPrefix + "transform" ] =
-          ( attr2attrVal.scaleX !== undefined ?
+        var prop = (cssPrefix === "-moz-" ? "" : cssPrefix) +
+          "transform";
+        var val = ( attr2attrVal.scaleX !== undefined ?
             "scaleX(" + attr2attrVal.scaleX.transCalcVal + ") " : "" ) +
           ( attr2attrVal.scaleY !== undefined ?
             "scaleY(" + attr2attrVal.scaleY.transCalcVal + ") " : "" ) +
@@ -1050,136 +1080,190 @@
             "rotateY(" + attr2attrVal.rotateY.transCalcVal + "deg) " : "" ) +
           ( attr2attrVal.rotateZ !== undefined ?
             "rotateZ(" + attr2attrVal.rotateZ.transCalcVal + "deg)" : "" );
+        if ( isWrappedLink ) {
+          wrappedLinkNode.style[prop] = val;
+        } else {
+          node.style[prop] = val;
+        }
         break;
       case "width":
         if ( !(this.type === "video" && !this.isVideoLoaded ) ) {
-          this.node.style.width =
+          node.style.width =
             attr2attrVal.width.transCalcVal + "px";
+          if (isWrappedLink) {
+            wrappedLinkNode.style.width =
+              attr2attrVal.width.transCalcVal + "px";
+          }
           if ( [ "canvas", "video", "image","iframe" ].indexOf(
               this.type ) !== -1 ) {
-            this.node.width =
+            node.width =
               attr2attrVal.width.transCalcVal;
           }
         }
         break;
       case "height":
         if ( !(this.type === "video" && !this.isVideoLoaded ) ) {
-          this.node.style.height =
+          node.style.height =
             attr2attrVal.height.transCalcVal + "px";
+          if (isWrappedLink) {
+            wrappedLinkNode.style.height =
+              attr2attrVal.height.transCalcVal + "px";
+          }
           if ( [ "canvas", "video", "image","iframe" ].indexOf(
                 this.type ) !== -1 ) {
-            this.node.height =
+            node.height =
               attr2attrVal.height.transCalcVal;
           }
         }
         break;
       case "origin":
-        this.node.style[ cssPrefix + "transform-origin" ] =
-          ( ( attr2attrVal.originX !== undefined ?
+        var prop = cssPrefix + "transform-origin";
+        var val = ( ( attr2attrVal.originX !== undefined ?
             attr2attrVal.originX.transCalcVal : 0.5 ) * 100 ) + "% " +
           ( ( attr2attrVal.originY !== undefined ?
             attr2attrVal.originY.transCalcVal : 0.5 ) * 100 ) + "% " +
           ( attr2attrVal.originZ !== undefined ?
             attr2attrVal.originZ.transCalcVal : 0  ) + "px";
+        if (isWrappedLink) {
+          wrappedLinkNode.style[prop] = val;
+        } else {
+          wrappedLinkNode.style[prop] = val;
+        }
         break;
       case "perspective":
-        this.node.style[ cssPrefix + "perspective" ] =
-          attr2attrVal.perspective.transCalcVal + "px";
+        if (isWrappedLink) {
+          wrappedLinkNode.style[ cssPrefix + "perspective" ] =
+            attr2attrVal.perspective.transCalcVal + "px";
+        } else {
+          node.style[ cssPrefix + "perspective" ] =
+            attr2attrVal.perspective.transCalcVal + "px";
+        }
+
         break;
       case "perspectiveOrigin":
-        this.node.style[ cssPrefix + "perspective-origin" ] =
-          ( attr2attrVal.perspectiveOriginX ?
+        var prop = cssPrefix + "perspective-origin";
+        var val = ( attr2attrVal.perspectiveOriginX ?
            ( attr2attrVal.perspectiveOriginX.transCalcVal * 100 )
             : 0 ) + "% " +
           ( attr2attrVal.perspectiveOriginY ?
            ( attr2attrVal.perspectiveOriginY.transCalcVal * 100 )
             : 0 ) + "%";
+        if (isWrappedLink) {
+          wrappedLinkNode.style[prop] = val;
+        } else {
+          node.style[prop] = val;
+        }
         break;
       case "backfaceVisibility":
-        this.node.style[ cssPrefix + "backface-visibility" ] =
-          attr2attrVal.backfaceVisibility.transCalcVal;
+        if (isWrappedLink) {
+          wrappedLinkNode.style[ cssPrefix + "backface-visibility" ] =
+            attr2attrVal.backfaceVisibility.transCalcVal;
+        } else {
+          node.style[ cssPrefix + "backface-visibility" ] =
+            attr2attrVal.backfaceVisibility.transCalcVal;
+          }
         break;
       case "opacity":
-        this.node.style.opacity = attr2attrVal.opacity.transCalcVal;
+        if (isWrappedLink) {
+          wrappedLinkNode.style.opacity = attr2attrVal.opacity.transCalcVal;
+        } else {
+          node.style.opacity = attr2attrVal.opacity.transCalcVal;
+        }
         break;
       case "display":
-        this.node.style.display =
-          attr2attrVal.display.transCalcVal ?
-          "block" : "none";
+        if (isWrappedLink) {
+          wrappedLinkNode.style.display =
+            attr2attrVal.display.transCalcVal ? "block" : "none";
+        } else {
+          node.style.display =
+            attr2attrVal.display.transCalcVal ? "block" : "none";
+        }
         break;
       case "visible":
-        this.node.style.visibility =
-          attr2attrVal.visible.transCalcVal ?
-          "inherit" : "hidden";
+        if (isWrappedLink) {
+          wrappedLinkNode.style.visibility =
+            attr2attrVal.visible.transCalcVal ?
+            "inherit" : "hidden";
+        } else {
+          node.style.visibility =
+            attr2attrVal.visible.transCalcVal ?
+            "inherit" : "hidden";
+        }
         break;
       case "zIndex":
-        this.node.style.zIndex =
-          attr2attrVal.zIndex.transCalcVal || "auto";
+        if (isWrappedLink) {
+          wrappedLinkNode.style.zIndex =
+            attr2attrVal.zIndex.transCalcVal || "auto";
+        } else {
+          node.style.zIndex =
+            attr2attrVal.zIndex.transCalcVal || "auto";
+        }
+
         break;
       case "focus":
         if ( attr2attrVal.focus.transCalcVal ) {
-          this.node.focus();
-        } else if ( document.activeElement === this.node ) {
+          node.focus();
+        } else if ( document.activeElement === node ) {
           document.body.focus();
         }
         break;
       case "scrollX":
-        this.node.scrollLeft =
+        node.scrollLeft =
          attr2attrVal.scrollX.transCalcVal;
         break;
       case "scrollY":
-        this.node.scrollTop =
+        node.scrollTop =
          attr2attrVal.scrollY.transCalcVal;
         break;
       case "scrollElastic":
-        this.node["-webkit-overflow-scrolling"] =
+        node["-webkit-overflow-scrolling"] =
           attr2attrVal.scrollElastic.transCalcVal ?
           "touch" : "auto";
         break;
       case "overflowX":
-        this.node.style.overflowX =
+        node.style.overflowX =
           attr2attrVal.overflowX.transCalcVal;
         break;
       case "overflowY":
-        this.node.style.overflowY =
+        node.style.overflowY =
           attr2attrVal.overflowY.transCalcVal;
         break;
       case "cursor":
-        this.node.style.cursor = attr2attrVal.
+        node.style.cursor = attr2attrVal.
           cursor.transCalcVal;
         break;
       case "userSelect":
         if ( this.type !== "input" ) {
-          this.node.style[ cssPrefix + "user-select" ] =
+          node.style[ cssPrefix + "user-select" ] =
             attr2attrVal.userSelect.transCalcVal;
         }
         break;
       case "title":
-        this.node.title = attr2attrVal.title.transCalcVal;
+        node.title = attr2attrVal.title.transCalcVal;
         break;
       case "id":
-        this.node.id = attr2attrVal.id.transCalcVal;
+        node.id = attr2attrVal.id.transCalcVal;
       case "tabindex":
-        this.node.tabindex = attr2attrVal.tabindex.transCalcVal;
+        node.tabindex = attr2attrVal.tabindex.transCalcVal;
         break;
       case "backgroundColor":
-        this.node.style.backgroundColor =
+        node.style.backgroundColor =
           attr2attrVal.backgroundColor.transCalcVal.stringify();
         break;
       case "backgroundImage":
-        this.node.style.backgroundImage =
+        node.style.backgroundImage =
           attr2attrVal.backgroundImage.transCalcVal;
         break;
       case "backgroundAttachment":
-        this.node.style.backgroundAttachment =
+        node.style.backgroundAttachment =
           attr2attrVal.backgroundAttachment.transCalcVal;
         break;
       case "backgroundRepeat":
-        this.node.style.backgroundRepeat =
+        node.style.backgroundRepeat =
           attr2attrVal.backgroundRepeat.transCalcVal;
         break;
       case "backgroundSize":
-        this.node.style.backgroundSize =
+        node.style.backgroundSize =
           computePxOrString(
             attr2attrVal.backgroundSizeX, "auto" ) +
           " " +
@@ -1187,7 +1271,7 @@
             attr2attrVal.backgroundSizeY, "auto" );
         break;
       case "backgroundPosition":
-        this.node.style.backgroundPosition =
+        node.style.backgroundPosition =
           computePxOrString(
             attr2attrVal.backgroundPositionX, "0px" ) +
              " " +
@@ -1218,7 +1302,7 @@
               s += ",";
             }
           }
-          this.node.style.boxShadow = s;
+          node.style.boxShadow = s;
         }
         break;
       case "filters":
@@ -1256,169 +1340,167 @@
 
           }
         }
-        this.node.style[ cssPrefix + "filter" ] = s;
+        node.style[ cssPrefix + "filter" ] = s;
         break;
       case "cornerRadiusTopLeft":
-        this.node.style.borderTopLeftRadius =
+        node.style.borderTopLeftRadius =
           attr2attrVal.cornerRadiusTopLeft.transCalcVal + "px";
         break;
       case "cornerRadiusTopRight":
-        this.node.style.borderTopRightRadius =
+        node.style.borderTopRightRadius =
           attr2attrVal.cornerRadiusTopRight.transCalcVal + "px";
         break;
       case "cornerRadiusBottomRight":
-        this.node.style.borderBottomRightRadius =
+        node.style.borderBottomRightRadius =
           attr2attrVal.cornerRadiusBottomRight.transCalcVal + "px";
         break;
       case "cornerRadiusBottomLeft":
-        this.node.style.borderBottomLeftRadius =
+        node.style.borderBottomLeftRadius =
           attr2attrVal.cornerRadiusBottomLeft.transCalcVal + "px";
         break;
       case "borderTopStyle":
-        this.node.style.borderTopStyle =
+        node.style.borderTopStyle =
           attr2attrVal.borderTopStyle.transCalcVal;
         break;
       case "borderRightStyle":
-        this.node.style.borderRightStyle =
+        node.style.borderRightStyle =
           attr2attrVal.borderRightStyle.transCalcVal;
         break;
       case "borderBottomStyle":
-        this.node.style.borderBottomStyle =
+        node.style.borderBottomStyle =
           attr2attrVal.borderBottomStyle.transCalcVal;
         break;
       case "borderLeftStyle":
-        this.node.style.borderLeftStyle =
+        node.style.borderLeftStyle =
           attr2attrVal.borderLeftStyle.transCalcVal;
         break;
       case "borderTopColor":
-        this.node.style.borderTopColor =
+        node.style.borderTopColor =
           attr2attrVal.borderTopColor.transCalcVal.stringify();
         break;
       case "borderRightColor":
-        this.node.style.borderRightColor =
+        node.style.borderRightColor =
           attr2attrVal.borderRightColor.transCalcVal.stringify();
         break;
       case "borderBottomColor":
-        this.node.style.borderBottomColor =
+        node.style.borderBottomColor =
           attr2attrVal.borderBottomColor.transCalcVal.stringify();
         break;
       case "borderLeftColor":
-        this.node.style.borderLeftColor =
+        node.style.borderLeftColor =
           attr2attrVal.borderLeftColor.transCalcVal.stringify();
         break;
       case "borderTopWidth":
-        this.node.style.borderTopWidth =
+        node.style.borderTopWidth =
           attr2attrVal.borderTopWidth.transCalcVal + "px";
         break;
       case "borderRightWidth":
-        this.node.style.borderRightWidth =
+        node.style.borderRightWidth =
           attr2attrVal.borderRightWidth.transCalcVal + "px";
         break;
       case "borderBottomWidth":
-        this.node.style.borderBottomWidth =
+        node.style.borderBottomWidth =
           attr2attrVal.borderBottomWidth.transCalcVal + "px";
         break;
       case "borderLeftWidth":
-        this.node.style.borderLeftWidth =
+        node.style.borderLeftWidth =
           attr2attrVal.borderLeftWidth.transCalcVal + "px";
         break;
+      case "html":
+        node.innerHTML = attr2attrVal.html.transCalcVal;
+        break;
       case "text":
-        var text = attr2attrVal.text.transCalcVal;
-        if ( this.type === "html" ) {
-          this.node.innerHTML = text;
-        } else { //else is type "html"
-          setText( this.node, text );
-        }
+        setText( node, attr2attrVal.text.transCalcVal );
         break;
       case "textSize":
-        this.node.style.fontSize =
+        node.style.fontSize =
           computePxOrString( attr2attrVal.textSize );
         break;
       case "textFamily":
-        this.node.style.fontFamily =
+        node.style.fontFamily =
           attr2attrVal.textFamily.transCalcVal;
         break;
       case "textWeight":
-        this.node.style.fontWeight =
+        node.style.fontWeight =
           attr2attrVal.textWeight.transCalcVal;
         break;
       case "textColor":
-        this.node.style.color =
+        node.style.color =
           computeColorOrString(
             attr2attrVal.textColor );
         break;
       case "textVariant":
-        this.node.style.fontVariant =
+        node.style.fontVariant =
           attr2attrVal.textVariant.transCalcVal;
         break;
       case "textTransform":
-        this.node.style.textTransform =
+        node.style.textTransform =
           attr2attrVal.textTransform.transCalcVal;
         break;
       case "textStyle":
-        this.node.style.fontStyle =
+        node.style.fontStyle =
           attr2attrVal.textStyle.transCalcVal;
         break;
       case "textDecoration":
-        this.node.style.textDecoration =
+        node.style.textDecoration =
           attr2attrVal.textDecoration.transCalcVal;
         break;
       case "textLetterSpacing":
-        this.node.style.letterSpacing = computePxOrStringOrNormal(
+        node.style.letterSpacing = computePxOrStringOrNormal(
           attr2attrVal.textLetterSpacing );
         break;
       case "textWordSpacing":
-        this.node.style.wordSpacing = computePxOrStringOrNormal(
+        node.style.wordSpacing = computePxOrStringOrNormal(
           attr2attrVal.textWordSpacing );
         break;
       case "textAlign":
-        this.node.style.textAlign = attr2attrVal.textAlign.transCalcVal;
+        node.style.textAlign = attr2attrVal.textAlign.transCalcVal;
         break;
       case "textDirection":
-        this.node.style.direction = attr2attrVal.textDirection.transCalcVal;
+        node.style.direction = attr2attrVal.textDirection.transCalcVal;
         break;
       case "textLineHeight":
-        this.node.style.lineHeight = computeEmOrString(
+        node.style.lineHeight = computeEmOrString(
           attr2attrVal.textLineHeight );
         break;
       case "textOverflow":
-        this.node.style.textOverflow =
+        node.style.textOverflow =
           attr2attrVal.textOverflow.transCalcVal;
         break;
       case "textIndent":
-        this.node.style.textIndent =
+        node.style.textIndent =
           attr2attrVal.textIndent.transCalcVal + "px";
         break;
       case "textWrap":
-        this.node.style.whiteSpace = attr2attrVal.textWrap.transCalcVal;
+        node.style.whiteSpace = attr2attrVal.textWrap.transCalcVal;
         break;
       case "textWordBreak":
-        this.node.style.wordBreak = attr2attrVal.textWordBreak.transCalcVal;
+        node.style.wordBreak = attr2attrVal.textWordBreak.transCalcVal;
         break;
       case "textWordWrap":
-        this.node.style.wordWrap = attr2attrVal.textWordWrap.transCalcVal;
+        node.style.wordWrap = attr2attrVal.textWordWrap.transCalcVal;
         break;
       case "textSmoothing":
-        this.node.style[ cssPrefix + "font-smoothing" ] =
+        node.style[ cssPrefix + "font-smoothing" ] =
           attr2attrVal.textSmoothing.transCalcVal;
         break;
       case "textRendering":
-        this.node.style.textRendering = attr2attrVal.textRendering.transCalcVal;
+        node.style.textRendering = attr2attrVal.textRendering.transCalcVal;
         break;
       case "textPaddingTop":
-        this.node.style.paddingTop =
+        node.style.paddingTop =
           attr2attrVal.textPaddingTop.transCalcVal + "px";
         break;
       case "textPaddingRight":
-        this.node.style.paddingRight =
+        node.style.paddingRight =
           attr2attrVal.textPaddingRight.transCalcVal + "px";
         break;
       case "textPaddingBottom":
-      this.node.style.paddingBottom =
+      node.style.paddingBottom =
         attr2attrVal.textPaddingBottom.transCalcVal + "px";
         break;
       case "textPaddingLeft":
-        this.node.style.paddingLeft =
+        node.style.paddingLeft =
           attr2attrVal.textPaddingLeft.transCalcVal + "px";
         break;
       case "textShadows":
@@ -1437,63 +1519,63 @@
           }
 
         }
-        this.node.style.textShadow = s;
+        node.style.textShadow = s;
         break;
       case "input":
         var inputVal = attr2attrVal.input.transCalcVal;
         if ( this.inputType === "option" || this.inputType === "options" ) {
-          this.node.innerHTML = generateSelectOptionsHTML( inputVal );
+          node.innerHTML = generateSelectOptionsHTML( inputVal );
         } else {
-          this.node.value = inputVal;
+          node.value = inputVal;
         }
         break;
       case "inputLabel":
-        this.node.label = attr2attrVal.inputLabel.transCalcVal;
+        node.label = attr2attrVal.inputLabel.transCalcVal;
         break;
       case "inputAccept":
-        this.node.accept = attr2attrVal.inputAccept.transCalcVal;
+        node.accept = attr2attrVal.inputAccept.transCalcVal;
         break;
       case "inputPlaceholder":
-        this.node.placeholder = attr2attrVal.inputPlaceholder.transCalcVal;
+        node.placeholder = attr2attrVal.inputPlaceholder.transCalcVal;
         break;
       case "inputAutocomplete":
-        this.node.autocomplete = attr2attrVal.inputAutocomplete.transCalcVal;
+        node.autocomplete = attr2attrVal.inputAutocomplete.transCalcVal;
         break;
       case "inputAutocorrect":
-        this.node.autocorrect = attr2attrVal.inputAutocorrect.transCalcVal;
+        node.autocorrect = attr2attrVal.inputAutocorrect.transCalcVal;
         break;
       case "inputDisabled":
-        this.node.disabled = attr2attrVal.inputDisabled.transCalcVal;
+        node.disabled = attr2attrVal.inputDisabled.transCalcVal;
         break;
       case "link":
-        this.node.href = attr2attrVal.link.transCalcVal;
+        linkNode.href = attr2attrVal.link.transCalcVal;
         break;
       case "linkRel":
-        this.node.rel = attr2attrVal.linkRel.transCalcVal;
+        linkNode.rel = attr2attrVal.linkRel.transCalcVal;
         break;
       case "linkDownload":
-        this.node.download = attr2attrVal.linkDownload.transCalcVal;
+        linkNode.download = attr2attrVal.linkDownload.transCalcVal;
         break;
       case "linkTarget":
-        this.node.target = attr2attrVal.linkTarget.transCalcVal;
+        linkNode.target = attr2attrVal.linkTarget.transCalcVal;
         break;
       case "image":
-        this.node.src = attr2attrVal.image.transCalcVal;
+        node.src = attr2attrVal.image.transCalcVal;
         break;
       case "imageAlt":
-        this.node.alt = attr2attrVal.imageAlt.transCalcVal;
+        node.alt = attr2attrVal.imageAlt.transCalcVal;
         break;
       case "audio":
-        this.node.src = attr2attrVal.audio.transCalcVal;
+        node.src = attr2attrVal.audio.transCalcVal;
         break;
       case "audios":
         var
           documentFragment = document.createDocumentFragment(),
-          childNodes = this.node.childNodes,
+          childNodes = node.childNodes,
           childNode;
         // first remove the current audio sources
         for ( var i = 0, len = childNodes.length; i <= len; i++ ) {
-          childNode = childNodes[ i ];
+          childNode = childNodes[i];
           if ( childNode.tagName === "SOURCE" ) {
             childNode.parentNode.removeChild( childNode );
           }
@@ -1507,16 +1589,16 @@
             attr2attrVal[ "audios" + i + "Src" ].transCalcVal;
           documentFragment.appendChild( childNode );
         }
-        this.node.appendChild( documentFragment );
+        node.appendChild( documentFragment );
         break;
       case "audioTracks":
         var
           documentFragment = document.createDocumentFragment(),
-          childNodes = this.node.childNodes,
+          childNodes = node.childNodes,
           childNode;
         // first remove the current audio tracks
         for ( var i = 0, len = childNodes.length; i <= len; i++ ) {
-          childNode = childNodes[ i ];
+          childNode = childNodes[i];
           if ( childNode.tagName === "TRACK" ) {
             childNode.parentNode.removeChild( childNode );
           }
@@ -1530,34 +1612,34 @@
             attr2attrVal[ "audioTracks" + i + "Src" ].transCalcVal;
           documentFragment.appendChild( childNode );
         }
-        this.node.appendChild( documentFragment );
+        node.appendChild( documentFragment );
         break;
       case "audioVolume":
-        this.node.volume = attr2attrVal.audioVolume.transCalcVal;
+        node.volume = attr2attrVal.audioVolume.transCalcVal;
         break;
       case "audioController":
-        this.node.controls = attr2attrVal.audioController.transCalcVal;
+        node.controls = attr2attrVal.audioController.transCalcVal;
         break;
       case "audioLoop":
-        this.node.loop = attr2attrVal.audioLoop.transCalcVal;
+        node.loop = attr2attrVal.audioLoop.transCalcVal;
         break;
       case "audioMuted":
-        this.node.muted = attr2attrVal.audioMuted.transCalcVal;
+        node.muted = attr2attrVal.audioMuted.transCalcVal;
         break;
       case "audioPreload":
-        this.node.preload = attr2attrVal.audioPreload.transCalcVal;
+        node.preload = attr2attrVal.audioPreload.transCalcVal;
         break;
       case "video":
-        this.node.src = attr2attrVal.video.transCalcVal;
+        node.src = attr2attrVal.video.transCalcVal;
         break;
       case "videos":
         var
           documentFragment = document.createDocumentFragment(),
-          childNodes = this.node.childNodes,
+          childNodes = node.childNodes,
           childNode;
         // first remove the current video sources
         for ( var i = 0, len = childNodes.length; i <= len; i++ ) {
-          childNode = childNodes[ i ];
+          childNode = childNodes[i];
           if ( childNode.tagName === "SOURCE" ) {
             childNode.parentNode.removeChild( childNode );
           }
@@ -1571,16 +1653,16 @@
             attr2attrVal[ "videos" + i + "Src" ].transCalcVal;
           documentFragment.appendChild( childNode );
         }
-        this.node.appendChild( documentFragment );
+        node.appendChild( documentFragment );
         break;
       case "videoTracks":
         var
           documentFragment = document.createDocumentFragment(),
-          childNodes = this.node.childNodes,
+          childNodes = node.childNodes,
           childNode;
         // first remove the current video tracks
         for ( var i = 0, len = childNodes.length; i <= len; i++ ) {
-          childNode = childNodes[ i ];
+          childNode = childNodes[i];
           if ( childNode.tagName === "TRACK" ) {
             childNode.parentNode.removeChild( childNode );
           }
@@ -1594,34 +1676,34 @@
             attr2attrVal[ "videoTracks" + i + "Src" ].transCalcVal;
           documentFragment.appendChild( childNode );
         }
-        this.node.appendChild( documentFragment );
+        node.appendChild( documentFragment );
         break;
       case "videoAutoplay":
-        this.node.autoplay = attr2attrVal.videoAutoplay.transCalcVal;
+        node.autoplay = attr2attrVal.videoAutoplay.transCalcVal;
         break;
       case "videoController":
-        this.node.controls = attr2attrVal.videoController.transCalcVal;
+        node.controls = attr2attrVal.videoController.transCalcVal;
         break;
       case "videoCrossorigin":
-        this.node.crossorigin = attr2attrVal.videoCrossorigin.transCalcVal;
+        node.crossorigin = attr2attrVal.videoCrossorigin.transCalcVal;
         break;
       case "videoLoop":
-        this.node.loop = attr2attrVal.videoLoop.transCalcVal;
+        node.loop = attr2attrVal.videoLoop.transCalcVal;
         break;
       case "videoMuted":
-        this.node.muted = attr2attrVal.videoMuted.transCalcVal;
+        node.muted = attr2attrVal.videoMuted.transCalcVal;
         break;
       case "videoPreload":
-        this.node.preload = attr2attrVal.videoPreload.transCalcVal;
+        node.preload = attr2attrVal.videoPreload.transCalcVal;
         break;
       case "videoPoster":
-        this.node.poster = attr2attrVal.videoPoster.transCalcVal;
+        node.poster = attr2attrVal.videoPoster.transCalcVal;
         break;
-      case "iframeSrc":
-        this.node.src = attr2attrVal.iframeSrc.transCalcVal;
+      case "iframe":
+        node.src = attr2attrVal.iframe.transCalcVal;
         break;
       default:
-        throw "LAY Error: Inexistent prop: '" + renderCall + "'";
+        LAY.$error("Inexistent prop: '" + renderCall + "'");
 
     }
   };

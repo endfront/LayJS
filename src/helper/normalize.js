@@ -43,7 +43,7 @@
       }
 
       if ( lson.states.root ) {
-        throw "LAY Error: State name 'root' is reserved.";
+        LAY.$error("State name 'root' is reserved.");
       }
 
 
@@ -59,7 +59,7 @@
       for ( var lsonKey in lson ) {
         if ( lson[ lsonKey ] && lsonKey !== "$$max" ) {
           if ( !key2fnNormalize[ lsonKey ] ) {
-            throw "LAY Error: LSON key: '" + lsonKey  + "' not found";
+            LAY.$error("LSON key: '" + lsonKey  + "' not found");
           }
           key2fnNormalize[ lsonKey ]( lson );
         }
@@ -80,7 +80,7 @@
   function checkForInconsistentReadonlyKeys( lson ) {
     var errorReadonly = "";
     if ( lson.inherits || lson.$inherits ) {
-      throw "LAY Error: Did you mean '$inherit'?";
+      LAY.$error("Did you mean '$inherit'?");
     } else if ( lson.load ) {
       errorReadonly = "load";
     } else if ( lson.inherit ) {
@@ -95,8 +95,8 @@
       errorReadonly = "view";
     }
     if ( errorReadonly ) {
-      throw "LAY Error: prefix readonly '" +
-        errorReadonly + "' with '$'";
+      LAY.$error("Prefix readonly '" +
+        errorReadonly + "' with '$'");
     }
   }
 
@@ -112,7 +112,7 @@
 
   function checkAndThrowErrorAttrAsTake ( name, val ) {
     if ( val instanceof LAY.Take ) {
-      throw ( "LAY Error: takes for special/expander props such as '" +
+      LAY.$error("takes for special/expander props such as '" +
         name  + "' are not permitted." );
     }
   }
@@ -168,7 +168,7 @@
       }
       var type = lson.type;
       if ( ( type === "text" ) && ( lson.children !== undefined ) ) {
-        throw( "LAY Error: Text type Level with child Levels found" );
+        LAY.$error( "Text type Level with child Levels found" );
       }
       if ( type.startsWith( "input" ) ) {
         lson.type = "input";
@@ -283,7 +283,7 @@
         if ( longhandPropS !== undefined ) {
           shorthandVal = prop2val[ prop ];
           for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
-            longhandProp = longhandPropS[ i ];
+            longhandProp = longhandPropS[i];
             prop2val[ longhandProp ] = prop2val[ longhandProp ] ||
             shorthandVal;
 
@@ -294,8 +294,8 @@
       for ( prop in prop2val ) {
         if ( prop.lastIndexOf("Color") !== -1 ) {
           if ( typeof prop2val[ prop ] === "string" ) {
-            throw "LAY Error: '" + prop +
-              "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()";
+            LAY.$error(prop +
+              "' must be LAY.color()/LAY.rgb()/LAY.rgba()/LAY.hsl()/LAY.hsla()");
           }
         }
         multipleTypePropMatchDetails =
@@ -367,7 +367,7 @@
             // Split the transitions
             var splitPropS = transitionProp.split(",");
             for ( var i=0, len=splitPropS.length; i<len; i++ ) {
-              var splitProp = splitPropS[ i ].trim();
+              var splitProp = splitPropS[i].trim();
               transition[ splitProp ] = transition[ transitionProp ];
             }
             // remove the main transition
@@ -379,8 +379,8 @@
 
           if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable(
               transitionProp ) ) {
-            throw (
-              "LAY Error: transitions for special/expander props such as '" +
+             LAY.$error(
+               "Transitions for special/expander props such as '" +
                 name  + "' are not permitted." );
           }
           transitionDirective = transition[ transitionProp ];
@@ -409,7 +409,7 @@
       for ( var stateName in stateName2state ) {
 
         if ( !LAY.$checkIsValidUtils.stateName( stateName ) ) {
-          throw ( "LAY Error: Invalid state name: " + stateName );
+          LAY.$error( "Invalid state name: " + stateName );
         }
 
         state = stateName2state[ stateName ];
@@ -504,9 +504,9 @@
 
       for ( i = 0, len = sortS.length; i < len; i++ ) {
         checkAndThrowErrorAttrAsTake( "sort." + i,
-          sortS[ i ] );
-        if ( sortS[ i ].ascending === undefined ) {
-          sortS[ i ].ascending = true;
+          sortS[i] );
+        if ( sortS[i].ascending === undefined ) {
+          sortS[i].ascending = true;
         }
 
       }

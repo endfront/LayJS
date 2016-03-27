@@ -253,8 +253,8 @@
             intoLsonRowS = intoLson.rows;
             for ( var i = 0, len = fromLsonRowS.length; i < len; i++ ) {
 
-              fromLsonRow = fromLsonRowS[ i ];
-              intoLsonRowS[ i ] = checkIsMutable( fromLsonRow ) ?
+              fromLsonRow = fromLsonRowS[i];
+              intoLsonRowS[i] = checkIsMutable( fromLsonRow ) ?
                 LAY.$clone( fromLsonRow ) : fromLsonRow;
 
             }

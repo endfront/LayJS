@@ -101,7 +101,7 @@
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
         if ( LAY.$checkIfDoingReadonly( attr ) ) {
-          console.error("LAY Error: " + attr + " must be placed in $obdurate");
+          LAY.$warning(attr + " must be placed in $obdurate");
           return undefined;
         } else if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
           return this.part.getImmidiateReadonlyVal( attr );
@@ -285,7 +285,7 @@
   LAY.Level.prototype.remove = function () {
 
     if ( this.pathName === "/" ) {
-      console.error("LAY Error: Attempt to remove root level '/' prohibited");
+      LAY.$error("Attempt to remove root level '/' prohibited");
     } else {
       if ( this.derivedMany ) {
         this.derivedMany.rowDeleteByID( this.id );
@@ -339,12 +339,12 @@
     var childPath, childLevel;
 
     if ( !LAY.$checkIsValidUtils.levelName( name ) ) {
-      throw ( "LAY Error: Invalid Level Name: " + name );
+      LAY.$error("Invalid Level Name: " + name );
     }
     childPath = this.pathName +
       ( this.pathName === "/" ? "" : "/" ) + name;
     if ( LAY.$pathName2level[ childPath ] !== undefined ) {
-      throw ( "LAY Error: Level already exists with path: " +
+      LAY.$error( "Level already exists with path: " +
         childPath + " within Level: " + this.pathName );
     }
     childLevel = new LAY.Level( childPath,
@@ -368,7 +368,7 @@
       refS = this.lson.$inherit;
       for ( i = 0, len = refS.length; i < len; i++ ) {
 
-        ref = refS[ i ];
+        ref = refS[i];
         if ( typeof ref === "string" ) { // pathname reference
           if ( ref === this.pathName ) {
             return false;
@@ -381,7 +381,7 @@
       }
       for ( i = 0; i < len; i++ ) {
 
-        ref = refS[ i ];
+        ref = refS[i];
         if ( typeof ref === "string" ) { // pathname reference
 
           level = ( new LAY.RelPath( ref ) ).resolve( this );
@@ -441,7 +441,7 @@
       }
     } else {
       if ( this.pathName === "/" ) {
-        throw "LAY Error: 'many' prohibited for root level /";
+        LAY.$error("'many' prohibited for root level /");
       }
       this.partLson = this.lson;
       this.lson = this.lson.many;
@@ -466,7 +466,7 @@
   function initAttrsArray( attrPrefix, elementS, attr2val ) {
 
     for ( var i = 0, len = elementS.length ; i < len; i++ ) {
-      attr2val[ attrPrefix + "." + ( i + 1 ) ] = elementS[ i ];
+      attr2val[ attrPrefix + "." + ( i + 1 ) ] = elementS[i];
     }
   }
 
@@ -534,7 +534,7 @@
       attr2val[ "$$num.sort" ] = slson.sort.length;
 
       for ( var i = 0, len = slson.sort.length; i < len; i++ ) {
-        initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[ i ],
+        initAttrsObj( "sort." + ( i + 1 ) + ".", slson.sort[i],
          attr2val, false );
       }
 
@@ -614,10 +614,10 @@
 
     if ( obdurateReadonlyS.length ) {
       for ( i = 0, len = obdurateReadonlyS.length; i < len; i++ ) {
-        obdurateReadonly = obdurateReadonlyS[ i ];
+        obdurateReadonly = obdurateReadonlyS[i];
         if ( !this.$createLazyAttr( obdurateReadonly ) ) {
-          throw "LAY Error: Unobervable Attr: '" +
-            obdurateReadonly  + "'";
+          LAY.$error("Unknown $obdurate attr: '" +
+            obdurateReadonly  + "'");
         }
         this.attr2attrVal[ obdurateReadonly ].give(
           LAY.$emptyAttrVal );
@@ -733,7 +733,7 @@
         } else if ( LAY.$checkIfDoingReadonly( attr ) ) {
           this.$createAttrVal( attr, false );
         } else {
-          console.error("LAY Error: Incorrectly named readonly: " + attr );
+          LAY.$warning("Incorrectly named readonly: " + attr );
           return false;
         }
       }
@@ -786,7 +786,7 @@
 
             for ( i = 0, len = splitAttrLsonComponentS.length; i < len; i++ ) {
               attrLsonComponentObj =
-               attrLsonComponentObj[ splitAttrLsonComponentS[ i ] ];
+               attrLsonComponentObj[ splitAttrLsonComponentS[i] ];
 
               if ( attrLsonComponentObj === undefined ) {
                 break;
@@ -879,7 +879,7 @@
 
     var slson = {}, attr2val;
     for ( var i = 0, len = this.stateS.length; i < len; i++ ) {
-      LAY.$inherit( slson, this.lson.states[ this.stateS[ i ] ],
+      LAY.$inherit( slson, this.lson.states[ this.stateS[i] ],
         true, !this.isPart, true );
     }
 

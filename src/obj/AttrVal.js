@@ -248,7 +248,7 @@
       this.prevVal = this.val;
 
       for ( i = 0, len = this.takerAttrValS.length; i < len; i++ ) {
-        this.takerAttrValS[ i ].requestRecalculation();
+        this.takerAttrValS[i].requestRecalculation();
       }
 
       if ( LAY.$isDataTravellingShock ) {
@@ -461,7 +461,7 @@
     if ( childLevelS.length ) {
       for ( var i = 0, len = childLevelS.length;
             i < len; i++ ) {
-        childLevel = childLevelS[ i ];
+        childLevel = childLevelS[i];
         if ( childLevel.part ) {
           recursivelySwitchOffDoingEvents( childLevel );
         }
@@ -540,8 +540,8 @@
 
       for ( i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
-        relPath = _relPath00attr_S[ i ][ 0 ];
-        attr = _relPath00attr_S[ i ][ 1 ];
+        relPath = _relPath00attr_S[i][ 0 ];
+        attr = _relPath00attr_S[i][ 1 ];
         level = relPath.resolve( this.level );
 
         if ( level === undefined ) {
@@ -564,8 +564,8 @@
 
       for ( i = 0; i < len; i++ ) {
 
-        relPath = _relPath00attr_S[ i ][ 0 ];
-        attr = _relPath00attr_S[ i ][ 1 ];
+        relPath = _relPath00attr_S[i][ 0 ];
+        attr = _relPath00attr_S[i][ 1 ];
 
         relPath.resolve( this.level ).$getAttrVal( attr ).give( this );
 
@@ -583,8 +583,8 @@
 
       for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
 
-        relPath = _relPath00attr_S[ i ][ 0 ];
-        attr = _relPath00attr_S[ i ][ 1 ];
+        relPath = _relPath00attr_S[i][ 0 ];
+        attr = _relPath00attr_S[i][ 1 ];
 
         level = relPath.resolve( this.level );
 

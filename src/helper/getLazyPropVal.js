@@ -106,6 +106,8 @@
       borderRightColor: LAY.transparent(),
       borderLeftColor: LAY.transparent(),
 
+
+      html: "",
       text: "",
       textOverflow: "clip",
       textDecoration: "none",
@@ -126,6 +128,8 @@
       imageAlt: null,
 
       link: null,
+
+      iframe: null,
 
       videoAutoplay: false,
       videoController: true,

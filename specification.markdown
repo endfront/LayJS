@@ -68,9 +68,6 @@
   - "none"
   - "text" (auto-detect is on to distinguish between "none" and "text")
   - "html"
-  - "link:text"
-  - "link:html"
-  - "link:block"
   - "image"
   - "video"
   - "audio"
@@ -383,6 +380,13 @@ Defaults:
       ...  
     ]  
 
+
+- html
+  `string`
+
+- markdown
+  `string`
+
 - text  
   `string`  
 
@@ -620,8 +624,9 @@ Defaults:
   `number`
   Default: 1.0
 
-- iframeSrc  
+- iframe  
   `string`
+  iframe `src` prop
   Default: none
 
 ### Attributes

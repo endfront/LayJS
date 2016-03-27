@@ -57,17 +57,16 @@
       } while ( !( isSolveNewComplete && isSolveRecalculationComplete ) );
 
       if ( !( isSolveNewComplete && isSolveRecalculationComplete ) ) {
-        var msg = "LAY Error: Circular/Undefined Reference Encountered [";
+        var msg = "Circular/Undefined Reference Encountered [";
         if ( !isSolveNewComplete ) {
           msg += "Uninheritable Level: " + LAY.$newLevelS[ 0 ].pathName;
         } else {
           var circularAttrVal = LAY.$recalculateDirtyAttrValS[ 0 ];
-          msg += "Uninstantiable Attr: " +
-              circularAttrVal.attr +
-            " (Level: " + circularAttrVal.level.pathName  + ")";
+          msg += "level: " + circularAttrVal.level.pathName +
+            ", attr:" + circularAttrVal.attr  + "";
         }
         msg += "]";
-        throw msg;
+        LAY.$error(msg);
 
       }
 
@@ -92,7 +91,7 @@
   function relayout() {
     var relayoutDirtyManyS = LAY.$relayoutDirtyManyS;
     for ( var i=0, len=relayoutDirtyManyS.length; i<len; i++ ) {
-      var relayoutDirtyMany = relayoutDirtyManyS[ i ];
+      var relayoutDirtyMany = relayoutDirtyManyS[i];
       if ( relayoutDirtyMany.level.isExist ) {
         relayoutDirtyMany.relayout();
       }
@@ -115,7 +114,7 @@
     for ( i=naturalWidthDirtyPartS.length - 1;
         i >= 0; i-- ) {
       attrVal =
-        naturalWidthDirtyPartS[ i ].level.attr2attrVal.$naturalWidth;
+        naturalWidthDirtyPartS[i].level.attr2attrVal.$naturalWidth;
       if ( attrVal && attrVal.level.isExist ) {
         attrVal.requestRecalculation();
       }
@@ -124,7 +123,7 @@
     for ( i=naturalHeightDirtyPartS.length - 1;
         i >= 0; i-- ) {
       attrVal =
-        naturalHeightDirtyPartS[ i ].level.attr2attrVal.$naturalHeight;
+        naturalHeightDirtyPartS[i].level.attr2attrVal.$naturalHeight;
       if ( attrVal && attrVal.level.isExist ) {
         attrVal.requestRecalculation();
       }
@@ -138,14 +137,13 @@
   function executeManyLoads () {
     var newManyS = LAY.$newManyS;
     for ( var i = 0, len = newManyS.length; i < len; i++ ) {
-      var newMany = newManyS[ i ];
+      var newMany = newManyS[i];
       newMany.isLoaded = true;
       var fnLoadS = newMany.level.lson.$load;
       if ( newMany.level.isExist && fnLoadS ) {
         for (var j=0; j<fnLoadS.length; j++) {
           fnLoadS[j].call(newMany.level);
         }
-        fnLoad.call( newMany.level );
       }
     }
     LAY.$newManyS = [];
@@ -164,7 +162,7 @@
       attrValNewlyUninstalledStateUninstall;
 
     for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
-      newlyInstalledStateLevel = newlyInstalledStateLevelS[ i ];
+      newlyInstalledStateLevel = newlyInstalledStateLevelS[i];
       newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
       if ( newlyInstalledStateLevel.isExist ) {
         for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
@@ -184,7 +182,7 @@
     LAY.$newlyInstalledStateLevelS = [];
 
     for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
-      newlyUninstalledStateLevel = newlyUninstalledStateLevelS[ i ];
+      newlyUninstalledStateLevel = newlyUninstalledStateLevelS[i];
       newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
       if ( newlyUninstalledStateLevel.isExist ) {
         for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {

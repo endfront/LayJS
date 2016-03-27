@@ -68,7 +68,7 @@
 	function filter ( fnFilter, rowS ) {
 		var filteredRowS = [];
 		for ( var i = 0, len = rowS.length, row; i < len; i++ ) {
-			row = rowS[ i ];
+			row = rowS[i];
 			if ( fnFilter( row ) ) {
 				filteredRowS.push( row );
 			}

@@ -16,12 +16,12 @@
     do {
       isSolveProgressed = false;
       for ( i = 0; i < recalculateDirtyAttrValS.length; i++ ) {
-        if ( recalculateDirtyAttrValS[ i ].isRemoved ) {
+        if ( recalculateDirtyAttrValS[i].isRemoved ) {
           LAY.$arrayUtils.removeAtIndex( recalculateDirtyAttrValS, i );
           i--;
         } else {
           ret =
-            recalculateDirtyAttrValS[ i ].recalculate();
+            recalculateDirtyAttrValS[i].recalculate();
 
           if ( ret ) {
             isSolveProgressed = true;

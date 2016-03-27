@@ -237,48 +237,48 @@ LAY.run({
                 "foo", LAY.take("", "data.five" )
               ),
 
-              langFormatNoArgs: LAY.take({
+              i18nFormatNoArgs: LAY.take({
                 en: "Hello World",
                 es: "Hola Mundo"
               }).i18nFormat(),
 
-              langFormatOneNumArg: LAY.take({
+              i18nFormatOneNumArg: LAY.take({
                 en: "Order: %d",
                 es: "Orden: %d"
               }).i18nFormat( 5),
 
-              langFormatOneNumArg: LAY.take({
+              i18nFormatOneNumArg: LAY.take({
                 en: "Order: %d",
                 es: "Orden: %d"
               }).i18nFormat( 5 ),
 
-              langFormatOneNumTakeArg: LAY.take({
+              i18nFormatOneNumTakeArg: LAY.take({
                 en: "Order: %d",
                 es: "Orden: %d"
               }).i18nFormat( LAY.take("", "data.five") ),
 
-              langFormatOneStrArg: LAY.take({
+              i18nFormatOneStrArg: LAY.take({
                 en: "Name: %s",
                 es: "Nombre: %s"
               }).i18nFormat("foo"),
 
-              langFormatOneStrTakeArg: LAY.take({
+              i18nFormatOneStrTakeArg: LAY.take({
                 en: "Name: %s",
                 es: "Nombre: %s"
               }).i18nFormat( LAY.take("", "data.foo")),
 
-              langFormatMultiArgs: LAY.take({
+              i18nFormatMultiArgs: LAY.take({
                 en: "Name: %s\nOrder: %d",
                 es: "Nombre: %s\nOrden: %d"
               }).i18nFormat( "foo", 5),
 
-              langFormatMultiTakeArgs: LAY.take({
+              i18nFormatMultiTakeArgs: LAY.take({
                 en: "Name: %s\nOrder: %d",
                 es: "Nombre: %s\nOrden: %d"
               }).i18nFormat(
                  LAY.take("","data.foo"), LAY.take("","data.five")),
 
-              langFormatMultiTakeMixedArgs: LAY.take({
+              i18nFormatMultiTakeMixedArgs: LAY.take({
                 en: "Name: %s\nOrder: %d",
                 es: "Nombre: %s\nOrden: %d"
               }).i18nFormat( LAY.take("","data.foo"), 5),
@@ -806,55 +806,55 @@ QUnit.test( "LAY.Take.format()", function( assert ) {
 QUnit.test( "LAY.Take.i18nFormat()", function( assert ) {
   function testEn( assert ) {
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatNoArgs"),
+      "data.i18nFormatNoArgs"),
       "Hello World" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneNumArg"),
+      "data.i18nFormatOneNumArg"),
       "Order: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneNumTakeArg"),
+      "data.i18nFormatOneNumTakeArg"),
       "Order: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneStrArg"),
+      "data.i18nFormatOneStrArg"),
       "Name: foo" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneStrTakeArg"),
+      "data.i18nFormatOneStrTakeArg"),
       "Name: foo" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatMultiArgs"),
+      "data.i18nFormatMultiArgs"),
       "Name: foo\nOrder: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatMultiTakeArgs"),
+      "data.i18nFormatMultiTakeArgs"),
       "Name: foo\nOrder: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatMultiTakeMixedArgs"),
+      "data.i18nFormatMultiTakeMixedArgs"),
       "Name: foo\nOrder: 5" );
   }
 
   function testEs( assert ) {
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatNoArgs"),
+      "data.i18nFormatNoArgs"),
       "Hola Mundo" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneNumArg"),
+      "data.i18nFormatOneNumArg"),
       "Orden: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneNumTakeArg") ,
+      "data.i18nFormatOneNumTakeArg") ,
       "Orden: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneStrArg") ,
+      "data.i18nFormatOneStrArg") ,
       "Nombre: foo" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatOneStrTakeArg") ,
+      "data.i18nFormatOneStrTakeArg") ,
       "Nombre: foo" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatMultiArgs") ,
+      "data.i18nFormatMultiArgs") ,
       "Nombre: foo\nOrden: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatMultiTakeArgs") ,
+      "data.i18nFormatMultiTakeArgs") ,
       "Nombre: foo\nOrden: 5" );
     assert.strictEqual( LAY.level("/Body/Content").attr(
-      "data.langFormatMultiTakeMixedArgs") ,
+      "data.i18nFormatMultiTakeMixedArgs") ,
       "Nombre: foo\nOrden: 5" );
     }
 

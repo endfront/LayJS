@@ -42,7 +42,7 @@
 
     var _relPath00attr_S = take._relPath00attr_S;
     for ( var i = 0, len = _relPath00attr_S.length; i < len; i++ ) {
-      this._relPath00attr_S.push( _relPath00attr_S[ i ] );
+      this._relPath00attr_S.push( _relPath00attr_S[i] );
 
     }
   };
@@ -194,7 +194,7 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).indexOf( val.execute( this ) ) !== -1;
+        return oldExecutable.call(this).indexOf( val.execute( this ) ) !== -1;
       };
     } else {
 
@@ -212,7 +212,7 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return val.execute( this ).indexOf( oldExecutable.call( this ) ) !== -1;
+        return val.execute(this).indexOf( oldExecutable.call( this ) ) !== -1;
       };
     } else {
 
@@ -759,12 +759,12 @@
 
   LAY.Take.prototype.format = function () {
 
-    console.log(arguments);
-    var argS = Array.prototype.slice.call( arguments );
+    // V8 optimized slice
+    var argS = (arguments.length === 1 ?
+      [arguments[0]] : Array.apply(null, arguments));
 
     // Check if its an object based format
-    if ( argS.length === 1 && typeof argS[0] === 'object' ) {
-      console.log("here", argS);
+    if (argS.length === 1 && LAY.$type(argS[0]) === "object") {
       var key2val = argS[0];
       for (var key in key2val) {
         var val  = key2val[key];
@@ -772,6 +772,7 @@
           this.$mergePathAndAttrs( val );
         }
       }
+      var oldExecutable = this.executable;
       this.executable = function () {
         var executedObject = {};
         for ( var key in key2val ) {
@@ -779,10 +780,11 @@
           executedObject[key] = val instanceof LAY.Take ?
             val.execute(this) : val;
         }
-        return LAY.$format(oldExecutable.call( this ), executedObject);
+        return LAY.$format(oldExecutable.call(this), executedObject);
       };
+      return this;
     } else {
-      var takeFormat = new LAY.Take( LAY.$format );
+      var takeFormat = new LAY.Take(LAY.$format);
       argS.unshift( this );
       return takeFormat.fn.apply( takeFormat, argS );
     }
@@ -791,23 +793,56 @@
 
 
   LAY.Take.prototype.i18nFormat = function () {
-    function fnWrapperI18nFormat () {
-      var argS = Array.prototype.slice.call( arguments );
-      argS[ 0 ] = ( argS[ 0 ] )[ LAY.level( '/' ).attr( 'data.lang' ) ];
-      if ( argS[ 0 ] === undefined ) {
-        throw "LAY Error: No language defined for i18nFormat";
+
+    this._relPath00attr_S.push([ new LAY.RelPath('/'), 'data.lang' ]);
+
+    // V8 optimized slice
+    var argS = (arguments.length === 1 ?
+      [arguments[0]] : Array.apply(null, arguments));
+
+    // Check if its an object based format
+    if (argS.length === 1 && LAY.$type(argS[0]) === "object") {
+      var key2val = argS[0];
+      for (var key in key2val) {
+        var val  = key2val[key];
+        if ( val instanceof LAY.Take ) {
+          this.$mergePathAndAttrs( val );
+        }
       }
-      return LAY.$format.apply( undefined, argS );
+      var oldExecutable = this.executable;
+      this.executable = function () {
+        var
+          executedObject = {},
+          lang = LAY.level('/').attr('data.lang');
+
+        for ( var key in key2val ) {
+          var val = key2val[key];
+          executedObject[key] = val instanceof LAY.Take ?
+            val.execute(this) : val;
+        }
+
+        return LAY.$format(oldExecutable.call(this)[lang], executedObject);
+      };
+      return this;
+    } else {
+      function fnWrapperi18nFormat () {
+        // V8 optimized slice
+        var argS = (arguments.length === 1 ?
+          [arguments[0]] : Array.apply(null, arguments));
+
+        argS[0] = (argS[0])[ LAY.level('/').attr('data.lang') ];
+        if ( argS[0] === undefined ) {
+          LAY.$error("No language defined for i18nFormat");
+        }
+
+        return LAY.$format.apply(undefined, argS);
+      }
+      var takeFormat = new LAY.Take( fnWrapperi18nFormat );
+      argS.unshift( this );
+      return takeFormat.fn.apply( takeFormat, argS );
     }
 
-    this._relPath00attr_S.push( [ new LAY.RelPath( '/' ), 'data.lang' ] );
-
-    var argS = Array.prototype.slice.call(arguments),
-      takeFormat = new LAY.Take( fnWrapperI18nFormat );
-
-    argS.unshift( this );
-
-    return takeFormat.fn.apply( takeFormat, argS);
+    return takeFormat.fn.apply(takeFormat, argS);
 
   };
 
@@ -851,7 +886,8 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().lighten( val.execute( this ) );
+        return oldExecutable.call( this ).copy().lighten(
+          val.execute( this ) );
       };
     } else {
 
@@ -871,7 +907,8 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().darken( val.execute( this ) );
+        return oldExecutable.call( this ).copy().darken(
+          val.execute( this ) );
       };
     } else {
 
@@ -902,7 +939,8 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().saturate( val.execute( this ) );
+        return oldExecutable.call( this ).copy().saturate(
+          val.execute( this ) );
       };
     } else {
 
@@ -921,7 +959,8 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().desaturate( val.execute( this ) );
+        return oldExecutable.call( this ).copy().desaturate(
+          val.execute( this ) );
       };
     } else {
 
@@ -940,7 +979,8 @@
       this.$mergePathAndAttrs( val );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().transparentize( val.execute( this ) );
+        return oldExecutable.call( this ).copy().transparentize(
+          val.execute( this ) );
       };
     } else {
 
@@ -959,7 +999,8 @@
       this.$mergePathAndAttrs( color );
 
       this.executable = function () {
-        return oldExecutable.call( this ).copy().mix( color.execute( this ) );
+        return oldExecutable.call( this ).copy().mix(
+          color.execute( this ) );
       };
     } else {
 
@@ -1599,13 +1640,14 @@
           this.$mergePathAndAttrs( arg2 );
 
           this.executable = function () {
-            return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2.execute( this ) );
+            return fnExecutable.call( this ).call( this,
+              arg1.execute( this ), arg2.execute( this ) );
           };
 
         } else {
           this.executable = function () {
-
-            return fnExecutable.call( this ).call( this, arg1.execute( this ), arg2 );
+            return fnExecutable.call( this ).call( this,
+              arg1.execute( this ), arg2 );
           };
         }
 
@@ -1614,7 +1656,8 @@
         this.$mergePathAndAttrs( arg2 );
         this.executable = function () {
 
-          return fnExecutable.call( this ).call( this, arg1, arg2.execute( this ) );
+          return fnExecutable.call( this ).call( this,
+            arg1, arg2.execute( this ) );
         };
 
 
@@ -1627,12 +1670,13 @@
       }
     } else {
 
-      var argSlength = arguments.length;
-      var argS = Array.prototype.slice.call( arguments );
+      // V8 optimized slice
+      var argS = (arguments.length === 1 ?
+        [arguments[0]] : Array.apply(null, arguments));
 
-      for ( var i = 0, curArg; i < argSlength; i++ ) {
+      for ( var i=0, len=argS.length; i<len; i++ ) {
 
-        curArg = arguments[ i ];
+        var curArg = arguments[i];
 
         if ( curArg instanceof LAY.Take ) {
 
@@ -1643,13 +1687,14 @@
 
       this.executable = function () {
 
-        var executedArgS = new Array( argSlength );
+        var executedArgS = new Array( argS.length );
 
-        for ( var i = 0, arg; i < argSlength; i++ ) {
+        for ( var i=0, len=argS.length; i<len; i++ ) {
 
-          arg = argS[ i ];
+          var arg = argS[i];
 
-          executedArgS[ i ] = arg instanceof LAY.Take ? arg.execute( this ) : arg;
+          executedArgS[i] =
+            arg instanceof LAY.Take ? arg.execute( this ) : arg;
 
         }
 

@@ -47,7 +47,7 @@
     this.defaultFormationY = this.partLson.states.root.props.top;
 
     if ( this.partLson.exist ) {
-      throw "LAY ERROR: many derived levels cannot contain exist";
+      LAY.$error("many derived levels cannot contain 'exist'");
     }
 
   };
@@ -62,7 +62,7 @@
         queryLevelS = [];
 
       for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
-        queryLevelS.push( this.id2row[ queryRowS[ i ][ this.id ] ]);
+        queryLevelS.push( this.id2row[ queryRowS[i][ this.id ] ]);
       }
       return queryLevelS;
     }
@@ -101,7 +101,7 @@
     }
 
     for ( var i = 0; i < newRowS.length; i++ ) {
-      curRowS.push( newRowS[ i ] );
+      curRowS.push( newRowS[i] );
     }
 
     rowsAttrVal.val = rowsAttrVal.calcVal;
@@ -125,7 +125,7 @@
         rowsAttrVal.calcVal;
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
-      var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
+      var fetchedRow = this.id2row[ queryRowS[i][ this.id ] ];
       if ( fetchedRow ) {
         fetchedRow[ key ] = val;
       }
@@ -148,7 +148,7 @@
         rowsAttrVal.calcVal
 
     for ( var i = 0, len = queryRowS.length; i < len; i++ ) {
-      var fetchedRow = this.id2row[ queryRowS[ i ][ this.id ] ];
+      var fetchedRow = this.id2row[ queryRowS[i][ this.id ] ];
       LAY.$arrayUtils.remove( curRowS, fetchedRow );
     }
 
@@ -169,7 +169,7 @@
   function objectifyRows ( rowS, idKey ) {
     var objectifiedRowS = [];
     for ( var i = 0, len = rowS.length; i < len; i++ ) {
-      var objectifiedRow = { content: rowS[ i ] };
+      var objectifiedRow = { content: rowS[i] };
       objectifiedRow[ idKey ] = i + 1;
       objectifiedRowS.push( objectifiedRow );
     }
@@ -179,14 +179,14 @@
   function checkIfRowsHaveNoId( rowS, idKey ) {
     var totalIds = 0;
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      if ( rowS[ i ][ idKey ] !== undefined ) {
+      if ( rowS[i][ idKey ] !== undefined ) {
         totalIds++;
       }
     }
     if ( totalIds > 0 ) {
       if ( totalIds !== rowS.length ) {
-        throw "LAY Error: Inconsistent id provision to rows of " +
-          this.level.pathName;
+        LAY.$error("Inconsistent id provision to rows of " +
+          this.level.pathName);
       }
     } else if ( rowS.length ) {
       return true;
@@ -197,22 +197,22 @@
   function idifyRows ( rowS, idKey ) {
 
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      rowS[ i ][ idKey ] = i+1;
+      rowS[i][ idKey ] = i+1;
     }
 
     // check for duplicates
     // complexity of solution is O(n)
     var hasDuplicates = false;
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      if ( rowS[ i ][ idKey ] !== i+1 ) {
+      if ( rowS[i][ idKey ] !== i+1 ) {
         hasDuplicates = true;
         break;
       }
     }
     if ( hasDuplicates ) {
       for ( var i=0, len=rowS.length; i<len; i++ ) {
-        rowS[ i ] = LAY.$clone( rowS[ i ] );
-        rowS[ i ][ idKey ] = i+1;
+        rowS[i] = LAY.$clone( rowS[i] );
+        rowS[i][ idKey ] = i+1;
       }
     }
     return rowS;
@@ -266,7 +266,7 @@
     }
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
-  		row = rowS[ i ];
+  		row = rowS[i];
   		id = row[ this.id ];
       id2row[ id ] = row;
   		level = this.id2level[ id ];
@@ -331,7 +331,7 @@
     for (
       var i = 0, len = allLevelS.length;
       i < len; i++ ) {
-      level = allLevelS[ i ];
+      level = allLevelS[i];
       // has not been initialized as yet
       if ( !level.isInitialized ) {
         return false;
@@ -345,7 +345,7 @@
     for (
       var i = 0, len = filteredRowS.length;
       i < len; i++ ) {
-      filteredLevel = this.id2level[ filteredRowS[ i ][ idKey ] ];
+      filteredLevel = this.id2level[ filteredRowS[i][ idKey ] ];
       if ( filteredLevel ) {
         filteredLevelS.push( filteredLevel );
         filteredLevel.attr2attrVal.$f.update( f++ );
@@ -446,7 +446,7 @@
   LAY.Many.prototype.remove = function () {
     var allLevelS = this.allLevelS;
     for ( var i=0, len=allLevelS.length; i<len; i++ ) {
-      allLevelS[ i ].$remove();
+      allLevelS[i].$remove();
     }
     this.allLevelS = [];
     this.filteredLevelS = [];

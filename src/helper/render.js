@@ -117,7 +117,7 @@
       }
 
       for ( i = 0, len = renderCallS.length; i < len; i++ ) {
-        renderDirtyPart.render( renderCallS[ i ] );
+        renderDirtyPart.render( renderCallS[i] );
       }
 
       if (
@@ -135,7 +135,7 @@
     }
 
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
-      renderNewLevel = renderNewLevelS[ i ];
+      renderNewLevel = renderNewLevelS[i];
       renderNewLevel.part.isInitiallyRendered = true;
       var fnLoadS = renderNewLevel.lson.$load;
       if ( fnLoadS ) {

@@ -83,7 +83,7 @@
   };
 
   LAY.Query.prototype.index = function ( i ) {
-  	return this.rowS[ i ];
+  	return this.rowS[i];
   };
 
   LAY.Query.prototype.length = function () {

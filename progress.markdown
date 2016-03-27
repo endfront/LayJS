@@ -1,17 +1,14 @@
 
 Current:
-  - optimize arguments slice (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments)
-  - format dict args
-  - format dict args for todomvc
-  - i18n format using object
-  - remove link type, link and image within same level
-  - markdown and html props
-  - lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - $xfonts, recalculate without animation
+  - markdown lay.take method
+  - .md link convert to .html link
+  - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - what if "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
+  - remove link type, link and image within same level
   - error: undefined text string val (ie not a string)
   - error: unknown formation know
   - update format string doc (option for object argument)
