@@ -800,6 +800,18 @@
     var argS = (arguments.length === 1 ?
       [arguments[0]] : Array.apply(null, arguments));
 
+    function fnWrapperi18nFormat () {
+      // V8 optimized slice
+      var argS = (arguments.length === 1 ?
+        [arguments[0]] : Array.apply(null, arguments));
+
+      argS[0] = (argS[0])[ LAY.level('/').attr('data.lang') ];
+      if ( argS[0] === undefined ) {
+        LAY.$error("No language defined for i18nFormat");
+      }
+
+      return LAY.$format.apply(undefined, argS);
+    }
     // Check if its an object based format
     if (argS.length === 1 && LAY.$type(argS[0]) === "object") {
       var key2val = argS[0];
@@ -825,18 +837,6 @@
       };
       return this;
     } else {
-      function fnWrapperi18nFormat () {
-        // V8 optimized slice
-        var argS = (arguments.length === 1 ?
-          [arguments[0]] : Array.apply(null, arguments));
-
-        argS[0] = (argS[0])[ LAY.level('/').attr('data.lang') ];
-        if ( argS[0] === undefined ) {
-          LAY.$error("No language defined for i18nFormat");
-        }
-
-        return LAY.$format.apply(undefined, argS);
-      }
       var takeFormat = new LAY.Take( fnWrapperi18nFormat );
       argS.unshift( this );
       return takeFormat.fn.apply( takeFormat, argS );
