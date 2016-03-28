@@ -57,8 +57,6 @@
 
   function inheritTransitionProp ( intoTransition, fromTransition,
     intoTransitionProp, fromTransitionProp ) {
-
-
       var
         fromTransitionDirective = fromTransition[ fromTransitionProp ],
         intoTransitionDirective = intoTransition[ intoTransitionProp ],
@@ -146,7 +144,7 @@
           if ( !intoLoadFnS ) {
             intoLoadFnS = intoLson.$load = [];
           }
-          intoLoadFnS.concat( fromLoadFnS );
+          intoLson.$load = intoLoadFnS.concat( fromLoadFnS );
         }
       },
 
@@ -154,14 +152,12 @@
         inheritSingleLevelObject( intoLson, fromLson, "data" );
       },
 
-
       props: function( intoLson, fromLson ) {
         inheritSingleLevelObject( intoLson, fromLson, "props" );
       },
 
 
       transition: function ( intoLson, fromLson ) {
-
         var
           fromTransition = fromLson.transition,
           intoTransition = intoLson.transition,
@@ -170,11 +166,9 @@
           i, len,
           tmpTransition = {};
 
-
         if ( ( intoTransition === undefined ) ) {
           intoTransition = intoLson.transition = {};
         }
-
 
         // "all" prop overwrite stage
         //
@@ -210,7 +204,6 @@
         //
         if ( intoTransition.all ) {
           for ( intoTransitionProp in intoTransition ) {
-
             if ( intoTransitionProp !== "all" ) {
               tmpTransition[ intoTransitionProp ] = {};
               inheritTransitionProp(
@@ -226,8 +219,6 @@
         }
       },
 
-
-
       many: function( intoLson, fromLson ) {
 
         if ( intoLson.many === undefined ) {
@@ -240,7 +231,6 @@
       },
 
       rows: function( intoLson, fromLson ) {
-
         var
           intoLsonRowS = intoLson.rows,
           fromLsonRowS = fromLson.rows,

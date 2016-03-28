@@ -1,6 +1,7 @@
 
 Current:
   - $load not working on inherited part
+  - border<dir>Style default lazy
   - $xfonts, recalculate without animation
   - markdown lay.take method
   - .md link convert to .html link
