@@ -76,6 +76,7 @@
 
   textDimensionCalculateNodeCss =
     defaultTextCss +
+    "left:-9999px; top:-9999px;" +
     "visibility:hidden;height:auto;" +
     "border:0px solid transparent;";
 
@@ -140,6 +141,7 @@
 
   imageSizeMeasureNode = document.createElement("img");
   imageSizeMeasureNode.style.cssText = defaultCss +
+    "left:-9999px; top:-9999px;" +
     "visibility:hidden;"
   document.body.appendChild( imageSizeMeasureNode );
 

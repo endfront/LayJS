@@ -1,6 +1,7 @@
 
 Current:
-  - $load not working on inherited part
+  - hidden img (even div for text could be doing so) taking space on page
+  - empty text for non input should result in natural height of 0
   - border<dir>Style default lazy
   - $xfonts, recalculate without animation
   - markdown lay.take method
