@@ -107,9 +107,11 @@
           return this.part.getImmidiateReadonlyVal( attr );
         }
       }
+
       if ( this.$createLazyAttr( attr, true ) ) {
         var attrVal = this.attr2attrVal[ attr ];
-        attrVal.give( LAY.$emptyAttrVal );
+        attrVal.give(LAY.$emptyAttrVal);
+        console.log(LAY.$recalculateDirtyAttrValS.length);
         LAY.$solve();
         return attrVal.calcVal;
       } else {
@@ -720,7 +722,7 @@
     if ( LAY.$miscPosAttr2take[ attr ] ) {
       this.$createAttrVal( attr,
         LAY.$miscPosAttr2take[ attr ] );
-    } else if ( attr.charAt( 0 ) === "$" ) { //readonly
+    } else if ( attr.charAt(0) === "$" ) { //readonly
       if ( [ "$type", "$load", "$id", "$inherit", "$obdurate" ].indexOf(
             attr ) !== -1 ) {
           this.$createAttrVal( attr, this.lson[ attr ] );
@@ -738,11 +740,11 @@
         }
       }
     } else {
-      if ( attr.indexOf( "." ) === -1 ) {
+      if ( attr.indexOf(".") === -1 ) {
         var lazyVal = LAY.$getLazyPropVal( attr,
           this.parentLevel === undefined );
         if ( lazyVal !== undefined ) {
-          this.$createAttrVal( attr, lazyVal );
+          this.$createAttrVal(attr, lazyVal);
         } else {
           return false;
         }

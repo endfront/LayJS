@@ -1,7 +1,6 @@
 ( function () {
   "use strict";
   LAY.$solve = function () {
-
     if ( LAY.$isRendering ) {
       LAY.$isSolveRequiredOnRenderFinish = true;
     } else if ( !LAY.$isSolving && LAY.$numClog === 0 ) {

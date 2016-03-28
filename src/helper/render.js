@@ -134,6 +134,8 @@
       }
     }
 
+    LAY.$isRendering = false;
+
     for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
       renderNewLevel = renderNewLevelS[i];
       renderNewLevel.part.isInitiallyRendered = true;
@@ -144,8 +146,6 @@
         }
       }
     }
-
-    LAY.$isRendering = false;
 
     if ( LAY.$isSolveRequiredOnRenderFinish ) {
       LAY.$isSolveRequiredOnRenderFinish = false;
