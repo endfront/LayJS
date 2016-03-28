@@ -133,23 +133,16 @@
       obj[ key ] = undefined;
 
     } else if ( type === "object" ) {
-
       for ( var subKey in val ) {
-
         flattenedProp = prefix + LAY.$capitalize( subKey );
         flattenProp( props, val, subKey, flattenedProp );
-
         obj[ key ] = undefined;
       }
-
     } else {
-
       if ( LAY.$checkIsValidUtils.checkIsPropAttrExpandable( prefix ) ) {
         checkAndThrowErrorAttrAsTake( prefix, val );
       }
-
       props[ prefix ] = val;
-
     }
   }
 
@@ -198,7 +191,7 @@
 
     $load: function ( lson ) {
       checkAndThrowErrorAttrAsTake( "$load", lson.$load );
-      if ( !( lson.$load instanceof Array ) ) {
+      if (!(lson.$load instanceof Array)) {
         lson.$load = [ lson.$load ];
       }
     },
@@ -458,12 +451,10 @@
       }
 
       many.states.root = {
-
         formation: many.formation,
         sort: many.sort,
         filter: many.filter,
         fargs: many.fargs
-
       };
 
       many.formation = undefined;
@@ -472,6 +463,10 @@
       many.fargs = undefined;
 
       key2fnNormalize.states( many, true );
+
+      if (many.$load) {
+        key2fnNormalize.$load(many);
+      }
 
     }
   },

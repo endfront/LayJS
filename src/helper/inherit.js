@@ -34,8 +34,9 @@
       if ( isMany ) {
         into.formation = from.formation || into.formation;
         into.filter = from.filter || into.filter;
-        key2fnInherit.fargs( into, from );
+        key2fnInherit.fargs(into, from);
         into.sort = from.sort || into.sort;
+        key2fnInherit.$load(into,from);
 
       } else {
         if ( from.props !== undefined ) {

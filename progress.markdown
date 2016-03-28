@@ -1,6 +1,6 @@
 
 Current:
-  - website not working on ios
+  - $load not working on on part
   - $xfonts, recalculate without animation
   - markdown lay.take method
   - .md link convert to .html link
