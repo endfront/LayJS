@@ -151,7 +151,7 @@
       LAY.$isSolveRequiredOnRenderFinish = false;
       LAY.$solve();
     } else if ( !isAllNormalTransitionComplete ) {
-      LAY.$render( curTimeFrame );
+      LAY.$render(curTimeFrame);
     }
 
   }

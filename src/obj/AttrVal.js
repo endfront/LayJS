@@ -103,6 +103,7 @@
     }
   }
 
+
   /*
   * Returns true if the value is different,
   * false otherwise
@@ -593,15 +594,15 @@
         }
       }
     }
-
   };
+
 
   LAY.AttrVal.prototype.remove = function () {
     this.takeNot( this.val );
     this.isRemoved = true;
     this.level.attr2attrVal[ this.attr ] = undefined;
+  };
 
-  }
 
 
 

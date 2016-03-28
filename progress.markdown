@@ -1,6 +1,6 @@
 
 Current:
-  - $load not working on on part
+  - $load not working on inherited part
   - $xfonts, recalculate without animation
   - markdown lay.take method
   - .md link convert to .html link

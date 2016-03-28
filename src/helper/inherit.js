@@ -299,7 +299,6 @@
         for ( var name in fromChildName2lson ) {
           if ( intoChildName2lson[ name ] === undefined ) { // inexistent child
             intoChildName2lson[ name ] = {};
-
           }
           LAY.$inherit( intoChildName2lson[ name ], fromChildName2lson[ name ],
              false, false, false );

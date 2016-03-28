@@ -745,6 +745,10 @@
           this.parentLevel === undefined );
         if ( lazyVal !== undefined ) {
           this.$createAttrVal(attr, lazyVal);
+          // switch off state projected attr as
+          // it would cause the attr val to be deleted
+          // on a state change.
+          this.$getAttrVal(attr).isStateProjectedAttr = false;
         } else {
           return false;
         }
