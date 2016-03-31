@@ -1135,7 +1135,7 @@
         if (isWrappedLink) {
           wrappedLinkNode.style[prop] = val;
         } else {
-          wrappedLinkNode.style[prop] = val;
+          node.style[prop] = val;
         }
         break;
       case "perspective":
