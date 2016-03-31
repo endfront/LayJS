@@ -44,8 +44,10 @@
         // eg: "~/../.../Body" should become "Body"
         this.path = relativePath.slice( i );
       }
-      if ( this.path.length !== 0 &&
-          this.path.lastIndexOf("many") === this.path.length-4 ) {
+      var manyLastIndexOf = this.path.lastIndexOf("/many");
+      if ( (this.path.length === 4 && this.path === "many") ||
+          (manyLastIndexOf !== -1 &&
+            manyLastIndexOf === this.path.length-5) ) {
         this.isMany = true;
         if ( this.path.length === 4 ) {
           this.path = "";
