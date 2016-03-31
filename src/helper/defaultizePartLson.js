@@ -45,7 +45,7 @@
         }
         if (rootStateProps[ prop ] === undefined ) {
           lazyVal = LAY.$getLazyPropVal( prop,
-            isRootLevel );
+            isRootLevel, lson.$type === "input:lines" );
           if ( lazyVal !== undefined ) {
             rootStateProps[ prop ] = lazyVal;
           }

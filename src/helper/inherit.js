@@ -15,11 +15,11 @@
 
     if ( !isStateInheritance ) {
       for ( var key in from ) {
-        if ( from[ key ] ) {
-          if ( key2fnInherit[ key ] ) {
-            key2fnInherit[ key ]( into, from, isMany );
+        if ( from[key] ) {
+          if ( key2fnInherit[key] ) {
+            key2fnInherit[key]( into, from, isMany );
           } else {
-            into[ key ] = from[ key ];
+            into[key] = from[key];
           }
         }
       }
@@ -110,13 +110,13 @@
     function inheritSingleLevelObject( intoObject, fromObject, key, isDuplicateOn ) {
 
       var fromKey2value, intoKey2value, fromKey, fromKeyValue;
-      fromKey2value = fromObject[ key ];
-      intoKey2value = intoObject[ key ];
+      fromKey2value = fromObject[key];
+      intoKey2value = intoObject[key];
 
 
       if ( intoKey2value === undefined ) {
 
-        intoKey2value = intoObject[ key ] = {};
+        intoKey2value = intoObject[key] = {};
 
       }
 

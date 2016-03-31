@@ -23,6 +23,7 @@
 
     this.isLoaded = false;
     this.isAutoId = false;
+    this.isObjectified = false;
 
     this.defaultFormationX = undefined;
     this.defaultFormationY = undefined;
@@ -96,17 +97,15 @@
       rowsAttrVal = this.level.attr2attrVal.rows,
       curRowS = rowsAttrVal.calcVal;
 
-    if ( checkIfRowsIsNotObjectified( newRowS ) ) {
-       newRowS = objectifyRows( newRowS );
-    }
-
-    for ( var i = 0; i < newRowS.length; i++ ) {
-      curRowS.push( newRowS[i] );
+    for ( var i=0; i<newRowS.length; i++ ) {
+      curRowS.push(newRowS[i]);
     }
 
     rowsAttrVal.val = rowsAttrVal.calcVal;
     rowsAttrVal.requestRecalculation();
+
     LAY.$solve();
+
 
   };
 
@@ -160,23 +159,26 @@
 
 
 
-
   function checkIfRowsIsNotObjectified ( rowS ) {
     return rowS.length &&
-     ( typeof rowS[ 0 ] !== "object" );
+     ( LAY.$type(rowS[0]) !== "object" );
   }
 
   function objectifyRows ( rowS, idKey ) {
     var objectifiedRowS = [];
-    for ( var i = 0, len = rowS.length; i < len; i++ ) {
-      var objectifiedRow = { content: rowS[i] };
-      objectifiedRow[ idKey ] = i + 1;
-      objectifiedRowS.push( objectifiedRow );
+    for ( var i=0, len=rowS.length; i<len; i++ ) {
+      if ( LAY.$type(rowS[i]) !== "object" ) {
+        var objectifiedRow = {content: rowS[i] };
+        objectifiedRow[ idKey ] = i + 1;
+        objectifiedRowS.push(objectifiedRow);
+      } else {
+        objectifiedRowS.push(rowS[i]);
+      }
     }
     return objectifiedRowS;
   }
 
-  function checkIfRowsHaveNoId( rowS, idKey ) {
+  function checkIfRowsHaveNoId( rowS, idKey, level ) {
     var totalIds = 0;
     for ( var i=0, len=rowS.length; i<len; i++ ) {
       if ( rowS[i][ idKey ] !== undefined ) {
@@ -186,7 +188,7 @@
     if ( totalIds > 0 ) {
       if ( totalIds !== rowS.length ) {
         LAY.$error("Inconsistent id provision to rows of " +
-          this.level.pathName);
+          level.pathName );
       }
     } else if ( rowS.length ) {
       return true;
@@ -197,14 +199,14 @@
   function idifyRows ( rowS, idKey ) {
 
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      rowS[i][ idKey ] = i+1;
+      rowS[i][idKey] = i+1;
     }
 
     // check for duplicates
     // complexity of solution is O(n)
     var hasDuplicates = false;
     for ( var i=0, len=rowS.length; i<len; i++ ) {
-      if ( rowS[i][ idKey ] !== i+1 ) {
+      if ( rowS[i][idKey] !== i+1 ) {
         hasDuplicates = true;
         break;
       }
@@ -212,7 +214,7 @@
     if ( hasDuplicates ) {
       for ( var i=0, len=rowS.length; i<len; i++ ) {
         rowS[i] = LAY.$clone( rowS[i] );
-        rowS[i][ idKey ] = i+1;
+        rowS[i][idKey] = i+1;
       }
     }
     return rowS;
@@ -244,12 +246,14 @@
     if ( !rowS ) {
       rowS = [];
     }
-    if ( checkIfRowsIsNotObjectified ( rowS ) ) {
+    if ( this.isObjectified ||
+        checkIfRowsIsNotObjectified(rowS)) {
+      this.isObjectified = true;
       rowS = objectifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
     } else if ( this.isAutoId ||
-        checkIfRowsHaveNoId( rowS, this.id ) ) {
+        checkIfRowsHaveNoId(rowS, this.id, this.level)) {
       this.isAutoId = true;
       rowS = idifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
@@ -273,7 +277,6 @@
 
       if ( !level ) {
         // create new level with row
-
         level = new LAY.Level(
           this.level.pathName + ":" + id,
           this.partLson, this.level.parentLevel, false,

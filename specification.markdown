@@ -12,6 +12,7 @@
         $load: function,
         $obdurate: [ string, ... ],
         $gpu: boolean,
+        $page: boolean,
         $view: boolean,
 
         css: string (take),
@@ -350,8 +351,8 @@ Defaults:
   This is a "shorthand-type" prop.  
   Shorthand for border < Top/Right/Bottom/Left >< Style/Color/Width >  
     { top/right/bottom/left/< undefined >: {  
-      style: string (CSS border-style) (Default: 'solid'),  
-      color: LAY.Color (Default: transparent),  
+      style: string (CSS border-style) (Default: 'none'),  
+      color: LAY.Color (Default: LAY.transparent()),  
       width: number (Default: 0)  
     } }
 
@@ -479,7 +480,7 @@ Defaults:
 - textWrap  
   `string`  
   CSS white-space  
-  Default: LAY.take("../", "textWrap") [for "/": "nowrap"]
+  Default: LAY.take("../", "textWrap") [for "/": "nowrap"] [for $type "input:lines": "pre-wrap"]
 
 - textWordBreak  
   `string`  
@@ -955,13 +956,16 @@ would essentially compile to:
     '', '.', or './'
 
   - Many Level (from context of Level derived of Many)
-    '~'
+    'many'
 
   - Closest Many Derived Ancestor
     '~/'
 
   - Closest View
-    '.../'
+    '$' or "$/"
+
+  - Closest Page
+    '@' or "@/"
 
   - Many (by value of predetermined id key):
     /Page/Feed/Post:507c7f79bcf86cd7994f6c0e

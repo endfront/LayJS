@@ -1,16 +1,14 @@
 
 Current:
-  - hidden img (even div for text could be doing so) taking space on page
-  - empty text for non input should result in natural height of 0
-  - border<dir>Style default lazy
   - $xfonts, recalculate without animation
   - markdown lay.take method
-  - .md link convert to .html link
+  - docs .md link convert to .html link
   - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - what if "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
+  - color name direct convert from string
   - remove link type, link and image within same level
   - error: check if explicit type such as "html" has no given prop
   - error: undefined text string val (ie not a string)
@@ -23,13 +21,11 @@ Current:
   - formation spec (include part for creating formations)
   - add LAY.level.changeNativeInput/ScrollX/Y() to spec
   - update spec to have quotes around state names
-  - filter.finish() ?
-  - queryAll, queryFiltered
 
 Future:
   - test for popstate (url) change
   - add "style" prop
-  - switching between exist bug zone
+  - switching between exist bug (zone app)
   - take.replace
   - lay.take testing
   - image without height/width

@@ -10,6 +10,9 @@
     this.isAbsolute = false;
     this.traverseArray = [];
 
+    if ( ["@", "$", "~"].indexOf(relativePath) !== -1 ) {
+      relativePath = relativePath + "/";
+    }
     if ( relativePath === "" || relativePath === "." ||
       relativePath === "./" ) {
       this.isMe = true;
@@ -20,17 +23,19 @@
       } else {
         var i=0;
         while ( i !== relativePath.length - 1 &&
-          ( relativePath.charAt( i ) === "." ||
-          relativePath.charAt( i ) === "~" ) ) {
+          [".", "~", "$", "@"].indexOf(relativePath.charAt(i)) !== -1 ) {
           if ( relativePath.slice(i, i+3) === "../" ) {
             this.traverseArray.push(0);
             i +=3;
           } else if ( relativePath.slice(i, i+2) === "~/" ) {
             this.traverseArray.push(1);
             i += 2;
-          } else if ( relativePath.slice(i, i+4) === ".../" ) {
+          } else if ( relativePath.slice(i, i+2) === "$/" ) {
             this.traverseArray.push(2);
-            i += 4;
+            i += 2;
+          } else if ( relativePath.slice(i, i+2) === "@/" ) {
+            this.traverseArray.push(3);
+            i += 2;
           } else {
             LAY.$error("Error in Take path: " + relativePath);
           }
@@ -40,12 +45,12 @@
         this.path = relativePath.slice( i );
       }
       if ( this.path.length !== 0 &&
-          this.path.lastIndexOf("~") === this.path.length - 1 ) {
+          this.path.lastIndexOf("many") === this.path.length-4 ) {
         this.isMany = true;
-        if ( this.path.length === 1 ) {
+        if ( this.path.length === 4 ) {
           this.path = "";
         } else {
-          this.path = this.path.slice(0, this.path.length-2);
+          this.path = this.path.slice(0, this.path.length-5);
         }
       }
     }
@@ -72,14 +77,22 @@
             do {
               level = level.parentLevel;
             } while ( !level.derivedMany );
-          } else {
+          } else if ( traverseArray[i] === 2 ) { // view "$"
             do {
               level = level.parentLevel;
               if ( !level ) {
-                throw "No View Found (.../) from level " +
+                throw "No View Found ($/) from level " +
                   referenceLevel.pathName;
               }
             } while ( !level.isView );
+          } else { //page "@"
+            do {
+              level = level.parentLevel;
+              if ( !level ) {
+                throw "No Page Found ($/) from level " +
+                  referenceLevel.pathName;
+              }
+            } while ( !level.isPage );
           }
         }
 

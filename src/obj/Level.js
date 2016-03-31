@@ -17,7 +17,10 @@
     // false if the Level is a Many Level.
     this.isPart = false;
 
+    // specified by the "$view" of lson
     this.isView = false;
+    // specified by the "$page" of lson
+    this.isPage = false;
 
     // If the level name begins with "_",
     // the level is considered a helper (non-renderable)
@@ -111,7 +114,6 @@
       if ( this.$createLazyAttr( attr, true ) ) {
         var attrVal = this.attr2attrVal[ attr ];
         attrVal.give(LAY.$emptyAttrVal);
-        console.log(LAY.$recalculateDirtyAttrValS.length);
         LAY.$solve();
         return attrVal.calcVal;
       } else {
@@ -150,44 +152,46 @@
   };
 
   LAY.Level.prototype.rowsLevels = function ( query ) {
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       return this.manyObj.rowsLevels( query );
     }
   };
 
   LAY.Level.prototype.rowsCommit = function ( newRowS ) {
 
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       this.manyObj.rowsCommit( newRowS );
     }
   };
 
   LAY.Level.prototype.rowsMore = function ( newRowS ) {
 
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       this.manyObj.rowsMore( newRowS );
     }
   };
 
   LAY.Level.prototype.rowAdd = function ( newRow ) {
-    this.rowsMore( [ newRow ] );
+    if (!this.isPart) {
+      this.rowsMore([newRow]);
+    }
   };
 
   LAY.Level.prototype.rowLevelById = function ( id ) {
 
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       this.manyObj.rowLevelById( id );
     }
   };
 
   LAY.Level.prototype.rowsUpdate = function ( key, val, query ) {
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       this.manyObj.rowsUpdate( key, val, query );
     }
   };
 
   LAY.Level.prototype.rowsDelete = function ( query ) {
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       this.manyObj.rowsDelete( query );
     }
   };
@@ -261,13 +265,13 @@
 
 
   LAY.Level.prototype.queryRows = function () {
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       return this.manyObj.queryRows();
     }
   };
 
   LAY.Level.prototype.queryFilter = function () {
-    if ( !this.isPart ) {
+    if (!this.isPart) {
       return this.manyObj.queryFilter();
     }
   };
@@ -424,6 +428,7 @@
 
   LAY.Level.prototype.$identify = function () {
     this.isView = !!this.lson.$view;
+    this.isPage = !!this.lson.$page;
     this.isPart = this.lson.many === undefined || this.derivedMany;
     if ( this.pathName === "/" ) {
       this.isGpu = this.lson.$gpu === undefined ?
@@ -742,7 +747,9 @@
     } else {
       if ( attr.indexOf(".") === -1 ) {
         var lazyVal = LAY.$getLazyPropVal( attr,
-          this.parentLevel === undefined );
+          this.parentLevel === undefined,
+          (this.type === "input" && this.inputType === "lines")
+         );
         if ( lazyVal !== undefined ) {
           this.$createAttrVal(attr, lazyVal);
           // switch off state projected attr as

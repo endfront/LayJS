@@ -90,22 +90,20 @@
       cornerRadiusBottomLeft: 0,
       cornerRadiusBottomRight: 0,
 
-      borderTopStyle: "solid",
-      borderBottomStyle: "solid",
-      borderRightStyle: "solid",
-      borderLeftStyle: "solid",
+      borderTopStyle: "none",
+      borderBottomStyle: "none",
+      borderRightStyle: "none",
+      borderLeftStyle: "none",
 
       borderTopWidth: 0,
       borderBottomWidth: 0,
       borderRightWidth: 0,
       borderLeftWidth: 0,
 
-
       borderTopColor: LAY.transparent(),
       borderBottomColor: LAY.transparent(),
       borderRightColor: LAY.transparent(),
       borderLeftColor: LAY.transparent(),
-
 
       html: "",
       text: "",
@@ -147,14 +145,19 @@
 
     };
 
-  LAY.$getLazyPropVal = function ( prop, isRootLevel ) {
+  LAY.$getLazyPropVal = function ( prop, isRootLevel, isTypeInputLines ) {
 
-    var commonLazyVal = commonLazyProp2defaultVal[ prop ];
-    return commonLazyVal !== undefined ?
-      commonLazyVal :
-      ( isRootLevel ?
-        rootLazyProp2defaultVal[ prop ] :
-        nonRootLazyProp2defaultVal[ prop ] );
+    if (isTypeInputLines && prop === "textWrap") {
+      return "pre-wrap";
+    } else {
+      var
+        commonLazyVal = commonLazyProp2defaultVal[ prop ];
+      return commonLazyVal !== undefined ?
+        commonLazyVal :
+        ( isRootLevel ?
+          rootLazyProp2defaultVal[ prop ] :
+          nonRootLazyProp2defaultVal[ prop ] );
+    }
 
   }
 

@@ -34,7 +34,7 @@
     ( new LAY.take("", "height") ).half() );
 
 
-  LAY.$normalize = function ( lson ) {
+  LAY.$normalize = function (lson) {
 
     if ( !lson.$$normalized ) {
 
@@ -47,8 +47,8 @@
       }
 
 
-      checkForInconsistentReadonlyKeys( lson );
-      normalizeLazyChildren( lson );
+      checkForInconsistentReadonlyKeys(lson);
+      normalizeLazyChildren(lson);
 
       lson.states.root = {
         props: lson.props,
@@ -61,7 +61,7 @@
           if ( !key2fnNormalize[ lsonKey ] ) {
             LAY.$error("LSON key: '" + lsonKey  + "' not found");
           }
-          key2fnNormalize[ lsonKey ]( lson );
+          key2fnNormalize[ lsonKey ](lson);
         }
       }
 
@@ -77,7 +77,7 @@
   * Checks for common naming mistakes with
   * readonly keys (i.e beginning with "$")
   */
-  function checkForInconsistentReadonlyKeys( lson ) {
+  function checkForInconsistentReadonlyKeys(lson) {
     var errorReadonly = "";
     if ( lson.inherits || lson.$inherits ) {
       LAY.$error("Did you mean '$inherit'?");
@@ -100,7 +100,7 @@
     }
   }
 
-  function normalizeLazyChildren( lson ) {
+  function normalizeLazyChildren(lson) {
     lson.children = lson.children || {};
     for ( var key in lson ) {
       if ( !key2fnNormalize[ key ]) {
@@ -147,7 +147,7 @@
   }
 
   key2fnNormalize = {
-    /*type: function ( lson ) {
+    /*type: function (lson) {
 
       checkAndThrowErrorAttrAsTake( "type", lson.type );
 
@@ -169,11 +169,21 @@
       }
 
     },*/
-    $type: function ( lson ) {
+
+
+    $type: function (lson) {
       checkAndThrowErrorAttrAsTake( "$type", lson.$type );
     },
 
-    $inherit: function ( lson ) {
+    $view: function (lson) {
+      checkAndThrowErrorAttrAsTake( "$view", lson.$view );
+    },
+
+    $page: function (lson) {
+      checkAndThrowErrorAttrAsTake( "$page", lson.$page );
+    },
+
+    $inherit: function (lson) {
 
       if ( !( lson.$inherit instanceof Array ) ) {
         lson.$inherit = [ lson.$inherit ];
@@ -185,35 +195,35 @@
         }
     },
 
-    $obdurate: function ( lson ) {
+    $obdurate: function (lson) {
       checkAndThrowErrorAttrAsTake( "$obdurate", lson.$obdurate );
     },
 
-    $load: function ( lson ) {
+    $load: function (lson) {
       checkAndThrowErrorAttrAsTake( "$load", lson.$load );
       if (!(lson.$load instanceof Array)) {
         lson.$load = [ lson.$load ];
       }
     },
 
-    $gpu: function ( lson ) {
+    $gpu: function (lson) {
       checkAndThrowErrorAttrAsTake( "$gpu", lson.$gpu );
     },
 
-    data: function ( lson ) {
+    data: function (lson) {
       checkAndThrowErrorAttrAsTake( "data", lson.data );
     },
 
-    exist: function ( lson ) {
+    exist: function (lson) {
     },
 
-    css: function ( lson ) {
+    css: function (lson) {
     },
 
     /*
     * normalize the `lson`
     */
-    props: function( lson ) {
+    props: function(lson) {
 
       var
         prop2val = lson.props,
@@ -305,7 +315,7 @@
       }
     },
 
-  when: function ( lson ) {
+  when: function (lson) {
 
     if ( lson.when === undefined ) {
       lson.when = {};
@@ -328,7 +338,7 @@
     }
   },
 
-  transition: function( lson ) {
+  transition: function(lson) {
 
     if ( lson.transition === undefined ) {
       lson.transition = {};
@@ -423,7 +433,7 @@
   },
 
 
-  children: function( lson ) {
+  children: function(lson) {
 
     if ( lson.children !== undefined ) {
 
@@ -438,7 +448,7 @@
     }
   },
 
-  many: function ( lson )  {
+  many: function (lson)  {
 
     if ( lson.many !== undefined ) {
 
@@ -472,7 +482,7 @@
   },
 
   // formation args (Many)
-  fargs: function ( lson ) {
+  fargs: function (lson) {
     if ( lson.fargs ) {
       var
         fargs = lson.fargs,
@@ -489,7 +499,7 @@
     }
   },
 
-  sort: function ( lson ) {
+  sort: function (lson) {
     if ( lson.sort ) {
       var
         sortS = lson.sort,

@@ -5,6 +5,7 @@
 
   var cssPrefix, allStyles,
     defaultCss, defaultTextCss,
+    hiddenCss,
     textDimensionCalculateNodeCss,
     inputType2tag, nonInputType2tag,
     textSizeMeasureNode,
@@ -71,14 +72,16 @@
     "font-family:sans-serif;color:black;" +
     "text-decoration:none;" +
     "text-align:left;direction:ltr;line-height:1.3em;" +
-    "white-space:nowrap;" +
     "-webkit-font-smoothing:antialiased;";
+
+  hiddenCss = "left:-9999px;top:-9999px;visibility:hidden;";
 
   textDimensionCalculateNodeCss =
     defaultTextCss +
-    "left:-9999px; top:-9999px;" +
-    "visibility:hidden;height:auto;" +
-    "border:0px solid transparent;";
+    hiddenCss +
+    "height:auto;" +
+    "border:0px solid transparent;" +
+    "word-wrap:normal;";
 
   inputType2tag = {
     lines: "textarea",
@@ -110,6 +113,7 @@
   document.body.removeChild(audioElement);
   audioElement = undefined;
 
+
   function stringifyPlusPx ( val ) {
     return val + "px";
   }
@@ -140,9 +144,8 @@
   document.body.appendChild( textSizeMeasureNode );
 
   imageSizeMeasureNode = document.createElement("img");
-  imageSizeMeasureNode.style.cssText = defaultCss +
-    "left:-9999px; top:-9999px;" +
-    "visibility:hidden;"
+  imageSizeMeasureNode.style.cssText = defaultCss + hiddenCss;
+
   document.body.appendChild( imageSizeMeasureNode );
 
 
@@ -249,6 +252,7 @@
     }
 
     if ( this.type === "input" && this.inputType === "lines" ) {
+      this.node.style.whiteSpace = "pre-wrap";
       this.node.style.resize = "none";
     }
 
@@ -562,10 +566,14 @@
           heightAttr2default[ heightAttr ] : attrVal.calcVal;
       }
 
+      if (text === "") {
+        heightAttr2val.textSize = 0;
+      }
+
       // Do not turn the below statement into a ternary as
       // it will end up being unreadable
       var isEstimatePossible = false;
-      if ( heightAttr2val.textWrap === "nowrap" ) {
+      if (heightAttr2val.textWrap === "nowrap") {
         isEstimatePossible = true;
       } else if (
           LAY.$isOkayToEstimateWhitespaceHeight &&
@@ -575,8 +583,9 @@
           heightAttr2val.textLetterSpacing ===  1 &&
           heightAttr2val.textWordSpacing === 1 &&
           heightAttr2val.width !== null ) {
-        if ( text.length <  ( 0.7 *
-            ( heightAttr2val.width / heightAttr2val.textSize ) ) ) {
+        if (heightAttr2val.textSize === 0 ||
+            text.length < ( 0.7 *
+            (heightAttr2val.width/heightAttr2val.textSize))) {
           isEstimatePossible = true;
         }
       }
@@ -590,7 +599,6 @@
       } else {
         return -1;
       }
-
     }
   };
 
@@ -662,7 +670,13 @@
       dimensionAlteringAttr, fnStyle,
       textRelatedAttrVal,
       content, ret,
-      cssText = textDimensionCalculateNodeCss;
+      cssText = textDimensionCalculateNodeCss,
+      isTextarea = (this.type === "input" && this.inputType === "lines"),
+      sizeMeasureNode = textSizeMeasureNode;
+
+    if (isTextarea) {
+      cssText += "white-space:pre-wrap;word-wrap:break-word;";
+    }
 
     if ( this.type === "input" ) {
       if ( this.inputType.startsWith("option") ) {
@@ -683,13 +697,15 @@
             ( this.inputType === "multiple" ?
             " multiple='true' " : "" ) +  "/>";
         }
-      } else {
+      } else if (this.inputType === "line") {
         // letter "a" is a random letter
         // used as a placeholder
         content = attr2attrVal.$input ?
-          attr2attrVal.$input.calcVal : "a";
+          ( attr2attrVal.$input.calcVal || "a" ) : "a";
+      } else {
+        content = attr2attrVal.$input.calcVal;
       }
-    }  else if ( this.type === "html" ) {
+    } else if ( this.type === "html" ) {
       if ( attr2attrVal.html.isRecalculateRequired ) {
         return 0;
       }
@@ -705,8 +721,8 @@
       content = content.toString();
     }
 
-    if ( !isWidth ) {
-      var estimatedHeight = this.estimateTextNaturalHeight( content );
+    if ( !isWidth && !isTextarea) {
+      var estimatedHeight = this.estimateTextNaturalHeight(content);
       if ( estimatedHeight !== -1 ) {
         return estimatedHeight;
       }
@@ -729,34 +745,26 @@
       }
     }
 
+    if (isTextarea) {
+      content += "\r\n"
+    }
 
     if ( isWidth ) {
       cssText += "display:inline;width:auto;";
-      textSizeMeasureNode.style.cssText = cssText;
-      if ( this.type === "html" ) {
-        textSizeMeasureNode.innerHTML = content;
-      } else {
-        setText( textSizeMeasureNode, content );
-      }
-      ret = textSizeMeasureNode.offsetWidth;
-
     } else {
       cssText += "width:" +
         ( attr2attrVal.width.calcVal || 0 ) + "px;";
-      textSizeMeasureNode.style.cssText = cssText;
-
-      // If empty we will subsitute with the character "a"
-      // as we wouldn't want the height to resolve to 0
-      if ( this.type === "html" ) {
-        textSizeMeasureNode.innerHTML = content || "a";
-      } else {
-        setText( textSizeMeasureNode, content || "a" );
-      }
-
-      ret = textSizeMeasureNode.offsetHeight;
-
     }
-    return ret;
+    sizeMeasureNode.style.cssText = cssText;
+
+    if ( this.type === "html" ) {
+      sizeMeasureNode.innerHTML = content;
+    } else {
+      setText(textSizeMeasureNode, content);
+    }
+
+    return isWidth ? sizeMeasureNode.offsetWidth :
+      sizeMeasureNode.offsetHeight;
 
   };
 
