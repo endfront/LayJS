@@ -287,8 +287,12 @@
           shorthandVal = prop2val[ prop ];
           for ( i = 0, len = longhandPropS.length; i < len; i++ ) {
             longhandProp = longhandPropS[i];
-            prop2val[ longhandProp ] = prop2val[ longhandProp ] ||
-            shorthandVal;
+            // Write the longhand value only if
+            // the longhand prop has not been mentioned
+            // i.e the longhand prop is undefined
+            prop2val[longhandProp] =
+              prop2val[longhandProp] !== undefined ?
+              prop2val[longhandProp] : shorthandVal;
 
           }
         }
