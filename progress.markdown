@@ -1,9 +1,9 @@
 
 Current:
-  - addChildren bug with duplicate key
-  - addChildren duplicate data/row?
-  - $xfonts, recalculate without animation
   - delay not working for display none
+  - fix message empty bug (zone)
+  - addChildren duplicate data/row
+  - $xfonts, recalculate without animation
   - markdown lay.take method
   - docs .md link convert to .html link
   - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise
@@ -26,6 +26,8 @@ Current:
   - update spec to have quotes around state names
 
 Future:
+  - lazy initiation for root state prop
+    (eg:"root.textSize" === "textSize")
   - test for popstate (url) change
   - add "style" prop
   - switching between exist bug (zone app)

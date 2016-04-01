@@ -8,7 +8,6 @@
     this.done = done;
     this.delay = delay;
     this.transition = ( transitionType2fn[ type ] )( duration, args );
-
   };
 
   LAY.Transition.prototype.generateNext = function ( delta ) {
@@ -20,10 +19,8 @@
   };
 
   function LinearTransition ( duration, args ) {
-
     this.curTime = 0;
     this.duration = duration;
-
   }
 
   LinearTransition.prototype.generateNext = function ( delta ) {
@@ -32,6 +29,17 @@
 
   LinearTransition.prototype.checkIsComplete = function () {
     return this.curTime >= this.duration;
+  };
+
+  function NoneTransition ( duration, args ) {
+  }
+
+  NoneTransition.prototype.generateNext = function ( delta ) {
+    return 1;
+  };
+
+  NoneTransition.prototype.checkIsComplete = function () {
+    return true;
   };
 
   function CubicBezierTransition ( duration, args ) {
@@ -119,6 +127,9 @@
 
 
   transitionType2fn = {
+    none: function (duration, args) {
+      return new NoneTransition( duration, args );
+    },
     linear: function ( duration, args ) {
       return new LinearTransition( duration, args );
     },

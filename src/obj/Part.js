@@ -934,22 +934,30 @@
     transitionArg2val, transitionDone  ) {
 
     // First check if the transition information is complete
-    if (
+    if (!attrVal.isDeltaTransitionable &&
+      (transitionDelay || transitionDone)) {
+      attrVal.startCalcVal =  attrVal.transCalcVal;
+      attrVal.transition = new LAY.Transition(
+        "none",
+        transitionDelay,
+        0,
+        {},
+        transitionDone
+      );
+    } else if (
           transitionType &&
         ( transitionDuration !== undefined ) &&
         ( transitionDelay !== undefined ) &&
         ( attrVal !== undefined ) &&
         ( attrVal.isTransitionable )
         ) {
-
       attrVal.startCalcVal =  attrVal.transCalcVal;
-      attrVal.transition = new LAY.Transition (
+        attrVal.transition = new LAY.Transition(
           transitionType,
           transitionDelay,
           transitionDuration, transitionArg2val,
           transitionDone );
     } else if ( attrVal !== undefined ) { // else delete the transition
-
       attrVal.transition = undefined;
     }
   }

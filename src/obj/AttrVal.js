@@ -25,6 +25,7 @@
     this.startCalcVal = undefined;
     this.transition = undefined;
     this.isTransitionable = false;
+    this.isDeltaTransitionable = false;
 
     this.isForceRecalculate = false;
     // if the attr is of "<state>.onlyif"
@@ -147,6 +148,18 @@
 
   LAY.AttrVal.prototype.checkIsTransitionable = function () {
 
+    this.isTransitionable = false;
+    this.isDeltaTransitionable = false;
+    if ( this.renderCall && ( this.startCalcVal !== this.calcVal ) ) {
+      this.isTransitionable = true;
+      if (this.attr !== "zIndex" &&
+        ((( typeof this.startCalcVal === "number" ) &&
+          ( typeof this.calcVal === "number" )) ||
+        (( this.startCalcVal instanceof LAY.Color) &&
+          ( this.calcVal instanceof LAY.Color )))) {
+        this.isDeltaTransitionable = true;
+      }
+    }
     return this.renderCall &&
       ( this.startCalcVal !== this.calcVal ) &&
       (
@@ -258,7 +271,7 @@
 
       if ( this.renderCall ) {
         this.startCalcVal = this.transCalcVal;
-        this.isTransitionable = this.checkIsTransitionable();
+        this.checkIsTransitionable();
 
         if ( !LAY.$isDataTravellingShock ) {
           part.addNormalRenderDirtyAttrVal( this );

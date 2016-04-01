@@ -81,13 +81,20 @@
             renderDirtyTransition.delay > 0 ) {
             renderDirtyTransition.delay -= timeFrameDiff;
             isNormalAttrValTransitionComplete = false;
+            isAllNormalTransitionComplete = false;
           } else {
-            if ( !renderDirtyTransition.checkIsComplete() ) {
+            if ( !normalRenderDirtyAttrVal.isDeltaTransitionable ) {
+              normalRenderDirtyAttrVal.transCalcVal =
+                normalRenderDirtyAttrVal.calcVal;
+              if ( renderDirtyTransition.done !== undefined ) {
+                renderDirtyTransition.done.call( renderDirtyPart.level );
+              }
+              normalRenderDirtyAttrVal.transition = undefined;
+            } else if ( !renderDirtyTransition.checkIsComplete() ) {
               isAllNormalTransitionComplete = false;
               isNormalAttrValTransitionComplete = false;
               transitionAttrVal( normalRenderDirtyAttrVal,
                  renderDirtyTransition.generateNext( timeFrameDiff ) );
-
             } else {
               if ( renderDirtyTransition.done !== undefined ) {
                 renderDirtyTransition.done.call( renderDirtyPart.level );
