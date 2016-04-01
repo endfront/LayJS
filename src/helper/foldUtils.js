@@ -1,7 +1,7 @@
 ( function () {
   "use strict";
 
-  LAY.$foldlUtils = {
+  LAY.$foldUtils = {
     min: function ( itemS ) {
       return fold( function ( item, acc ) {
           if ( ( acc === undefined ) || ( item < acc ) ) {

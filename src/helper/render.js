@@ -68,7 +68,6 @@
       }
 
       for ( y = 0; y < normalRenderDirtyAttrValS.length; y++ ) {
-
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
         isNormalAttrValTransitionComplete = true;
         if ( normalRenderDirtyAttrVal.calcVal !== undefined ) {

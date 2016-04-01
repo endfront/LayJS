@@ -1,6 +1,6 @@
 
 Current:
-  - delay not working for display none
+  - fix opacity transition bug
   - fix message empty bug (zone)
   - addChildren duplicate data/row
   - $xfonts, recalculate without animation
