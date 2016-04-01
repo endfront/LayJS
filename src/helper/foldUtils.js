@@ -35,7 +35,7 @@
 
   function fold ( fnFold, acc, itemS ) {
     for ( var i = 0, len = itemS.length; i < len; i++ ) {
-      acc = fnFold( rowS[i], acc );
+      acc = fnFold( itemS[i], acc );
     }
     return acc;
   }
