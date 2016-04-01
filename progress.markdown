@@ -1,6 +1,9 @@
 
 Current:
+  - addChildren bug with duplicate key
+  - addChildren duplicate data/row?
   - $xfonts, recalculate without animation
+  - delay not working for display none
   - markdown lay.take method
   - docs .md link convert to .html link
   - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise

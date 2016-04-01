@@ -279,12 +279,11 @@
   LAY.Level.prototype.addChildren = function ( name2lson ) {
 
     for ( var name in name2lson ) {
-      var lson = name2lson[ lson ];
-      LAY.$normalize( lson );
-      this.lson.children[ name ] = lson;
-      this.$addChild( name, name2lson );
+      var lson = name2lson[name];
+      LAY.$normalize(lson);
+      this.$addChild(name, name2lson[name]);
+      this.lson.children[name] = name2lson[name];
     }
-
   };
 
 
