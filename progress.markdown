@@ -1,6 +1,7 @@
 
 Current:
-  - fix opacity transition bug
+  - "~/" within same level?
+  - level 2 argument shorthand
   - fix message empty bug (zone)
   - addChildren duplicate data/row
   - $xfonts, recalculate without animation

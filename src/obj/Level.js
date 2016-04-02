@@ -177,12 +177,6 @@
     }
   };
 
-  LAY.Level.prototype.rowLevelById = function ( id ) {
-
-    if (!this.isPart) {
-      this.manyObj.rowLevelById( id );
-    }
-  };
 
   LAY.Level.prototype.rowsUpdate = function ( key, val, query ) {
     if (!this.isPart) {
@@ -293,7 +287,7 @@
       LAY.$error("Attempt to remove root level '/' prohibited");
     } else {
       if ( this.derivedMany ) {
-        this.derivedMany.rowDeleteByID( this.id );
+        this.derivedMany.rowDeleteById(this.id);
       } else {
         this.$remove();
         LAY.$solve();
