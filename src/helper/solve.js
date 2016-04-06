@@ -71,11 +71,9 @@
 
       relayout();
       recalculateNaturalDimensions();
-      executeManyLoads();
-      executeStateInstallation();
-      // If the load/install functions of
-      // many or level demands a recalculation
-      // then we will solve, otherwise we shall
+
+      // If the relayout/recalculateNaturalDimensions functions of
+      // demands a recalculation then we will solve, otherwise we shall
       // render
       LAY.$isSolving = false;
       if ( LAY.$recalculateDirtyAttrValS.length ) {
@@ -84,6 +82,7 @@
         LAY.$render();
       }
     }
+    LAY.$isNoTransition = false;
   };
 
 
@@ -130,76 +129,8 @@
 
     LAY.$naturalWidthDirtyPartS = [];
     LAY.$naturalHeightDirtyPartS = [];
-
   }
 
-  function executeManyLoads () {
-    var newManyS = LAY.$newManyS;
-    for ( var i = 0, len = newManyS.length; i < len; i++ ) {
-      var newMany = newManyS[i];
-      newMany.isLoaded = true;
-      var fnLoadS = newMany.level.lson.$load;
-      if ( newMany.level.isExist && fnLoadS ) {
-        for (var j=0; j<fnLoadS.length; j++) {
-          fnLoadS[j].call(newMany.level);
-        }
-      }
-    }
-    LAY.$newManyS = [];
-  }
-
-  function executeStateInstallation () {
-    var
-      i, j, len, jLen,
-      newlyInstalledStateLevelS = LAY.$newlyInstalledStateLevelS,
-      newlyInstalledStateLevel,
-      newlyInstalledStateS,
-      attrValNewlyInstalledStateInstall,
-      newlyUninstalledStateLevelS = LAY.$newlyUninstalledStateLevelS,
-      newlyUninstalledStateLevel,
-      newlyUninstalledStateS,
-      attrValNewlyUninstalledStateUninstall;
-
-    for ( i = 0, len = newlyInstalledStateLevelS.length; i < len; i++ ) {
-      newlyInstalledStateLevel = newlyInstalledStateLevelS[i];
-      newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
-      if ( newlyInstalledStateLevel.isExist ) {
-        for ( j = 0, jLen = newlyInstalledStateS.length; j < jLen; j++ ) {
-          attrValNewlyInstalledStateInstall =
-            newlyInstalledStateLevel.attr2attrVal[ newlyInstalledStateS[ j ] +
-            ".install" ];
-          attrValNewlyInstalledStateInstall &&
-            ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
-            "function") &&
-            attrValNewlyInstalledStateInstall.calcVal.call(
-            newlyInstalledStateLevel );
-        }
-      }
-      // empty the list
-      newlyInstalledStateLevel.newlyInstalledStateS = [];
-    }
-    LAY.$newlyInstalledStateLevelS = [];
-
-    for ( i = 0, len = newlyUninstalledStateLevelS.length; i < len; i++ ) {
-      newlyUninstalledStateLevel = newlyUninstalledStateLevelS[i];
-      newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
-      if ( newlyUninstalledStateLevel.isExist ) {
-        for ( j = 0, jLen = newlyUninstalledStateS.length; j < jLen; j++ ) {
-          attrValNewlyUninstalledStateUninstall =
-            newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledStateS[ j ] +
-            ".uninstall" ];
-          attrValNewlyUninstalledStateUninstall &&
-            ( LAY.$type( attrValNewlyUninstalledStateUninstall.calcVal) ===
-            "function") &&
-            attrValNewlyUninstalledStateUninstall.calcVal.call(
-            newlyUninstalledStateLevel );
-        }
-      }
-      // empty the list
-      newlyUninstalledStateLevel.newlyUninstalledStateS = [];
-    }
-    LAY.$newlyUninstalledStateLevelS = [];
-  }
 
 
 })();

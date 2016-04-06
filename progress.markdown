@@ -1,10 +1,20 @@
 
 Current:
-  - "~/" within same level?
-  - level 2 argument shorthand
+  - $extfonts, recalculate without animation
   - fix message empty bug (zone)
-  - addChildren duplicate data/row
-  - $xfonts, recalculate without animation
+  - fix schema for zones
+
+
+  - addChildren duplicate data/row (use lson for readonly)
+
+  - change native input causestextarea resize not to happen immidiately (check file:///Users/relfor/git/LayJS/LayJS/tmp/autosizetextarea/index.html)
+  - multiple transition prop not working (with commas)
+  - api for transitions similar to formation (with support for default args)
+  - repeat ids should throw error
+  - delay causes animation problems
+  - custom props? bottom pad and right pad (longer/wider)
+  - scale shorthand?
+  - filter (many-type prop) defaults
   - markdown lay.take method
   - docs .md link convert to .html link
   - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise

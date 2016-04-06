@@ -25,6 +25,7 @@
     $prevFrameTime: 0,
     $newManyS: [],
     $isRendering: false,
+    $isNoTransition: false,
 
     $isGpuAccelerated: undefined,
     $isBelowIE9: undefined,

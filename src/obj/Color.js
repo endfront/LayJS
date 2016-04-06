@@ -351,7 +351,8 @@
     this.r = ( curRgb.r + otherRgb.r ) / 2;
     this.g = ( curRgb.g + otherRgb.g ) / 2;
     this.b = ( curRgb.b + otherRgb.b ) / 2;
-    this.a = ( this.alpha + color.alpha ) / 2;
+
+    this.a = ( this.a + color.a ) / 2;
 
     return this;
 

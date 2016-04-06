@@ -8,7 +8,8 @@
     "",
     "many", "formation", "formationDisplayNone",
      "sort", "fargs",
-    "rows", "row", "filter", "args"
+    "rows", "row", "filter", "args",
+    "view", "page", "extfonts", "type", "obdurate"
   ];
 
   function stripStateAttrPrefix( attr ) {
@@ -27,13 +28,10 @@
   }
 
   /*
-  * Must not contain ".", "/", "~" or ":"
+  * Must not contain ".", "/", "~", ":", "@","$", "^"
   */
   function checkIfNoIllegalCharacters ( name ) {
-    return ( name.indexOf(".") === -1 ) &&
-      ( name.indexOf("/") === -1 ) &&
-      ( name.indexOf(":") === -1) &&
-      ( name.indexOf("~") === -1);
+    return !(/\.|\/|\~|\:|\@|\$|\^/.test(name));
   }
 
   LAY.$checkIsValidUtils = {

@@ -28,6 +28,7 @@
     this.defaultFormationX = undefined;
     this.defaultFormationY = undefined;
 
+    this.init();
   };
 
   LAY.Many.prototype.init = function () {
@@ -86,7 +87,7 @@
 
     var rowsAttrVal = this.level.attr2attrVal.rows;
 
-    rowsAttrVal.val = newRowS;
+    rowsAttrVal.val = newRowS || [];
     rowsAttrVal.requestRecalculation();
     LAY.$solve();
 
@@ -273,6 +274,8 @@
       rowS = idifyRows( rowS, this.id );
       var rowsAttrVal = this.level.attr2attrVal.rows;
       rowsAttrVal.calcVal = rowS;
+    } else {
+      // check for repeat ids here
     }
 
     // if sort returns false
@@ -286,17 +289,16 @@
 
   	for ( i = 0, len = rowS.length; i < len; i++ ) {
   		row = rowS[i];
-  		id = row[ this.id ];
-      id2row[ id ] = row;
-  		level = this.id2level[ id ];
+  		id = row[this.id];
+      id2row[id] = row;
+  		level = this.id2level[id];
 
       if ( !level ) {
         // create new level with row
         level = new LAY.Level(
-          this.level.pathName + ":" + id,
+          this.level.name + ":" + id,
           this.partLson, this.level.parentLevel, false,
           this, row, id );
-        level.$init();
 
   			id2level[ id ] = level;
         id2row[ id ] = row;
@@ -320,7 +322,7 @@
   	}
 
     for ( id in id2level ) {
-      level = id2level[ id ];
+      level = id2level[id];
       if ( level &&
           updatedAllLevelS.indexOf( level ) === -1 ) {
         level.$remove();

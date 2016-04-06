@@ -1,9 +1,16 @@
 ( function () {
   "use strict";
 
-  LAY.Level = function ( path, lson, parent, isHelper, derivedMany, rowDict, id ) {
+  LAY.Level = function ( name, lson, parent, isHelper, derivedMany, rowDict, id ) {
 
-    this.pathName = path;
+    this.name = name;
+    if (parent === undefined) {
+      this.pathName = "/";
+    } else if (parent.pathName === "/") {
+      this.pathName = "/" + name;
+    } else {
+      this.pathName = parent.pathName + "/" + name;
+    }
     this.lson = lson;
     // if level is many, partLson contains the non-many part of the lson
     this.partLson = undefined;
@@ -61,21 +68,28 @@
     this.newlyInstalledStateS = [];
     this.newlyUninstalledStateS = [];
 
-  };
-
-  LAY.Level.prototype.$init = function () {
-
     LAY.$pathName2level[ this.pathName ] = this;
     LAY.$newLevelS.push( this );
     if ( this.parentLevel ) {
       this.parentLevel.childLevelS.push( this );
     }
 
+    if (lson.$extfonts !== undefined ) {
+      LAY.$loadFonts(lson.$extfonts);
+    }
   };
 
 
-  LAY.Level.prototype.level = function ( relativePath ) {
-    return ( new LAY.RelPath( relativePath ) ).resolve( this );
+
+  LAY.Level.prototype.level = function ( relativePath, attr ) {
+    var lvl = ( new LAY.RelPath( relativePath ) ).resolve( this );
+    if (attr !== undefined) {
+      if (attr === undefined) {
+        return lvl.attr(attr);
+      }
+    } else {
+      return lvl;
+    }
   };
 
   LAY.Level.prototype.parent = function () {
@@ -346,9 +360,8 @@
       LAY.$error( "Level already exists with path: " +
         childPath + " within Level: " + this.pathName );
     }
-    childLevel = new LAY.Level( childPath,
+    childLevel = new LAY.Level( name,
      lson, this, name.charAt(0) === "_" );
-    childLevel.$init();
 
   };
 
@@ -408,14 +421,12 @@
   LAY.Level.prototype.$reproduce = function () {
     if ( this.isPart ) {
       this.part = new LAY.Part( this );
-      this.part.init();
 
       if ( this.lson.children !== undefined ) {
         this.$addChildren( this.lson.children );
       }
     } else {
       this.manyObj = new LAY.Many( this, this.partLson );
-      this.manyObj.init();
     }
   };
 

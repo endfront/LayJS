@@ -8,11 +8,15 @@
     this.isMany = false;
     this.path = "";
     this.isAbsolute = false;
+    this.jumpTo = "";
+
     this.traverseArray = [];
 
-    if ( ["@", "$", "~"].indexOf(relativePath) !== -1 ) {
-      relativePath = relativePath + "/";
+    if ( relativePath === "~") {
+      relativePath = "~/";
     }
+
+
     if ( relativePath === "" || relativePath === "." ||
       relativePath === "./" ) {
       this.isMe = true;
@@ -21,6 +25,31 @@
         this.isAbsolute = true;
         this.path = relativePath;
       } else {
+        if ( relativePath.charAt(0) === "^") {
+
+          var allIndices = [
+            relativePath.indexOf("$"),
+            relativePath.indexOf("@"),
+            relativePath.indexOf("."),
+            relativePath.indexOf("~"),
+            relativePath.indexOf("/")
+          ];
+
+          var smallest = -1;
+          for (var i=0; i<allIndices.length;i++) {
+            var index = allIndices[i];
+            if (index !== -1 &&
+              (smallest === -1 || index < smallest ) ) {
+              smallest = index;
+            }
+          }
+          if (index === -1) {
+            index = relativePath.length;
+          }
+          this.jumpTo = relativePath.slice(1, index);
+          relativePath = relativePath.slice(index);
+        }
+
         var i=0;
         while ( i !== relativePath.length - 1 &&
           [".", "~", "$", "@"].indexOf(relativePath.charAt(i)) !== -1 ) {
@@ -30,19 +59,19 @@
           } else if ( relativePath.slice(i, i+2) === "~/" ) {
             this.traverseArray.push(1);
             i += 2;
-          } else if ( relativePath.slice(i, i+2) === "$/" ) {
+          } else if ( relativePath.charAt(i) === "$" ) {
             this.traverseArray.push(2);
-            i += 2;
-          } else if ( relativePath.slice(i, i+2) === "@/" ) {
+            i++;
+          } else if ( relativePath.charAt(i) === "@" ) {
             this.traverseArray.push(3);
-            i += 2;
+            i++;
           } else {
             LAY.$error("Error in Take path: " + relativePath);
           }
         }
         // strip off the "../"s
         // eg: "~/../.../Body" should become "Body"
-        this.path = relativePath.slice( i );
+        this.path = relativePath.slice(i);
       }
       var manyLastIndexOf = this.path.lastIndexOf("/many");
       if ( (this.path.length === 4 && this.path === "many") ||
@@ -62,6 +91,7 @@
 
   LAY.RelPath.prototype.resolve = function ( referenceLevel ) {
 
+
     if ( this.isMe ) {
       return referenceLevel;
     } else {
@@ -69,7 +99,21 @@
       if ( this.isAbsolute ) {
         level = LAY.$pathName2level[ this.path ];
       } else {
+
         level = referenceLevel;
+        if (this.jumpTo !== "") {
+          while (level !== undefined) {
+            if (level.name === this.jumpTo) {
+              break;
+            }
+            level = level.parentLevel;
+          }
+          if (level === undefined) {
+            LAY.$error("No ^ (jump) level found from level " +
+              referenceLevel.pathName);
+          }
+        }
+
         var traverseArray = this.traverseArray;
 
         for ( var i=0, len=traverseArray.length; i<len; i++ ) {
@@ -82,17 +126,17 @@
           } else if ( traverseArray[i] === 2 ) { // view "$"
             do {
               level = level.parentLevel;
-              if ( !level ) {
-                throw "No View Found ($/) from level " +
-                  referenceLevel.pathName;
+              if ( level === undefined ) {
+                LAY.$error("No View Found ($) from level " +
+                  referenceLevel.pathName);
               }
             } while ( !level.isView );
           } else { //page "@"
             do {
               level = level.parentLevel;
-              if ( !level ) {
-                throw "No Page Found ($/) from level " +
-                  referenceLevel.pathName;
+              if ( level === undefined ) {
+                LAY.$error("No Page Found (@) from level " +
+                  referenceLevel.pathName);
               }
             } while ( !level.isPage );
           }

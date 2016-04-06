@@ -2,16 +2,14 @@
   "use strict";
 
   function takeColor ( color ) {
-
     return LAY.color( color );
-
   }
 
   var numRegex = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,?\s*((\d+\.\d+)|(\d+))?/;
-  LAY.color = function ( colorName ) {
+  LAY.color = function (colorName) {
 
     if ( colorName instanceof LAY.Take ) {
-      return new LAY.Take( takeColor ).fn( colorName );
+      return new LAY.Take(takeColor).fn(colorName);
     } else {
       colorName = colorName.toLowerCase();
       var colorValue = colorName2colorValue[ colorName ];

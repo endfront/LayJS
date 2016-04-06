@@ -200,7 +200,7 @@
       attr = this.attr,
       i, len;
 
-    if ( attr.charAt( 0 ) === "$" ) {
+    if ( attr.charAt(0) === "$" ) {
       if ( LAY.$checkIfImmidiateReadonly( attr ) ) {
         this.val = part.getImmidiateReadonlyVal( attr );
       }

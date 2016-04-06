@@ -37,13 +37,6 @@ LAY.run({
           }
         }
       }
-    },
-    "Body": {
-      "Content": {
-        "Box": {
-
-        }
-      }
     }
   }
 });
@@ -54,7 +47,7 @@ LAY.run({
 QUnit.test( "Level: root width", function( assert ) {
   // TODO: check if viewport width/height matches the rootlevel
   //       and also for change
-  
+
   assert.ok(true, "passed todoo")
   //assert.strictEqual( 1 == 1, "Passed!" );
 });
@@ -67,20 +60,6 @@ QUnit.test( "LAY.level()", function( assert ) {
 });
 
 
-QUnit.test( "Level.level()", function( assert ) {
-  assert.strictEqual( LAY.level("/Header").level("Text") ,
-   LAY.$pathName2level[ "/Header/Text" ],
-    "Child" );
-  assert.strictEqual( LAY.level("/Header/Text").level("../") ,
-   LAY.$pathName2level[ "/Header" ], "Parent" );
-  assert.strictEqual( LAY.level("/Header").level("../Body") ,
-    LAY.$pathName2level[ "/Body" ], "Sibling" );
-  assert.strictEqual( LAY.level("/Header/Text").level("../../") ,
-    LAY.$pathName2level[ "/" ], "Ancestor" );
-  assert.strictEqual( LAY.level("/Header/Text").level("../../Body") ,
-    LAY.$pathName2level[ "/Body" ], "Cousin" );
-
-});
 
 
 

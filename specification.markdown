@@ -368,8 +368,9 @@ Defaults:
         spread: [ dropShadow number (in pixel) [ currently disabled due to lack of browser support]],
         color: [ dropShadow LAY.Color ],
         value: [ blur (number in pixels) ] |  
-          [ brightness ( number in fraction (percent)) ] |  
-          [ contrast ( number in fraction (percent)) ] |
+          [ brightness: ( number in fraction (percent)) ] |  
+          [ blur: ( blur amount (in pixels)) ] |  
+          [ contrast: ( number in fraction (percent)) ] |
           [ grayscale: number (in fraction (percent))] |
           [ hueRotate: number (in degrees) ] |
           [ invert: number (in fraction (percent)) ] |
@@ -962,10 +963,13 @@ would essentially compile to:
     '~/'
 
   - Closest View
-    '$' or "$/"
+    '$'
 
   - Closest Page
-    '@' or "@/"
+    '@'
+
+  - Closest Level with name "level"
+    '^< level >'
 
   - Many (by value of predetermined id key):
     /Page/Feed/Post:507c7f79bcf86cd7994f6c0e
@@ -1202,7 +1206,7 @@ fn: function iterated on each level, takes in 4 arguments:
 Transitions for numeric prop-typed attributes.
 
 	{
-      all: { duration: 100, type: "spring", args: { tension: 100 } },
+      all: { type: "spring", args: { tension: 100 } },
       left: { duration: 200},
       top: { delay: 500 },
       opacity: { duration:2000, done: function(){ console.log("opaque") }  }
@@ -1230,8 +1234,8 @@ The corresponding arguments provided within args are:
     - c: float between 0 and 1
     - d: float between 0 and 1
   - "spring"
-    - tension
-    - friction
+    - tension (default: 300)
+    - friction (default: 20)
     - velocity (default: 0)
     - threshold (default: 0.001)
 

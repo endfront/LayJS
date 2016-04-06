@@ -123,6 +123,7 @@
       inputAutocorrect: true,
       inputDisabled: false,
 
+      image: null,
       imageAlt: null,
 
       link: null,

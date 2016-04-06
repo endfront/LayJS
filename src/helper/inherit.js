@@ -132,20 +132,27 @@
 
 
 
+    function concatenateArray(intoLson, fromLson, key) {
+      var
+        intoItemsS = intoLson[key],
+        fromItemS = fromLson[key];
+
+      if ( fromItemS ) {
+        if ( !intoItemsS ) {
+          intoItemsS = intoLson[key] = [];
+        }
+        intoLson[key] = intoItemsS.concat( fromItemS );
+      }
+    }
     // Precondition: `into<Scope>.key (eg: intoLAY.key)` is already defined
     var key2fnInherit = {
 
       $load: function( intoLson, fromLson ) {
-        var
-          intoLoadFnS = intoLson.$load,
-          fromLoadFnS = fromLson.$load;
+        concatenateArray(intoLson, fromLson, "$load");
+      },
 
-        if ( fromLoadFnS ) {
-          if ( !intoLoadFnS ) {
-            intoLoadFnS = intoLson.$load = [];
-          }
-          intoLson.$load = intoLoadFnS.concat( fromLoadFnS );
-        }
+      $extfonts: function () {
+        concatenateArray(intoLson, fromLson, "$extfonts");
       },
 
       data: function( intoLson, fromLson ) {

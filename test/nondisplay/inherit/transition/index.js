@@ -10,7 +10,7 @@ var fnStateDone = function () {};
 
 
 var externalInherit = {
-  
+
   transition: {
     all: {
       type: "external",
@@ -143,7 +143,7 @@ LAY.run({
                           mixed3: "state"
                         }
                       },
-                      
+
                       state: {
                         type: "state",
                         duration: stateDuration,
@@ -152,9 +152,9 @@ LAY.run({
                           mixed2: "state"
                         }
                       }
-                    }   
+                    }
                   },
-                  
+
                 }
               }
             }
@@ -319,5 +319,3 @@ QUnit.test( "LSON.inherit", function( assert ) {
 
 
 });
-
-

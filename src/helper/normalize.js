@@ -93,6 +93,8 @@
       errorReadonly = "type"
     } else if ( lson.view ) {
       errorReadonly = "view";
+    } else if ( lson.extfonts ) {
+      errorReadonly = "extfonts";
     }
     if ( errorReadonly ) {
       LAY.$error("Prefix readonly '" +
@@ -181,6 +183,10 @@
 
     $page: function (lson) {
       checkAndThrowErrorAttrAsTake( "$page", lson.$page );
+    },
+
+    $extfonts: function (lson) {
+      checkAndThrowErrorAttrAsTake( "$extfonts", lson.$extfonts );
     },
 
     $inherit: function (lson) {

@@ -5,7 +5,7 @@
 
     LAY.$normalize( rootLson );
     setRuntimeGlobals();
-    ( new LAY.Level( "/", rootLson, undefined ) ).$init();
+    new LAY.Level("", rootLson, undefined);
     LAY.$solve();
     window.onresize = updateSize;
 

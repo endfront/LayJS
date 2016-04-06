@@ -9,8 +9,8 @@
   LAY.$springTransition = function( duration, args ) {
     this.curTime = 0;
     this.value = 0;
-    this.friction = parseFloat( args.friction );
-    this.tension = parseFloat( args.tension );
+    this.friction = parseFloat( args.friction || 20 );
+    this.tension = parseFloat( args.tension || 300 );
     this.velocity = parseFloat( args.velocity || 0 );
 
     this.threshold = parseFloat( args.threshold || ( 1 / 1000 ) );

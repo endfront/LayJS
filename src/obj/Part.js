@@ -149,7 +149,7 @@
   document.body.appendChild( imageSizeMeasureNode );
 
 
-  LAY.Part = function ( level ) {
+  LAY.Part = function (level) {
 
     this.level = level;
     this.node = undefined;
@@ -180,6 +180,7 @@
     this.formationX = undefined;
     this.formationY = undefined;
 
+    this.init();
   };
 
   function getInputType ( type ) {
@@ -263,6 +264,7 @@
         part.isImageLoaded = true;
         part.updateNaturalWidth();
         part.updateNaturalHeight();
+        LAY.$isNoTransition = true;
         LAY.$solve();
       });
     } else if ( this.type === "video" ) {
@@ -271,6 +273,7 @@
         part.isVideoLoaded = true;
         part.updateNaturalWidth();
         part.updateNaturalHeight();
+        LAY.$isNoTransition = true;
         LAY.$solve();
       });
     }
@@ -836,9 +839,9 @@
         undefined );
   };
 
-  LAY.Part.prototype.updateTransitionProp = function ( transitionProp ) {
+  LAY.Part.prototype.updateTransitionProp = function (transitionProp) {
 
-    if ( this.isInitiallyRendered ) {
+    if (this.isInitiallyRendered && !LAY.$isNoTransition) {
       var
         attr2attrVal = this.level.attr2attrVal,
         attr, attrVal,
@@ -919,7 +922,6 @@
           }
         }
       } else {
-
         this.updateTransitionAttrVal(
            attr2attrVal[ allAffectedProp || transitionProp ],
            transitionType, transitionDelay, transitionDuration,
@@ -933,6 +935,9 @@
     transitionType, transitionDelay, transitionDuration,
     transitionArg2val, transitionDone  ) {
 
+    if (attrVal === undefined) {
+      return;
+    }
     // First check if the transition information is complete
     if (!attrVal.isDeltaTransitionable &&
       (transitionDelay || transitionDone)) {

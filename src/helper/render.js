@@ -6,14 +6,14 @@
   * Optional argument of `timeNow`
   * which represent the previous time frame
   */
-  LAY.$render = function ( timeNow ) {
+  LAY.$render = function (timeNow) {
     if ( ( ( LAY.$renderDirtyPartS.length !== 0 ) ||
        LAY.isDataTravelling
        ) ) {
 
       if ( timeNow ) {
         LAY.$prevTimeFrame = timeNow;
-        window.requestAnimationFrame( render );
+        window.requestAnimationFrame(render);
       } else {
         LAY.$prevTimeFrame = performance.now() - 16.7;
         render();
@@ -45,29 +45,22 @@
 
     LAY.$isRendering = true;
 
-    for ( x = 0; x < renderDirtyPartS.length; x++ ) {
-
+    for ( x=0; x<renderDirtyPartS.length; x++ ) {
       renderDirtyPart = renderDirtyPartS[ x ];
-
       travelRenderDirtyAttrValS = renderDirtyPart.travelRenderDirtyAttrValS;
       normalRenderDirtyAttrValS = renderDirtyPart.normalRenderDirtyAttrValS;
-
       renderCallS = [];
 
-      for ( y = 0; y < travelRenderDirtyAttrValS.length; y++ ) {
-
+      for ( y=0; y<travelRenderDirtyAttrValS.length; y++ ) {
         travelRenderDirtyAttrVal = travelRenderDirtyAttrValS[ y ];
-
-        if ( travelRenderDirtyAttrVal.isTransitionable ) {
-
+        if (travelRenderDirtyAttrVal.isTransitionable) {
           transitionAttrVal( travelRenderDirtyAttrVal, dataTravellingDelta );
             LAY.$arrayUtils.pushUnique(
                renderCallS, travelRenderDirtyAttrVal.renderCall );
-
         }
       }
 
-      for ( y = 0; y < normalRenderDirtyAttrValS.length; y++ ) {
+      for ( y=0; y<normalRenderDirtyAttrValS.length; y++ ) {
         normalRenderDirtyAttrVal = normalRenderDirtyAttrValS[ y ];
         isNormalAttrValTransitionComplete = true;
         if ( normalRenderDirtyAttrVal.calcVal !== undefined ) {
@@ -134,15 +127,15 @@
       }
 
       if ( !renderDirtyPart.isInitiallyRendered &&
-         LAY.$renderDirtyPartS.indexOf( renderDirtyPart ) === -1 ) {
+        LAY.$renderDirtyPartS.indexOf( renderDirtyPart ) === -1 ) {
         LAY.$arrayUtils.pushUnique( renderNewLevelS,
          renderDirtyPart.level );
       }
     }
 
-    LAY.$isRendering = false;
 
-    for ( i = 0, len = renderNewLevelS.length; i < len; i++ ) {
+    // Execute loads (1) part loads
+    for (i = 0, len = renderNewLevelS.length; i<len; i++) {
       renderNewLevel = renderNewLevelS[i];
       renderNewLevel.part.isInitiallyRendered = true;
       var fnLoadS = renderNewLevel.lson.$load;
@@ -152,6 +145,14 @@
         }
       }
     }
+
+    // Execute loads (2) many loads
+    executeManyLoads();
+    // Execute state installations/uninstallation
+    executeStateInstallation();
+
+
+    LAY.$isRendering = false;
 
     if ( LAY.$isSolveRequiredOnRenderFinish ) {
       LAY.$isSolveRequiredOnRenderFinish = false;
@@ -177,5 +178,72 @@
           );
     }
   }
+
+  function executeManyLoads () {
+    var newManyS = LAY.$newManyS;
+    while (newManyS.length) {
+      var newMany = newManyS[0];
+      newManyS.shift();
+      newMany.isLoaded = true;
+      var fnLoadS = newMany.level.lson.$load;
+      if ( newMany.level.isExist && fnLoadS ) {
+        while (fnLoadS.length) {
+          var fnLoad = fnLoadS[0];
+          fnLoadS.shift();
+          fnLoad.call(newMany.level);
+        }
+      }
+    }
+  }
+
+  function executeStateInstallation () {
+    var
+      newlyInstalledStateLevelS = LAY.$newlyInstalledStateLevelS,
+      newlyUninstalledStateLevelS = LAY.$newlyUninstalledStateLevelS;
+
+    while (newlyInstalledStateLevelS.length) {
+      var newlyInstalledStateLevel = newlyInstalledStateLevelS[0];
+      newlyInstalledStateLevelS.shift();
+      var newlyInstalledStateS = newlyInstalledStateLevel.newlyInstalledStateS;
+      if ( newlyInstalledStateLevel.isExist ) {
+        while (newlyInstalledStateS.length) {
+          var newlyInstalledState = newlyInstalledStateS[0];
+          newlyInstalledStateS.shift();
+          var attrValNewlyInstalledStateInstall =
+            newlyInstalledStateLevel.attr2attrVal[ newlyInstalledState +
+            ".install" ];
+          attrValNewlyInstalledStateInstall &&
+            ( LAY.$type(attrValNewlyInstalledStateInstall.calcVal ) ===
+            "function") &&
+            attrValNewlyInstalledStateInstall.calcVal.call(
+            newlyInstalledStateLevel );
+        }
+      }
+    }
+
+    while (newlyUninstalledStateLevelS.length) {
+      var newlyUninstalledStateLevel = newlyUninstalledStateLevelS[0];
+      newlyUninstalledStateLevelS.shift();
+      var newlyUninstalledStateS = newlyUninstalledStateLevel.newlyUninstalledStateS;
+      if ( newlyUninstalledStateLevel.isExist ) {
+        while (newlyUninstalledStateS.length) {
+          var newlyUninstalledState = newlyUninstalledStateS[0];
+          newlyUninstalledStateS.shift();
+          var attrValNewlyUninstalledStateUninstall =
+            newlyUninstalledStateLevel.attr2attrVal[ newlyUninstalledState +
+            ".uninstall" ];
+          attrValNewlyUninstalledStateUninstall &&
+            ( LAY.$type(attrValNewlyUninstalledStateUninstall.calcVal ) ===
+            "function") &&
+            attrValNewlyUninstalledStateUninstall.calcVal.call(
+            newlyUninstalledStateLevel );
+        }
+      }
+    }
+
+  }
+
+
+
 
 })();
