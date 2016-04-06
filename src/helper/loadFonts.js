@@ -2,7 +2,7 @@
   "use strict";
 
   var
-    TEST_CONTENT = "abcdefghijklmnopqrstuvwxyz1234567890 &#xf0;",
+    TEST_CONTENT = "abcdefghijklmnopqrstuvwxyz1234567890 &#xf2;",
     DEFAULT_FONT_FAMILY = "serif,verdana,sans-serif",
     DEFAULT_WIDTH = (function () {
       var node = initiateNode(DEFAULT_FONT_FAMILY);
