@@ -2,8 +2,8 @@
   "use strict";
 
   var
-    TEST_CONTENT = "abcdefghijklmnopqrstuvwxyz1234567890",
-    DEFAULT_FONT_FAMILY = "serif, sans-serif, verdana",
+    TEST_CONTENT = "abcdefghijklmnopqrstuvwxyz1234567890 &#xf0;",
+    DEFAULT_FONT_FAMILY = "serif,verdana,sans-serif",
     DEFAULT_WIDTH = (function () {
       var node = initiateNode(DEFAULT_FONT_FAMILY);
       var width = getWidth(node);
@@ -22,16 +22,12 @@
 
     node.style.whiteSpace = "nowrap";
     node.style.fontSize = "32px";
+    node.innerHTML = TEST_CONTENT;
     document.body.appendChild(node);
     return node;
   }
 
   function getWidth(node) {
-    if ( LAY.$isBelowIE9 ) {
-      node.innerText = TEST_CONTENT;
-    } else {
-      node.textContent = TEST_CONTENT;
-    }
     return node.offsetWidth;
   }
 
