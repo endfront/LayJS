@@ -1,6 +1,5 @@
 
 Current:
-  - $extfonts, recalculate without animation
   - fix message empty bug (zone)
   - fix schema for zones
 
