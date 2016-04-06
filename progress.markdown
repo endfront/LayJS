@@ -10,6 +10,7 @@ Current:
   - change native input causestextarea resize not to happen immidiately (check file:///Users/relfor/git/LayJS/LayJS/tmp/autosizetextarea/index.html)
   - multiple transition prop not working (with commas)
   - api for transitions similar to formation (with support for default args)
+  - add $extfontss, $page, $view to lazy level
   - repeat ids should throw error
   - delay causes animation problems
   - custom props? bottom pad and right pad (longer/wider)

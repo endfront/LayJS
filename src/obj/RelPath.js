@@ -26,7 +26,6 @@
         this.path = relativePath;
       } else {
         if ( relativePath.charAt(0) === "^") {
-
           var allIndices = [
             relativePath.indexOf("$"),
             relativePath.indexOf("@"),
@@ -51,15 +50,15 @@
         }
 
         var i=0;
-        while ( i !== relativePath.length - 1 &&
-          [".", "~", "$", "@"].indexOf(relativePath.charAt(i)) !== -1 ) {
+        while ( i < relativePath.length &&
+          [".", "~", "#", "@"].indexOf(relativePath.charAt(i)) !== -1 ) {
           if ( relativePath.slice(i, i+3) === "../" ) {
             this.traverseArray.push(0);
             i +=3;
           } else if ( relativePath.slice(i, i+2) === "~/" ) {
             this.traverseArray.push(1);
             i += 2;
-          } else if ( relativePath.charAt(i) === "$" ) {
+          } else if ( relativePath.charAt(i) === "#" ) {
             this.traverseArray.push(2);
             i++;
           } else if ( relativePath.charAt(i) === "@" ) {
@@ -127,7 +126,7 @@
             do {
               level = level.parentLevel;
               if ( level === undefined ) {
-                LAY.$error("No View Found ($) from level " +
+                LAY.$error("No View Found (#) from level " +
                   referenceLevel.pathName);
               }
             } while ( !level.isView );

@@ -963,7 +963,7 @@ would essentially compile to:
     '~/'
 
   - Closest View
-    '$'
+    '#'
 
   - Closest Page
     '@'

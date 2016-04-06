@@ -28,10 +28,10 @@
   }
 
   /*
-  * Must not contain ".", "/", "~", ":", "@","$", "^"
+  * Must not contain ".", "/", "~", ":", "@","#", "^"
   */
   function checkIfNoIllegalCharacters ( name ) {
-    return !(/\.|\/|\~|\:|\@|\$|\^/.test(name));
+    return !(/\.|\/|\~|\:|\@|\#|\^/.test(name));
   }
 
   LAY.$checkIsValidUtils = {
