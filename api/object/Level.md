@@ -143,3 +143,12 @@ Adds new children to the level.
 they have a unique path)
 
 **lson**: (object) this argument refers to [LSON](../LSON/LSON.md).  
+
+`addChild( name, lson )`
+
+Adds new child to the level with name `name` and lson `lson`.  
+*Note*: Ensure that the child (by name) within the new LSON do not already exist (i.e
+they have a unique path)
+
+**name**: (string) the name of the child  
+**lson**: (object) this argument refers to [LSON](../LSON/LSON.md).  

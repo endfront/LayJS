@@ -113,15 +113,11 @@
       fromKey2value = fromObject[key];
       intoKey2value = intoObject[key];
 
-
       if ( intoKey2value === undefined ) {
-
         intoKey2value = intoObject[key] = {};
-
       }
 
       for ( fromKey in fromKey2value ) {
-
         fromKeyValue = fromKey2value[ fromKey ];
         intoKey2value[ fromKey ] = ( isDuplicateOn &&
             checkIsMutable( fromKeyValue ) ) ?

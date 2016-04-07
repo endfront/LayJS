@@ -284,6 +284,13 @@
     }
   };
 
+
+  LAY.Level.prototype.addChild = function ( name, lson ) {
+    var wrapperLson = {};
+    wrapperLson[name] = lson;
+    this.addChildren(wrapperLson);
+  };
+
   LAY.Level.prototype.addChildren = function ( name2lson ) {
 
     for ( var name in name2lson ) {
@@ -292,6 +299,7 @@
       this.$addChild(name, name2lson[name]);
       this.lson.children[name] = name2lson[name];
     }
+    LAY.$solve();
   };
 
 

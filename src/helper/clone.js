@@ -47,9 +47,10 @@
 
     if ( typeof parent !== "object" ||
        parent instanceof LAY.Level ||
-       parent instanceof LAY.Take ) {
+       parent instanceof LAY.Take ||
+        parent instanceof Node) {
       return parent;
-    } 
+    }
 
     var allParents = [];
     var allChildren = [];

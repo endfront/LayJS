@@ -53,10 +53,7 @@
   }
   FontLoader.prototype.try = function () {
     var calcWidth = getWidth(this.node);
-    console.log(calcWidth);
     if (calcWidth !== DEFAULT_WIDTH) {
-      //alert(this.name);
-      console.log("success", this.name);
       removeNode(this.node);
       recurseFontUpdate(LAY.level("/"), this.name, false);
     } else {

@@ -1,17 +1,21 @@
 
 Current:
+  - data false not setting for cancel zone creation
   - fix message empty bug (zone)
-  - fix schema for zones
-
 
   - addChildren duplicate data/row (use lson for readonly)
 
+  - add input range
+  - input type number (automatically adds pattern for ios support)
+  - rowInc, rowDec, rowToggle, dataInc ...
   - change native input causestextarea resize not to happen immidiately (check file:///Users/relfor/git/LayJS/LayJS/tmp/autosizetextarea/index.html)
   - multiple transition prop not working (with commas)
+  - lvl.part.undefined
   - api for transitions similar to formation (with support for default args)
   - add $extfontss, $page, $view to lazy level
   - repeat ids should throw error
   - delay causes animation problems
+  - addChild
   - custom props? bottom pad and right pad (longer/wider)
   - scale shorthand?
   - filter (many-type prop) defaults
