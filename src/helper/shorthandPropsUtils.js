@@ -7,7 +7,6 @@
   centeralizedShorthandPropS;
 
   shorthandProp2_longhandPropS_ = {
-
     transform:[
       "z",
       "scaleX", "scaleY", "scaleZ",

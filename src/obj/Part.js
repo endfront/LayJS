@@ -228,7 +228,7 @@
       var tag = nonInputType2tag[this.type];
       if (this.level.lson.states.root.props.link !== undefined ) {
         this.node = document.createElement("a");
-        if (inputTag !== "div" ) {
+        if (tag !== "div" ) {
           this.isWrappedLink = true;
           this.actingNode =  document.createElement(tag);
           this.actingNode.style.cssText = defaultCss;
@@ -918,7 +918,6 @@
                transitionType, transitionDelay, transitionDuration,
                transitionArg2val, transitionDone
              );
-
           }
         }
       } else {

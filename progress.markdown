@@ -1,37 +1,37 @@
 
 Current:
-  - data false not setting for cancel zone creation
-  - fix message empty bug (zone)
 
-  - addChildren duplicate data/row (use lson for readonly)
+  - do coded create turf
+  - inherit within inherit (object)
+  - link wrapper problem cause fontawesome group back (turf) misalignment
+  - custom props? bottom pad and right pad (longer/wider), scale, origin shorthand?
+  - make lson readonly (i.e makes clones of color and objects.
+    addChildren duplicate data/row (use lson for readonly)
 
-  - add input range
   - input type number (automatically adds pattern for ios support)
   - rowInc, rowDec, rowToggle, dataInc ...
   - change native input causestextarea resize not to happen immidiately (check file:///Users/relfor/git/LayJS/LayJS/tmp/autosizetextarea/index.html)
   - multiple transition prop not working (with commas)
   - lvl.part.undefined
   - api for transitions similar to formation (with support for default args)
-  - add $extfontss, $page, $view to lazy level
+  - add $extfonts, $page, $view to lazy level
   - repeat ids should throw error
   - delay causes animation problems
-  - addChild
-  - custom props? bottom pad and right pad (longer/wider)
-  - scale shorthand?
   - filter (many-type prop) defaults
-  - markdown lay.take method
-  - docs .md link convert to .html link
+  - LAY.Take.markdown method
+  - docs (api on website) .md link convert to .html link
+  - color name direct convert from string
   - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - what if "$hovering" or any of the event binding events
     is called from attr() after having themselves deferenced
     then what happens?
   - checkIsValidUtils.isExpanderAttr() <- make similar to prevent takes of "$type", "$inherit", "$obdurate"
-  - color name direct convert from string
   - remove link type, link and image within same level
   - error: check if explicit type such as "html" has no given prop
   - error: undefined text string val (ie not a string)
   - error: unknown formation know
   - update format string doc (option for object argument)
+  - row key has take (should update "rows" attr)
 
   spec:
   - $hash, $pathname, etc
@@ -45,12 +45,13 @@ Future:
     (eg:"root.textSize" === "textSize")
   - test for popstate (url) change
   - add "style" prop
+  - add input range
   - switching between exist bug (zone app)
   - take.replace
   - lay.take testing
   - image without height/width
-  - naturalwidth/height of video
-  - font loading
+  - naturalWidth/Height of video
+  - add input range
   - LAY.Many.rowsMap(fn, query)
   - exist delay
   - LAY.view method
@@ -79,8 +80,6 @@ Future:
   - $numberOfChildren, $numberOfDisplayedChildren
   - Add support for other HTML5 input types
   - 'when' for formation, it should include function handler for insertion of new item into the formation alongwith deletion.
-  - LAY.Color mix
-
 
 Complain:
   - poor scrolling GPU performance: http://indiegamr.com/ios-html5-performance-issues-with-overflow-scrolling-touch-and-hardware-acceleration/

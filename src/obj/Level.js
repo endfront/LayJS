@@ -84,7 +84,7 @@
   LAY.Level.prototype.level = function ( relativePath, attr ) {
     var lvl = ( new LAY.RelPath( relativePath ) ).resolve( this );
     if (attr !== undefined) {
-      if (attr === undefined) {
+      if (lvl !== undefined) {
         return lvl.attr(attr);
       }
     } else {

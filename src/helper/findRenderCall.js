@@ -1,29 +1,49 @@
 (function(){
   "use strict";
 
-  LAY.$findRenderCall = function( prop, level ) {
+  var expandedPropName2renderCall = {
+    z: "transform",
+    scaleX: "transform",
+    scaleY: "transform",
+    scaleZ: "transform",
+    rotateX: "transform",
+    rotateY: "transform",
+    rotateZ: "transform",
+    skewX: "transform",
+    skewY: "transform",
+    left: "x",
+    shiftX: "x",
+    top: "y",
+    shiftY: "y",
+    originX: "origin",
+    originY: "origin",
+    originZ: "origin",
+    overflowX: "overflow",
+    overflowY: "overflow",
+    backgroundSizeX: "backgroundPosition",
+    backgroundSizeY: "backgroundSize"
+  };
 
-    var
-      renderCall,
-      multipleTypePropMatchDetails;
+
+
+  LAY.$findRenderCall = function( prop, level ) {
 
     if ( level.isHelper ) {
       return "";
-    } else if ( !LAY.$checkIsValidUtils.propAttr( prop ) ||
-      ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf( prop ) !== -1 ||
-      LAY.$shorthandPropsUtils.checkIsDecentralizedShorthandProp( prop ) ) {
+    } else if ( !LAY.$checkIsValidUtils.propAttr(prop) ||
+      ( [ "centerX", "right", "centerY", "bottom" ] ).indexOf(prop) !== -1 ||
+      // TODO: check instead (below) for a custom prop
+      LAY.$shorthandPropsUtils.checkIsDecentralizedShorthandProp(prop) ) {
         return undefined;
       } else {
-        multipleTypePropMatchDetails = LAY.$findMultipleTypePropMatchDetails(
-        prop );
+        var multipleTypePropMatchDetails =
+          LAY.$findMultipleTypePropMatchDetails(prop);
 
         if ( multipleTypePropMatchDetails ) {
-          return multipleTypePropMatchDetails[ 1 ];
+          return multipleTypePropMatchDetails[1];
         }
 
-        renderCall =
-          LAY.$shorthandPropsUtils.getShorthandPropCenteralized(
-            prop );
+        var renderCall = expandedPropName2renderCall[prop];
         if ( renderCall !== undefined ) {
           if ( level.isGpu &&
             ( renderCall === "x" ||

@@ -202,7 +202,7 @@
         // prop transition directives are stacked
         // below the "all" transition direction
         //
-        // Eg: a shorthand property such as "rotateX"
+        // Eg: a prop such as "rotateX"
         // would inherit values from "all"
         //
         if ( intoTransition.all ) {
