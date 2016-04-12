@@ -34,8 +34,6 @@
       solvedLevelS[i].$decideExistence();
     }
 
-
-
     return newLevelS.length === 0 ? 0 :
       isSolveProgressedOnce ? 1 : 2;
 

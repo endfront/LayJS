@@ -18,9 +18,9 @@
     originX: "origin",
     originY: "origin",
     originZ: "origin",
-    overflowX: "overflow",
-    overflowY: "overflow",
-    backgroundSizeX: "backgroundPosition",
+    backgroundPositionX: "backgroundPosition",
+    backgroundPositionY: "backgroundPosition",
+    backgroundSizeX: "backgroundSize",
     backgroundSizeY: "backgroundSize"
   };
 
