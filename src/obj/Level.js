@@ -22,7 +22,7 @@
 
     // True if the Level is a Part Level,
     // false if the Level is a Many Level.
-    this.isPart = false;
+    this.isPart = true;
 
     // specified by the "$view" of lson
     this.isView = false;
@@ -112,8 +112,8 @@
 
   LAY.Level.prototype.attr = function ( attr ) {
 
-    if ( this.attr2attrVal[ attr ] ) {
-      return this.attr2attrVal[ attr ].calcVal;
+    if ( this.attr2attrVal[attr] ) {
+      return this.attr2attrVal[attr].calcVal;
     } else {
       // Check if it is a doing event
       if ( attr.charAt( 0 ) === "$" ) {
@@ -126,7 +126,7 @@
       }
 
       if ( this.$createLazyAttr( attr, true ) ) {
-        var attrVal = this.attr2attrVal[ attr ];
+        var attrVal = this.attr2attrVal[attr];
         attrVal.give(LAY.$emptyAttrVal);
         LAY.$solve();
         return attrVal.calcVal;
@@ -323,7 +323,7 @@
       attr2attrVal = this.attr2attrVal;
 
     for ( var attr in attr2attrVal ) {
-      attr2attrVal[ attr ].remove();
+      attr2attrVal[attr].remove();
     }
 
     if ( this.isPart ) {
@@ -585,7 +585,7 @@
     var attr2attrVal = this.attr2attrVal;
     for ( var attr in attr2attrVal ) {
       if ( attr !== "exist" ) {
-        attr2attrVal[ attr ].remove();
+        attr2attrVal[attr].remove();
       }
     }
 
@@ -709,19 +709,19 @@
 
     var attr, val, attrVal;
     for ( attr in attr2val ) {
-      val = attr2val[ attr ];
-      attrVal = this.attr2attrVal[ attr ];
-      if ( ( attrVal === undefined ) ) {
-        attrVal = this.attr2attrVal[ attr ] = new LAY.AttrVal( attr, this );
-      }
-      attrVal.update( val );
+      val = attr2val[attr];
+      attrVal = this.attr2attrVal[attr];
 
+      if (attrVal === undefined) {
+        attrVal = this.attr2attrVal[attr] = new LAY.AttrVal( attr, this );
+      }
+      attrVal.update(val);
     }
   };
 
   LAY.Level.prototype.$createAttrVal = function ( attr, val ) {
 
-    ( this.attr2attrVal[ attr ] =
+    ( this.attr2attrVal[attr] =
       new LAY.AttrVal( attr, this ) ).update( val );
 
   };
@@ -736,13 +736,13 @@
      splitAttrLsonComponentS, attrLsonComponentObj, i, len,
      firstAttrLsonComponent;
 
-    if ( LAY.$miscPosAttr2take[ attr ] ) {
+    if ( LAY.$miscPosAttr2take[attr] ) {
       this.$createAttrVal( attr,
-        LAY.$miscPosAttr2take[ attr ] );
+        LAY.$miscPosAttr2take[attr] );
     } else if ( attr.charAt(0) === "$" ) { //readonly
       if ( [ "$type", "$load", "$id", "$inherit", "$obdurate" ].indexOf(
             attr ) !== -1 ) {
-          this.$createAttrVal( attr, this.lson[ attr ] );
+          this.$createAttrVal( attr, this.lson[attr] );
       } else if ( attr === "$path" ) {
         this.$createAttrVal( "$path", this.pathName );
       } else {
@@ -758,6 +758,9 @@
       }
     } else {
       if ( attr.indexOf(".") === -1 ) {
+        if (!this.isInitialized) {
+          return false;
+        }
         var lazyVal = LAY.$getLazyPropVal( attr,
           this.parentLevel === undefined,
           (this.type === "input" && this.inputType === "lines")
@@ -840,8 +843,9 @@
   LAY.Level.prototype.$undefineStateProjectedAttrs = function() {
 
     for ( var attr in this.attr2attrVal ) {
-      var attrVal = this.attr2attrVal[ attr ];
-      if ( attrVal !== undefined && attrVal.isStateProjectedAttr ) {
+      var attrVal = this.attr2attrVal[attr];
+      if ( attrVal !== undefined &&
+          (attrVal.isStateProjectedAttr && !attr.isCreatedLazily) ) {
         attrVal.update( undefined );
       }
     }
@@ -929,20 +933,20 @@
 
 
   LAY.Level.prototype.$getAttrVal = function ( attr ) {
-    return this.attr2attrVal[ attr ];
+    return this.attr2attrVal[attr];
   };
 
   /* Manually change attr value */
   LAY.Level.prototype.$changeAttrVal = function ( attr, val ) {
-    if ( this.attr2attrVal[ attr ] ) {
-      this.attr2attrVal[ attr ].update( val );
+    if ( this.attr2attrVal[attr] ) {
+      this.attr2attrVal[attr].update( val );
       LAY.$solve();
     }
   };
 
   LAY.Level.prototype.$requestRecalculation = function ( attr ) {
-    if ( this.attr2attrVal[ attr ] ) {
-      this.attr2attrVal[ attr ].requestRecalculation();
+    if ( this.attr2attrVal[attr] ) {
+      this.attr2attrVal[attr].requestRecalculation();
       LAY.$solve();
     }
   };

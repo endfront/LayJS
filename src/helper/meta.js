@@ -11,7 +11,7 @@
       if ( lson[ fullMetaDomain ] === undefined ) {
         lson[ fullMetaDomain ] = {};
       }
-      lson[ fullMetaDomain ][ attr ] = val;
+      lson[ fullMetaDomain ][attr] = val;
 
     },
 
@@ -21,7 +21,7 @@
       if ( lson[ fullMetaDomain ] === undefined ) {
         return undefined;
       } else {
-        return lson[ fullMetaDomain ][ attr ];
+        return lson[ fullMetaDomain ][attr];
       }
     },
 

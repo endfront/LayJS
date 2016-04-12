@@ -1,13 +1,11 @@
 
 Current:
-
+  - overflow: inexistent prop
   - do coded create turf
   - inherit within inherit (object)
-  - link wrapper problem cause fontawesome group back (turf) misalignment
   - custom props? bottom pad and right pad (longer/wider), scale, origin shorthand?
   - make lson readonly (i.e makes clones of color and objects.
     addChildren duplicate data/row (use lson for readonly)
-
   - input type number (automatically adds pattern for ios support)
   - rowInc, rowDec, rowToggle, dataInc ...
   - change native input causestextarea resize not to happen immidiately (check file:///Users/relfor/git/LayJS/LayJS/tmp/autosizetextarea/index.html)

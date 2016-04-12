@@ -75,7 +75,7 @@
       for (var i=0; i<childLevelS.length; i++) {
         recurseFontUpdate(childLevelS[i], fontName);
       }
-    } else if (lvl.part &&
+    } else if (lvl && lvl.part &&
         (lvl.part.isText)) {
     var textFamilyAttrVal = lvl.attr2attrVal.textFamily;
     if(
@@ -95,7 +95,7 @@
     var pathName2level = LAY.$pathName2level;
     for (var pathName in pathName2level) {
       var lvl = pathName2level[pathName];
-      if (lvl.part &&
+      if (lvl && lvl.part &&
           (lvl.part.isText)) {
           var textFamilyAttrVal = lvl.attr2attrVal.textFamily;
         if(

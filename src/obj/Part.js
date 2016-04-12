@@ -329,7 +329,7 @@
       if ( childLevel.isPart && !childLevel.isHelper &&
         childLevel.isExist ) {
         if ( checkIfLevelIsDisplayed( childLevel ) ) {
-          childLevelAttrVal = childLevel.attr2attrVal[ attr ];
+          childLevelAttrVal = childLevel.attr2attrVal[attr];
 
           if (
               ( childLevelAttrVal !== undefined ) &&
@@ -892,7 +892,7 @@
         LAY.$transitionType2args[ transitionType ] : [];
 
 
-      for ( i = 0, len = transitionArgS.length; i < len; i++ ) {
+      for ( i=0, len=transitionArgS.length; i<len; i++ ) {
 
         transitionArg2val[ transitionArgS[i] ] = (
            attr2attrVal[ transitionPrefix + "args." +
@@ -901,10 +901,9 @@
             transitionArgS[i] ].calcVal : undefined );
       }
 
-      if ( !allAffectedProp && ( transitionProp === "all" ) ) {
-
+      if ( !allAffectedProp && ( transitionProp === "all" )) {
         for ( attr in attr2attrVal ) {
-          attrVal = attr2attrVal[ attr ];
+          attrVal = attr2attrVal[attr];
           // Only invoke a transition if:
           // (1) The prop is renderable (i.e has a render call)
           // (2) The prop doesn't have a transition of its

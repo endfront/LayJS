@@ -99,11 +99,11 @@
 
   LAY.$eventReadonlyUtils = {
     checkIsEventReadonlyAttr: function ( attr ) {
-      return eventReadonly2_eventType2fnHandler_[ attr ] !==
+      return eventReadonly2_eventType2fnHandler_[attr] !==
         undefined;
     },
     getEventType2fnHandler: function ( attr ) {
-      return eventReadonly2_eventType2fnHandler_[ attr ];
+      return eventReadonly2_eventType2fnHandler_[attr];
     }
 
   };

@@ -562,7 +562,7 @@
           return false;
         }
 
-        if ( ( level.attr2attrVal[ attr ] === undefined ) )  {
+        if ( ( level.attr2attrVal[attr] === undefined ) )  {
           level.$createLazyAttr( attr );
           // return false to let the lazily created attribute
           // to calculate itself first (in the case of no
@@ -571,7 +571,7 @@
           return false;
         }
 
-        if ( level.attr2attrVal[ attr ].isRecalculateRequired ) {
+        if ( level.attr2attrVal[attr].isRecalculateRequired ) {
           return false;
         }
       }
