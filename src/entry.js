@@ -1,7 +1,7 @@
 /*
 * Copyright 2015 Raj Nathani
 * @license: MIT
-* @author: Raj Nathani <me@relfor.co>
+* @author: Raj Nathani <hello@rajnathani.com>
 */
 
 (function () {

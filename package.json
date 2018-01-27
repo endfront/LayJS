@@ -24,15 +24,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@bitbucket.org/relfor/lson.git"
-  },
   "keywords": [
     "engine",
     "mvc"
   ],
-  "author": "relfor <me@relfor.co>",
+  "author": "Raj Nathani <hello@rajnathani.com>",
   "license": "MIT",
   "homepage": "https://bitbucket.org/relfor/lson#readme"
 }

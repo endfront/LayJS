@@ -1,23 +1,23 @@
 
 Current:
-  - overflow: inexistent prop
-  - do coded create turf
+  - format with dict not working for website gradient example
+  	backgroundImage: LAY.take("repeating-linear-gradient(310deg, #{purpleTheme}, #{purpleTheme} 50px, \
+				#{darkPurpleTheme} 50px , #{darkPurpleTheme} 100px )").format(
+					{
+						purpleTheme: LAY.take("/", "data.purpleTheme"),
+						darkPurpleTheme: LAY.take("/", "data.purpleTheme").colorDarken(0.04)
+					}
+			),
+  - colorequals
   - inherit within inherit (object)
-  - custom props? bottom pad and right pad (longer/wider), scale, origin shorthand?
   - make lson readonly (i.e makes clones of color and objects.
     addChildren duplicate data/row (use lson for readonly)
-  - input type number (automatically adds pattern for ios support)
-  - rowInc, rowDec, rowToggle, dataInc ...
-  - change native input causestextarea resize not to happen immidiately (check file:///Users/relfor/git/LayJS/LayJS/tmp/autosizetextarea/index.html)
-  - multiple transition prop not working (with commas)
-  - lvl.part.undefined
-  - api for transitions similar to formation (with support for default args)
+  - change native input causestextarea resize not to happen immediately (check file:///Users/raj/git/LayJS/LayJS/tmp/autosizetextarea/index.html)
   - add $extfonts, $page, $view to lazy level
   - repeat ids should throw error
   - delay causes animation problems
   - filter (many-type prop) defaults
   - LAY.Take.markdown method
-  - docs (api on website) .md link convert to .html link
   - color name direct convert from string
   - (tmp/video.html) lazy defaultize many lson fargs which are mentioned in states but not otherwise
   - what if "$hovering" or any of the event binding events
@@ -27,9 +27,10 @@ Current:
   - remove link type, link and image within same level
   - error: check if explicit type such as "html" has no given prop
   - error: undefined text string val (ie not a string)
-  - error: unknown formation know
+  - error: unknown formation known
   - update format string doc (option for object argument)
   - row key has take (should update "rows" attr)
+  - states.<state>.onlyif should refer to <state>.onlyif
 
   spec:
   - $hash, $pathname, etc
@@ -37,6 +38,11 @@ Current:
   - formation spec (include part for creating formations)
   - add LAY.level.changeNativeInput/ScrollX/Y() to spec
   - update spec to have quotes around state names
+
+  zones:
+  - "^Create/Poll")
+  - do coded create turf (coloring off)
+
 
 Future:
   - lazy initiation for root state prop
